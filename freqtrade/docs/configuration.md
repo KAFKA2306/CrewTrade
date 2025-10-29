@@ -1,90 +1,83 @@
-# Configure the bot
+# ボットを設定する
 
-Freqtrade has many configurable features and possibilities.
-By default, these settings are configured via the configuration file (see below).
+Freqtrade には、多くの構成可能な機能と可能性があります。
+デフォルトでは、これらの設定は構成ファイルを介して構成されます (下記を参照)。
 
-## The Freqtrade configuration file
+## Freqtrade 設定ファイル
 
-The bot uses a set of configuration parameters during its operation that all together conform to the bot configuration. It normally reads its configuration from a file (Freqtrade configuration file).
+ボットは、動作中に一連の構成パラメーターを使用し、それらはすべてボット構成に準拠します。通常、その設定をファイル (Freqtrade 設定ファイル) から読み取ります。
 
-Per default, the bot loads the configuration from the `config.json` file, located in the current working directory.
+デフォルトでは、ボットは現在の作業ディレクトリにある「config.json」ファイルから構成を読み込みます。
 
-You can specify a different configuration file used by the bot with the `-c/--config` command-line option.
+`-c/--config` コマンドライン オプションを使用して、ボットによって使用される別の構成ファイルを指定できます。
 
-If you used the [Quick start](docker_quickstart.md#docker-quick-start) method for installing
-the bot, the installation script should have already created the default configuration file (`config.json`) for you.
+[クイックスタート](docker_quickstart.md#docker-quick-start)方法でインストールした場合
+ボットの場合、インストール スクリプトによってデフォルトの構成ファイル (`config.json`) がすでに作成されているはずです。
 
-If the default configuration file is not created we recommend to use `freqtrade new-config --config user_data/config.json` to generate a basic configuration file.
+デフォルトの設定ファイルが作成されていない場合は、「freqtrade new-config --config user_data/config.json」を使用して基本的な設定ファイルを生成することをお勧めします。
 
-The Freqtrade configuration file is to be written in JSON format.
+Freqtrade 設定ファイルは JSON 形式で記述されます。
 
-Additionally to the standard JSON syntax, you may use one-line `// ...` and multi-line `/* ... */` comments in your configuration files and trailing commas in the lists of parameters.
+標準の JSON 構文に加えて、構成ファイル内で 1 行の `// ...` および複数行の `/* ... */` コメントを使用したり、パラメータのリストの末尾にカンマを使用したりできます。
 
-Do not worry if you are not familiar with JSON format -- simply open the configuration file with an editor of your choice, make some changes to the parameters you need, save your changes and, finally, restart the bot or, if it was previously stopped, run it again with the changes you made to the configuration. The bot validates the syntax of the configuration file at startup and will warn you if you made any errors editing it, pointing out problematic lines.
+JSON 形式に詳しくなくても心配する必要はありません。選択したエディターで構成ファイルを開き、必要なパラメーターにいくつかの変更を加え、変更を保存して、最後にボットを再起動するか、以前に停止した場合は、構成に加えた変更を使用してボットを再実行します。ボットは起動時に構成ファイルの構文を検証し、編集中にエラーがあった場合は警告を発し、問題のある行を指摘します。
 
-### Environment variables
+### 環境変数
 
-Set options in the Freqtrade configuration via environment variables.
-This takes priority over the corresponding value in configuration or strategy.
+環境変数を介して Freqtrade 設定のオプションを設定します。
+これは、構成または戦略内の対応する値よりも優先されます。
 
-Environment variables must be prefixed with  `FREQTRADE__` to be loaded to the freqtrade configuration.
+環境変数を freqtrade 設定にロードするには、接頭辞として `FREQTRADE__` を付ける必要があります。
 
-`__` serves as level separator, so the format used should correspond to `FREQTRADE__{section}__{key}`.
-As such - an environment variable defined as  `export FREQTRADE__STAKE_AMOUNT=200` would result in `{stake_amount: 200}`.
+`__` はレベル区切り文字として機能するため、使用される形式は `FREQTRADE__{section}__{key}` に対応する必要があります。
+そのため、環境変数を「export FREQTRADE__STAKE_AMOUNT=200」として定義すると、結果は「{stake_amount: 200}」になります。
 
-A more complex example might be `export FREQTRADE__EXCHANGE__KEY=<yourExchangeKey>` to keep your exchange key secret. This will move the value to the `exchange.key` section of the configuration.
-Using this scheme, all configuration settings will also be available as environment variables.
+より複雑な例としては、交換キーを秘密に保つための「export FREQTRADE__EXCHANGE__KEY=<yourExchangeKey>」などがあります。これにより、値が設定の「exchange.key」セクションに移動されます。
+このスキームを使用すると、すべての構成設定を環境変数としても使用できるようになります。
 
-Please note that Environment variables will overwrite corresponding settings in your configuration, but command line Arguments will always win.
+環境変数は構成内の対応する設定を上書きしますが、コマンド ライン引数が常に優先されることに注意してください。
 
-Common example:
-
+一般的な例:
 ``` bash
 FREQTRADE__TELEGRAM__CHAT_ID=<telegramchatid>
 FREQTRADE__TELEGRAM__TOKEN=<telegramToken>
 FREQTRADE__EXCHANGE__KEY=<yourExchangeKey>
 FREQTRADE__EXCHANGE__SECRET=<yourExchangeSecret>
 ```
-
-Json lists are parsed as json - so you can use the following to set a list of pairs:
-
+Json リストは json として解析されるため、次を使用してペアのリストを設定できます。
 ``` bash
 export FREQTRADE__EXCHANGE__PAIR_WHITELIST='["BTC/USDT", "ETH/USDT"]'
 ```
+!!!注記
+    検出された環境変数は起動時にログに記録されます。そのため、値が構成に基づいて予想されるものと異なる理由が見つからない場合は、その値が環境変数から読み込まれていないことを確認してください。
 
-!!! Note
-    Environment variables detected are logged at startup - so if you can't find why a value is not what you think it should be based on the configuration, make sure it's not loaded from an environment variable.
+!!!ヒント「結合結果を検証する」
+    [show-config サブコマンド](utils.md#show-config) を使用すると、最終的に結合された構成を確認できます。
 
-!!! Tip "Validate combined result"
-    You can use the [show-config subcommand](utils.md#show-config) to see the final, combined configuration.
+???警告「ロードシーケンス」
+    環境変数は、初期構成後にロードされます。そのため、環境変数を通じて構成へのパスを指定することはできません。そのためには「--config path/to/config.json」を使用してください。
+    これはある程度 `user_dir` にも当てはまります。ユーザー ディレクトリは環境変数を通じて設定できますが、設定はその場所からロードされません**。
 
-??? Warning "Loading sequence"
-    Environment variables are loaded after the initial configuration. As such, you cannot provide the path to the configuration through environment variables. Please use `--config path/to/config.json` for that.
-    This also applies to `user_dir` to some degree. while the user directory can be set through environment variables - the configuration will **not** be loaded from that location.
+### 複数の構成ファイル
 
-### Multiple configuration files
+複数の構成ファイルを指定してボットで使用することも、ボットがプロセスの標準入力ストリームから構成パラメーターを読み取ることもできます。
 
-Multiple configuration files can be specified and used by the bot or the bot can read its configuration parameters from the process standard input stream.
+「add_config_files」で追加の設定ファイルを指定できます。このパラメータで指定されたファイルはロードされ、初期設定ファイルとマージされます。ファイルは、初期構成ファイルを基準にして解決されます。
+これは複数の `--config` パラメータを使用するのと似ていますが、すべてのコマンドに対してすべてのファイルを指定する必要がないため、使用方法はより簡単です。
 
-You can specify additional configuration files in `add_config_files`. Files specified in this parameter will be loaded and merged with the initial config file. The files are resolved relative to the initial configuration file.
-This is similar to using multiple `--config` parameters, but simpler in usage as you don't have to specify all files for all commands.
+!!!ヒント「結合結果を検証する」
+    [show-config サブコマンド](utils.md#show-config) を使用すると、最終的に結合された構成を確認できます。
 
-!!! Tip "Validate combined result"
-    You can use the [show-config subcommand](utils.md#show-config) to see the final, combined configuration.
+!!!ヒント「シークレットを秘密にするために複数の構成ファイルを使用する」
+    シークレットを含む 2 番目の構成ファイルを使用できます。こうすることで、API キーを自分専用に保ちながら、「プライマリ」構成ファイルを共有できます。
+    2 番目のファイルでは、オーバーライドするもののみを指定する必要があります。
+    キーが複数の構成に含まれている場合は、「最後に指定された構成」が優先されます (上記の例では、`config-private.json`)。
 
-!!! Tip "Use multiple configuration files to keep secrets secret"
-    You can use a 2nd configuration file containing your secrets. That way you can share your "primary" configuration file, while still keeping your API keys for yourself.
-    The 2nd file should only specify what you intend to override.
-    If a key is in more than one of the configurations, then the "last specified configuration" wins (in the above example, `config-private.json`).
-
-    For one-off commands, you can also use the below syntax by specifying multiple "--config" parameters.
-
+    1 回限りのコマンドの場合は、複数の「--config」パラメータを指定して以下の構文を使用することもできます。
     ``` bash
     freqtrade trade --config user_data/config1.json --config user_data/config-private.json <...>
     ```
-
-    The below is equivalent to the example above - but having 2 configuration files in the configuration, for easier reuse.
-
+以下は上の例と同等ですが、再利用しやすいように構成内に 2 つの構成ファイルがあります。
     ``` json title="user_data/config.json"
     "add_config_files": [
         "config1.json",
@@ -95,11 +88,9 @@ This is similar to using multiple `--config` parameters, but simpler in usage as
     ``` bash
     freqtrade trade --config user_data/config.json <...>
     ```
-
-??? Note "config collision handling"
-    If the same configuration setting takes place in both `config.json` and `config-import.json`, then the parent configuration wins.
-    In the below case, `max_open_trades` would be 3 after the merging - as the reusable "import" configuration has this key overwritten.
-
+??? 「構成衝突処理」に注意してください
+    同じ構成設定が「config.json」と「config-import.json」の両方で行われる場合、親構成が優先されます。
+    以下の場合、再利用可能な「インポート」設定でこのキーが上書きされるため、マージ後の「max_open_trades」は 3 になります。
     ``` json title="user_data/config.json"
     {
         "max_open_trades": 3,
@@ -116,9 +107,7 @@ This is similar to using multiple `--config` parameters, but simpler in usage as
         "stake_amount": "unlimited",
     }
     ```
-
-    Resulting combined configuration:
-
+結果として得られる組み合わせ構成:
     ``` json title="Result"
     {
         "max_open_trades": 3,
@@ -126,171 +115,168 @@ This is similar to using multiple `--config` parameters, but simpler in usage as
         "stake_amount": "unlimited"
     }
     ```
+複数のファイルが `add_config_files` セクションにある場合、それらは同じレベルにあるとみなされ、最後に出現したファイルが以前の設定をオーバーライドします (親がすでにそのようなキーを定義している場合を除く)。
 
-    If multiple files are in the `add_config_files` section, then they will be assumed to be at identical levels, having the last occurrence override the earlier config (unless a parent already defined such a key).
+## エディターのオートコンプリートと検証
 
-## Editor autocomplete and validation
-
-If you are using an editor that supports JSON schema, you can use the schema provided by Freqtrade to get autocompletion and validation of your configuration file by adding the following line to the top of your configuration file:
-
+JSON スキーマをサポートするエディターを使用している場合は、構成ファイルの先頭に次の行を追加することで、Freqtrade が提供するスキーマを使用して構成ファイルのオートコンプリートと検証を行うことができます。
 ``` json
 {
     "$schema": "https://schema.freqtrade.io/schema.json",
 }
 ```
+??? 「開発版」に注意してください
+    開発スキーマは「https://schema.freqtrade.io/schema_dev.json」として入手できますが、最高のエクスペリエンスを得るには安定バージョンを使用することをお勧めします。
 
-??? Note "Develop version"
-    The develop schema is available as `https://schema.freqtrade.io/schema_dev.json` - though we recommend to stick to the stable version for the best experience.
+## 設定パラメータ
 
-## Configuration parameters
+以下の表に、使用可能なすべての構成パラメータを示します。
 
-The table below will list all configuration parameters available.
+Freqtrade は、コマンド ライン (CLI) 引数を介して多くのオプションをロードすることもできます (詳細については、コマンド `--help` の出力を確認してください)。
 
-Freqtrade can also load many options via command line (CLI) arguments (check out the commands `--help` output for details).
+### 構成オプションの普及率
 
-### Configuration option prevalence
+すべてのオプションの普及率は次のとおりです。
 
-The prevalence for all Options is as follows:
+* CLI 引数は他のオプションをオーバーライドします
+* [環境変数](#environment-variables)
+* 構成ファイルは順番に使用され (最後のファイルが優先されます)、戦略構成をオーバーライドします。
+* ストラテジー構成は、構成またはコマンドライン引数を介して設定されない場合にのみ使用されます。これらのオプションは、以下の表で [Strategy Override](#parameters-in-the-strategy) とマークされています。
 
-* CLI arguments override any other option
-* [Environment Variables](#environment-variables)
-* Configuration files are used in sequence (the last file wins) and override Strategy configurations.
-* Strategy configurations are only used if they are not set via configuration or command-line arguments. These options are marked with [Strategy Override](#parameters-in-the-strategy) in the below table.
+### パラメータテーブル
 
-### Parameters table
+必須パラメータは **必須** とマークされており、可能な方法のいずれかで設定する必要があることを意味します。
 
-Mandatory parameters are marked as **Required**, which means that they are required to be set in one of the possible ways.
+|  パラメータ |説明 |
+|-----------|---------------|
+| `max_open_trades` | **必須。** ボットが許可されているオープン取引の数。オープントレードはペアごとに 1 つだけ可能であるため、ペアリストの長さも適用される可能性のある制限です。 -1 の場合、無視されます (つまり、ペアリストによって制限される潜在的に無制限のオープン取引)。 [詳細は以下をご覧ください](#cconfiguring-amount-per-trade)。 [戦略オーバーライド](#parameters-in-the-strategy)。<br> **データ型:** 正の整数または -1。
+| `ステーク通貨` | **必須。** 取引に使用される暗号通貨。 <br> **データ型:** 文字列
+| `賭け金` | **必須。** ボットが各取引に使用する暗号通貨の量。ボットが利用可能な残高をすべて使用できるようにするには、「無制限」に設定します。 [詳細は以下をご覧ください](#cconfiguring-amount-per-trade)。 <br> **データ型:** 正の浮動小数点または `"unlimited"`。
+| `取引可能残高比率` |ボットが取引できる合計アカウント残高の比率。 [詳細は以下をご覧ください](#cconfiguring-amount-per-trade)。 <br>*デフォルトは `0.99` 99%)。*<br> **データ型:** `0.1` と `1.0` の間の正の浮動小数点数。
+| `利用可能な資本` |ボットに利用可能な開始資金。同じ Exchange アカウントで複数のボットを実行する場合に便利です。 [詳細は以下をご覧ください](#cconfiguring-amount-per-trade)。 <br> **データ型:** 正の浮動小数点数。
+| `amend_last_stake_amount` |必要に応じて、最後の賭け金額を減らして使用します。 [詳細は以下をご覧ください](#cconfiguring-amount-per-trade)。 <br>*デフォルトは「false」です。* <br> **データ型:** ブール値
+| `last_stake_amount_min_ratio` |残して実行する必要がある最小賭け金額を定義します。最後のステーク額が減額された場合 (つまり、「amend_last_stake_amount」が「true」に設定されている場合) にのみ適用されます。 [詳細は以下をご覧ください](#cconfiguring-amount-per-trade)。 <br>*デフォルトは `0.5` です。* <br> **データ型:** Float (比率として)
+| `amount_reserve_percent` |最小ペアステーク額でいくらかを予約します。ボットは、取引拒否の可能性を回避するために、ペアの最小ステーク額を計算するときに「amount_reserve_percent」+ストップロス値を予約します。 <br>*デフォルトは `0.05` (5%) です。* <br> **データ型:** 比率としての正の浮動小数点数。
+| `時間枠` |使用する時間枠 (例: `1m`、`5m`、`15m`、`30m`、`1h` ...)。通常、構成には欠落しており、戦略で指定されます。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br> **データ型:** 文字列
+| `法定表示通貨` |利益を示すために使用される法定通貨。 [詳細は以下をご覧ください](#what-values-can-be-used-for-fiat_display_currency)。 <br> **データ型:** 文字列
+| `ドライラン` | **必須。** ボットをドライ ラン モードにする必要があるか、運用モードにする必要があるかを定義します。 <br>*デフォルトは「true」です。* <br> **データ型:** ブール値
+| `ドライランウォレット` |ドライラン モードで実行されているボットによって使用されるシミュレートされたウォレットの開始金額をステーク通貨で定義します。 [詳細は以下をご覧ください](#dry-run-wallet)<br>*デフォルトは `1000` です。* <br> **データ型:** Float または Dict
+| `cancel_open_orders_on_exit` | `/stop` RPC コマンドが発行されたとき、`Ctrl+C` が押されたとき、またはボットが予期せず終了したときに、オープン注文をキャンセルします。 「true」に設定すると、市場暴落の際に「/stop」を使用して未約定注文および部分約定済みの注文をキャンセルできるようになります。オープンポジションには影響しません。 <br>*デフォルトは「false」です。* <br> **データ型:** ブール値
+| `プロセスのみ_新しいキャンドル` |新しいローソクが到着した場合にのみインジケーターの処理を有効にします。 false の場合、各ループでインジケーターが設定されます。これは、同じローソク足が何度も処理されてシステム負荷が発生することを意味しますが、ローソク足だけでなくティック データに依存する戦略には役立ちます。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br>*デフォルトは「true」です。* <br> **データ型:** ブール値
+| `minimal_roi` | **必須。** ボットが取引を終了するために使用する比率としてしきい値を設定します。 [詳細については以下をご覧ください](#under-minimal_roi)。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br> **データ型:** 辞書
+| `ストップロス` |  **必須。** ボットによって使用されるストップロスの比率としての値。詳細については、[ストップロスのドキュメント](stoploss.md)を参照してください。 [戦略オーバーライド](#parameters-in-the-strategy)。  <br> **データ型:** Float (比率として)
+| `トレーリングストップ` |トレーリング ストップロスを有効にします (設定ファイルまたは戦略ファイルの「ストップロス」に基づいて)。詳細については、[ストップロスのドキュメント](stoploss.md#trailing-stop-loss)を参照してください。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br> **データ型:** ブール値
+| `trailing_stop_positive` |利益に達したらストップロスを変更します。詳細については、[ストップロスのドキュメント](stoploss.md#trailing-stop-loss-Difference-positive-loss)を参照してください。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br> **データ型:** Float
+| `trailing_stop_positive_offset` | 「trailing_stop_positive」を適用するタイミングのオフセット。正である必要があるパーセンテージ値。詳細については、[ストップロスのドキュメント](stoploss.md#trailing-stop-loss-only-once-the-trade-has-reached-a-certain-offset)を参照してください。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br>*デフォルトは `0.0` (オフセットなし)。* <br> **データ型:** Float
+| `trailing_only_offset_is_reached` |オフセットに達した場合にのみ、トレーリング ストップロスを適用します。 [ストップロスのドキュメント](stoploss.md)。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br>*デフォルトは「false」です。* <br> **データ型:** ブール値
+| `料金` |バックテスト/ドライラン中に使用される料金。通常は設定しないでください。freqtrade は取引所のデフォルト手数料にフォールバックします。比率として設定します (例: 0.001 = 0.1%)。手数料は取引ごとに、購入時に1回、売却時に1回の2回適用されます。 <br> **データ型:** Float (比率として)
+| `先物ファンディング率` |過去の資金調達レートが取引所から入手できない場合に使用されるユーザー指定の資金調達レート。これは実際の過去のレートを上書きしません。特定のコインをテストしていて、資金調達率が freqtrade の利益計算にどのような影響を与えるかを理解している場合を除き、これを 0 に設定することをお勧めします。 [詳細はこちら](leverage.md#unavailable-funding-rates) <br>*デフォルトは「None」です。*<br> **データ型:** Float
+| `取引モード` |定期的に取引するか、レバレッジを利用して取引するか、一致する暗号通貨の価格から価格が導出される契約を取引するかを指定します。 [活用ドキュメント](leverage.md)。 <br>*デフォルトは `"spot"` です。* <br> **データ型:** 文字列
+| `マージンモード` |レバレッジを使用して取引する場合、これにより、トレーダーが所有する担保を各取引ペアに共有するか分離するかが決まります [レバレッジに関するドキュメント](leverage.md)。 <br> **データ型:** 文字列
+| `清算バッファ` |ポジションが清算価格に達するのを防ぐために、清算価格とストップロスの間にどのくらいの大きさのセーフティネットを置くかを指定する比率 [レバレッジドキュメント](leverage.md)。 <br>*デフォルトは「0.05」です。* <br> **データ型:** Float
+| | **未入力のタイムアウト**
+| `unfilledtimeout.entry` | **必須。** 未約定のエントリー注文が完了するまでボットが待機する時間 (分または秒)。その後、注文はキャンセルされます。 [戦略オーバーライド](#parameters-in-the-strategy).<br> **データ型:** 整数
+| `unfilledtimeout.exit` | **必須。** ボットが未約定の決済注文の完了を待つ時間 (分または秒)。その後、注文はキャンセルされ、シグナルがある限り、現在の (新しい) 価格で繰り返されます。 [戦略オーバーライド](#parameters-in-the-strategy).<br> **データ型:** 整数
+| `unfilledtimeout.unit` | unfilledtimeout設定で使用する単位。注: unfilledtimeout.unit を「秒」に設定する場合、「internals.process_throttle_secs」は timeout [Strategy Override](#parameters-in-the-strategy) よりも小さいか等しい必要があります。 <br> *デフォルトは「分」`。* <br> **データ型:** 文字列
+| `unfilledtimeout.exit_timeout_count` |終了オーダーがタイムアウトになる回数。このタイムアウト回数に達すると、緊急終了がトリガーされます。 0 を指定すると、無制限の注文キャンセルが許可されます。 [戦略オーバーライド](#parameters-in-the-strategy).<br>*デフォルトは「0」です。* <br> **データ型:** 整数
+| | **価格**
+| `entry_pricing.price_side` |ボットがエントリー率を取得するために参照するスプレッドの側を選択します。 [詳細は以下をご覧ください](#entry-price)。<br> *デフォルトは `"same"` です。* <br> **データ型:** 文字列 (`ask`、`bid`、`same`、または `other`)。
+| `entry_pricing.price_last_balance` | **必須。** 入札価格を補間します。詳細は[下記](#entry-price-without-orderbook-enabled)。
+| `entry_pricing.use_order_book` | [Order Book Entry](#entry-price-with-orderbook-enabled) でレートを使用して入力できるようにします。 <br> *デフォルトは「true」です。*<br> **データ型:** ブール値
+| `entry_pricing.order_book_top` |ボットは、オーダーブック「price_side」の上位 N レートを使用して取引を開始します。つまり、値 2 を指定すると、ボットは [Order Book Entry](#entry-price-with-orderbook-enabled) の 2 番目のエントリを選択できるようになります。 <br>*デフォルトは「1」です。* <br> **データ型:** 正の整数
+| `entry_価格設定。 check_ Depth_of_market.enabled` |オーダーブックで買い注文と売り注文の差額が満たされている場合はエントリーしないでください。 [市場の深さを確認する](#check- Depth-of-market)。 <br>*デフォルトは「false」です。* <br> **データ型:** ブール値
+| `entry_価格設定。 check_ Depth_of_market.bids_to_ask_delta` |オーダーブックにある買い注文と売り注文の差額比率。 1 未満の値は売り注文のサイズが大きいことを意味し、1 より大きい値は買い注文のサイズが大きいことを意味します。 [市場の厚みを確認](#check- Depth-of-market) <br> *デフォルトは `0` です。* <br> **データ型:** Float (比率として)
+| `exit_pricing.price_side` |離脱率を取得するためにボットが参照するスプレッドの側を選択します。 [詳細は以下をご覧ください](#exit-price-side)。<br> *デフォルトは `"same"` です。* <br> **データ型:** 文字列 (`ask`、`bid`、`same`、または `other`)。
+| `exit_pricing.price_last_balance` |終了価格を補間します。詳細は[下記](#exit-price-without-orderbook-enabled)。
+| `exit_pricing.use_order_book` | [Order Book Exit](#exit-price-with-orderbook-enabled) を使用してオープン取引の終了を有効にします。 <br> *デフォルトは「true」です。*<br> **データ型:** ブール値
+| `exit_pricing.order_book_top` |ボットは注文帳「price_side」の上位 N レートを使用して終了します。つまり、値 2 を指定すると、ボットが [Order Book Exit](#exit-price-with-orderbook-enabled) で 2 番目のアスクレートを選択できるようになります。<br>*デフォルトは `1` です。* <br> **データ型:** 正の整数
+| `カスタム価格の最大距離率` |現在の価格とカスタムのエントリー価格またはエグジット価格の間の最大距離比率を構成します。 <br>*デフォルトは `0.02` 2%)。*<br> **データ型:** 正の浮動小数点数
+| | **注文/信号処理**
+| `use_exit_signal` | 「minimal_roi」に加えて、戦略によって生成された出口シグナルを使用します。 <br>これを false に設定すると、`"exit_long"` 列と `"exit_short"` 列の使用が無効になります。他の終了メソッド (ストップロス、ROI、コールバック) には影響しません。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br>*デフォルトは「true」です。* <br> **データ型:** ブール値
+| `exit_profit_only` |ボットが「exit_profit_offset」に達するまで待ってから、終了の決定を下します。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br>*デフォルトは「false」です。* <br> **データ型:** ブール値
+| `出口利益オフセット` |終了信号は、この値を超えるとのみアクティブになります。 「exit_profit_only=True」と組み合わせた場合にのみアクティブになります。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br>*デフォルトは `0.0` です。* <br> **データ型:** Float (比率として)
+| `ignore_roi_if_entry_signal` |エントリー信号がまだアクティブな場合は終了しないでください。この設定は、`minimal_roi` および `use_exit_signal` よりも優先されます。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br>*デフォルトは「false」です。* <br> **データ型:** ブール値
+| `ignore_buying_expired_candle_after` |買いシグナルが使用されなくなるまでの秒数を指定します。 <br> **データ型:** 整数
+| `order_types` |アクションに応じて注文タイプを設定します (`"entry"`、`"exit"`、`"stoploss"`、`"stoploss_on_exchange"`)。 [詳細は以下をご覧ください](#under-order_types)。 [戦略オーバーライド](#parameters-in-the-strategy).<br> **データ型:** 辞書
+| `order_time_in_force` |エントリー注文とエグジット注文の有効時間を構成します。 [詳細については以下をご覧ください](#under-order_time_in_force)。 [戦略オーバーライド](#parameters-in-the-strategy)。 <br> **データ型:** 辞書
+| `位置調整有効` |戦略でポジション調整 (追加の買いまたは売り) を使用できるようにします。 [詳細はこちら](strategy-callbacks.md#adjust-trade-position)。 <br> [戦略オーバーライド](#parameters-in-the-strategy)。 <br>*デフォルトは「false」です。*<br> **データ型:** ブール値
+| `max_entry_position_adjustment` |最初のエントリー注文に加えて、オープン取引ごとに追加注文できる最大数。追加注文を無制限にするには、「-1」に設定します。 [詳細はこちら](strategy-callbacks.md#adjust-trade-position)。 <br> [戦略オーバーライド](#parameters-in-the-strategy)。 <br>*デフォルトは「-1」です。*<br> **データ型:** 正の整数または -1
+| | **交換**
+| `exchange.name` | **必須。** 使用する交換クラスの名前。 <br> **データ型:** 文字列
+| `交換キー` |交換に使用する API キー。運用モードの場合にのみ必要です。<br>**秘密にしておき、公開しないでください。** <br> **データ型:** 文字列
+| `交換.秘密` |交換に使用する API シークレット。運用モードの場合にのみ必要です。<br>**秘密にしておき、公開しないでください。** <br> **データ型:** 文字列
+| `交換.パスワード` |交換に使用する API パスワード。本番モードの場合、および API リクエストにパスワードを使用する交換の場合にのみ必要です。<br>**秘密にしておき、公開しないでください。** <br> **データ型:** 文字列
+| `exchange.uid` |交換に使用する API uid。本番モードの場合、および API リクエストに uid を使用する交換の場合にのみ必要です。<br>**秘密にしておき、公開しないでください。** <br> **データ型:** 文字列
+| `exchange.pair_whitelist` |ボットが取引に使用し、バックテスト中に潜在的な取引を確認するために使用するペアのリスト。正規表現ペアを「.*/BTC」としてサポートします。 VolumePairList では使用されません。 [詳細](plugins.md#pairlists-and-pairlist-handlers)。 <br> **データ型:** リスト
+| `exchange.pair_blacklist` |ボットが取引とバックテストのために絶対に避けなければならないペアのリスト。 [詳細](plugins.md#pairlists-and-pairlist-handlers)。 <br> **データ型:** リスト
+| `exchange.ccxt_config` |両方の ccxt インスタンス (同期と非同期) に渡される追加の CCXT パラメーター。通常、これは追加の ccxt 構成の正しい場所です。パラメータは取引所ごとに異なる場合があり、[ccxt ドキュメント](https://docs.ccxt.com/#/README?id=overriding-exchange-properties-upon-instantiation) に記載されています。 Exchange シークレットはログに含まれる可能性があるため、ここでは追加しないでください (代わりに専用フィールドを使用してください)。 <br> **データ型:** 辞書
+| `exchange.ccxt_sync_config` |通常の (同期) ccxt インスタンスに渡される追加の CCXT パラメータ。パラメータは取引所ごとに異なる場合があり、[ccxt ドキュメント](https://docs.ccxt.com/#/README?id=overriding-exchange-properties-upon-instantiation) に文書化されています。<br> **データ型:** 辞書
+| `exchange.ccxt_async_config` |追加の CCXT パラメータが非同期 ccxt インスタンスに渡されます。パラメータは取引所ごとに異なる場合があり、[ccxt ドキュメント](https://docs.ccxt.com/#/README?id=overriding-exchange-properties-upon-instantiation) に文書化されています。<br> **データ型:** 辞書
+| `exchange.enable_ws` |交換用の Websocket の使用を有効にします。 <br>[詳細](#consuming-exchange-websockets).<br>*デフォルトは「true」です。* <br> **データ型:** ブール値
+| `exchange.markets_refresh_interval` |マーケットがリロードされる間隔（分単位）。 <br>*デフォルトは「60」分です。* <br> **データ型:** 正の整数
+| `exchange.skip_open_order_update` |取引所で問題が発生した場合、起動時にオープン注文の更新をスキップします。ライブ条件でのみ関連します。<br>*デフォルトは「false」*<br> **データ型:** ブール値
+| `exchange.unknown_fee_rate` |取引手数料を計算するときに使用するフォールバック値。これは、取引不可能な通貨で手数料がかかる取引所に役立ちます。ここで指定した値は「手数料コスト」と乗算されます。<br>*デフォルトは「なし」です<br> **データ型:** float
+| `exchange.log_responses` |関連する交換応答をログに記録します。デバッグ モードのみ - 慎重に使用してください。<br>*デフォルトは「false」です*<br> **データ型:** ブール値
+| `exchange.only_from_ccxt` | data.binance.vision からのデータのダウンロードを防止します。これを false のままにすると、ダウンロードを大幅に高速化できますが、サイトが利用できない場合は問題が発生する可能性があります。<br>*デフォルトは「false」です*<br> **データ型:** ブール値
+| `experimental.block_bad_exchanges` | freqtrade では機能しないことが知られている取引所をブロックします。その交換が今すぐ機能するかどうかをテストする場合を除き、デフォルトのままにしておきます。 <br>*デフォルトは「true」です。* <br> **データ型:** ブール値
+| | **プラグイン**
+| `ペアリスト` |使用する 1 つ以上のペアリストを定義します。 [詳細](plugins.md#pairlists-and-pairlist-handlers)。 <br>*デフォルトは `StaticPairList` です。* <br> **データ型:** 辞書のリスト
+| | **電報**
+| `テレグラム.有効` |テレグラムの使用を有効にします。 <br> **データ型:** ブール値
+| `テレグラム.トークン` | Telegram ボット トークン。 「telegram.enabled」が「true」の場合にのみ必要です。 <br>**秘密にしておき、公開しないでください。** <br> **データ型:** 文字列
+| `telegram.chat_id` |個人の Telegram アカウント ID。 「telegram.enabled」が「true」の場合にのみ必要です。 <br>**秘密にしておき、公開しないでください。** <br> **データ型:** 文字列
+| `telegram.balance_dust_level` |ダストレベル (ステーク通貨で) - これを下回る残高を持つ通貨は `/balance` によって表示されません。 <br> **データ型:** float
+| `テレグラム.リロード` |電報メッセージの「リロード」ボタンを許可します。 <br>*デフォルトは「true」です。<br> **データ型:** ブール値
+| `telegram.notification_settings.*` |詳細な通知設定。詳細については、[テレグラムのドキュメント](telegram-usage.md) を参照してください。<br> **データ型:** 辞書
+| `telegram.allow_custom_messages` | dataprovider.send_msg() 関数を介してストラテジーからの Telegram メッセージの送信を有効にします。 <br> **データ型:** ブール値
+| | **ウェブフック**
+| `webhook.enabled` | Webhook 通知の使用を有効にする <br> **データ型:** Boolean
+| `webhook.url` | Webhook の URL。 「webhook.enabled」が「true」の場合にのみ必要です。詳細については、[webhook ドキュメント](webhook-config.md) を参照してください。 <br> **データ型:** 文字列
+| `webhook.entry` |エントリ時に送信するペイロード。 「webhook.enabled」が「true」の場合にのみ必要です。詳細については、[webhook ドキュメント](webhook-config.md) を参照してください。 <br> **データ型:** 文字列
+| `webhook.entry_cancel` |エントリーオーダーキャンセル時に送信するペイロード。 「webhook.enabled」が「true」の場合にのみ必要です。詳細については、[webhook ドキュメント](webhook-config.md) を参照してください。 <br> **データ型:** 文字列
+| `webhook.entry_fill` |エントリーオーダーが満たされたときに送信するペイロード。 「webhook.enabled」が「true」の場合にのみ必要です。詳細については、[webhook ドキュメント](webhook-config.md) を参照してください。 <br> **データ型:** 文字列
+| `webhook.exit` |終了時に送信するペイロード。 「webhook.enabled」が「true」の場合にのみ必要です。詳細については、[webhook ドキュメント](webhook-config.md) を参照してください。 <br> **データ型:** 文字列
+| `webhook.exit_cancel` |終了オーダーのキャンセル時に送信するペイロード。 「webhook.enabled」が「true」の場合にのみ必要です。詳細については、[webhook ドキュメント](webhook-config.md) を参照してください。 <br> **データ型:** 文字列
+| `webhook.exit_fill` |終了オーダーが満たされたときに送信するペイロード。 「webhook.enabled」が「true」の場合にのみ必要です。詳細については、[webhook ドキュメント](webhook-config.md) を参照してください。 <br> **データ型:** 文字列
+| `webhook.status` |ステータス呼び出しで送信するペイロード。 「webhook.enabled」が「true」の場合にのみ必要です。詳細については、[webhook ドキュメント](webhook-config.md) を参照してください。 <br> **データ型:** 文字列
+| `webhook.allow_custom_messages` | dataprovider.send_msg() 関数を介してストラテジーから Webhook メッセージの送信を有効にします。 <br> **データ型:** ブール値
+| | **Rest API / FreqUI / プロデューサー/コンシューマー**
+| `api_server.enabled` | APIサーバーの使用を有効にします。詳細については、[API サーバーのドキュメント](rest-api.md) を参照してください。 <br> **データ型:** ブール値
+| `api_server.listen_ip_address` | IPアドレスをバインドします。詳細については、[API サーバーのドキュメント](rest-api.md) を参照してください。 <br> **データタイプ:** IPv4
+| `api_server.listen_port` |バインドポート。詳細については、[API サーバーのドキュメント](rest-api.md) を参照してください。 <br>**データ型:** 1024 ～ 65535 の整数
+| `api_server.verbosity` |ログの詳細度。 「info」はすべての RPC 呼び出しを出力しますが、「error」はエラーのみを表示します。 <br>**Datatype:** 列挙型、`info` または `error` のいずれか。デフォルトは「情報」です。
+| `api_server.ユーザー名` | APIサーバーのユーザー名。詳細については、[API サーバーのドキュメント](rest-api.md) を参照してください。 <br>**秘密にしておき、公開しないでください。**<br> **データ型:** 文字列
+| `api_server.パスワード` | APIサーバーのパスワード。詳細については、[API サーバーのドキュメント](rest-api.md) を参照してください。 <br>**秘密にしておき、公開しないでください。**<br> **データ型:** 文字列
+| `api_server.ws_token` |メッセージ WebSocket の API トークン。詳細については、[API サーバーのドキュメント](rest-api.md) を参照してください。  <br>**秘密にしておき、公開しないでください。** <br> **データ型:** 文字列
+| `ボット名` |ボットの名前。 API 経由でクライアントに渡されます - ボットを区別したり名前を付けるために表示できます。<br> *デフォルトは `freqtrade`*<br> **データ型:** 文字列
+| `external_message_consumer` |詳細については、[Producer/Consumer モード](Producer-consumer.md) を有効にしてください。 <br> **データ型:** 辞書
+| | **その他**
+| `初期状態` |アプリケーションの初期状態を定義します。停止に設定されている場合、ボットは「/start」RPC コマンドを使用して明示的に開始する必要があります。 <br>*デフォルトは `stopped` です。* <br> **データ型:** 列挙型、`running`、`paused`、または `stopped` のいずれか
+| `force_entry_enable` | RPC コマンドでトレードエントリーを強制できるようにします。詳細については以下をご覧ください。 <br> **データ型:** ブール値
+| `disable_dataframe_checks` |ストラテジー メソッドから返された OHLCV データフレームが正しいかどうかのチェックを無効にします。データフレームを意図的に変更し、何をしているのかを理解する場合にのみ使用してください。 [戦略オーバーライド](#parameters-in-the-strategy)。<br> *デフォルトは「False」*です。 <br> **データ型:** ブール値
+| `internals.process_throttle_secs` |プロセス スロットル、つまり 1 つのボット反復ループの最小ループ期間を設定します。秒単位の値。 <br>*デフォルトは「5」秒です。* <br> **データ型:** 正の整数
+| `internals.heartbeat_interval` | N 秒ごとにハートビート メッセージを出力します。ハートビート メッセージを無効にするには、0 に設定します。 <br>*デフォルトは「60」秒です。* <br> **データ型:** 正の整数または 0
+| `internals.sd_notify` | sd_notify プロトコルの使用を有効にして、ボットの状態の変化を systemd サービス マネージャーに通知し、キープアライブ ping を発行します。詳細については、[こちら](advanced-setup.md#configure-the-bot-running-as-a-systemd-service)を参照してください。 <br> **データ型:** ブール値
+| `戦略` | **必須** 使用する Strategy クラスを定義します。 「--strategy NAME」を介して設定することをお勧めします。 <br> **データ型:** クラス名
+| `戦略パス` |追加の戦略ルックアップ パスを追加します (ディレクトリである必要があります)。 <br> **データ型:** 文字列
+| `recursive_strategy_search` | 「true」に設定すると、「user_data/strategies」内のサブディレクトリで戦略を再帰的に検索します。 <br> **データ型:** ブール値
+| `user_data_dir` |ユーザーデータを含むディレクトリ。 <br> *デフォルトは `./user_data/`* です。 <br> **データ型:** 文字列
+| `db_url` |使用するデータベースの URL を宣言します。注: これは、「dry_run」が「true」の場合は「sqlite:///tradesv3.dryrun.sqlite」にデフォルト設定され、実稼働インスタンスの場合は「sqlite:///tradesv3.sqlite」にデフォルト設定されます。 <br> **データ型:** 文字列、SQLAlchemy 接続文字列
+| `ログファイル` |ログファイル名を指定します。 10 ファイルのログ ファイル ローテーションにローリング戦略を使用し、ファイルあたり 1 MB の制限を設けます。 <br> **データ型:** 文字列
+| `add_config_files` |追加の構成ファイル。これらのファイルはロードされ、現在の構成ファイルとマージされます。ファイルは最初のファイルを基準にして解決されます。<br> *デフォルトは `[]`* です。 <br> **データ型:** 文字列のリスト
+| `dataformat_ohlcv` |ヒストリカル ローソク足 (OHLCV) データの保存に使用するデータ形式。 <br> *デフォルトは「フェザー」*です。 <br> **データ型:** 文字列
+| `データフォーマットトレード` |過去の取引データを保存するために使用するデータ形式。 <br> *デフォルトは「フェザー」*です。 <br> **データ型:** 文字列
+| `reduce_df_footprint` | RAM/ディスクの使用量を削減する (およびトレーニング/推論タイミングのバックテスト/ハイパーオプトおよび FreqAI を削減する) ことを目的として、すべての数値列を float32/int32 にリキャストします。 <br> **データ型:** ブール値。 <br> デフォルト:「False」。
+| `log_config` | Python ロギングのログ構成を含むディクショナリ。 [詳細](advanced-setup.md#advanced-logging) <br> **データ型:** dict。 <br> デフォルト: `FtRichHandler`
 
-|  Parameter | Description |
-|------------|-------------|
-| `max_open_trades` | **Required.** Number of open trades your bot is allowed to have. Only one open trade per pair is possible, so the length of your pairlist is another limitation that can apply. If -1 then it is ignored (i.e. potentially unlimited open trades, limited by the pairlist). [More information below](#configuring-amount-per-trade). [Strategy Override](#parameters-in-the-strategy).<br> **Datatype:** Positive integer or -1.
-| `stake_currency` | **Required.** Crypto-currency used for trading. <br> **Datatype:** String
-| `stake_amount` | **Required.** Amount of crypto-currency your bot will use for each trade. Set it to `"unlimited"` to allow the bot to use all available balance. [More information below](#configuring-amount-per-trade). <br> **Datatype:** Positive float or `"unlimited"`.
-| `tradable_balance_ratio` | Ratio of the total account balance the bot is allowed to trade. [More information below](#configuring-amount-per-trade). <br>*Defaults to `0.99` 99%).*<br> **Datatype:** Positive float between `0.1` and `1.0`.
-| `available_capital` | Available starting capital for the bot. Useful when running multiple bots on the same exchange account. [More information below](#configuring-amount-per-trade). <br> **Datatype:** Positive float.
-| `amend_last_stake_amount` | Use reduced last stake amount if necessary. [More information below](#configuring-amount-per-trade). <br>*Defaults to `false`.* <br> **Datatype:** Boolean
-| `last_stake_amount_min_ratio` | Defines minimum stake amount that has to be left and executed. Applies only to the last stake amount when it's amended to a reduced value (i.e. if `amend_last_stake_amount` is set to `true`). [More information below](#configuring-amount-per-trade). <br>*Defaults to `0.5`.* <br> **Datatype:** Float (as ratio)
-| `amount_reserve_percent` | Reserve some amount in min pair stake amount. The bot will reserve `amount_reserve_percent` + stoploss value when calculating min pair stake amount in order to avoid possible trade refusals. <br>*Defaults to `0.05` (5%).* <br> **Datatype:** Positive Float as ratio.
-| `timeframe` | The timeframe to use (e.g `1m`, `5m`, `15m`, `30m`, `1h` ...). Usually missing in configuration, and specified in the strategy. [Strategy Override](#parameters-in-the-strategy). <br> **Datatype:** String
-| `fiat_display_currency` | Fiat currency used to show your profits. [More information below](#what-values-can-be-used-for-fiat_display_currency). <br> **Datatype:** String
-| `dry_run` | **Required.** Define if the bot must be in Dry Run or production mode. <br>*Defaults to `true`.* <br> **Datatype:** Boolean
-| `dry_run_wallet` | Define the starting amount in stake currency for the simulated wallet used by the bot running in Dry Run mode. [More information below](#dry-run-wallet)<br>*Defaults to `1000`.* <br> **Datatype:** Float or Dict
-| `cancel_open_orders_on_exit` | Cancel open orders when the `/stop` RPC command is issued, `Ctrl+C` is pressed or the bot dies unexpectedly. When set to `true`, this allows you to use `/stop` to cancel unfilled and partially filled orders in the event of a market crash. It does not impact open positions. <br>*Defaults to `false`.* <br> **Datatype:** Boolean
-| `process_only_new_candles` | Enable processing of indicators only when new candles arrive. If false each loop populates the indicators, this will mean the same candle is processed many times creating system load but can be useful of your strategy depends on tick data not only candle. [Strategy Override](#parameters-in-the-strategy). <br>*Defaults to `true`.*  <br> **Datatype:** Boolean
-| `minimal_roi` | **Required.** Set the threshold as ratio the bot will use to exit a trade. [More information below](#understand-minimal_roi). [Strategy Override](#parameters-in-the-strategy). <br> **Datatype:** Dict
-| `stoploss` |  **Required.** Value as ratio of the stoploss used by the bot. More details in the [stoploss documentation](stoploss.md). [Strategy Override](#parameters-in-the-strategy).  <br> **Datatype:** Float (as ratio)
-| `trailing_stop` | Enables trailing stoploss (based on `stoploss` in either configuration or strategy file). More details in the [stoploss documentation](stoploss.md#trailing-stop-loss). [Strategy Override](#parameters-in-the-strategy). <br> **Datatype:** Boolean
-| `trailing_stop_positive` | Changes stoploss once profit has been reached. More details in the [stoploss documentation](stoploss.md#trailing-stop-loss-different-positive-loss). [Strategy Override](#parameters-in-the-strategy). <br> **Datatype:** Float
-| `trailing_stop_positive_offset` | Offset on when to apply `trailing_stop_positive`. Percentage value which should be positive. More details in the [stoploss documentation](stoploss.md#trailing-stop-loss-only-once-the-trade-has-reached-a-certain-offset). [Strategy Override](#parameters-in-the-strategy). <br>*Defaults to `0.0` (no offset).* <br> **Datatype:** Float
-| `trailing_only_offset_is_reached` | Only apply trailing stoploss when the offset is reached. [stoploss documentation](stoploss.md). [Strategy Override](#parameters-in-the-strategy). <br>*Defaults to `false`.*  <br> **Datatype:** Boolean
-| `fee` | Fee used during backtesting / dry-runs. Should normally not be configured, which has freqtrade fall back to the exchange default fee. Set as ratio (e.g. 0.001 = 0.1%). Fee is applied twice for each trade, once when buying, once when selling. <br> **Datatype:** Float (as ratio)
-| `futures_funding_rate` | User-specified funding rate to be used when historical funding rates are not available from the exchange. This does not overwrite real historical rates. It is recommended that this be set to 0 unless you are testing a specific coin and you understand how the funding rate will affect freqtrade's profit calculations. [More information here](leverage.md#unavailable-funding-rates) <br>*Defaults to `None`.*<br> **Datatype:** Float
-| `trading_mode` | Specifies if you want to trade regularly, trade with leverage, or trade contracts whose prices are derived from matching cryptocurrency prices. [leverage documentation](leverage.md). <br>*Defaults to `"spot"`.*  <br> **Datatype:** String
-| `margin_mode` | When trading with leverage, this determines if the collateral owned by the trader will be shared or isolated to each trading pair [leverage documentation](leverage.md). <br> **Datatype:** String
-| `liquidation_buffer` | A ratio specifying how large of a safety net to place between the liquidation price and the stoploss to prevent a position from reaching the liquidation price [leverage documentation](leverage.md). <br>*Defaults to `0.05`.*  <br> **Datatype:** Float
-| | **Unfilled timeout**
-| `unfilledtimeout.entry` | **Required.** How long (in minutes or seconds) the bot will wait for an unfilled entry order to complete, after which the order will be cancelled. [Strategy Override](#parameters-in-the-strategy).<br> **Datatype:** Integer
-| `unfilledtimeout.exit` | **Required.** How long (in minutes or seconds) the bot will wait for an unfilled exit order to complete, after which the order will be cancelled and repeated at current (new) price, as long as there is a signal. [Strategy Override](#parameters-in-the-strategy).<br> **Datatype:** Integer
-| `unfilledtimeout.unit` | Unit to use in unfilledtimeout setting. Note: If you set unfilledtimeout.unit to "seconds", "internals.process_throttle_secs" must be inferior or equal to timeout [Strategy Override](#parameters-in-the-strategy). <br> *Defaults to `"minutes"`.* <br> **Datatype:** String
-| `unfilledtimeout.exit_timeout_count` | How many times can exit orders time out. Once this number of timeouts is reached, an emergency exit is triggered. 0 to disable and allow unlimited order cancels. [Strategy Override](#parameters-in-the-strategy).<br>*Defaults to `0`.* <br> **Datatype:** Integer
-| | **Pricing**
-| `entry_pricing.price_side` | Select the side of the spread the bot should look at to get the entry rate. [More information below](#entry-price).<br> *Defaults to `"same"`.* <br> **Datatype:** String (either `ask`, `bid`, `same` or `other`).
-| `entry_pricing.price_last_balance` | **Required.** Interpolate the bidding price. More information [below](#entry-price-without-orderbook-enabled).
-| `entry_pricing.use_order_book` | Enable entering using the rates in [Order Book Entry](#entry-price-with-orderbook-enabled). <br> *Defaults to `true`.*<br> **Datatype:** Boolean
-| `entry_pricing.order_book_top` | Bot will use the top N rate in Order Book "price_side" to enter a trade. I.e. a value of 2 will allow the bot to pick the 2nd entry in [Order Book Entry](#entry-price-with-orderbook-enabled). <br>*Defaults to `1`.*  <br> **Datatype:** Positive Integer
-| `entry_pricing. check_depth_of_market.enabled` | Do not enter if the difference of buy orders and sell orders is met in Order Book. [Check market depth](#check-depth-of-market). <br>*Defaults to `false`.* <br> **Datatype:** Boolean
-| `entry_pricing. check_depth_of_market.bids_to_ask_delta` | The difference ratio of buy orders and sell orders found in Order Book. A value below 1 means sell order size is greater, while value greater than 1 means buy order size is higher. [Check market depth](#check-depth-of-market) <br> *Defaults to `0`.*  <br> **Datatype:** Float (as ratio)
-| `exit_pricing.price_side` | Select the side of the spread the bot should look at to get the exit rate. [More information below](#exit-price-side).<br> *Defaults to `"same"`.* <br> **Datatype:** String (either `ask`, `bid`, `same` or `other`).
-| `exit_pricing.price_last_balance` | Interpolate the exiting price. More information [below](#exit-price-without-orderbook-enabled).
-| `exit_pricing.use_order_book` | Enable exiting of open trades using [Order Book Exit](#exit-price-with-orderbook-enabled). <br> *Defaults to `true`.*<br> **Datatype:** Boolean
-| `exit_pricing.order_book_top` | Bot will use the top N rate in Order Book "price_side" to exit. I.e. a value of 2 will allow the bot to pick the 2nd ask rate in [Order Book Exit](#exit-price-with-orderbook-enabled)<br>*Defaults to `1`.* <br> **Datatype:** Positive Integer
-| `custom_price_max_distance_ratio` | Configure maximum distance ratio between current and custom entry or exit price. <br>*Defaults to `0.02` 2%).*<br> **Datatype:** Positive float
-| | **Order/Signal handling**
-| `use_exit_signal` | Use exit signals produced by the strategy in addition to the `minimal_roi`. <br>Setting this to false disables the usage of `"exit_long"` and `"exit_short"` columns. Has no influence on other exit methods (Stoploss, ROI, callbacks). [Strategy Override](#parameters-in-the-strategy). <br>*Defaults to `true`.* <br> **Datatype:** Boolean
-| `exit_profit_only` | Wait until the bot reaches `exit_profit_offset` before taking an exit decision. [Strategy Override](#parameters-in-the-strategy). <br>*Defaults to `false`.* <br> **Datatype:** Boolean
-| `exit_profit_offset` | Exit-signal is only active above this value. Only active in combination with `exit_profit_only=True`. [Strategy Override](#parameters-in-the-strategy). <br>*Defaults to `0.0`.* <br> **Datatype:** Float (as ratio)
-| `ignore_roi_if_entry_signal` | Do not exit if the entry signal is still active. This setting takes preference over `minimal_roi` and `use_exit_signal`. [Strategy Override](#parameters-in-the-strategy). <br>*Defaults to `false`.* <br> **Datatype:** Boolean
-| `ignore_buying_expired_candle_after` | Specifies the number of seconds until a buy signal is no longer used. <br> **Datatype:** Integer
-| `order_types` | Configure order-types depending on the action (`"entry"`, `"exit"`, `"stoploss"`, `"stoploss_on_exchange"`). [More information below](#understand-order_types). [Strategy Override](#parameters-in-the-strategy).<br> **Datatype:** Dict
-| `order_time_in_force` | Configure time in force for entry and exit orders. [More information below](#understand-order_time_in_force). [Strategy Override](#parameters-in-the-strategy). <br> **Datatype:** Dict
-| `position_adjustment_enable` | Enables the strategy to use position adjustments (additional buys or sells). [More information here](strategy-callbacks.md#adjust-trade-position). <br> [Strategy Override](#parameters-in-the-strategy). <br>*Defaults to `false`.*<br> **Datatype:** Boolean
-| `max_entry_position_adjustment` | Maximum additional order(s) for each open trade on top of the first entry Order. Set it to `-1` for unlimited additional orders. [More information here](strategy-callbacks.md#adjust-trade-position). <br> [Strategy Override](#parameters-in-the-strategy). <br>*Defaults to `-1`.*<br> **Datatype:** Positive Integer or -1
-| | **Exchange**
-| `exchange.name` | **Required.** Name of the exchange class to use. <br> **Datatype:** String
-| `exchange.key` | API key to use for the exchange. Only required when you are in production mode.<br>**Keep it in secret, do not disclose publicly.** <br> **Datatype:** String
-| `exchange.secret` | API secret to use for the exchange. Only required when you are in production mode.<br>**Keep it in secret, do not disclose publicly.** <br> **Datatype:** String
-| `exchange.password` | API password to use for the exchange. Only required when you are in production mode and for exchanges that use password for API requests.<br>**Keep it in secret, do not disclose publicly.** <br> **Datatype:** String
-| `exchange.uid` | API uid to use for the exchange. Only required when you are in production mode and for exchanges that use uid for API requests.<br>**Keep it in secret, do not disclose publicly.** <br> **Datatype:** String
-| `exchange.pair_whitelist` | List of pairs to use by the bot for trading and to check for potential trades during backtesting. Supports regex pairs as `.*/BTC`. Not used by VolumePairList. [More information](plugins.md#pairlists-and-pairlist-handlers). <br> **Datatype:** List
-| `exchange.pair_blacklist` | List of pairs the bot must absolutely avoid for trading and backtesting. [More information](plugins.md#pairlists-and-pairlist-handlers). <br> **Datatype:** List
-| `exchange.ccxt_config` | Additional CCXT parameters passed to both ccxt instances (sync and async). This is usually the correct place for additional ccxt configurations. Parameters may differ from exchange to exchange and are documented in the [ccxt documentation](https://docs.ccxt.com/#/README?id=overriding-exchange-properties-upon-instantiation). Please avoid adding exchange secrets here (use the dedicated fields instead), as they may be contained in logs. <br> **Datatype:** Dict
-| `exchange.ccxt_sync_config` | Additional CCXT parameters passed to the regular (sync) ccxt instance. Parameters may differ from exchange to exchange and are documented in the [ccxt documentation](https://docs.ccxt.com/#/README?id=overriding-exchange-properties-upon-instantiation) <br> **Datatype:** Dict
-| `exchange.ccxt_async_config` | Additional CCXT parameters passed to the async ccxt instance. Parameters may differ from exchange to exchange  and are documented in the [ccxt documentation](https://docs.ccxt.com/#/README?id=overriding-exchange-properties-upon-instantiation) <br> **Datatype:** Dict
-| `exchange.enable_ws` | Enable the usage of Websockets for the exchange. <br>[More information](#consuming-exchange-websockets).<br>*Defaults to `true`.* <br> **Datatype:** Boolean
-| `exchange.markets_refresh_interval` | The interval in minutes in which markets are reloaded. <br>*Defaults to `60` minutes.* <br> **Datatype:** Positive Integer
-| `exchange.skip_open_order_update` | Skips open order updates on startup should the exchange cause problems. Only relevant in live conditions.<br>*Defaults to `false`*<br> **Datatype:** Boolean
-| `exchange.unknown_fee_rate` | Fallback value to use when calculating trading fees. This can be useful for exchanges which have fees in non-tradable currencies. The value provided here will be multiplied with the "fee cost".<br>*Defaults to `None`<br> **Datatype:** float
-| `exchange.log_responses` | Log relevant exchange responses. For debug mode only - use with care.<br>*Defaults to `false`*<br> **Datatype:** Boolean
-| `exchange.only_from_ccxt` | Prevent data-download from data.binance.vision. Leaving this as false can greatly speed up downloads, but may be problematic if the site is not available.<br>*Defaults to `false`*<br> **Datatype:** Boolean
-| `experimental.block_bad_exchanges` | Block exchanges known to not work with freqtrade. Leave on default unless you want to test if that exchange works now. <br>*Defaults to `true`.* <br> **Datatype:** Boolean
-| | **Plugins**
-| `pairlists` | Define one or more pairlists to be used. [More information](plugins.md#pairlists-and-pairlist-handlers). <br>*Defaults to `StaticPairList`.*  <br> **Datatype:** List of Dicts
-| | **Telegram**
-| `telegram.enabled` | Enable the usage of Telegram. <br> **Datatype:** Boolean
-| `telegram.token` | Your Telegram bot token. Only required if `telegram.enabled` is `true`. <br>**Keep it in secret, do not disclose publicly.** <br> **Datatype:** String
-| `telegram.chat_id` | Your personal Telegram account id. Only required if `telegram.enabled` is `true`. <br>**Keep it in secret, do not disclose publicly.** <br> **Datatype:** String
-| `telegram.balance_dust_level` | Dust-level (in stake currency) - currencies with a balance below this will not be shown by `/balance`. <br> **Datatype:** float
-| `telegram.reload` | Allow "reload" buttons on telegram messages. <br>*Defaults to `true`.<br> **Datatype:** boolean
-| `telegram.notification_settings.*` | Detailed notification settings. Refer to the [telegram documentation](telegram-usage.md) for details.<br> **Datatype:** dictionary
-| `telegram.allow_custom_messages` | Enable the sending of Telegram messages from strategies via the dataprovider.send_msg() function. <br> **Datatype:** Boolean
-| | **Webhook**
-| `webhook.enabled` | Enable usage of Webhook notifications <br> **Datatype:** Boolean
-| `webhook.url` | URL for the webhook. Only required if `webhook.enabled` is `true`. See the [webhook documentation](webhook-config.md) for more details. <br> **Datatype:** String
-| `webhook.entry` | Payload to send on entry. Only required if `webhook.enabled` is `true`. See the [webhook documentation](webhook-config.md) for more details. <br> **Datatype:** String
-| `webhook.entry_cancel` | Payload to send on entry order cancel. Only required if `webhook.enabled` is `true`. See the [webhook documentation](webhook-config.md) for more details. <br> **Datatype:** String
-| `webhook.entry_fill` | Payload to send on entry order filled. Only required if `webhook.enabled` is `true`. See the [webhook documentation](webhook-config.md) for more details. <br> **Datatype:** String
-| `webhook.exit` | Payload to send on exit. Only required if `webhook.enabled` is `true`. See the [webhook documentation](webhook-config.md) for more details. <br> **Datatype:** String
-| `webhook.exit_cancel` | Payload to send on exit order cancel. Only required if `webhook.enabled` is `true`. See the [webhook documentation](webhook-config.md) for more details. <br> **Datatype:** String
-| `webhook.exit_fill` | Payload to send on exit order filled. Only required if `webhook.enabled` is `true`. See the [webhook documentation](webhook-config.md) for more details. <br> **Datatype:** String
-| `webhook.status` | Payload to send on status calls. Only required if `webhook.enabled` is `true`. See the [webhook documentation](webhook-config.md) for more details. <br> **Datatype:** String
-| `webhook.allow_custom_messages` | Enable the sending of Webhook messages from strategies via the dataprovider.send_msg() function. <br> **Datatype:** Boolean
-| | **Rest API / FreqUI / Producer-Consumer**
-| `api_server.enabled` | Enable usage of API Server. See the [API Server documentation](rest-api.md) for more details. <br> **Datatype:** Boolean
-| `api_server.listen_ip_address` | Bind IP address. See the [API Server documentation](rest-api.md) for more details. <br> **Datatype:** IPv4
-| `api_server.listen_port` | Bind Port. See the [API Server documentation](rest-api.md) for more details. <br>**Datatype:** Integer between 1024 and 65535
-| `api_server.verbosity` | Logging verbosity. `info` will print all RPC Calls, while "error" will only display errors. <br>**Datatype:** Enum, either `info` or `error`. Defaults to `info`.
-| `api_server.username` | Username for API server. See the [API Server documentation](rest-api.md) for more details. <br>**Keep it in secret, do not disclose publicly.**<br> **Datatype:** String
-| `api_server.password` | Password for API server. See the [API Server documentation](rest-api.md) for more details. <br>**Keep it in secret, do not disclose publicly.**<br> **Datatype:** String
-| `api_server.ws_token` | API token for the Message WebSocket. See the [API Server documentation](rest-api.md) for more details.  <br>**Keep it in secret, do not disclose publicly.** <br> **Datatype:** String
-| `bot_name` | Name of the bot. Passed via API to a client - can be shown to distinguish / name bots.<br> *Defaults to `freqtrade`*<br> **Datatype:** String
-| `external_message_consumer` | Enable [Producer/Consumer mode](producer-consumer.md) for more details. <br> **Datatype:** Dict
-| | **Other**
-| `initial_state` | Defines the initial application state. If set to stopped, then the bot has to be explicitly started via `/start` RPC command. <br>*Defaults to `stopped`.* <br> **Datatype:** Enum, either `running`, `paused` or `stopped`
-| `force_entry_enable` | Enables the RPC Commands to force a Trade entry. More information below. <br> **Datatype:** Boolean
-| `disable_dataframe_checks` | Disable checking the OHLCV dataframe returned from the strategy methods for correctness. Only use when intentionally changing the dataframe and understand what you are doing. [Strategy Override](#parameters-in-the-strategy).<br> *Defaults to `False`*. <br> **Datatype:** Boolean
-| `internals.process_throttle_secs` | Set the process throttle, or minimum loop duration for one bot iteration loop. Value in second. <br>*Defaults to `5` seconds.* <br> **Datatype:** Positive Integer
-| `internals.heartbeat_interval` | Print heartbeat message every N seconds. Set to 0 to disable heartbeat messages. <br>*Defaults to `60` seconds.* <br> **Datatype:** Positive Integer or 0
-| `internals.sd_notify` | Enables use of the sd_notify protocol to tell systemd service manager about changes in the bot state and issue keep-alive pings. See [here](advanced-setup.md#configure-the-bot-running-as-a-systemd-service) for more details. <br> **Datatype:** Boolean
-| `strategy` | **Required** Defines Strategy class to use. Recommended to be set via `--strategy NAME`. <br> **Datatype:** ClassName
-| `strategy_path` | Adds an additional strategy lookup path (must be a directory). <br> **Datatype:** String
-| `recursive_strategy_search` | Set to `true` to recursively search sub-directories inside `user_data/strategies` for a strategy. <br> **Datatype:** Boolean
-| `user_data_dir` | Directory containing user data. <br> *Defaults to `./user_data/`*. <br> **Datatype:** String
-| `db_url` | Declares database URL to use. NOTE: This defaults to `sqlite:///tradesv3.dryrun.sqlite` if `dry_run` is `true`, and to `sqlite:///tradesv3.sqlite` for production instances. <br> **Datatype:** String, SQLAlchemy connect string
-| `logfile` | Specifies logfile name. Uses a rolling strategy for log file rotation for 10 files with the 1MB limit per file. <br> **Datatype:** String
-| `add_config_files` | Additional config files. These files will be loaded and merged with the current config file. The files are resolved relative to the initial file.<br> *Defaults to `[]`*. <br> **Datatype:** List of strings
-| `dataformat_ohlcv` | Data format to use to store historical candle (OHLCV) data. <br> *Defaults to `feather`*. <br> **Datatype:** String
-| `dataformat_trades` | Data format to use to store historical trades data. <br> *Defaults to `feather`*. <br> **Datatype:** String
-| `reduce_df_footprint` | Recast all numeric columns to float32/int32, with the objective of reducing ram/disk usage (and decreasing train/inference timing backtesting/hyperopt and in FreqAI). <br> **Datatype:** Boolean. <br> Default: `False`.
-| `log_config` | Dictionary containing the log config for python logging. [more info](advanced-setup.md#advanced-logging) <br> **Datatype:** dict. <br> Default: `FtRichHandler`
+### ストラテジ内のパラメータ
 
-### Parameters in the strategy
-
-The following parameters can be set in the configuration file or strategy.
-Values set in the configuration file always overwrite values set in the strategy.
+次のパラメータは、構成ファイルまたはストラテジで設定できます。
+構成ファイルに設定された値は、常にストラテジに設定された値を上書きします。
 
 * `minimal_roi`
-* `timeframe`
-* `stoploss`
+* `時間枠`
+* `ストップロス`
 * `max_open_trades`
 * `trailing_stop`
 * `trailing_stop_positive`
@@ -307,34 +293,32 @@ Values set in the configuration file always overwrite values set in the strategy
 * `exit_profit_offset`
 * `ignore_roi_if_entry_signal`
 * `ignore_buying_expired_candle_after`
-* `position_adjustment_enable`
+* `位置調整有効`
 * `max_entry_position_adjustment`
 
-### Configuring amount per trade
+### 取引ごとの金額の設定
 
-There are several methods to configure how much of the stake currency the bot will use to enter a trade. All methods respect the [available balance configuration](#tradable-balance) as explained below.
+ボットが取引に参加するために使用するステーク通貨の量を構成するには、いくつかの方法があります。以下で説明するように、すべてのメソッドは [利用可能な残高の設定](#tradable-balance) を尊重します。
 
-#### Minimum trade stake
+#### 最小取引ステーク
 
-The minimum stake amount will depend on exchange and pair and is usually listed in the exchange support pages.
+最低賭け金は取引所とペアによって異なり、通常は取引所のサポートページに記載されています。
+XRP/USD の最低取引可能額が 20 XRP (取引所によって与えられる) で、価格が 0.6\$ であると仮定すると、このペアを購入するための最低賭け金額は `20 * 0.6 ~= 12` となります。
+この取引所には USD にも制限があり、すべての注文は 10\$ 以上である必要がありますが、この場合は適用されません。
 
-Assuming the minimum tradable amount for XRP/USD is 20 XRP (given by the exchange), and the price is 0.6\$, the minimum stake amount to buy this pair is `20 * 0.6 ~= 12`.
-This exchange has also a limit on USD - where all orders must be > 10\$ - which however does not apply in this case.
+安全な実行を保証するために、freqtrade はステーク量 10.1\$ での購入を許可せず、その代わりにペアの下にストップロスを配置するのに十分なスペースがあることを確認します (+ `amount_reserve_percent` で定義されるオフセット。デフォルトは 5%)。
 
-To guarantee safe execution, freqtrade will not allow buying with a stake-amount of 10.1\$, instead, it'll make sure that there's enough space to place a stoploss below the pair (+ an offset, defined by `amount_reserve_percent`, which defaults to 5%).
+5% のリザーブの場合、最小賭け金は ~12.6\$ (`12 * (1 + 0.05)`) になります。それに加えて 10% のストップロスを考慮すると、最終的には ~14\$ (`12.6 / (1 - 0.1)`) の値になります。
 
-With a reserve of 5%, the minimum stake amount would be ~12.6\$ (`12 * (1 + 0.05)`). If we take into account a stoploss of 10% on top of that - we'd end up with a value of ~14\$ (`12.6 / (1 - 0.1)`).
+ストップロス値が大きい場合にこの計算を制限するため、計算された最小ステーク制限は実際の制限を 50% 以上上回ることはありません。
 
-To limit this calculation in case of large stoploss values, the calculated minimum stake-limit will never be more than 50% above the real limit.
+!!!警告
+    取引所の限度額は通常安定しており、頻繁には更新されないため、単に取引所による最後の限度額調整以降、価格が大幅に上昇したという理由だけで、一部のペアはかなり高い最低限度額を示すことがあります。 Freqtrade は、計算された/望ましいステーク量より 30% を超える場合を除き、ステーク量をこの値に調整します。その場合、取引は拒否されます。
 
-!!! Warning
-    Since the limits on exchanges are usually stable and are not updated often, some pairs can show pretty high minimum limits, simply because the price increased a lot since the last limit adjustment by the exchange. Freqtrade adjusts the stake-amount to this value, unless it's > 30% more than the calculated/desired stake-amount - in which case the trade is rejected.
+#### ドライランウォレット
 
-#### Dry-run wallet
-
-When running in dry-run mode, the bot will use a simulated wallet to execute trades. The starting balance of this wallet is defined by `dry_run_wallet` (defaults to 1000).
-For more complex scenarios, you can also assign a dictionary to `dry_run_wallet` to define the starting balance for each currency.
-
+予行演習モードで実行すると、ボットはシミュレートされたウォレットを使用して取引を実行します。このウォレットの開始残高は「dry_run_wallet」によって定義されます (デフォルトは 1000)。
+より複雑なシナリオの場合は、辞書を「dry_run_wallet」に割り当てて、各通貨の開始残高を定義することもできます。
 ```json
 "dry_run_wallet": {
     "BTC": 0.01,
@@ -342,119 +326,112 @@ For more complex scenarios, you can also assign a dictionary to `dry_run_wallet`
     "USDT": 1000
 }
 ```
+コマンド ライン オプション (`--dry-run-wallet`) を使用して構成値をオーバーライドできますが、それは浮動小数点値のみであり、ディクショナリは使用できません。辞書を使用したい場合は、設定ファイルを調整してください。
 
-Command line options (`--dry-run-wallet`) can be used to override the configuration value, but only for the float value, not for the dictionary. If you'd like to use the dictionary, please adjust the configuration file.
+!!!注記
+    ステーク通貨以外の残高は取引には使用されませんが、ウォレット残高の一部として表示されます。
+    クロスマージン取引所では、取引に利用可能な担保を計算するためにウォレット残高が使用される場合があります。
 
-!!! Note
-    Balances not in stake-currency will not be used for trading, but are shown as part of the wallet balance.
-    On Cross-margin exchanges, the wallet balance may be used to calculate the available collateral for trading.
+#### 取引可能残高
 
-#### Tradable balance
+デフォルトでは、ボットは「完全な金額 - 1%」が自由に使えると想定し、[動的ステーク金額](#dynamic-stake-amount) を使用すると、完全な残高を取引ごとに「max_open_trades」バケットに分割します。
+Freqtrade は取引開始時に最終的な手数料として 1% を留保するため、デフォルトではそれには触れません。
 
-By default, the bot assumes that the `complete amount - 1%` is at it's disposal, and when using [dynamic stake amount](#dynamic-stake-amount), it will split the complete balance into `max_open_trades` buckets per trade.
-Freqtrade will reserve 1% for eventual fees when entering a trade and will therefore not touch that by default.
+`tradable_balance_ratio` 設定を使用して、「手付かずの」金額を構成できます。
 
-You can configure the "untouched" amount by using the `tradable_balance_ratio` setting.
+たとえば、取引所のウォレットで利用可能な 10 ETH があり、「tradable_balance_ratio=0.5」 (50%) である場合、ボットは取引に最大量の 5 ETH を使用し、これを利用可能な残高とみなします。ウォレットの残りの部分は取引によって影響を受けません。
 
-For example, if you have 10 ETH available in your wallet on the exchange and `tradable_balance_ratio=0.5` (which is 50%), then the bot will use a maximum amount of 5 ETH for trading and considers this as an available balance. The rest of the wallet is untouched by the trades.
+!!!危険
+    同じアカウントで複数のボットを実行する場合、この設定は**使用しないでください**。代わりに、[ボットへの利用可能な資本](#assign-available-capital) を参照してください。
 
-!!! Danger
-    This setting should **not** be used when running multiple bots on the same account. Please look at [Available Capital to the bot](#assign-available-capital) instead.
+!!!警告
+    「tradable_balance_ratio」設定は、現在の残高 (自由残高 + 取引で拘束された残高) に適用されます。したがって、開始残高を 1000 と仮定すると、「tradable_balance_ratio=0.99」の設定では、取引所で常に 10 通貨単位が利用可能であることが保証されません。たとえば、合計残高が (連敗または残高の引き出しにより) 500 に減少した場合、無料金額は 5 ユニットに減少する可能性があります。
 
-!!! Warning
-    The `tradable_balance_ratio` setting applies to the current balance (free balance + tied up in trades). Therefore, assuming the starting balance of 1000, a configuration with `tradable_balance_ratio=0.99` will not guarantee that 10 currency units will always remain available on the exchange. For example, the free amount may reduce to 5 units if the total balance is reduced to 500 (either by a losing streak or by withdrawing balance).
+#### 利用可能な資本を割り当てる
 
-#### Assign available Capital
+同じ取引所アカウントで複数のボットを使用するときに複利利益を最大限に活用するには、各ボットを特定の開始残高に制限する必要があります。
+これは、「available_capital」を希望の開始残高に設定することで実現できます。
 
-To fully utilize compounding profits when using multiple bots on the same exchange account, you'll want to limit each bot to a certain starting balance.
-This can be accomplished by setting `available_capital` to the desired starting balance.
+アカウントに 10000 USDT があり、この取引所で 2 つの異なる戦略を実行するとします。
+「available_capital=5000」を設定すると、各ボットに 5000 USDT の初期資本が付与されます。
+次に、ボットはこの開始残高を「max_open_trades」バケットに均等に分割します。
+利益のある取引により、他のボットのステーク サイズに影響を与えることなく、このボットのステーク サイズが増加します。
+「available_capital」を調整するには、設定を再ロードして有効にする必要があります。 `available_capital` を調整すると、以前の `available_capital` と新しい `available_capital` の差が追加されます。取引が開かれているときに利用可能な資本を減らしても、取引は終了しません。取引が完了すると差額がウォレットに返されます。この結果は、調整と取引終了の間の価格の動きによって異なります。
 
-Assuming your account has 10000 USDT and you want to run 2 different strategies on this exchange.
-You'd set `available_capital=5000` - granting each bot an initial capital of 5000 USDT.
-The bot will then split this starting balance equally into `max_open_trades` buckets.
-Profitable trades will result in increased stake-sizes for this bot - without affecting the stake-sizes of the other bot.
+!!!警告「「tradable_balance_ratio」と互換性がありません」
+    このオプションを設定すると、「tradable_balance_ratio」の設定が置き換えられます。
 
-Adjusting `available_capital` requires reloading the configuration to take effect. Adjusting the `available_capital` adds the difference between the previous `available_capital` and the new `available_capital`. Decreasing the available capital when trades are open doesn't exit the trades. The difference is returned to the wallet when the trades conclude. The outcome of this differs depending on the price movement between the adjustment and exiting the trades.
+#### 最後の賭け金額を修正する
 
-!!! Warning "Incompatible with `tradable_balance_ratio`"
-    Setting this option will replace any configuration of `tradable_balance_ratio`.
+取引可能な残高が 1000 USDT、`stake_amount=400`、および `max_open_trades=3` であると仮定します。
+ボットは 2 つの取引を開きますが、800 USDT がすでに他の取引で結び付けられているため、要求された 400 USDT はもう利用できないため、最後の取引スロットを満たすことができません。
 
-#### Amend last stake amount
+これを克服するには、オプション「amend_last_stake_amount」を「True」に設定します。これにより、ボットは最後の取引スロットを満たすために利用可能な残高まで stake_amount を減らすことができます。
 
-Assuming we have the tradable balance of 1000 USDT, `stake_amount=400`, and `max_open_trades=3`.
-The bot would open 2 trades and will be unable to fill the last trading slot, since the requested 400 USDT are no longer available since 800 USDT are already tied in other trades.
-
-To overcome this, the option `amend_last_stake_amount` can be set to `True`, which will enable the bot to reduce stake_amount to the available balance to fill the last trade slot.
-
-In the example above this would mean:
+上の例では、これは次のことを意味します。
 
 * Trade1: 400 USDT
 * Trade2: 400 USDT
 * Trade3: 200 USDT
 
-!!! Note
-    This option only applies with [Static stake amount](#static-stake-amount) - since [Dynamic stake amount](#dynamic-stake-amount) divides the balances evenly.
+!!!注記
+    このオプションは [静的ステーク額](#static-stake-amount) にのみ適用されます。[動的ステーク額](#dynamic-stake-amount) は残高を均等に分割するためです。
 
-!!! Note
-    The minimum last stake amount can be configured using `last_stake_amount_min_ratio` - which defaults to 0.5 (50%). This means that the minimum stake amount that's ever used is `stake_amount * 0.5`. This avoids very low stake amounts, that are close to the minimum tradable amount for the pair and can be refused by the exchange.
+!!!注記
+    最終ステークの最小額は「last_stake_amount_min_ratio」を使用して設定できます。デフォルトは 0.5 (50%) です。これは、これまでに使用された最小ステーク額が「stake_amount * 0.5」であることを意味します。これにより、ペアの最低取引可能額に近く、取引所によって拒否される可能性のある非常に低い賭け金が回避されます。
 
-#### Static stake amount
+#### 静的賭け金額
 
-The `stake_amount` configuration statically configures the amount of stake-currency your bot will use for each trade.
+「stake_amount」設定は、ボットが各取引に使用するステーク通貨の量を静的に設定します。
 
-The minimal configuration value is 0.0001, however, please check your exchange's trading minimums for the stake currency you're using to avoid problems.
+最小構成値は 0.0001 ですが、問題を避けるために、使用しているステーク通貨の取引所の取引最低額を確認してください。
 
-This setting works in combination with `max_open_trades`. The maximum capital engaged in trades is `stake_amount * max_open_trades`.
-For example, the bot will at most use (0.05 BTC x 3) = 0.15 BTC, assuming a configuration of `max_open_trades=3` and `stake_amount=0.05`.
+この設定は「max_open_trades」と組み合わせて機能します。取引に関わる最大資本は「stake_amount * max_open_trades」です。
+たとえば、「max_open_trades=3」および「stake_amount=0.05」の構成を想定すると、ボットは最大で (0.05 BTC x 3) = 0.15 BTC を使用します。
 
-!!! Note
-    This setting respects the [available balance configuration](#tradable-balance).
+!!!注記
+    この設定は、[利用可能な残高の構成](#tradable-balance) を尊重します。
 
-#### Dynamic stake amount
+#### 動的賭け金額
 
-Alternatively, you can use a dynamic stake amount, which will use the available balance on the exchange, and divide that equally by the number of allowed trades (`max_open_trades`).
+あるいは、取引所で利用可能な残高を使用し、それを許可された取引数 (`max_open_trades`) で等分する動的なステーク額を使用することもできます。
 
-To configure this, set `stake_amount="unlimited"`. We also recommend to set `tradable_balance_ratio=0.99` (99%) - to keep a minimum balance for eventual fees.
+これを設定するには、`stake_amount="unlimited"` を設定します。また、最終的な手数料の最小残高を維持するために、「tradable_balance_ratio=0.99」 (99%) を設定することをお勧めします。
 
-In this case a trade amount is calculated as:
-
+この場合、取引額は次のように計算されます。
 ```python
 currency_balance / (max_open_trades - current_open_trades)
 ```
-
-To allow the bot to trade all the available `stake_currency` in your account (minus `tradable_balance_ratio`) set
-
+ボットがアカウント内の利用可能なすべての `stake_currency` (マイナス `tradable_balance_ratio`) セットを取引できるようにするには、
 ```json
 "stake_amount" : "unlimited",
 "tradable_balance_ratio": 0.99,
 ```
+!!!ヒント「利益の複利」
+    この構成では、ボットのパフォーマンスに応じて賭け金を増減することができ (ボットが負けている場合は賭け金が低くなり、ボットが勝利記録を持っている場合は、より高い残高が利用できるため賭け金が高くなります)、結果的に利益が複利になります。
 
-!!! Tip "Compounding profits"
-    This configuration will allow increasing/decreasing stakes depending on the performance of the bot (lower stake if the bot is losing, higher stakes if the bot has a winning record since higher balances are available), and will result in profit compounding.
+!!!注意「ドライランモード使用時」
+    `"stake_amount" : "unlimited" をドライラン、バックテスト、または Hyperopt と組み合わせて使用すると、残高は `dry_run_wallet` のステークから開始され、進化していきます。
+    したがって、「dry_run_wallet」を適切な値 (たとえば、BTC の場合は 0.05 または 0.01、USDT の場合は 1000 または 100 など) に設定することが重要です。そうしないと、一度に 100 BTC (またはそれ以上) または 0.05 USDT (またはそれ以下) での取引をシミュレートする可能性があります。これは、実際の利用可能な残高に対応していない可能性があり、または賭け金の注文金額の取引所の最小制限を下回っている可能性があります。通貨。
 
-!!! Note "When using Dry-Run Mode"
-    When using `"stake_amount" : "unlimited",` in combination with Dry-Run, Backtesting or Hyperopt, the balance will be simulated starting with a stake of `dry_run_wallet` which will evolve.
-    It is therefore important to set `dry_run_wallet` to a sensible value (like 0.05 or 0.01 for BTC and 1000 or 100 for USDT, for example), otherwise, it may simulate trades with 100 BTC (or more) or 0.05 USDT (or less) at once - which may not correspond to your real available balance or is less than the exchange minimal limit for the order amount for the stake currency.
+#### 位置調整による動的なステーク量
 
-#### Dynamic stake amount with position adjustment
+無制限のステークでポジション調整を使用したい場合は、戦略に応じて値を返すように `custom_stake_amount` も実装する必要があります。
+一般的な値は、提案された賭け金の 25% ～ 50% の範囲になりますが、戦略と、ポジション調整バッファーとしてウォレットにどのくらい残しておきたいかによって大きく異なります。
 
-When you want to use position adjustment with unlimited stakes, you must also implement `custom_stake_amount` to a return a value depending on your strategy.
-Typical value would be in the range of 25% - 50% of the proposed stakes, but depends highly on your strategy and how much you wish to leave into the wallet as position adjustment buffer.
+たとえば、ポジション調整で同じ賭け金で 2 回の追加購入ができると想定している場合、バッファーは最初に提案された無制限の賭け金の 66.6667% である必要があります。
 
-For example if your position adjustment assumes it can do 2 additional buys with the same stake amounts then your buffer should be 66.6667% of the initially proposed unlimited stake amount.
-
-Or another example if your position adjustment assumes it can do 1 additional buy with 3x the original stake amount then `custom_stake_amount` should return 25% of proposed stake amount and leave 75% for possible later position adjustments.
+または、別の例で、ポジション調整が元のステーク額の 3 倍で 1 回の追加購入ができると想定している場合、「custom_stake_amount」は提案されたステーク額の 25% を返し、その後のポジション調整のために 75% を残しておく必要があります。
 
 --8<-- "includes/pricing.md"
 
-## Further Configuration details
+## 構成の詳細
 
-### Understand minimal_roi
+### minimum_roi を理解する
 
-The `minimal_roi` configuration parameter is a JSON object where the key is a duration
-in minutes and the value is the minimum ROI as a ratio.
-See the example below:
-
+「minimal_roi」設定パラメータは、キーが期間である JSON オブジェクトです。
+単位は分で、その値は比率としての最小 ROI です。
+以下の例を参照してください。
 ```json
 "minimal_roi": {
     "40": 0.0,    # Exit after 40 minutes if the profit is not negative
@@ -463,33 +440,31 @@ See the example below:
     "0":  0.04    # Exit immediately if there is at least 4% profit
 },
 ```
+ほとんどの戦略ファイルには、最適な `minimal_roi` 値がすでに含まれています。
+このパラメータは、戦略ファイルまたは構成ファイルで設定できます。構成ファイルで使用すると、
+戦略ファイルの「minimal_roi」値。
+Strategy または Configuration のどちらでも設定されていない場合、デフォルトの 1000% `{"0": 10}` が使用され、取引で 1000% の利益が得られない限り、最小 ROI は無効になります。
 
-Most of the strategy files already include the optimal `minimal_roi` value.
-This parameter can be set in either Strategy or Configuration file. If you use it in the configuration file, it will override the
-`minimal_roi` value from the strategy file.
-If it is not set in either Strategy or Configuration, a default of 1000% `{"0": 10}` is used, and minimal ROI is disabled unless your trade generates 1000% profit.
+!!! 「特定の時間後に強制終了する特殊なケース」に注意してください。
+    特殊なケースでは、ROI として `"<N>": -1` を使用します。これにより、ボットは、それがプラスかマイナスかに関係なく、N 分後に強制的に取引を終了するため、時間制限のある強制終了を表します。
 
-!!! Note "Special case to forceexit after a specific time"
-    A special case presents using `"<N>": -1` as ROI. This forces the bot to exit a trade after N Minutes, no matter if it's positive or negative, so represents a time-limited force-exit.
+### Force_entry_enable を理解する
 
-### Understand force_entry_enable
+`force_entry_enable` 設定パラメータは、Telegram および REST API 経由でのforce-enter (`/forcelong`、`/forceshort`) コマンドの使用を有効にします。
+セキュリティ上の理由から、デフォルトでは無効になっており、有効になっている場合、freqtrade は起動時に警告メッセージを表示します。
+たとえば、「/forceenter ETH/BTC」をボットに送信すると、freqtrade がペアを購入し、通常の終了シグナル (ROI、ストップロス、/forceexit) が表示されるまで保持されます。
 
-The `force_entry_enable` configuration parameter enables the usage of force-enter (`/forcelong`, `/forceshort`) commands via Telegram and REST API.
-For security reasons, it's disabled by default, and freqtrade will show a warning message on startup if enabled.
-For example, you can send `/forceenter ETH/BTC` to the bot, which will result in freqtrade buying the pair and holds it until a regular exit-signal (ROI, stoploss, /forceexit) appears.
+これは戦略によっては危険な場合があるため、注意して使用してください。
 
-This can be dangerous with some strategies, so use with care.
+使用法の詳細については、[テレグラムのドキュメント](telegram-usage.md)を参照してください。
 
-See [the telegram documentation](telegram-usage.md) for details on usage.
+### 期限切れのキャンドルを無視する
 
-### Ignoring expired candles
+より長い時間枠 (たとえば、1 時間以上) を操作し、低い「max_open_trades」値を使用する場合、取引スロットが利用可能になるとすぐに最後のローソクを処理できます。最後のローソク足を処理するときに、そのローソク足で買いシグナルを使用することが望ましくない状況が発生する可能性があります。たとえば、戦略でクロスオーバーを使用する条件を使用している場合、そのポイントは取引を開始するにはあまりにも前に過ぎている可能性があります。
 
-When working with larger timeframes (for example 1h or more) and using a low `max_open_trades` value, the last candle can be processed as soon as a trade slot becomes available. When processing the last candle, this can lead to a situation where it may not be desirable to use the buy signal on that candle. For example, when using a condition in your strategy where you use a cross-over, that point may have passed too long ago for you to start a trade on it.
+このような状況では、「ignore_buying_expired_candle_after」を正の数に設定することで、指定された期間を超えたキャンドルを無視する機能を有効にすることができます。これは、買いシグナルが期限切れになるまでの秒数を示します。
 
-In these situations, you can enable the functionality to ignore candles that are beyond a specified period by setting `ignore_buying_expired_candle_after` to a positive number, indicating the number of seconds after which the buy signal becomes expired.
-
-For example, if your strategy is using a 1h timeframe, and you only want to buy within the first 5 minutes when a new candle comes in, you can add the following configuration to your strategy:
-
+たとえば、戦略で 1 時間の時間枠を使用しており、新しいローソク足が入った最初の 5 分以内にのみ購入したい場合は、次の構成を戦略に追加できます。
 ``` json
   {
     //...
@@ -497,26 +472,24 @@ For example, if your strategy is using a 1h timeframe, and you only want to buy 
     // ...
   }
 ```
+!!!注記
+    この設定は、新しいローソク足が出現するたびにリセットされるため、アクティブな 2 番目または 3 番目のローソク足でスティックシグナルが実行されるのを妨げることはありません。 1 つのローソク足に対してのみアクティブになる買いシグナルには、「トリガー」セレクターを使用するのが最適です。
 
-!!! Note
-    This setting resets with each new candle, so it will not prevent sticking-signals from executing on the 2nd or 3rd candle they're active. Best use a "trigger" selector for buy signals, which are only active for one candle.
+### order_types を理解する
 
-### Understand order_types
+`order_types` 設定パラメータは、アクション (`entry`、`exit`、`stoploss`、`emergency_exit`、`force_exit`、`force_entry`) を注文タイプ (`market`、`limit` など) にマッピングするだけでなく、取引所でのストップロスを設定し、取引所でのストップロスの更新間隔を秒単位で定義します。
 
-The `order_types` configuration parameter maps actions (`entry`, `exit`, `stoploss`, `emergency_exit`, `force_exit`, `force_entry`) to order-types (`market`, `limit`, ...) as well as configures stoploss to be on the exchange and defines stoploss on exchange update interval in seconds.
+これにより、指値注文を使用してエントリーし、指値注文を使用して終了し、成行注文を使用してストップロスを作成することができます。
+また、
+ストップロスは「取引所で」、つまり買い注文が履行されるとすぐにストップロス注文が出されます。
 
-This allows to enter using limit orders, exit using limit-orders, and create stoplosses using market orders.
-It also allows to set the
-stoploss "on exchange" which means stoploss order would be placed immediately once the buy order is fulfilled.
+設定ファイルに設定された `order_types` は、ストラテジ全体に設定された値を上書きするため、`order_types` 辞書全体を 1 か所で設定する必要があります。
 
-`order_types` set in the configuration file overwrites values set in the strategy as a whole, so you need to configure the whole `order_types` dictionary in one place.
+これを構成する場合、次の 4 つの値 (`entry`、`exit`、`stoploss`、`stoploss_on_exchange`) が存在する必要があります。存在しない場合、ボットは起動に失敗します。
 
-If this is configured, the following 4 values (`entry`, `exit`, `stoploss` and `stoploss_on_exchange`) need to be present, otherwise, the bot will fail to start.
+(`emergency_exit`、`force_exit`、`force_entry`、`stoploss_on_exchange`、`stoploss_on_exchange_interval`、`stoploss_on_exchange_limit_ratio`) の詳細については、ストップロスのドキュメント [取引所のストップロス](stoploss.md) を参照してください。
 
-For information on (`emergency_exit`,`force_exit`, `force_entry`, `stoploss_on_exchange`,`stoploss_on_exchange_interval`,`stoploss_on_exchange_limit_ratio`) please see stop loss documentation [stop loss on exchange](stoploss.md)
-
-Syntax for Strategy:
-
+戦略の構文:
 ```python
 order_types = {
     "entry": "limit",
@@ -530,9 +503,7 @@ order_types = {
     "stoploss_on_exchange_limit_ratio": 0.99,
 }
 ```
-
-Configuration:
-
+構成：
 ```json
 "order_types": {
     "entry": "limit",
@@ -545,101 +516,93 @@ Configuration:
     "stoploss_on_exchange_interval": 60
 }
 ```
+!!!注「成行注文サポート」
+    すべての取引所が「成行」注文をサポートしているわけではありません。
+    取引所が成行注文をサポートしていない場合は、次のメッセージが表示されます。
+    「Exchange <yourexchange> は成行注文をサポートしていません。」とすると、ボットは起動を拒否します。
 
-!!! Note "Market order support"
-    Not all exchanges support "market" orders.
-    The following message will be shown if your exchange does not support market orders:
-    `"Exchange <yourexchange> does not support market orders."` and the bot will refuse to start.
+!!!警告「成行注文の使用」
+    成行注文をご利用の際は、[成行注文の価格設定](#market-order-pricing)セクションをよくお読みください。
 
-!!! Warning "Using market orders"
-    Please carefully read the section [Market order pricing](#market-order-pricing) section when using market orders.
+!!! 「取引所のストップロス」に注意してください。
+    「order_types.stoploss_on_exchange_interval」は必須ではありません。次の場合は値を変更しないでください。
+    あなたが何をしているのかわかりません。ストップロスの仕組みについて詳しくは、
+    [ストップロスのドキュメント](stoploss.md)を参照してください。
 
-!!! Note "Stoploss on exchange"
-    `order_types.stoploss_on_exchange_interval` is not mandatory. Do not change its value if you are
-    unsure of what you are doing. For more information about how stoploss works please
-    refer to [the stoploss documentation](stoploss.md).
+    「order_types.stoploss_on_exchange」が有効で、ストップロスが取引所で手動でキャンセルされた場合、ボットは新しいストップロス注文を作成します。
 
-    If `order_types.stoploss_on_exchange` is enabled and the stoploss is cancelled manually on the exchange, then the bot will create a new stoploss order.
+!!!警告「警告: order_types.stoploss_on_exchange の失敗」
+    何らかの理由で取引所作成時のストップロスが失敗した場合、「緊急終了」が開始されます。デフォルトでは、成行注文を使用して取引を終了します。非常口の順序タイプは、「order_types」辞書に「emergency_exit」値を設定することで変更できますが、これはお勧めできません。
 
-!!! Warning "Warning: order_types.stoploss_on_exchange failures"
-    If stoploss on exchange creation fails for some reason, then an "emergency exit" is initiated. By default, this will exit the trade using a market order. The order-type for the emergency-exit can be changed by setting the `emergency_exit` value in the `order_types` dictionary - however, this is not advised.
+### order_time_in_force を理解する
 
-### Understand order_time_in_force
+「order_time_in_force」設定パラメータは、取引所で注文が実行されるポリシーを定義します。  
+一般的に使用される有効期間は次のとおりです。
 
-The `order_time_in_force` configuration parameter defines the policy by which the order is executed on the exchange.  
-Commonly used time in force are:
+**GTC (キャンセルされるまで有効):**
 
-**GTC (Good Till Canceled):**
+ほとんどの場合、これは有効なデフォルトの時間です。これは、ユーザーがキャンセルするまで注文が交換されたままになることを意味します。完全にまたは部分的に満たすことができます。部分的に履行された場合、残りはキャンセルされるまで交換に残ります。
 
-This is most of the time the default time in force. It means the order will remain on exchange till it is cancelled by the user. It can be fully or partially fulfilled. If partially fulfilled, the remaining will stay on the exchange till cancelled.
+**FOK (フィル オア キル):**
 
-**FOK (Fill Or Kill):**
+これは、注文が即座にかつ完全に実行されない場合、注文は取引所によってキャンセルされることを意味します。
 
-It means if the order is not executed immediately AND fully then it is cancelled by the exchange.
+**IOC (即時またはキャンセル):**
 
-**IOC (Immediate Or Canceled):**
+部分的に満たされることを除けば、FOK (上記) と同じです。残りの部分は交換により自動的にキャンセルされます。
 
-It is the same as FOK (above) except it can be partially fulfilled. The remaining part is automatically cancelled by the exchange.
+これは最小取引サイズを下回る部分的な約定につながる可能性があるため、必ずしも推奨されるわけではありません。
 
-Not necessarily recommended, as this can lead to partial fills below the minimum trade size.
+**PO (郵便のみ):**
 
-**PO (Post only):**
+ポストのみ注文。メーカー発注またはキャンセルとさせていただきます。
+これは、注文が少なくとも一定期間、約定されていない状態でオーダーブック上に置かれなければならないことを意味します。
 
-Post only order. The order is either placed as a maker order, or it is canceled.
-This means the order must be placed on orderbook for at least time in an unfilled state.
+取引所でサポートされている有効期間の値については、[Exchange ドキュメント](exchanges.md) を確認してください。
 
-Please check the [Exchange documentation](exchanges.md) for supported time in force values for your exchange.
+#### time_in_force 構成
 
-#### time_in_force config
+「order_time_in_force」パラメータには、有効なポリシー値の開始時間と終了時間の辞書が含まれています。
+これは構成ファイルまたは戦略で設定できます。
+構成ファイルに設定された値は、通常の [優先規則](#configuration-option-prevalence) に従って、ストラテジ内の値を上書きします。
 
-The `order_time_in_force` parameter contains a dict with entry and exit time in force policy values.
-This can be set in the configuration file or in the strategy.
-Values set in the configuration file overwrite values from in the strategy, following the regular [precedence rules](#configuration-option-prevalence).
-
-The possible values are: `GTC` (default), `FOK` or `IOC`.
-
+可能な値は、「GTC」 (デフォルト)、「FOK」、または「IOC」です。
 ``` python
 "order_time_in_force": {
     "entry": "GTC",
     "exit": "GTC"
 },
 ```
+!!!警告
+    自分が何をしているのかを理解し、特定の取引所で異なる値を使用した場合の影響を調査していない限り、デフォルト値を変更しないでください。
 
-!!! Warning
-    Please don't change the default value unless you know what you are doing and have researched the impact of using different values for your particular exchange.
 
+### 法定通貨への変換
 
-### Fiat conversion
+Freqtrade は、Coingecko API を使用して、コインの価値を Telegram レポートの対応する法定通貨の価値に変換します。
+法定通貨は設定ファイルで「fiat_display_currency」として設定できます。
 
-Freqtrade uses the Coingecko API to convert the coin value to it's corresponding fiat value for the Telegram reports.
-The FIAT currency can be set in the configuration file as `fiat_display_currency`.
+構成から `fiat_display_currency` を完全に削除すると、coingecko の初期化がスキップされ、FIAT 通貨換算が表示されなくなります。これは、ボットが正しく機能するためには重要ではありません。
 
-Removing `fiat_display_currency` completely from the configuration will skip initializing coingecko, and will not show any FIAT currency conversion. This has no importance for the correct functioning of the bot.
+#### fiat_display_currency にはどのような値を使用できますか?
 
-#### What values can be used for fiat_display_currency?
+`fiat_display_currency` 設定パラメータは、通貨に使用する基本通貨を設定します。
+ボット Telegram レポートでのコインから法定通貨への変換。
 
-The `fiat_display_currency` configuration parameter sets the base currency to use for the
-conversion from coin to fiat in the bot Telegram reports.
-
-The valid values are:
-
+有効な値は次のとおりです。
 ```json
 "AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PKR", "PLN", "RUB", "SEK", "SGD", "THB", "TRY", "TWD", "ZAR", "USD"
 ```
+法定通貨に加えて、さまざまな暗号通貨がサポートされています。
 
-In addition to fiat currencies, a range of crypto currencies is supported.
-
-The valid values are:
-
+有効な値は次のとおりです。
 ```json
 "BTC", "ETH", "XRP", "LTC", "BCH", "BNB"
 ```
+#### Coingecko レート制限の問題
 
-#### Coingecko Rate limit problems
-
-On some IP ranges, coingecko is heavily rate-limiting.
-In such cases, you may want to add your coingecko API key to the configuration.
-
+一部の IP 範囲では、coingecko はレートを大幅に制限します。
+このような場合は、coingecko API キーを構成に追加するとよいでしょう。
 ``` json
 {
     "fiat_display_currency": "USD",
@@ -649,21 +612,19 @@ In such cases, you may want to add your coingecko API key to the configuration.
     }
 }
 ```
+Freqtrade は、Demo と Pro の両方の coingecko API キーをサポートしています。
 
-Freqtrade supports both Demo and Pro coingecko API keys.
+Coingecko API キーは、ボットが正しく機能するために必要ありません。
+これは Telegram レポートでコインを法定通貨に変換するためにのみ使用され、通常は API キーなしでも機能します。
 
-The Coingecko API key is NOT required for the bot to function correctly.
-It is only used for the conversion of coin to fiat in the Telegram reports, which usually also work without API key.
+## Exchange WebSocket の消費
 
-## Consuming exchange Websockets
+Freqtrade は、ccxt.pro を通じて WebSocket を使用できます。
 
-Freqtrade can consume websockets through ccxt.pro.
+Freqtrade は、データを常に利用できるようにすることを目的としています。
+WebSocket 接続が失敗した (または無効になった) 場合、ボットは REST API 呼び出しに戻ります。
 
-Freqtrade aims ensure data is available at all times.
-Should the websocket connection fail (or be disabled), the bot will fall back to REST API calls.
-
-Should you experience problems you suspect are caused by websockets, you can disable these via the setting `exchange.enable_ws`, which defaults to true.
-
+WebSocket が原因であると思われる問題が発生した場合は、「exchange.enable_ws」設定 (デフォルトは true) を使用して WebSocket を無効にすることができます。
 ```jsonc
 "exchange": {
     // ...
@@ -671,31 +632,27 @@ Should you experience problems you suspect are caused by websockets, you can dis
     // ...
 }
 ```
+プロキシを使用する必要がある場合、詳細については [プロキシ セクション](#using-a-proxy-with-freqtrade) を参照してください。
 
-Should you be required to use a proxy, please refer to the [proxy section](#using-a-proxy-with-freqtrade) for more information.
+!!!インフォメーション「ロールアウト」
+    ボットの安定性を確保するために、これをゆっくりと実装しています。
+    現在、使用は ohlcv データ ストリームに限定されています。
+    また、少数の取引所に限定されており、新しい取引所は継続的に追加されています。
 
-!!! Info "Rollout"
-    We're implementing this out slowly, ensuring stability of your bots.
-    Currently, usage is limited to ohlcv data streams.
-    It's also limited to a few exchanges, with new exchanges being added on an ongoing basis.
+## ドライラン モードの使用
 
-## Using Dry-run mode
+ボットをドライラン モードで起動して、ボットがどのように動作するかを確認することをお勧めします。
+行動し、戦略のパフォーマンスはどうなるか。ドライランモードでは、
+ボットはあなたのお金に関与しません。ライブ シミュレーションのみを実行します。
+取引所で取引を作成します。
 
-We recommend starting the bot in the Dry-run mode to see how your bot will
-behave and what is the performance of your strategy. In the Dry-run mode, the
-bot does not engage your money. It only runs a live simulation without
-creating trades on the exchange.
-
-1. Edit your `config.json` configuration file.
-2. Switch `dry-run` to `true` and specify `db_url` for a persistence database.
-
+1. 「config.json」構成ファイルを編集します。
+2. 「dry-run」を「true」に切り替え、永続データベースの「db_url」を指定します。
 ```json
 "dry_run": true,
 "db_url": "sqlite:///tradesv3.dryrun.sqlite",
 ```
-
-3. Remove your Exchange API key and secret (change them by empty values or fake credentials):
-
+3. Exchange API キーとシークレットを削除します (空の値または偽の資格情報で変更します)。
 ```json
 "exchange": {
     "name": "binance",
@@ -704,47 +661,43 @@ creating trades on the exchange.
     ...
 }
 ```
+ドライラン モードで実行するボットのパフォーマンスに満足したら、運用モードに切り替えることができます。
 
-Once you will be happy with your bot performance running in the Dry-run mode, you can switch it to production mode.
+!!!注記
+    シミュレートされたウォレットはドライラン モード中に使用でき、開始資本は `dry_run_wallet` (デフォルトは 1000) であると想定されます。
 
-!!! Note
-    A simulated wallet is available during dry-run mode and will assume a starting capital of `dry_run_wallet` (defaults to 1000).
+### 予行演習に関する考慮事項
 
-### Considerations for dry-run
+* API キーは提供される場合と提供されない場合があります。取引所での読み取り専用操作 (つまり、アカウントの状態を変更しない操作) のみがドライラン モードで実行されます。
+* ウォレット (`/balance`) は `dry_run_wallet` に基づいてシミュレートされています。
+* 注文はシミュレーションされ、取引所には送信されません。
+* 成行注文は、注文が出された瞬間の注文帳の出来高に基づいて約定され、最大スリッページは 5% です。
+* 価格が定義されたレベルに達すると指値注文が約定します。または、「unfilledtimeout」設定に基づいてタイムアウトになります。
+* 指値注文は、価格を 1% 以上超えた場合に成行注文に変換され、通常の成行注文ルールに基づいて直ちに約定されます (上記の成行注文に関するポイントを参照)。
+* `stoploss_on_exchange`と組み合わせると、ストップロス価格が約定されたものとみなされます。
+* 未処理の注文 (データベースに保存される取引ではない) は、オフライン中に約定されなかったものとして、ボットの再起動後も開いたままになります。
 
-* API-keys may or may not be provided. Only Read-Only operations (i.e. operations that do not alter account state) on the exchange are performed in dry-run mode.
-* Wallets (`/balance`) are simulated based on `dry_run_wallet`.
-* Orders are simulated, and will not be posted to the exchange.
-* Market orders fill based on orderbook volume the moment the order is placed, with a maximum slippage of 5%.
-* Limit orders fill once the price reaches the defined level - or time out based on `unfilledtimeout` settings.
-* Limit orders will be converted to market orders if they cross the price by more than 1%, and will be filled immediately based regular market order rules (see point about Market orders above).
-* In combination with `stoploss_on_exchange`, the stop_loss price is assumed to be filled.
-* Open orders (not trades, which are stored in the database) are kept open after bot restarts, with the assumption that they were not filled while being offline.
+## 本番モードに切り替える
 
-## Switch to production mode
+本番モードでは、ボットがあなたの資金を利用します。戦略を誤ると、すべての資金を失う可能性があるため、注意してください。
+運用モードで実行するときは、何をしているのかに注意してください。
 
-In production mode, the bot will engage your money. Be careful, since a wrong strategy can lose all your money.
-Be aware of what you are doing when you run it in production mode.
+本番モードに切り替えるときは、予行演習によって為替資金が台無しになり、最終的に統計が汚染されることを避けるために、必ず別の新しいデータベースを使用してください。
 
-When switching to Production mode, please make sure to use a different / fresh database to avoid dry-run trades messing with your exchange money and eventually tainting your statistics.
+### Exchange アカウントをセットアップする
 
-### Setup your exchange account
+Exchange Web サイトから API キー (通常は「key」と「secret」を取得しますが、一部の取引所では追加の「password」が必要です) を作成する必要があります。これを構成内の適切なフィールドに挿入するか、「freqtrade new-config」コマンドで要求された場合に挿入する必要があります。
+API キーは通常、ライブ取引 (リアルマネーの取引、ボットを「本番モード」で実行、取引所で実際の注文を実行) にのみ必要であり、予行演習 (取引シミュレーション) モードで実行するボットには必要ありません。ボットを予行演習モードで設定する場合、これらのフィールドに空の値を入力できます。
 
-You will need to create API Keys (usually you get `key` and `secret`, some exchanges require an additional `password`) from the Exchange website and you'll need to insert this into the appropriate fields in the configuration or when asked by the `freqtrade new-config` command.
-API Keys are usually only required for live trading (trading for real money, bot running in "production mode", executing real orders on the exchange) and are not required for the bot running in dry-run (trade simulation) mode. When you set up the bot in dry-run mode, you may fill these fields with empty values.
+### ボットを実稼働モードに切り替えるには
 
-### To switch your bot in production mode
+**「config.json」ファイルを編集します。**
 
-**Edit your `config.json`  file.**
-
-**Switch dry-run to false and don't forget to adapt your database URL if set:**
-
+**ドライランを false に切り替え、設定されている場合はデータベース URL を忘れずに調整してください。**
 ```json
 "dry_run": false,
 ```
-
-**Insert your Exchange API key (change them by fake API keys):**
-
+**Exchange API キーを挿入します (偽の API キーに変更します):**
 ```json
 {
     "exchange": {
@@ -757,31 +710,27 @@ API Keys are usually only required for live trading (trading for real money, bot
     //...
 }
 ```
+また、ドキュメントの [Exchanges](exchanges.md) セクションを必ず読んで、Exchange に固有の潜在的な構成の詳細を認識する必要があります。
 
-You should also make sure to read the [Exchanges](exchanges.md) section of the documentation to be aware of potential configuration details specific to your exchange.
+!!!ヒント「秘密は内緒にしてね」
+    シークレットを秘密にするには、API キーに 2 番目の構成を使用することをお勧めします。
+    新しい設定ファイル (例: `config-private.json`) で上記のスニペットを使用し、設定をこのファイルに保存するだけです。
+    次に、「freqtrade trade --config user_data/config.json --config user_data/config-private.json <...>」でボットを起動し、キーをロードします。
 
-!!! Hint "Keep your secrets secret"
-    To keep your secrets secret, we recommend using a 2nd configuration for your API keys.
-    Simply use the above snippet in a new configuration file (e.g. `config-private.json`) and keep your settings in this file.
-    You can then start the bot with `freqtrade trade --config user_data/config.json --config user_data/config-private.json <...>` to have your keys loaded.
+    **決して**プライベート設定ファイルや交換キーを他人と共有しないでください。
 
-    **NEVER** share your private configuration file or your exchange keys with anyone!
+## Freqtrade でプロキシを使用する
 
-## Using a proxy with Freqtrade
-
-To use a proxy with freqtrade, export your proxy settings using the variables `"HTTP_PROXY"` and `"HTTPS_PROXY"` set to the appropriate values.
-This will have the proxy settings applied to everything (telegram, coingecko, ...) **except** for exchange requests.
-
+freqtrade でプロキシを使用するには、適切な値に設定された変数 `"HTTP_PROXY"` と `"HTTPS_PROXY"` を使用してプロキシ設定をエクスポートします。
+これにより、交換リクエストを除くすべて (テレグラム、coingecko など) にプロキシ設定が適用されます。
 ``` bash
 export HTTP_PROXY="http://addr:port"
 export HTTPS_PROXY="http://addr:port"
 freqtrade
 ```
+### プロキシ交換リクエスト
 
-### Proxy exchange requests
-
-To use a proxy for exchange connections - you will have to define the proxies as part of the ccxt configuration.
-
+Exchange 接続にプロキシを使用するには、ccxt 構成の一部としてプロキシを定義する必要があります。
 ``` json
 { 
   "exchange": {
@@ -792,9 +741,8 @@ To use a proxy for exchange connections - you will have to define the proxies as
   }
 }
 ```
+利用可能なプロキシ タイプの詳細については、[ccxt プロキシ ドキュメント](https://docs.ccxt.com/#/README?id=proxy) を参照してください。
 
-For more information on available proxy types, please consult the [ccxt proxy documentation](https://docs.ccxt.com/#/README?id=proxy).
+## 次のステップ
 
-## Next step
-
-Now you have configured your config.json, the next step is to [start your bot](bot-usage.md).
+これで config.json の構成が完了しました。次のステップは、[ボットを開始](bot-usage.md)することです。
