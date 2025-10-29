@@ -16,10 +16,10 @@ class PreciousMetalsSpreadConfig(UseCaseConfig):
     rolling_window: int = Field(default=20)
     z_score_threshold: float = Field(default=2.0)
     etf_instruments: Dict[str, ETFInstrument] = Field(default_factory=lambda: {
-        "1540": ETFInstrument(ticker="1540.T", metal_symbol="XAUUSD=X", grams_per_unit=1.0),
-        "1541": ETFInstrument(ticker="1541.T", metal_symbol="XPTUSD=X", grams_per_unit=1.0),
-        "1542": ETFInstrument(ticker="1542.T", metal_symbol="XAGUSD=X", grams_per_unit=100.0),
-        "1543": ETFInstrument(ticker="1543.T", metal_symbol="XPDUSD=X", grams_per_unit=10.0),
+        "1540": ETFInstrument(ticker="1540.T", metal_symbol="GC=F", grams_per_unit=1.0),
+        "1541": ETFInstrument(ticker="1541.T", metal_symbol="PL=F", grams_per_unit=1.0),
+        "1542": ETFInstrument(ticker="1542.T", metal_symbol="SI=F", grams_per_unit=100.0),
+        "1543": ETFInstrument(ticker="1543.T", metal_symbol="PA=F", grams_per_unit=10.0),
     })
 
     @property

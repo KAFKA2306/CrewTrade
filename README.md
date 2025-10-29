@@ -62,14 +62,14 @@ resources/
 
 - `use_cases/base.py`：Pydantic 設定 → データ取得 → 解析 → レポートのテンプレートクラス
 - `registry.py`：ユースケース名とクラスをマッピングし、実行時に選択可能にする。
-- `data_clients/metals.py`：`yfinance` とローカルキャッシュを組み合わせ、ETF（1540.T など）、貴金属スポット（XAUUSD=X 等）、為替（USDJPY=X）を取得。
+- `data_clients/metals.py`：`yfinance` とローカルキャッシュを組み合わせ、ETF（1540.T など）、貴金属スポット（GC=F 等）、為替（USDJPY=X）を取得。
 - `precious_metals_spread` 配下にロジックをカプセル化し、他ユースケース追加時も同じ構成を踏襲。
 
 ---
 
 ## データ取得ロジック
 1. **ETF 終値**：`1540.T`, `1541.T`, `1542.T`, `1543.T`
-2. **貴金属スポット**：`XAUUSD=X`, `XPTUSD=X`, `XAGUSD=X`, `XPDUSD=X`
+2. **貴金属スポット**：`GC=F`, `PL=F`, `SI=F`, `PA=F`
 3. **為替レート**：`USDJPY=X`
 
 取得手順の例（擬似コード）：
@@ -77,7 +77,7 @@ resources/
 import yfinance as yf
 
 etf = yf.download(['1540.T', '1541.T', '1542.T', '1543.T'], period='2y')
-metals = yf.download(['XAUUSD=X', 'XPTUSD=X', 'XAGUSD=X', 'XPDUSD=X'], period='2y')
+metals = yf.download(['GC=F', 'PL=F', 'SI=F', 'PA=F'], period='2y')
 fx = yf.download('USDJPY=X', period='2y')
 ```
 
