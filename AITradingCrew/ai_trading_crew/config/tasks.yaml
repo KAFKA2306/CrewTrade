@@ -1,0 +1,113 @@
+news_summarization_task:
+  name: news_summarization_task
+  description: >
+    Generate a concise bullet-point summary highlighting the key financial news for {company_name}.
+    Focus ONLY on analyzing and summarizing information specifically about {company_name} based on the provided data.
+    Since the news articles were fetched using an automated web browser (like Selenium), they may contain irrelevant information 
+    such as advertisements or mentions of other companies, especially at the beginning or end of articles - please ignore these.
+    Deduplicate any repeated information between articles and headlines.
+    This summary will be used for stock analysis, so include factual and relevant financial information only.
+    This is the ONLY data you must use for your requested task:
+
+    {stock_news}
+    
+    
+    {stock_headlines}
+  expected_output: >
+    A bullet-point list summarizing key news highlights for {company_name} based on the provided
+    news articles and headlines, with no duplicate information.
+  agent: news_summarizer_agent
+
+sentiment_summarization_task:
+  name: sentiment_summarization_task
+  description: >
+    Using the provided social media sentiment data—which includes numerical counts
+    and a list of messages— generate a comprehensive narrative summary of the social
+    sentiment for {company_name}. Base your analysis solely on this data without
+    referencing any external information. This is the ONLY data you must use for
+    your requested task :
+
+    {stocktwits_data}
+  expected_output: >
+    A narrative summary that describes the overall social sentiment for {company_name},
+    using only the provided sentiment counts and messages.
+  agent: sentiment_summarizer_agent
+  prompt: >
+    You are provided with data for {company_name} that includes:
+    - Sentiment counts: Bullish, Bearish, Neutral.
+    - A list of StockTwits messages (each provided as a bullet point with its
+      published date and content).
+    Summarize the social sentiment for {company_name} SOLELY BASED ON THIS PROVIDED DATA!
+    NOTHING ELSE! Do NOT reference any dates, external events, or prior knowledge.
+    IN YOUR SUMMARY, INCLUDE SPECIFIC EXAMPLES FROM THE PROVIDED MESSAGES TO SUPPORT
+    YOUR ANALYSIS. If uncertain about any detail, state "I don't know".
+
+
+technical_indicator_summarization_task:
+  name: technical_indicator_summarization_task
+  description: >
+    Using the provided technical indicator data—which includes detailed pricing, volume,
+    and a comprehensive set of technical metrics such as daily statistics, moving averages,
+    oscillators, and other key indicators—generate a narrative summary of the technical
+    performance for {company_name}. Base your analysis solely on this data without referencing any external information.
+    This is the ONLY data you must use for your task:
+
+    {technical_indicator_data}
+  expected_output: >
+    A detailed narrative summary that explains the overall technical performance for {company_name},
+    highlighting insights on price trends, volatility, momentum, and other critical technical signals,
+    solely derived from the provided technical data.
+  agent: technical_indicator_summarizer_agent
+
+fundamental_analysis_task:
+  name: fundamental_analysis_task
+  description: >
+    Using the provided fundamental analysis data—which includes financial ratios, analyst ratings,
+    intrinsic value calculations, and comprehensive financial metrics from multiple sources—generate
+    a narrative summary of the fundamental performance and investment outlook for {company_name}.
+    Base your analysis solely on this data without referencing any external information.
+    This is the ONLY data you must use for your task:
+
+    {fundamental_analysis_data}
+  expected_output: >
+    A detailed narrative summary that explains the overall fundamental analysis for {company_name},
+    highlighting insights on financial health, valuation metrics, analyst opinions, growth prospects,
+    and investment recommendations, solely derived from the provided fundamental data.
+  agent: fundamental_analysis_agent
+
+timegpt_forecast_task:
+  name: timegpt_forecast_task
+  description: >
+    Analyze the TimeGPT forecast data for {company_name}. The forecast provides the 
+    predicted percentage (%) daily return for the stock on a specific date. A positive 
+    percentage indicates a predicted increase in stock price, while a negative percentage 
+    indicates a predicted decrease.
+    
+    {timegpt_forecast}
+  expected_output: >
+    A concise analysis of the TimeGPT forecast for {company_name}, stating the specific date 
+    of the forecast, the exact predicted percentage change (including whether it's bullish/bearish), 
+    and what this forecast suggests for trading decisions.
+  agent: timegpt_analyst_agent
+
+market_overview_task:
+  name: market_overview_task
+  description: >
+    Analyze the provided VIX (Volatility Index) data and global market conditions data to assess 
+    the overall market environment. The VIX data shows volatility levels over the past {historical_days} days, 
+    while the global market data includes EUR/USD, Bitcoin, Gold, 
+    US 10-Year Treasury Yield (IEF ETF), US 2-Year Treasury Yield (US2Y), China index (MCHI ETF), 
+    India index (INDA ETF), and S&P 500 performance.
+    
+    VIX Data:
+    {vix_data}
+    
+    Global Market Data:
+    {global_market_data}
+  expected_output: >
+    A comprehensive analysis of current market conditions including:
+    - Current VIX level and volatility assessment (low/moderate/high)
+    - Key global market trends and movements
+    - Risk environment and market sentiment interpretation
+    - Implications for trading strategies and risk management
+    - Overall stock market analysis

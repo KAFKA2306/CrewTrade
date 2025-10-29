@@ -1,0 +1,36 @@
+# General
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.db
+*.log
+*.sqlite3
+*.parquet
+
+# Submodules
+AITradingCrew/.git/
+freqtrade/.git/
+yahooquery/.git/
+
+# AITradingCrew
+AITradingCrew/output/
+AITradingCrew/resources/
+AITradingCrew/config/
+
+# freqtrade
+freqtrade/user_data/
+freqtrade/build_helpers/*.whl
+freqtrade/tradesv3.sqlite
+freqtrade/freqtrade.log
+freqtrade/docs/assets/
+freqtrade/docs/images/
+freqtrade/tests/
+
+# yahooquery
+yahooquery/uv.lock
+yahooquery/demo/
+yahooquery/docs/
+yahooquery/tests/

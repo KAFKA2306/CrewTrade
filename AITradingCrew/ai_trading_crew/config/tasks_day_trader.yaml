@@ -1,0 +1,48 @@
+day_trader_recommendation_task:
+  name: day_trader_recommendation_task
+  description: >
+    As a day trader advisor, analyze the comprehensive summaries for {company_name} to determine the MOST LIKELY 
+    single-day trading outcome. You will receive two sets of critical information:
+    
+    INDIVIDUAL STOCK ANALYSIS SUMMARIES:
+    1. News Summary: {news_summary}
+
+    2. Sentiment Summary: {sentiment_summary}  
+
+    3. Technical Indicators Summary: {technical_summary}
+    
+    4. Fundamental Analysis Summary: {fundamental_summary}
+    
+    5. TimeGPT Forecast Summary: {timegpt_summary}
+
+    
+    STOCK MARKET ANALYSIS SUMMARIES:
+    6. Stock Market Overview Summary: {market_overview_summary}
+
+    7. Market News Summary: {market_news_summary}
+
+    8. Market Sentiment Summary: {market_sentiment_summary}
+
+    9. Market Technical Indicators Summary: {market_technical_summary}
+
+    10. Market TimeGPT Forecast Summary: {market_timegpt_summary}
+
+
+    
+    Your task is to synthesize ALL this information to provide the most accurate prediction for {company_name}'s 
+    performance during a single trading day (position opened in the morning, closed at end of day). 
+    
+    Focus on maximizing return/risk ratio - if you predict Very Bullish, it means the potential positive return 
+    significantly outweighs the downside risk. If you predict Very Bearish, it means the potential negative return 
+    significantly outweighs the upside potential.
+    
+    You MUST provide exactly ONE outcome from: Very Bearish, Bearish, Neutral, Bullish, Very Bullish.
+  expected_output: >
+    A structured day trading recommendation containing:
+    1. RECOMMENDATION: [Exactly one of: Very Bearish, Bearish, Neutral, Bullish, Very Bullish]
+    2. CONFIDENCE LEVEL: [High/Medium/Low] in this prediction
+    3. KEY FACTORS: Bullet points of the 3-5 most important factors from the summaries that led to this decision
+    4. RETURN/RISK ASSESSMENT: Brief explanation of why this recommendation optimizes return/risk ratio
+    5. MARKET CONTEXT: How both individual stock factors and comprehensive market analysis influence this recommendation
+    6. TRADING RATIONALE: Specific reasoning for same-day position strategy
+  agent: day_trader_advisor_agent 

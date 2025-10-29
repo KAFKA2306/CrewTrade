@@ -1,0 +1,24 @@
+relevant_news_filter_task:
+  name: relevant_news_filter_task
+  description: >
+    Review the news data for {company_name} and identify ONLY the top 10 news articles that are 
+    most likely to impact the stock price on {today_str}. 
+    
+    STRICT RULES:
+    1. ONLY accept URLs from EXACTLY these domains: finviz.com, benzinga.com
+    2. IMMEDIATELY REJECT any URL containing "yahoo" or "finance.yahoo.com" - NO EXCEPTIONS
+    3. REJECT any URL from seekingalpha.com or any other domain not explicitly approved
+    4. For each URL, verify it contains ONLY one of the three approved domains before including it
+    
+    Discard ALL articles from other sources. Avoid duplicate news (same news from different sources).
+    Select articles with the highest potential impact on {company_name}'s stock price today.
+    
+    Here is the news data to analyze:
+    
+    {stock_headlines} 
+  expected_output: >
+    ONLY a list of the top 10 URLs (one URL per line) that ONLY come from finviz.com or benzinga.com.
+    NO URLs from yahoo.com, finance.yahoo.com, seekingalpha.com, gurufocus.com or any other domain are permitted.
+    If NO valid URLs are found from the approved domains, output exactly: "No relevant articles found from approved sources."
+    NO explanations or additional text - just the URLs or the "no articles" message.
+  agent: relevant_news_filter_agent
