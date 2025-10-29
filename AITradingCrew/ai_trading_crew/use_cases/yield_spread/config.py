@@ -21,12 +21,57 @@ class YieldSpreadPair(BaseModel):
     description: str | None = None
 
 
+class AllocationProfile(BaseModel):
+    label: str
+    weights: Dict[str, float]
+
+    @validator("weights")
+    def _ensure_positive(cls, value: Dict[str, float]) -> Dict[str, float]:
+        if not value:
+            raise ValueError("weights must not be empty")
+        total = sum(value.values())
+        if total <= 0:
+            raise ValueError("weights must sum to a positive value")
+        return value
+
+
+class AllocationConfig(BaseModel):
+    upper_z: float = Field(default=1.0, description="Threshold above which the regime is defensive.")
+    lower_z: float = Field(default=-1.0, description="Threshold below which the regime is risk-on.")
+    widening: AllocationProfile = Field(
+        default_factory=lambda: AllocationProfile(
+            label="Defensive",
+            weights={"IEF": 0.5, "TLT": 0.3, "BIL": 0.2},
+        )
+    )
+    neutral: AllocationProfile = Field(
+        default_factory=lambda: AllocationProfile(
+            label="Neutral",
+            weights={"SPY": 0.5, "IEF": 0.3, "HYG": 0.2},
+        )
+    )
+    tightening: AllocationProfile = Field(
+        default_factory=lambda: AllocationProfile(
+            label="Risk-On",
+            weights={"SPY": 0.6, "QQQ": 0.2, "HYG": 0.2},
+        )
+    )
+
+    @validator("upper_z")
+    def _check_upper(cls, value: float, values: Dict[str, float]) -> float:
+        lower = values.get("lower_z")
+        if lower is not None and value <= lower:
+            raise ValueError("upper_z must be greater than lower_z")
+        return value
+
+
 class YieldSpreadConfig(UseCaseConfig):
     period: str = Field(default="5y")
     rolling_window: int = Field(default=60)
     minimum_periods: int = Field(default=20)
     z_score_threshold: float = Field(default=1.5)
     bp_alert_threshold: float = Field(default=0.0)
+    allocation: AllocationConfig | None = Field(default_factory=AllocationConfig)
     pairs: Dict[str, YieldSpreadPair] = Field(
         default_factory=lambda: {
             "us_high_yield_vs_us10y": YieldSpreadPair(

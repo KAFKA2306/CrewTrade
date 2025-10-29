@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Dict
 
@@ -17,11 +18,12 @@ class YieldSpreadReporter:
         self.processed_dir.mkdir(parents=True, exist_ok=True)
         self.report_dir.mkdir(parents=True, exist_ok=True)
 
-    def persist(self, analysis_payload: Dict[str, pd.DataFrame]) -> Dict[str, Path]:
+    def persist(self, analysis_payload: Dict[str, object]) -> Dict[str, Path]:
         series_frame = analysis_payload["series"]
         metrics_frame = analysis_payload["metrics"]
         edges_frame = analysis_payload["edges"]
         snapshot_frame = analysis_payload["snapshot"]
+        allocation_payload = analysis_payload.get("allocation")
 
         stored_paths: Dict[str, Path] = {}
 
@@ -41,8 +43,13 @@ class YieldSpreadReporter:
         snapshot_frame.to_parquet(snapshot_path)
         stored_paths["snapshot"] = snapshot_path
 
+        if allocation_payload is not None:
+            allocation_path = self.processed_dir / "allocation.json"
+            allocation_path.write_text(json.dumps(allocation_payload, indent=2))
+            stored_paths["allocation"] = allocation_path
+
         report_path = self.report_dir / "yield_spread_report.md"
-        report_markdown = self._build_report(snapshot_frame, edges_frame)
+        report_markdown = self._build_report(snapshot_frame, edges_frame, allocation_payload)
         report_path.write_text(report_markdown)
         stored_paths["report"] = report_path
 
@@ -53,11 +60,23 @@ class YieldSpreadReporter:
 
         return stored_paths
 
-    def _build_report(self, snapshot: pd.DataFrame, edges: pd.DataFrame) -> str:
+    def _build_report(self, snapshot: pd.DataFrame, edges: pd.DataFrame, allocation: Dict[str, object] | None) -> str:
         lines = ["# Yield Spread Signal Report", ""]
         if snapshot.empty:
             lines.append("データが不足しているため、スナップショットを生成できませんでした。")
             return "\n".join(lines)
+
+        if allocation is not None:
+            lines.append("## Risk Allocation Guidance")
+            lines.append(f"- Regime: **{allocation['regime']}**")
+            lines.append(f"- Latest z-score: {allocation['z_score']:.2f}")
+            lines.append(f"- Spread: {allocation['spread_bp']:.1f} bp")
+            lines.append("")
+            lines.append("| Asset | Weight |")
+            lines.append("| --- | --- |")
+            for asset, weight in allocation["weights"].items():
+                lines.append(f"| {asset} | {weight:.2%} |")
+            lines.append("")
 
         lines.append("## Latest Snapshot")
         lines.append("| Pair | Date | Spread (bp) | Z | Junk % | Treasury % |")

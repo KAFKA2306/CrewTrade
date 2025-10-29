@@ -165,7 +165,7 @@ python -m ai_trading_crew.main
 | --- | --- | --- |
 | `precious_metals_spread` | 東京市場の貴金属ETFと先物価格の乖離を検出し、統計的な異常シグナルを抽出します。 | `config/use_cases/precious_metals_spread.yaml` |
 | `credit_spread` | ジャンク社債ETFと米国債ETFの価格比率をモニタリングし、クレジットスプレッドの拡大/縮小を検知します。 | `config/use_cases/credit_spread.yaml` |
-| `yield_spread` | ジャンク社債利回りと国債利回りのイールドスプレッドを追跡し、zスコアによる拡大/縮小シグナルを抽出します。 | `config/use_cases/yield_spread.yaml` |
+| `yield_spread` | ジャンク社債利回りと国債利回りのイールドスプレッドを追跡し、zスコアによる拡大/縮小シグナルとリスク配分ガイダンスを生成します。 | `config/use_cases/yield_spread.yaml` |
 
 いずれのユースケースも以下のように実行できます:
 
@@ -174,6 +174,10 @@ python -m ai_trading_crew.use_case_runner credit_spread --config config/use_case
 # イールドスプレッドトラッカー
 python -m ai_trading_crew.use_case_runner yield_spread --config config/use_cases/yield_spread.yaml
 ```
+
+### リスク配分ガイダンスについて
+
+`yield_spread` ユースケースでは、最新のスプレッドzスコアに応じて `Risk-On / Neutral / Defensive` の推奨ウェイトを提示します。`config/use_cases/yield_spread.yaml` の `allocation` セクションでしきい値やアセットウェイトを調整できます。実行後は `output/use_cases/yield_spread/<日付>/yield_spread_report.md` を参照すると現在のレジームと推奨ウェイトが確認できます。
 
 ---
 

@@ -1,5 +1,16 @@
 # Yield Spread Signal Report
 
+## Risk Allocation Guidance
+- Regime: **Neutral**
+- Latest z-score: -0.26
+- Spread: 239.0 bp
+
+| Asset | Weight |
+| --- | --- |
+| SPY | 50.00% |
+| IEF | 30.00% |
+| HYG | 20.00% |
+
 ## Latest Snapshot
 | Pair | Date | Spread (bp) | Z | Junk % | Treasury % |
 | --- | --- | --- | --- | --- | --- |

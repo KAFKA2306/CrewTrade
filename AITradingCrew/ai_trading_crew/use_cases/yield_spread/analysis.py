@@ -5,6 +5,7 @@ from typing import Dict, List
 import pandas as pd
 
 from ai_trading_crew.use_cases.yield_spread.config import YieldSpreadConfig
+from ai_trading_crew.use_cases.yield_spread.allocation import compute_allocation
 
 
 class YieldSpreadAnalyzer:
@@ -16,12 +17,18 @@ class YieldSpreadAnalyzer:
         metrics = self._compute_pair_metrics(series_frame)
         edges = self._detect_edges(metrics)
         snapshot = self._build_snapshot(metrics)
-        return {
+        payload = {
             "series": series_frame,
             "metrics": metrics,
             "edges": edges,
             "snapshot": snapshot,
         }
+        allocation = None
+        if self.config.allocation is not None:
+            allocation = compute_allocation(self.config.allocation, snapshot)
+        if allocation is not None:
+            payload["allocation"] = allocation
+        return payload
 
     def _compute_pair_metrics(self, series_frame: pd.DataFrame) -> pd.DataFrame:
         metrics_store: Dict[str, pd.DataFrame] = {}

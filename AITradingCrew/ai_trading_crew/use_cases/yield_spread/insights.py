@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Any
 
 import pandas as pd
 
 
-def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
+def build_insight_markdown(analysis_payload: Dict[str, Any]) -> str:
     metrics = analysis_payload["metrics"]
     snapshot = analysis_payload["snapshot"]
     edges = analysis_payload["edges"]
+    allocation = analysis_payload.get("allocation")
 
     # Determine coverage from underlying metrics index
     date_start = metrics.index.min()
@@ -24,6 +25,21 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
     lines.append(f"- Date range: {date_start.date()} → {date_end.date()}")
     lines.append(f"- Pairs analysed: {len(snapshot)}")
     lines.append("")
+
+    if allocation:
+        lines.append("## Allocation Guidance")
+        lines.append(f"- Regime: **{allocation['regime']}**")
+        lines.append(f"- Latest z-score: {allocation['z_score']:.2f}")
+        lines.append(f"- Spread: {allocation['spread_bp']:.1f} bp")
+        lines.append("")
+        alloc_table = pd.DataFrame(
+            [
+                {"Asset": asset, "Weight": f"{weight:.2%}"}
+                for asset, weight in allocation["weights"].items()
+            ]
+        )
+        lines.append(_format_table(alloc_table, ["Asset", "Weight"], ["Asset", "Weight"]))
+        lines.append("")
 
     if snapshot.empty:
         lines.append("No spreads available for summary.")
