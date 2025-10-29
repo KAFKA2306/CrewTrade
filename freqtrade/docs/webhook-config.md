@@ -1,56 +1,56 @@
-# Webhook usage
+# Webhookの使用法
 
-## Configuration
+## 設定
 
-Enable webhooks by adding a webhook-section to your configuration file, and setting `webhook.enabled` to `true`.
+設定ファイルにwebhookセクションを追加し、`webhook.enabled`を`true`に設定してwebhookを有効にします。
 
-Sample configuration (tested using IFTTT).
+サンプル設定（IFTTTを使用してテスト済み）。
 
 ```json
   "webhook": {
         "enabled": true,
         "url": "https://maker.ifttt.com/trigger/<YOUREVENT>/with/key/<YOURKEY>/",
         "entry": {
-            "value1": "Buying {pair}",
-            "value2": "limit {limit:8f}",
+            "value1": "{pair}の購入",
+            "value2": "指値{limit:8f}",
             "value3": "{stake_amount:8f} {stake_currency}"
         },
         "entry_cancel": {
-            "value1": "Cancelling Open Buy Order for {pair}",
-            "value2": "limit {limit:8f}",
+            "value1": "{pair}のオープン買い注文のキャンセル",
+            "value2": "指値{limit:8f}",
             "value3": "{stake_amount:8f} {stake_currency}"
         },
          "entry_fill": {
-            "value1": "Buy Order for {pair} filled",
-            "value2": "at {open_rate:8f}",
+            "value1": "{pair}の買い注文が約定しました",
+            "value2": "@{open_rate:8f}",
             "value3": ""
         },
         "exit": {
-            "value1": "Exiting {pair}",
-            "value2": "limit {limit:8f}",
-            "value3": "profit: {profit_amount:8f} {stake_currency} ({profit_ratio})"
+            "value1": "{pair}の決済",
+            "value2": "指値{limit:8f}",
+            "value3": "利益：{profit_amount:8f} {stake_currency} ({profit_ratio})"
         },
         "exit_cancel": {
-            "value1": "Cancelling Open Exit Order for {pair}",
-            "value2": "limit {limit:8f}",
-            "value3": "profit: {profit_amount:8f} {stake_currency} ({profit_ratio})"
+            "value1": "{pair}のオープン決済注文のキャンセル",
+            "value2": "指値{limit:8f}",
+            "value3": "利益：{profit_amount:8f} {stake_currency} ({profit_ratio})"
         },
         "exit_fill": {
-            "value1": "Exit Order for {pair} filled",
-            "value2": "at {close_rate:8f}.",
+            "value1": "{pair}の決済注文が約定しました",
+            "value2": "@{close_rate:8f}",
             "value3": ""
         },
         "status": {
-            "value1": "Status: {status}",
+            "value1": "ステータス：{status}",
             "value2": "",
             "value3": ""
         }
     },
 ```
 
-The url in `webhook.url` should point to the correct url for your webhook. If you're using [IFTTT](https://ifttt.com) (as shown in the sample above) please insert your event and key to the url.
+`webhook.url`のURLは、webhookの正しいURLを指している必要があります。[IFTTT](https://ifttt.com)を使用している場合（上記のサンプルで示されているように）、イベントとキーをURLに挿入してください。
 
-You can set the POST body format to Form-Encoded (default), JSON-Encoded, or raw data. Use `"format": "form"`, `"format": "json"`, or `"format": "raw"` respectively. Example configuration for Mattermost Cloud integration:
+POSTボディの形式をフォームエンコード（デフォルト）、JSONエンコード、または生データに設定できます。それぞれ`"format": "form"`、`"format": "json"`、または`"format": "raw"`を使用します。Mattermost Cloud統合のサンプル設定：
 
 ```json
   "webhook": {
@@ -58,14 +58,14 @@ You can set the POST body format to Form-Encoded (default), JSON-Encoded, or raw
         "url": "https://<YOURSUBDOMAIN>.cloud.mattermost.com/hooks/<YOURHOOK>",
         "format": "json",
         "status": {
-            "text": "Status: {status}"
+            "text": "ステータス：{status}"
         }
     },
 ```
 
-The result would be a POST request with e.g. `{"text":"Status: running"}` body and `Content-Type: application/json` header which results `Status: running` message in the Mattermost channel.
+結果は、たとえば`{"text":"ステータス：実行中"}`ボディと`Content-Type: application/json`ヘッダーを持つPOSTリクエストになり、Mattermostチャネルに`ステータス：実行中`メッセージが表示されます。
 
-When using the Form-Encoded or JSON-Encoded configuration you can configure any number of payload values, and both the key and value will be output in the POST request. However, when using the raw data format you can only configure one value and it **must** be named `"data"`. In this instance the data key will not be output in the POST request, only the value. For example:
+フォームエンコードまたはJSONエンコード設定を使用する場合、任意の数のペイロード値を設定でき、キーと値の両方がPOSTリクエストに出力されます。ただし、生データ形式を使用する場合、1つの値しか設定できず、**必ず**`"data"`という名前を付ける必要があります。この場合、データキーはPOSTリクエストに出力されず、値のみが出力されます。例：
 
 ```json
   "webhook": {
@@ -73,19 +73,19 @@ When using the Form-Encoded or JSON-Encoded configuration you can configure any 
         "url": "https://<YOURHOOKURL>",
         "format": "raw",
         "webhookstatus": {
-            "data": "Status: {status}"
+            "data": "ステータス：{status}"
         }
     },
 ```
 
-The result would be a POST request with e.g. `Status: running` body and `Content-Type: text/plain` header.
+結果は、たとえば`ステータス：実行中`ボディと`Content-Type: text/plain`ヘッダーを持つPOSTリクエストになります。
 
-### Nested Webhook Configuration
+### ネストされたWebhook設定
 
-Some webhook targets require a nested structure.
-This can be accomplished by setting the content as dictionary or list instead of as text directly.  
+一部のWebhookターゲットでは、ネストされた構造が必要です。
+これは、コンテンツをテキストとして直接ではなく、辞書またはリストとして設定することで実現できます。
 
-This is only supported for the JSON format.
+これはJSON形式でのみサポートされています。
 
 ```json
 "webhook": {
@@ -95,20 +95,20 @@ This is only supported for the JSON format.
     "status": {
         "msgtype": "text",
         "text": {
-            "content": "Status update: {status}"
+            "content": "ステータス更新：{status}"
         }
     }
 }
 ```
 
-The result would be a POST request with e.g. `{"msgtype":"text","text":{"content":"Status update: running"}}` body and `Content-Type: application/json` header.
+結果は、たとえば`{"msgtype":"text","text":{"content":"ステータス更新：実行中"}}`ボディと`Content-Type: application/json`ヘッダーを持つPOSTリクエストになります。
 
-## Additional configurations
+## 追加設定
 
-The `webhook.retries` parameter can be set for the maximum number of retries the webhook request should attempt if it is unsuccessful (i.e. HTTP response status is not 200). By default this is set to `0` which is disabled. An additional `webhook.retry_delay` parameter can be set to specify the time in seconds between retry attempts. By default this is set to `0.1` (i.e. 100ms). Note that increasing the number of retries or retry delay may slow down the trader if there are connectivity issues with the webhook.
-You can also specify `webhook.timeout` - which defines how long the bot will wait until it assumes the other host as unresponsive (defaults to 10s).
+`webhook.retries`パラメータは、webhookリクエストが失敗した場合（つまり、HTTP応答ステータスが200でない場合）に試行する最大再試行回数に設定できます。デフォルトでは、これは無効になっている`0`に設定されています。追加の`webhook.retry_delay`パラメータを設定して、再試行間の時間を秒単位で指定できます。デフォルトでは、これは`0.1`（つまり100ミリ秒）に設定されています。再試行回数または再試行遅延を増やすと、webhookとの接続に問題がある場合にトレーダーが遅くなる可能性があることに注意してください。
+`webhook.timeout`を指定することもできます。これは、ボットが他のホストを応答しないと見なすまで待機する時間を定義します（デフォルトは10秒）。
 
-Example configuration for retries:
+再試行のサンプル設定：
 
 ```json
   "webhook": {
@@ -118,12 +118,12 @@ Example configuration for retries:
         "retries": 3,
         "retry_delay": 0.2,
         "status": {
-            "status": "Status: {status}"
+            "status": "ステータス：{status}"
         }
     },
 ```
 
-Custom messages can be sent to Webhook endpoints via the `self.dp.send_msg()` function from within the strategy. To enable this, set the `allow_custom_messages` option to `true`:
+カスタムメッセージは、戦略内から`self.dp.send_msg()`関数を介してWebhookエンドポイントに送信できます。これを有効にするには、`allow_custom_messages`オプションを`true`に設定します。
 
 ```json
   "webhook": {
@@ -131,26 +131,26 @@ Custom messages can be sent to Webhook endpoints via the `self.dp.send_msg()` fu
         "url": "https://<YOURHOOKURL>",
         "allow_custom_messages": true,
         "strategy_msg": {
-            "status": "StrategyMessage: {msg}"
+            "status": "戦略メッセージ：{msg}"
         }
     },
 ```
 
-Different payloads can be configured for different events. Not all fields are necessary, but you should configure at least one of the dicts, otherwise the webhook will never be called.
+さまざまなイベントに対してさまざまなペイロードを設定できます。すべてのフィールドが必要なわけではありませんが、少なくとも1つの辞書を設定する必要があります。そうしないと、webhookは呼び出されません。
 
-## Webhook Message types
+## Webhookメッセージタイプ
 
-### Entry / Entry fill
+### エントリ/エントリフィル
 
-The fields in `webhook.entry` and `webhook.entry_fill` are filled when the bot places a long/short Order to increase a position, or when that order fills respectively. Parameters are filled using string.format.
-Possible parameters are:
+`webhook.entry`および`webhook.entry_fill`のフィールドは、ボットがポジションを増やすためにロング/ショート注文を出すとき、またはその注文がそれぞれ約定したときに埋められます。パラメータはstring.formatを使用して埋められます。
+使用可能なパラメータは次のとおりです。
 
 * `trade_id`
 * `exchange`
 * `pair`
 * `direction`
 * `leverage`
-* ~~`limit` # Deprecated - should no longer be used.~~
+* ~~`limit` # 非推奨 - 使用しないでください。~~
 * `open_rate`
 * `amount`
 * `open_date`
@@ -163,10 +163,10 @@ Possible parameters are:
 * `current_rate`
 * `enter_tag`
 
-### Entry cancel
+### エントリキャンセル
 
-The fields in `webhook.entry_cancel` are filled when the bot cancels a long/short order. Parameters are filled using string.format.
-Possible parameters are:
+`webhook.entry_cancel`のフィールドは、ボットがロング/ショート注文をキャンセルしたときに埋められます。パラメータはstring.formatを使用して埋められます。
+使用可能なパラメータは次のとおりです。
 
 * `trade_id`
 * `exchange`
@@ -185,10 +185,10 @@ Possible parameters are:
 * `current_rate`
 * `enter_tag`
 
-### Exit / Exit fill
+### 決済/決済フィル
 
-The fields in `webhook.exit` and `webhook.exit_fill` are filled when the bot places an exit order, or when that exit order fills respectively. Parameters are filled using string.format.
-Possible parameters are:
+`webhook.exit`および`webhook.exit_fill`のフィールドは、ボットが決済注文を出すとき、またはその決済注文がそれぞれ約定したときに埋められます。パラメータはstring.formatを使用して埋められます。
+使用可能なパラメータは次のとおりです。
 
 * `trade_id`
 * `exchange`
@@ -215,10 +215,10 @@ Possible parameters are:
 * `is_final_exit`
 
 
-### Exit cancel
+### 決済キャンセル
 
-The fields in `webhook.exit_cancel` are filled when the bot cancels a exit order. Parameters are filled using string.format.
-Possible parameters are:
+`webhook.exit_cancel`のフィールドは、ボットが決済注文をキャンセルしたときに埋められます。パラメータはstring.formatを使用して埋められます。
+使用可能なパラメータは次のとおりです。
 
 * `trade_id`
 * `exchange`
@@ -241,16 +241,16 @@ Possible parameters are:
 * `open_date`
 * `close_date`
 
-### Status
+### ステータス
 
-The fields in `webhook.status` are used for regular status messages (Started / Stopped / ...). Parameters are filled using string.format.
+`webhook.status`のフィールドは、通常のステータスメッセージ（開始/停止/...）に使用されます。パラメータはstring.formatを使用して埋められます。
 
-The only possible value here is `{status}`.
+ここで使用できる唯一の値は`{status}`です。
 
 ## Discord
 
-A special form of webhooks is available for discord.
-You can configure this as follows:
+Discordでは特別な形式のWebhookが利用できます。
+これは次のように設定できます。
 
 ```json
 "discord": {
@@ -287,16 +287,16 @@ You can configure this as follows:
 }
 ```
 
-The above represents the default (`exit_fill` and `entry_fill` are optional and will default to the above configuration) - modifications are obviously possible.
-To disable either of the two default values (`entry_fill` / `exit_fill`), you can assign them an empty array (`exit_fill: []`).
+上記はデフォルトを表します（`exit_fill`および`entry_fill`はオプションであり、上記の設定にデフォルト設定されます）。もちろん変更も可能です。
+2つのデフォルト値（`entry_fill` / `exit_fill`）のいずれかを無効にするには、空の配列を割り当てることができます（`exit_fill: []`）。
 
-Available fields correspond to the fields for webhooks and are documented in the corresponding webhook sections.
+利用可能なフィールドはWebhookのフィールドに対応しており、対応するWebhookセクションに記載されています。
 
-The notifications will look as follows by default.
+通知はデフォルトで次のようになります。
 
 ![discord-notification](assets/discord_notification.png)
 
-Custom messages can be sent from a strategy to Discord endpoints via the dataprovider.send_msg() function. To enable this, set the `allow_custom_messages` option to `true`:
+カスタムメッセージは、dataprovider.send_msg()関数を介して戦略からDiscordエンドポイントに送信できます。これを有効にするには、`allow_custom_messages`オプションを`true`に設定します。
 
 ```json
   "discord": {
