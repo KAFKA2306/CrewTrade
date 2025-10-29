@@ -4,20 +4,24 @@
 - Loan amount: ¥10,000,000.0
 - Annual interest rate: 1.875%
 - Collateral period evaluated: 3y
-- Current collateral market value: ¥17310000
-- Current loan ratio: 0.578
+- Current collateral market value: ¥18172884
+- Current loan ratio: 0.550
 - Max allowable borrowing ratio (Rakuten Securities): 0.60
 - Margin call (補充) threshold: 0.70
 - Forced liquidation threshold: 0.85
-- Buffer to margin call: 17.47% drop from current value
-- Buffer to forced liquidation: 32.04% drop from current value
-- Historical max drawdown (portfolio): -18.66%
+- Buffer to margin call: 21.39% drop from current value
+- Buffer to forced liquidation: 35.26% drop from current value
+- Historical max drawdown (portfolio): -2.83%
 
 ## Collateral Breakdown
 | Ticker | Description | Quantity | Price | Market Value |
 | --- | --- | --- | --- | --- |
-| 1489.T | Nikkei High Dividend Yield 50 ETF | 4000 | ¥2565.00 | ¥10260000 |
-| 348A.T | Yomiuri 333 ETF | 30000 | ¥235.00 | ¥7050000 |
+| 1489.T | Nikkei High Dividend Yield 50 ETF | 194 | ¥2565.00 | ¥497610 |
+| 1306.T | TOPIX ETF | 202 | ¥3438.00 | ¥694476 |
+| 2568.T | GX US Treasury 7-10 ETF | 45 | ¥6832.00 | ¥307440 |
+| 2510.T | JGB 3-10Y ETF | 18469 | ¥858.00 | ¥15846402 |
+| 2622.T | J-REIT ETF | 48 | ¥1777.00 | ¥85296 |
+| 348A.T | Yomiuri 333 ETF | 3156 | ¥235.00 | ¥741660 |
 
 ## Interest Projection
 | Days | Interest (¥) |
@@ -29,29 +33,13 @@
 ## Stress Scenarios
 | Scenario | Post Value (¥) | Loan Ratio | Margin Call? | Liquidation? |
 | --- | --- | --- | --- | --- |
-| -10% | ¥15579000 | 0.642 | No | No |
-| -20% | ¥13848000 | 0.722 | Yes | No |
-| -30% | ¥12117000 | 0.825 | Yes | No |
-| -40% | ¥10386000 | 0.963 | Yes | Yes |
+| -10% | ¥16355596 | 0.611 | No | No |
+| -20% | ¥14538307 | 0.688 | No | No |
+| -30% | ¥12721019 | 0.786 | Yes | No |
+| -40% | ¥10903730 | 0.917 | Yes | Yes |
 
 ## Historical Breaches
-### Margin Call Alerts (>= 70%)
-| Date | Loan Ratio |
-| --- | --- |
-| 2025-04-04 | 0.700 |
-| 2025-04-07 | 0.779 |
-| 2025-04-08 | 0.736 |
-| 2025-04-09 | 0.763 |
-| 2025-04-10 | 0.712 |
-| 2025-04-11 | 0.727 |
-| 2025-04-14 | 0.723 |
-| 2025-04-15 | 0.717 |
-| 2025-04-16 | 0.723 |
-| 2025-04-17 | 0.714 |
-| 2025-04-18 | 0.705 |
-| 2025-04-21 | 0.714 |
-| 2025-04-22 | 0.713 |
-
+No historical instances exceeded Rakuten Securities thresholds within the observation window.
 ## Notes
 - Loan ratio is calculated as outstanding balance divided by collateral market value.
 - Rakuten Securities/Rakuten Bank requires top-up within 2 business days once the ratio reaches 70%, and may liquidate collateral immediately at 85%+.

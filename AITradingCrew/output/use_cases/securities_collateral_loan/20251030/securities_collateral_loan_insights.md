@@ -2,22 +2,22 @@
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥17310000
-- Current loan ratio: 0.578
-- Buffer to 70%: 17.47% drop
-- Buffer to 85%: 32.04% drop
-- Max drawdown (history): -18.66%
+- Current collateral value: ¥18172884
+- Current loan ratio: 0.550
+- Buffer to 70%: 21.39% drop
+- Buffer to 85%: 35.26% drop
+- Max drawdown (history): -2.83%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥15,579,000 | 0.642 | No | No |
-| -20% | ¥13,848,000 | 0.722 | Yes | No |
-| -30% | ¥12,117,000 | 0.825 | Yes | No |
-| -40% | ¥10,386,000 | 0.963 | Yes | Yes |
+| -10% | ¥16,355,596 | 0.611 | No | No |
+| -20% | ¥14,538,307 | 0.688 | No | No |
+| -30% | ¥12,721,019 | 0.786 | Yes | No |
+| -40% | ¥10,903,730 | 0.917 | Yes | Yes |
 
 ## Historical Breach Counts
-- Margin call events: 13
+- Margin call events: 0
 - Forced liquidation events: 0
 
 ## Interest Projection (Simple)

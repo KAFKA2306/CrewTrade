@@ -7,10 +7,22 @@ warning_ratio: 0.7
 liquidation_ratio: 0.85
 collateral_assets:
   - ticker: 1489.T
-    quantity: 4000
+    quantity: 194
     description: Nikkei High Dividend Yield 50 ETF
+  - ticker: 1306.T
+    quantity: 202
+    description: TOPIX ETF
+  - ticker: 2568.T
+    quantity: 45
+    description: GX US Treasury 7-10 ETF
+  - ticker: 2510.T
+    quantity: 18469
+    description: JGB 3-10Y ETF
+  - ticker: 2622.T
+    quantity: 48
+    description: J-REIT ETF
   - ticker: 348A.T
-    quantity: 30000
+    quantity: 3156
     description: Yomiuri 333 ETF
 scenarios:
   - drop_pct: 0.1
