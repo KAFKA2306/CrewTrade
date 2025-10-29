@@ -1,178 +1,175 @@
-# Freqtrade FAQ
+# Freqtrade よくある質問
 
-## Supported Markets
+## サポートされている市場
 
-Freqtrade supports spot trading, as well as (isolated) futures trading for some selected exchanges. Please refer to the [documentation start page](index.md#supported-futures-exchanges-experimental) for an up-to-date list of supported exchanges.
+Freqtrade は、スポット取引だけでなく、一部の選択された取引所の (個別の) 先物取引もサポートしています。サポートされている取引所の最新リストについては、[ドキュメントの開始ページ](index.md#supported-futures-exchanges-experimental) を参照してください。
 
-### Can my bot open short positions?
+### 私のボットはショートポジションをオープンできますか?
 
-Freqtrade can open short positions in futures markets.
-This requires the strategy to be made for this - and `"trading_mode": "futures"` in the configuration.
-Please make sure to read the [relevant documentation page](leverage.md) first.
+Freqtrade は先物市場でショート ポジションをオープンできます。
+これには、この戦略と構成内の `"trading_mode": "futures"` を作成する必要があります。
+最初に必ず[関連ドキュメントページ](leverage.md)をお読みください。
 
-In spot markets, you can in some cases use leveraged spot tokens, which reflect an inverted pair (eg. BTCUP/USD, BTCDOWN/USD, ETHBULL/USD, ETHBEAR/USD,...) which can be traded with Freqtrade.
+スポット市場では、場合によっては、Freqtrade で取引できる逆ペア (BTCUP/USD、BTCDOWN/USD、ETHBULL/USD、ETHBEAR/USD など) を反映するレバレッジ スポット トークンを使用できます。
 
-### Can my bot trade options or futures?
+### 私のボットはオプションや先物を取引できますか?
 
-Futures trading is supported for selected exchanges. Please refer to the [documentation start page](index.md#supported-futures-exchanges-experimental) for an up-to-date list of supported exchanges.
+先物取引は、選択された取引所でサポートされています。サポートされている取引所の最新リストについては、[ドキュメントの開始ページ](index.md#supported-futures-exchanges-experimental) を参照してください。
 
-## Beginner Tips & Tricks
+## 初心者向けのヒントとコツ
 
-* When you work with your strategy & hyperopt file you should use a proper code editor like VSCode or PyCharm. A good code editor will provide syntax highlighting as well as line numbers, making it easy to find syntax errors (most likely pointed out by Freqtrade during startup).
+* 戦略と hyperopt ファイルを操作するときは、VSCode や PyCharm などの適切なコード エディターを使用する必要があります。優れたコード エディターでは、行番号だけでなく構文の強調表示も提供されるため、構文エラー (起動時に Freqtrade によって指摘される可能性が高い) を簡単に見つけることができます。
 
-## Freqtrade common questions
+## Freqtrade に関するよくある質問
 
-### Can freqtrade open multiple positions on the same pair in parallel?
+### freqtrade は同じペアで複数のポジションを並行してオープンできますか?
 
-No. Freqtrade will only open one position per pair at a time.
-You can however use the [`adjust_trade_position()` callback](strategy-callbacks.md#adjust-trade-position) to adjust an open position.
+いいえ、Freqtrade は一度にペアごとに 1 つのポジションのみオープンします。
+ただし、[`adjust_trade_position()` コールバック](strategy-callbacks.md#adjust-trade-position) を使用してオープン ポジションを調整することはできます。
 
-Backtesting provides an option for this in `--eps` - however this is only there to highlight "hidden" signals, and will not work in live.
+バックテストでは、「--eps」でこのためのオプションが提供されていますが、これは「隠れた」信号を強調表示するためにのみ存在し、ライブでは機能しません。
 
-### The bot does not start
+### ボットが起動しない
 
-Running the bot with `freqtrade trade --config config.json` shows the output `freqtrade: command not found`.
+「freqtrade trade --config config.json」を指定してボットを実行すると、「freqtrade: command not found」という出力が表示されます。
 
-This could be caused by the following reasons:
+これは次の理由が考えられます。
 
-* The virtual environment is not active.
-  * Run `source .venv/bin/activate` to activate the virtual environment.
-* The installation did not complete successfully.
-  * Please check the [Installation documentation](installation.md).
+※仮想環境はアクティブではありません。
+  * `source .venv/bin/activate` を実行して仮想環境をアクティブ化します。
+※インストールが正常に完了しませんでした。
+  ※「インストールドキュメント」(installation.md)をご確認ください。
 
-### The bot starts, but in STOPPED mode
+### ボットは起動しますが、STOPPED モードです
 
-Make sure you set the `initial_state` config option to `"running"` in your config.json
+config.json で `initial_state` 設定オプションを `"running"` に設定していることを確認してください。
 
-### I have waited 5 minutes, why hasn't the bot made any trades yet?
+### 5 分間待ったのに、ボットがまだ取引を行わないのはなぜですか?
 
-* Depending on the entry strategy, the amount of whitelisted coins, the
-situation of the market etc, it can take up to hours or days to find a good entry
-position for a trade. Be patient!
+* エントリー戦略、ホワイトリストに登録されたコインの量に応じて、
+市場の状況などにより、適切なエントリーを見つけるまでに数時間または数日かかる場合があります
+取引のためのポジション。我慢して！
 
-* Backtesting will tell you roughly how many trades to expect - but that won't guarantee that they'll be distributed evenly across time - so you could have 20 trades on one day, and 0 for the rest of the week.
+* バックテストにより、予想される取引のおおよその数がわかります。ただし、期間にわたって均等に分散されることは保証されません。そのため、1 日に 20 件の取引があり、残りの週は 0 件の取引がある可能性があります。
+※設定ミスが考えられます。ログを確認するのが最善です。通常、ボットが単純に購入シグナルを受信して​​いない (ハートビート メッセージのみ) か、それとも何か問題がある (ログ内のエラー/例外) かがわかります。
 
-* It may be because of a configuration error. It's best to check the logs, they usually tell you if the bot is simply not getting buy signals (only heartbeat messages), or if there is something wrong (errors / exceptions in the log).
+### すでに 12 回の取引を行っていますが、合計利益がマイナスなのはなぜですか?
 
-### I have made 12 trades already, why is my total profit negative?
+残念な気持ちはわかりますが、残念ながら 12 回の取引はほんのわずかです
+何も言うのが足りない。バックテストを実行すると、
+現在のアルゴリズムではプラス側に残りますが、それは後の話です
+何千回もの取引を行っても、損失が残ることになります。
+何百回とは言わないまでも、数十回取引した特定のコイン。私たち
+もちろんボットの改善を常に目指していますが、それは_常に_
+ギャンブルなので、月々ではそこそこの勝ちが期待できますが、
+少数の取引からは多くを語ることはできません。
 
-I understand your disappointment but unfortunately 12 trades is just
-not enough to say anything. If you run backtesting, you can see that the
-current algorithm does leave you on the plus side, but that is after
-thousands of trades and even there, you will be left with losses on
-specific coins that you have traded tens if not hundreds of times. We
-of course constantly aim to improve the bot but it will _always_ be a
-gamble, which should leave you with modest wins on monthly basis but
-you can't say much from few trades.
+### 設定を変更したいのですが。ボットを殺さなくてもそれを行うことはできますか?
 
-### I’d like to make changes to the config. Can I do that without having to kill the bot?
+はい。構成を編集し、「/reload_config」コマンドを使用して構成を再ロードできます。ボットは停止し、構成と戦略をリロードし、新しい構成と戦略で再起動します。
 
-Yes. You can edit your config and use the `/reload_config` command to reload the configuration. The bot will stop, reload the configuration and strategy and will restart with the new configuration and strategy.
+### 私のボットが購入したすべてを販売しないのはなぜですか?
 
-### Why does my bot not sell everything it bought?
+これは「コインダスト」と呼ばれ、すべての取引所で発生する可能性があります。
+これは、多くの取引所が「受け取り通貨」から手数料を差し引くため、つまり 100 COIN を購入しても、99.9 COIN しか得られないために発生します。
+COIN はフルロットサイズ (1COIN ステップ) で取引されるため、0.9 COIN (または 99.9 COIN) を販売することはできません。ただし、99 COIN に切り捨てる必要があります。
 
-This is called "coin dust" and can happen on all exchanges.
-It happens because many exchanges subtract fees from the "receiving currency" - so you buy 100 COIN - but you only get 99.9 COIN.
-As COIN is trading in full lot sizes (1COIN steps), you cannot sell 0.9 COIN (or 99.9 COIN) - but you need to round down to 99 COIN.
+これはボットの問題ではなく、手動取引中にも発生します。
 
-This is not a bot-problem, but will also happen while manual trading.
+freqtrade はこれに対応できます (99 COIN を販売します) が、手数料は取引可能な最小ロットサイズを下回ることがよくあります (0.9 COIN ではなく、完全な COIN のみを取引できます)。
+取引所にダスト（0.9 COIN）を残しておくことは、通常は理にかなっています。次回 freqtrade が COIN を購入するときに、残りの少額の残高に食い込み、今回は買ったものをすべて売却することになるため、ダスト残高はゆっくりと減少していきます（ただし、正確に 0 になることはほとんどありません）。
 
-While freqtrade can handle this (it'll sell 99 COIN), fees are often below the minimum tradable lot-size (you can only trade full COIN, not 0.9 COIN).
-Leaving the dust (0.9 COIN) on the exchange makes usually sense, as the next time freqtrade buys COIN, it'll eat into the remaining small balance, this time selling everything it bought, and therefore slowly declining the dust balance (although it most likely will never reach exactly 0).
+可能な場合（バイナンスなど）、取引所の専用手数料通貨を使用すると、この問題が解決されます。
+バイナンスでは、アカウントに BNB があり、プロフィールで「手数料を BNB で支払う」を有効にするだけで十分です。 BNB 残高は (手数料の支払いに使用されるため) 徐々に減少しますが、ゴミに遭遇することはなくなります (Freqtrade は利益の計算に手数料を含めます)。
+他の取引所ではそのような可能性は提供されておらず、単に受け入れるか、別の取引所に移動する必要があります。
 
-Where possible (e.g. on binance), the use of the exchange's dedicated fee currency will fix this.
-On binance, it's sufficient to have BNB in your account, and have "Pay fees in BNB" enabled in your profile. Your BNB balance will slowly decline (as it's used to pay fees) - but you'll no longer encounter dust (Freqtrade will include the fees in the profit calculations).
-Other exchanges don't offer such possibilities, where it's simply something you'll have to accept or move to a different exchange.
+### 取引所に追加の資金を入金しましたが、ボットがこれを認識しません
 
-### I deposited more funds to the exchange, but my bot doesn't recognize this
+Freqtrade は必要に応じて (注文前に) 為替残高を更新します。
+RPC 呼び出し (Telegram の `/balance`、`/balance` への API 呼び出し) は、最大で更新をトリガーできます。 1時間に1回。
+「adjust_trade_position」が有効な場合 (ボットにポジション調整の対象となるオープン取引がある場合) - ウォレットは 1 時間に 1 回更新されます。
+即時更新を強制するには、`/reload_config` を使用します。これによりボットが再起動されます。
 
-Freqtrade will update the exchange balance when necessary (Before placing an order).
-RPC calls (Telegram's `/balance`, API calls to `/balance`) can trigger an update at max. once per hour.
+### 未完成のキャンドルを使いたい
 
-If `adjust_trade_position` is enabled (and the bot has open trades eligible for position adjustments) - then the wallets will be refreshed once per hour.
-To force an immediate update, you can use `/reload_config` - which will restart the bot.
+Freqtrade は戦略に不完全なキャンドルを提供しません。不完全なローソク足を使用すると、再描画が発生し、その結果、バックテストと購入後の検証の両方が不可能な「ゴースト」購入を伴う戦略につながります。
 
-### I want to use incomplete candles
+[dataprovider](strategy-customization.md#orderbookpair-maximum) のオーダーブックまたはティッカー メソッドを使用して、「現在の」市場データを使用できますが、バックテスト中には使用できません。
 
-Freqtrade will not provide incomplete candles to strategies. Using incomplete candles will lead to repainting and consequently to strategies with "ghost" buys, which are impossible to both backtest, and verify after they happened.
+### 開催中の取引を終了するだけで、新規エントリーを行わない設定はありますか?
 
-You can use "current" market data by using the [dataprovider](strategy-customization.md#orderbookpair-maximum)'s orderbook or ticker methods - which however cannot be used during backtesting.
+Telegram で `/stopentry` コマンドを使用すると、今後の取引エントリーを防ぐことができ、続いて `/forceexit all` (オープンな取引をすべて売却) を実行できます。
 
-### Is there a setting to only Exit the trades being held and not perform any new Entries?
+### ボットの資金を売却しましたが、ログにエラーが表示されました
 
-You can use the `/stopentry` command in Telegram to prevent future trade entry, followed by `/forceexit all` (sell all open trades).
+Freqtrade は、開設した取引がボットを通じてのみ管理されることを前提としています。  
+ボットの資金を（誤って）売却してしまった場合、freqtrade は取引所での注文を再検索して回復しようとします。
 
-### I sold the bot's capital and now there's errors in the log
+これはベストエフォート型のアプローチであり、すべての場合に機能するとは限りません。特に、freqtrade でサポートされていない注文タイプ (OCO、iceberg など) を使用する場合、または古い取引 (取引所が完全な注文情報を提​​供しなくなった場合) を使用する場合には機能しません。
+正確な制限は取引所によって異なります。詳細は通常、取引所の API ドキュメントに記載されています。
 
-Freqtrade assumes that the trades it opens are managed only though the bot.  
-If you happen to (accidentally) sell the bot's capital, freqtrade will try to recover by trying to re-find on-exchange orders.
+### 同じマシン上で複数のボットを実行したい
 
-This is a best-effort approach, and will not work in all cases, especially when using order types that are not supported by freqtrade (OCO, iceberg, etc.), or when working with older trades (where the exchange no longer provides full order information).
-The exact limits will vary between exchanges - with the details usually being documented in the exchange's API documentation.
+[高度な設定ドキュメント ページ](advanced-setup.md#running-multiple-instances-of-freqtrade) をご覧ください。
 
-### I want to run multiple bots on the same machine
+### ボットの起動時に「戦略を読み込むことができません」というメッセージが表示されます
 
-Please look at the [advanced setup documentation Page](advanced-setup.md#running-multiple-instances-of-freqtrade).
+このエラー メッセージは、ボットが戦略を読み込めない場合に表示されます。
+通常、「freqtrade list-strategies」を使用すると、利用可能なすべての戦略をリストできます。 
+このコマンドの出力には、戦略をロードできるかどうかを示すステータス列も含まれます。
 
-### I'm getting "Impossible to load Strategy" when starting the bot
+以下の点をご確認ください。
 
-This error message is shown when the bot cannot load the strategy.
-Usually, you can use `freqtrade list-strategies` to list all available strategies. 
-The output of this command will also include a status column, showing if the strategy can be loaded.
+* 正しい戦略名を使用していますか?ストラテジー名は大文字と小文字が区別され、ストラテジー クラス名 (ファイル名ではありません!) に対応している必要があります。
+* ストラテジーは `user_data/strategies` ディレクトリにあり、ファイル末尾は `.py` ですか?
+* このエラーの前にボットは他の警告を表示しますか?おそらく、戦略の依存関係がいくつか欠けている可能性があります。これはログで強調表示されます。
+* docker の場合 - 戦略ディレクトリは正しくマウントされていますか (docker-compose ファイルのボリューム部分を確認してください)。
 
-Please check the following:
+### ログに「データが不足しています」というメッセージが表示されます
 
-* Are you using the correct strategy name? The strategy name is case-sensitive and must correspond to the Strategy class name (not the filename!).
-* Is the strategy in the `user_data/strategies` directory, and has the file-ending `.py`?
-* Does the bot show other warnings before this error? Maybe you're missing some dependencies for the strategy - which would be highlighted in the log.
-* In case of docker - is the strategy directory mounted correctly (check the volumes part of the docker-compose file)?
+このメッセージは、最新のキャンドルに欠落したキャンドルが含まれているという単なる警告です。
+取引所によっては、これは、使用している時間枠でペアが取引されていないことを示している可能性があり、取引所は出来高のあるローソク足のみを返します。
+ボリュームの少ないペアでは、これはかなり一般的な現象です。
 
-### I'm getting "Missing data fillup" messages in the log
+これがペアリスト内のすべてのペアで発生する場合は、最近の交換ダウンタイムを示している可能性があります。詳細については、取引所のパブリック チャネルを確認してください。
 
-This message is just a warning that the latest candles had missing candles in them.
-Depending on the exchange, this can indicate that the pair didn't have a trade for the timeframe you are using - and the exchange does only return candles with volume.
-On low volume pairs, this is a rather common occurrence.
+理由に関係なく、Freqtrade はこれらのローソク足を「空」のローソク足で埋めます。始値、高値、安値、終値は前のローソク足の終値に設定され、ボリュームは空です。チャートでは、これは「_」のように見えます。これは、取引所が通常 0 ボリュームのローソク足を表す方法と一致しています。
 
-If this happens for all pairs in the pairlist, this might indicate a recent exchange downtime. Please check your exchange's public channels for details.
+### 「2 つのローソク間の価格のジャンプが検出されました」というメッセージが表示されます
 
-Irrespectively of the reason, Freqtrade will fill up these candles with "empty" candles, where open, high, low and close are set to the previous candle close - and volume is empty. In a chart, this will look like a `_` - and is aligned with how exchanges usually represent 0 volume candles.
+このメッセージは、ローソク足の価格が 30% 以上上昇したという警告です。
+これは、ペアの取引が停止し、何らかのトークン交換が行われたことを示している可能性があります (例: 2021 年の COCOS - 価格が 0.0000154 から 0.01621 に跳ね上がりました)。
+このメッセージには ["Missing data fillup"](#im-getting-missing-data-fillup-messages-in-the-log) が伴うことが多く、そのようなペアでの取引はしばらく停止されることが多いためです。
 
-### I'm getting "Price jump between 2 candles detected"
+### ボットのデータベースをリセットしたい
 
-This message is a warning that the candles had a price jump of > 30%.
-This might be a sign that the pair stopped trading, and some token exchange took place (e.g. COCOS in 2021 - where price jumped from 0.0000154 to 0.01621).
-This message is often accompanied by ["Missing data fillup"](#im-getting-missing-data-fillup-messages-in-the-log) - as trading on such pairs is often stopped for some time.
+ボットのデータベースをリセットするには、データベースを削除するか (デフォルトでは `tradesv3.sqlite` または `tradesv3.dryrun.sqlite`)、または `--db-url` 経由で別のデータベース URL (例: `sqlite:///mynewdatabase.sqlite`) を使用します。
 
-### I want to reset the bot's database
+### ログに「ペア xxx の古い履歴」が表示されます
 
-To reset the bot's database, you can either delete the database (by default `tradesv3.sqlite` or `tradesv3.dryrun.sqlite`), or use a different database url via `--db-url` (e.g. `sqlite:///mynewdatabase.sqlite`).
+ボットは、期限切れの最後のキャンドル (完全な最後のキャンドルではない) を取得したことを伝えようとしています。
+その結果、Freqtrade はこのペアの取引に参加しません。古い情報に基づいて取引することは通常望まれるものではないためです。
 
-### I'm getting "Outdated history for pair xxx" in the log
+この警告は、次の問題のいずれかを示している可能性があります。
 
-The bot is trying to tell you that it got an outdated last candle (not the last complete candle).
-As a consequence, Freqtrade will not enter a trade for this pair - as trading on old information is usually not what is desired.
+* 交換のダウンタイム -> 詳細については、交換ステータス ページ/ブログ/ツイッター フィードを確認してください。
+* システム時間が間違っている -> システム時間が正しいことを確認してください。
+* ほとんど取引されていないペア -> 取引所の Web ページでペアを確認し、戦略が使用する時間枠を確認します。ペアの一部のローソク足にボリュームがない場合 (通常は「ボリューム 0」のバーとローソク足の「_」で視覚化されます)、このペアにはこの時間枠で取引がありませんでした。これらのペアは、注文処理に問題を引き起こす可能性があるため、理想的には避ける必要があります。
+* API の問題 -> API が間違ったデータを返します (これは完全を期すためのみであり、サポートされている交換では発生しないはずです)。
 
-This warning can point to one of the below problems:
+### ログに「xxx の監視を再利用できませんでした」というメッセージが表示されます
 
-* Exchange downtime -> Check your exchange status page / blog / twitter feed for details.
-* Wrong system time -> Ensure your system-time is correct.
-* Barely traded pair -> Check the pair on the exchange webpage, look at the timeframe your strategy uses. If the pair does not have any volume in some candles (usually visualized with a "volume 0" bar, and a "_" as candle), this pair did not have any trades in this timeframe. These pairs should ideally be avoided, as they can cause problems with order-filling.
-* API problem -> API returns wrong data (this only here for completeness, and should not happen with supported exchanges).
+これは、ボットが WebSocket からキャンドルを使用しようとしたが、取引所が正しい情報を提供しなかったことを示す情報メッセージです。
+これは、WebSocket 接続が中断された場合、または使用している時間枠内にペアの取引が発生しなかった場合に発生する可能性があります。
 
-### I get the message "Couldn't reuse watch for xxx" in the log
+Freqtrade は、REST API にフォールバックすることで、これを適切に処理します。
+これにより (REST API 呼び出しにより) 反復が若干遅くなりますが、ボットの動作に問題が生じることはありません。
 
-This is an informational message that the bot tried to use candles from the websocket, but the exchange didn't provide the right information.
-This can happen if there was an interruption to the websocket connection - or if the pair didn't have any trades happen in the timeframe you are using.
+### 「Exchange XXX は成行注文をサポートしていません。」というメッセージが表示されます。メッセージが出て戦略を実行できません
 
-Freqtrade will handle this gracefully by falling back to the REST api.
-While this makes the iteration slightly slower (due to the REST Api call) - it will not cause any problems to the bot's operation.
+メッセージにあるように、あなたの取引所は成行注文をサポートしておらず、[注文タイプ](configuration.md/#interest-order_types) の 1 つが「市場」に設定されています。あなたの戦略はおそらく他の取引所を念頭に置いて書かれており、「成行」注文を「ストップロス」注文に設定します。これは正しく、成行注文をサポートするほとんどの取引所にとって好ましいものです（ただし、Gate.io ではそうではありません）。
 
-### I'm getting the "Exchange XXX does not support market orders." message and cannot run my strategy
-
-As the message says, your exchange does not support market orders and you have one of the [order types](configuration.md/#understand-order_types) set to "market". Your strategy was probably written with other exchanges in mind and sets "market" orders for "stoploss" orders, which is correct and preferable for most of the exchanges supporting market orders (but not for Gate.io).
-
-To fix this, redefine order types in the strategy to use "limit" instead of "market":
-
+これを修正するには、「マーケット」の代わりに「指値」を使用するようにストラテジ内の注文タイプを再定義します。
 ``` python
     order_types = {
         ...
@@ -180,132 +177,126 @@ To fix this, redefine order types in the strategy to use "limit" instead of "mar
         ...
     }
 ```
+注文タイプが戦略ではなくカスタム構成で定義されている場合は、同じ修正を構成ファイルに適用する必要があります。
 
-The same fix should be applied in the configuration file, if order types are defined in your custom config rather than in the strategy.
+### ボットをライブで開始しようとしていますが、API 権限エラーが発生します
 
-### I'm trying to start the bot live, but get an API permission error
+「無効な API キー、IP、またはアクションの権限」のようなエラーは、実際に表示されているとおりの意味です。  
+API キーが無効であるか (コピー/貼り付けエラー? 構成内の先頭/末尾のスペースを確認してください)、有効期限が切れているか、ボットを実行している IP が Exchange の API コンソールで有効になっていません。  
+通常、「スポット取引」（または使用する取引所における同等の）許可が必要になります。  
+通常、Future は特別に有効にする必要があります。
 
-Errors like `Invalid API-key, IP, or permissions for action` mean exactly what they actually say.  
-Your API key is either invalid (copy/paste error? check for leading/trailing spaces in the config), expired, or the IP you're running the bot from is not enabled in the Exchange's API console.  
-Usually, the permission "Spot Trading" (or the equivalent in the exchange you use) will be necessary.  
-Futures will usually have to be enabled specifically.
+### ボット ログで何かを検索するにはどうすればよいですか?
 
-### How do I search the bot logs for something?
+デフォルトでは、ボットはログを stderr ストリームに書き込みます。これは、バックテスト、Edge、および Hyperopt の結果、他のさまざまな Freqtrade ユーティリティのサブコマンドからの出力、および戦略に挿入したカスタム `print()` の出力からボットの診断メッセージを簡単に分離できるように、この方法で実装されています。したがって、grep ユーティリティを使用してログ メッセージを検索する必要がある場合は、stderr を stdout にリダイレクトし、stdout を無視する必要があります。
 
-By default, the bot writes its log into stderr stream. This is implemented this way so that you can easily separate the bot's diagnostics messages from Backtesting, Edge and Hyperopt results, output from other various Freqtrade utility sub-commands, as well as from the output of your custom `print()`'s you may have inserted into your strategy. So if you need to search the log messages with the grep utility, you need to redirect stderr to stdout and disregard stdout.
-
-* In unix shells, this normally can be done as simple as:
+* Unix シェルでは、これは通常次のように簡単に実行できます。
 ```shell
 $ freqtrade --some-options 2>&1 >/dev/null | grep 'something'
 ```
-(note, `2>&1` and `>/dev/null` should be written in this order)
+(注: `2>&1` と `>/dev/null` はこの順序で記述する必要があります)
 
-* Bash interpreter also supports so called process substitution syntax, you can grep the log for a string with it as:
+* Bash インタープリターは、いわゆるプロセス置換構文もサポートしており、次のようにログで文字列を grep できます。
 ```shell
 $ freqtrade --some-options 2> >(grep 'something') >/dev/null
 ```
-or
+または
 ```shell
 $ freqtrade --some-options 2> >(grep -v 'something' 1>&2)
 ```
-
-* You can also write the copy of Freqtrade log messages to a file with the `--logfile` option:
+* `--logfile` オプションを使用して、Freqtrade ログ メッセージのコピーをファイルに書き込むこともできます。
 ```shell
 $ freqtrade --logfile /path/to/mylogfile.log --some-options
 ```
-and then grep it as:
+そして次のように grep します:
 ```shell
 $ cat /path/to/mylogfile.log | grep 'something'
 ```
-or even on the fly, as the bot works and the log file grows:
+または、ボットが動作してログ ファイルが増大するにつれて、その場で実行することもできます。
 ```shell
 $ tail -f /path/to/mylogfile.log | grep 'something'
 ```
-from a separate terminal window.
+別のターミナル ウィンドウから。
 
-On Windows, the `--logfile` option is also supported by Freqtrade and you can use the `findstr` command to search the log for the string of interest:
+Windows では、「--logfile」オプションも Freqtrade でサポートされており、「findstr」コマンドを使用してログ内で目的の文字列を検索できます。
 ```
 > type \path\to\mylogfile.log | findstr "something"
 ```
+## Hyperopt モジュール
 
-## Hyperopt module
+### freqtrade が GPU をサポートしていないのはなぜですか?
 
-### Why does freqtrade not have GPU support?
+まず第一に、ほとんどのインジケーター ライブラリは GPU をサポートしていません。そのため、インジケーターの計算にはほとんどメリットがありません。
+GPU の改善は、パンダ ネイティブの計算、または自分で作成した計算にのみ適用されます。
 
-First of all, most indicator libraries don't have GPU support - as such, there would be little benefit for indicator calculations.
-The GPU improvements would only apply to pandas-native calculations - or ones written by yourself.
+GPU は数値の処理 (浮動小数点演算) のみに適しています。
+hyperopt の場合、数値処理 (次のパラメーターの検索) と Python コードの実行 (バックテストの実行) の両方が必要です。
+そのため、GPU は hyperopt のほとんどの部分にはあまり適していません。
 
-GPU's are only good at crunching numbers (floating point operations).
-For hyperopt, we need both number-crunching (find next parameters) and running python code (running backtesting).
-As such, GPU's are not too well suited for most parts of hyperopt.
+したがって、GPU を使用するメリットは非常に少なく、GPU サポートを追加しようとすることで生じる複雑さを正当化できません。
 
-The benefit of using GPU would therefore be pretty slim - and will not justify the complexity introduced by trying to add GPU support.
+ただし、戦略内で GPU 対応インジケーターを使用する必要があると考えている場合、これを妨げるものはありません。ただし、(複雑さと比較して) 得られる利益がわずかであることにおそらく失望するでしょう。
 
-There is however nothing preventing you from using GPU-enabled indicators within your strategy if you think you must have this - you will however probably be disappointed by the slim gain that will give you (compared to the complexity).
+### Hyperopt で良好な結果を得るには何エポックが必要ですか?
 
-### How many epochs do I need to get a good Hyperopt result?
+デフォルトでは、`-e`/`--epochs` コマンドライン オプションを指定せずに Hyperopt を呼び出すと、
+100 エポックを実行すると、トリガー、ガードなどの評価が 100 回行われることになります...少なすぎます
+素晴らしい結果が得られるはずです (よほど幸運でない限り)。
+10000以上実行する必要があります。でもそれまでには永遠に時間がかかるだろう
+計算する。
 
-Per default Hyperopt called without the `-e`/`--epochs` command line option will only
-run 100 epochs, means 100 evaluations of your triggers, guards, ... Too few
-to find a great result (unless if you are very lucky), so you probably
-have to run it for 10000 or more. But it will take an eternity to
-compute.
+hyperopt はベイジアン検索を使用するため、実行するエポックが多すぎると、より良い結果が得られない可能性があります。
 
-Since hyperopt uses Bayesian search, running for too many epochs may not produce greater results.
-
-It's therefore recommended to run between 500-1000 epochs over and over until you hit at least 10000 epochs in total (or are satisfied with the result). You can best judge by looking at the results - if the bot keeps discovering better strategies, it's best to keep on going.
-
+したがって、合計で少なくとも 10000 エポックに達するまで (または結果に満足するまで) 500 ～ 1000 エポックを繰り返し実行することをお勧めします。結果を見て判断するのが最善です。ボットがより良い戦略を発見し続ける場合は、続行するのが最善です。
 ```bash
 freqtrade hyperopt --hyperopt-loss SharpeHyperOptLossDaily --strategy SampleStrategy -e 1000
 ```
+### hyperopt の実行に時間がかかるのはなぜですか?
 
-### Why does it take a long time to run hyperopt?
+* Hyperopt で優れた戦略を見つけるには時間がかかります。 www.freqtrade.io、Freqtrade ドキュメント ページを調べ、Freqtrade [discord コミュニティ](https://discord.gg/p7nuUNVfP7) に参加してください。あなたが辛抱強く待っている間、世界で最も先進的な無料の暗号ボットが、あなたのために特別に設計された黄金の戦略を手渡してくれるでしょう。
 
-* Discovering a great strategy with Hyperopt takes time. Study www.freqtrade.io, the Freqtrade Documentation page, join the Freqtrade [discord community](https://discord.gg/p7nuUNVfP7). While you patiently wait for the most advanced, free crypto bot in the world, to hand you a possible golden strategy specially designed just for you.
+* 1000 エポックを実行するのになぜ 20 分から数日もかかるのか疑問に思っている場合は、次のような答えがあります。
 
-* If you wonder why it can take from 20 minutes to days to do 1000 epochs here are some answers:
+この回答は、リリース 0.15.1 のときに書かれました。
 
-This answer was written during the release 0.15.1, when we had:
+* 8つのトリガー
+* 9 つのガード: それぞれのガードから 10 個の値を評価するとします。
+* 1 ストップロス計算: そこから 10 個の値も評価したいとします。
 
-* 8 triggers
-* 9 guards: let's say we evaluate even 10 values from each
-* 1 stoploss calculation: let's say we want 10 values from that too to be evaluated
+次の計算はまだ非常に大まかであり、あまり正確ではありません
+しかし、それはアイデアを与えます。これらのトリガーとガードだけで、
+すでに 8\*10^9\*10 の評価があります。評価数はおよそ 800 億件。
+100,000 件の評価を実行しましたか?おめでとうございます。およそ 1/100,000 を完了しました
+ボットが同じパラメーターを複数回テストしないと仮定して、検索スペースの。
 
-The following calculation is still very rough and not very precise
-but it will give the idea. With only these triggers and guards there is
-already 8\*10^9\*10 evaluations. A roughly total of 80 billion evaluations.
-Did you run 100 000 evaluations? Congrats, you've done roughly 1 / 100 000 th
-of the search space, assuming that the bot never tests the same parameters more than once.
+* 1000 回のハイパーオプト エポックの実行にかかる時間は、利用可能な CPU、ハードディスク、RAM、タイムフレーム、タイムレンジ、インジケーター設定、インジケーターの数、ハイパーオプトのテスト戦略に使用するコインの量、および結果として得られる取引数などによって異なります。これは、戦略がめったに取引せずに大きな利益を狙うか、低利益の取引を多数行うかによって、年間 650 回の取引または 100,000 回の取引になる可能性があります。
 
-* The time it takes to run 1000 hyperopt epochs depends on things like: The available cpu, hard-disk, ram, timeframe, timerange, indicator settings, indicator count, amount of coins that hyperopt test strategies on and the resulting trade count - which can be 650 trades in a year or 100000 trades depending if the strategy aims for big profits by trading rarely or for many low profit trades.
+例: 1 年間に 4% の利益が 650 回得られるのに対し、0,3% の取引では 10,000 回の利益が得られます。 --timerange を 365 日に設定したと仮定します。
 
-Example: 4% profit 650 times vs 0,3% profit a trade 10000 times in a year. If we assume you set the --timerange to 365 days.
-
-Example:
+例:
 `freqtrade --config config.json --strategy SampleStrategy --hyperopt SampleHyperopt -e 1000 --timerange 20190601-20200601`
 
-## Official channels
+## 公式チャンネル
 
-Freqtrade is using exclusively the following official channels:
+Freqtrade は次の公式チャネルのみを使用しています。
 
-* [Freqtrade discord server](https://discord.gg/p7nuUNVfP7)
-* [Freqtrade documentation (https://freqtrade.io)](https://freqtrade.io)
-* [Freqtrade github organization](https://github.com/freqtrade)
+* [Freqtrade discordサーバー](https://discord.gg/p7nuUNVfP7)
+* [Freqtrade ドキュメント (https://freqtrade.io)](https://freqtrade.io)
+* [Freqtrade github 組織](https://github.com/freqtrade)
 
-Nobody affiliated with the freqtrade project will ask you about your exchange keys or anything else exposing your funds to exploitation.
-Should you be asked to expose your exchange keys or send funds to some random wallet, then please don't follow these instructions.
+freqtrade プロジェクトに関係する人は誰も、あなたの交換キーやその他のあなたの資金が悪用される危険にさらすものについてあなたに尋ねることはありません。
+交換キーを公開したり、ランダムなウォレットに資金を送金したりするように求められた場合は、これらの指示には従わないでください。
 
-Failing to follow these guidelines will not be responsibility of freqtrade.
+これらのガイドラインに従わない場合、freqtrade は責任を負いません。
 
-## Support policy
+## サポートポリシー
 
-We provide free support for Freqtrade on our [Discord server](https://discord.gg/p7nuUNVfP7) and via GitHub issues.
-We only support the most recent release (e.g. 2025.8) and the current development branch (e.g. 2025.9-dev).
+Freqtrade の無料サポートは、[Discord サーバー](https://discord.gg/p7nuUNVfP7) および GitHub 経由で提供されます。
+最新のリリース (例: 2025.8) と現在の開発ブランチ (例: 2025.9-dev) のみをサポートします。
 
-If you're on an older version, please follow the [upgrade instructions](updating.md) and see if your problem has already been addressed.
+古いバージョンを使用している場合は、[アップグレード手順](updating.md) に従って、問題がすでに解決されているかどうかを確認してください。
 
-## "Freqtrade token"
+## 「Freqtrade トークン」
+Freqtrade には暗号トークンの提供はありません。
 
-Freqtrade does not have a Crypto token offering.
-
-Token offerings you find on the internet referring Freqtrade, FreqAI or freqUI must be considered to be a scam, trying to exploit freqtrade's popularity for their own, nefarious gains.
+Freqtrade、FreqAI、または freqUI を参照するインターネット上で見つけたトークンの提供は、自らの極悪な利益のために freqtrade の人気を悪用しようとする詐欺であると考えられます。

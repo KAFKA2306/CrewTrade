@@ -1,27 +1,26 @@
-# Exchange-specific Notes
+# Exchange 固有のメモ
 
-This page combines common gotchas and Information which are exchange-specific and most likely don't apply to other exchanges.
+このページには、取引所固有であり、他の取引所には当てはまらない可能性が高い一般的な注意事項と情報がまとめられています。
 
-## Quick overview of supported exchange features
+## サポートされている交換機能の概要
 
 --8<-- "includes/exchange-features.md"
 
-## Exchange configuration
+## Exchange 構成
 
-Freqtrade is based on [CCXT library](https://github.com/ccxt/ccxt) that supports over 100 cryptocurrency
-exchange markets and trading APIs. The complete up-to-date list can be found in the
-[CCXT repo homepage](https://github.com/ccxt/ccxt/tree/master/python).
-However, the bot was tested by the development team with only a few exchanges.
-A current list of these can be found in the "Home" section of this documentation.
+Freqtrade は、100 を超える暗号通貨をサポートする [CCXT ライブラリ](https://github.com/ccxt/ccxt) に基づいています。
+為替市場と取引API。完全な最新リストは、次の場所にあります。
+[CCXT リポジトリのホームページ](https://github.com/ccxt/ccxt/tree/master/python)。
+ただし、開発チームによるボットのテストは数回の交換のみで行われました。
+これらの最新のリストは、このドキュメントの「ホーム」セクションにあります。
 
-Feel free to test other exchanges and submit your feedback or PR to improve the bot or confirm exchanges that work flawlessly..
+他の交換を自由にテストし、フィードバックや PR を送信して、ボットを改善したり、完璧に機能する交換を確認したりしてください。
 
-Some exchanges require special configuration, which can be found below.
+一部の取引所では、以下に示す特別な構成が必要です。
 
-### Sample exchange configuration
+### サンプル交換構成
 
-A exchange configuration for "binance" would look as follows:
-
+「binance」の取引所構成は次のようになります。
 ```json
 "exchange": {
     "name": "binance",
@@ -31,12 +30,10 @@ A exchange configuration for "binance" would look as follows:
     "ccxt_async_config": {},
     // ... 
 ```
+### レート制限の設定
 
-### Setting rate limits
-
-Usually, rate limits set by CCXT are reliable and work well.
-In case of problems related to rate-limits (usually DDOS Exceptions in your logs), it's easy to change rateLimit settings to other values.
-
+通常、CCXT によって設定されたレート制限は信頼性が高く、適切に機能します。
+レート制限に関連する問題 (通常はログ内の DDOS 例外) が発生した場合、rateLimit 設定を他の値に変更するのは簡単です。
 ```json
 "exchange": {
     "name": "kraken",
@@ -48,65 +45,59 @@ In case of problems related to rate-limits (usually DDOS Exceptions in your logs
         "rateLimit": 3100
     },
 ```
+この構成により、クラーケンが有効になるだけでなく、取引所からの禁止を回避するためのレート制限も有効になります。
+`"rateLimit": 3100` は、各呼び出し間の 3.1 秒の待機イベントを定義します。これは、`"enableRateLimit"` を false に設定することで完全に無効にすることもできます。
 
-This configuration enables kraken, as well as rate-limiting to avoid bans from the exchange.
-`"rateLimit": 3100` defines a wait-event of 3.1s between each call. This can also be completely disabled by setting `"enableRateLimit"` to false.
+!!!注記
+    レート制限の最適な設定は交換とホワイトリストのサイズによって異なるため、理想的なパラメーターは他の多くの設定によって異なります。
+    可能な限り、取引所ごとに賢明なデフォルトを提供するよう努めます。禁止に遭遇した場合は、`"enableRateLimit"` が有効になっていることを確認し、`"rateLimit"` パラメーターを段階的に増やしてください。
 
-!!! Note
-    Optimal settings for rate-limiting depend on the exchange and the size of the whitelist, so an ideal parameter will vary on many other settings.
-    We try to provide sensible defaults per exchange where possible, if you encounter bans please make sure that `"enableRateLimit"` is enabled and increase the `"rateLimit"` parameter step by step.
+## バイナンス
 
-## Binance
+!!!警告「サーバーの場所と地理的 IP 制限」
+    Binance はサーバーの国に応じて API アクセスを制限していることに注意してください。現在ブロックされている国はすべてではありませんが、カナダ、マレーシア、オランダ、米国です。 [バイナンス規約 > b.] に進んでください。資格](https://www.binance.com/en/terms) で最新のリストを確認してください。
 
-!!! Warning "Server location and geo-ip restrictions"
-    Please be aware that Binance restricts API access regarding the server country. The current and non-exhaustive countries blocked are Canada, Malaysia, Netherlands and United States. Please go to [binance terms > b. Eligibility](https://www.binance.com/en/terms) to find up to date list.
+Binance は [time_in_force](configuration.md#question-order_time_in_force) をサポートしています。
 
-Binance supports [time_in_force](configuration.md#understand-order_time_in_force).
+!!!ヒント「取引所でのストップロス」
+    Binance は「stoploss_on_exchange」をサポートし、「stop-loss-limit」注文を使用します。これには大きなメリットがあるため、取引所でストップロスを有効にしてその恩恵を受けることをお勧めします。
+    先物に関しては、Binance は「ストップリミット」注文と「ストップマーケット」注文の両方をサポートしています。 `order_types.stoploss` 構成設定で `"limit"` または `"market"` を使用して、どちらのタイプを使用するかを決定できます。
 
-!!! Tip "Stoploss on Exchange"
-    Binance supports `stoploss_on_exchange` and uses `stop-loss-limit` orders. It provides great advantages, so we recommend to benefit from it by enabling stoploss on exchange.
-    On futures, Binance supports both `stop-limit` as well as `stop-market` orders. You can use either `"limit"` or `"market"` in the `order_types.stoploss` configuration setting to decide which type to use.
+### Binance ブラックリストの推奨事項
 
-### Binance Blacklist recommendation
+Binance の場合、アカウントに十分な追加の「BNB」を維持する意思がある場合、または手数料として「BNB」の使用を無効にする意思がない場合を除き、問題を回避するためにブラックリストに「BNB/<STAKE>」を追加することをお勧めします。
+バイナンスアカウントは手数料に「BNB」を使用する場合があり、取引がたまたま「BNB」で行われた場合、さらなる取引によりこのポジションが消費され、期待額がもう存在しないため最初のBNB取引が販売できなくなる可能性があります。
 
-For Binance, it is suggested to add `"BNB/<STAKE>"` to your blacklist to avoid issues, unless you are willing to maintain enough extra `BNB` on the account or unless you're willing to disable using `BNB` for fees.
-Binance accounts may use `BNB` for fees, and if a trade happens to be on `BNB`, further trades may consume this position and make the initial BNB trade unsellable as the expected amount is not there anymore.
+取引手数料をカバーするのに十分な「BNB」が利用できない場合、手数料は「BNB」によってカバーされず、手数料の減額は行われません。 Freqtradeが手数料を賄うためにBNBを購入することは決してありません。このためには、BNB を購入して手動で監視する必要があります。
 
-If not enough `BNB` is available to cover transaction fees, then fees will not be covered by `BNB` and no fee reduction will occur. Freqtrade will never buy BNB to cover for fees. BNB needs to be bought and monitored manually to this end.
+### バイナンス サイト
 
-### Binance sites
+Binance は 2 つに分割されており、ユーザーは取引所に正しい ccxt 取引所 ID を使用する必要があります。そうしないと、API キーが認識されません。
 
-Binance has been split into 2, and users must use the correct ccxt exchange ID for their exchange, otherwise API keys are not recognized.
+* [binance.com](https://www.binance.com/) - 海外ユーザー。取引所 ID:「binance」を使用します。
+* [binance.us](https://www.binance.us/) - 米国を拠点とするユーザー。取引所 ID: `binanceus` を使用してください。
 
-* [binance.com](https://www.binance.com/) - International users. Use exchange id: `binance`.
-* [binance.us](https://www.binance.us/) - US based users. Use exchange id: `binanceus`.
+### Binance RSA キー
 
-### Binance RSA keys
+Freqtrade はバイナンス RSA API キーをサポートしています。
 
-Freqtrade supports binance RSA API keys.
-
-We recommend to use them as environment variable.
-
+これらを環境変数として使用することをお勧めします。
 ``` bash
 export FREQTRADE__EXCHANGE__SECRET="$(cat ./rsa_binance.private)"
 ```
-
-They can however also be configured via configuration file. Since json doesn't support multi-line strings, you'll have to replace all newlines with `\n` to have a valid json file.
-
+ただし、構成ファイルを介して構成することもできます。 json は複数行の文字列をサポートしていないため、有効な json ファイルを作成するには、すべての改行を `\n` に置き換える必要があります。
 ``` json
 // ...
  "key": "<someapikey>",
  "secret": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBABACAFQA<...>s8KX8=\n-----END PRIVATE KEY-----"
 // ...
 ```
+### バイナンス先物
 
-### Binance Futures
+Binance には特定の (残念なことに複雑な) [先物取引定量ルール](https://www.binance.com/en/support/faq/4f462ebe6ff445d4a170be7d9e897272) があり、これに従う必要があり、多すぎる注文に対して低すぎるステーク額を禁止しています。
+これらのルールに違反すると、取引が制限されます。
 
-Binance has specific (unfortunately complex) [Futures Trading Quantitative Rules](https://www.binance.com/en/support/faq/4f462ebe6ff445d4a170be7d9e897272) which need to be followed, and which prohibit a too low stake-amount (among others) for too many orders.
-Violating these rules will result in a trading restriction.
-
-When trading on Binance Futures market, orderbook must be used because there is no price ticker data for futures.
-
+Binance Futures マーケットで取引する場合、先物には価格ティッカー データがないため、オーダーブックを使用する必要があります。
 ``` jsonc
   "entry_pricing": {
       "use_order_book": true,
@@ -121,21 +112,19 @@ When trading on Binance Futures market, orderbook must be used because there is 
       "order_book_top": 1
   },
 ```
+#### Binance の分離先物設定
 
-#### Binance isolated futures settings
+ユーザーはまた、先物設定の「ポジション モード」を「一方向モード」に設定し、「資産モード」を「単一資産モード」に設定する必要があります。
+これらの設定は起動時にチェックされ、この設定が間違っている場合、freqtrade はエラーを表示します。
 
-Users will also have to have the futures-setting "Position Mode" set to "One-way Mode", and "Asset Mode" set to "Single-Asset Mode".
-These settings will be checked on startup, and freqtrade will show an error if this setting is wrong.
+![Binance先物設定](assets/binance_futures_settings.png)
 
-![Binance futures settings](assets/binance_futures_settings.png)
+Freqtrade はこれらの設定を変更しようとはしません。
 
-Freqtrade will not attempt to change these settings.
+#### バイナンス BNFCR 先物
 
-#### Binance BNFCR futures
-
-BNFCR mode are a special type of futures mode on Binance to work around regulatory issues in Europe.  
-To use BNFCR futures, you will have to have the following combination of settings:
-
+BNFCR モードは、ヨーロッパの規制問題を回避するための Binance の特別なタイプの先物モードです。  
+BNFCR 先物を使用するには、次の設定の組み合わせが必要です。
 ``` jsonc
 {
     // ...
@@ -146,42 +135,40 @@ To use BNFCR futures, you will have to have the following combination of setting
     // ...
 }
 ```
+「stake_currency」設定は、ボットが動作する市場を定義します。この選択は実際には任意です。
 
-The `stake_currency` setting defines the markets the bot will be operating in. This choice is really arbitrary.
+取引所では、「マルチアセット モード」と「ポジション モード」を「一方向モード」に設定して使用する必要があります。  
+Freqtrade は起動時にこれらの設定を確認しますが、変更しようとはしません。
 
-On the exchange, you'll have to use "Multi-asset Mode" - and "Position Mode set to "One-way Mode".  
-Freqtrade will check these settings on startup, but won't attempt to change them.
+## ビングクス
 
-## Bingx
+BingX は、「GTC」 (キャンセルされるまで有効)、「IOC」 (即時またはキャンセル)、および「PO」 (投稿のみ) 設定で [time_in_force](configuration.md# Understand-order_time_in_force) をサポートします。
 
-BingX supports [time_in_force](configuration.md#understand-order_time_in_force) with settings "GTC" (good till cancelled), "IOC" (immediate-or-cancel) and "PO" (Post only) settings.
+!!!ヒント「取引所でのストップロス」
+    Bingx は「stoploss_on_exchange」をサポートしており、逆指値注文と逆指値注文の両方を使用できます。これには大きなメリットがあるため、取引所でストップロスを有効にしてその恩恵を受けることをお勧めします。
 
-!!! Tip "Stoploss on Exchange"
-    Bingx supports `stoploss_on_exchange` and can use both stop-limit and stop-market orders. It provides great advantages, so we recommend to benefit from it by enabling stoploss on exchange.
+## クラーケン
 
-## Kraken
+Kraken は、「GTC」（キャンセルされるまで有効）、「IOC」（即時またはキャンセル）および「PO」（投稿のみ）設定で [time_in_force](configuration.md# Understand-order_time_in_force) をサポートします。
 
-Kraken supports [time_in_force](configuration.md#understand-order_time_in_force) with settings "GTC" (good till cancelled), "IOC" (immediate-or-cancel) and "PO" (Post only) settings.
+!!!ヒント「取引所でのストップロス」
+    Kraken は「stoploss_on_exchange」をサポートしており、ストップロスマーケット注文とストップロスリミット注文の両方を使用できます。大きなメリットがあるので、ぜひ活用することをおすすめします。
+    `order_types.stoploss` 構成設定で `"limit"` または `"market"` を使用して、どちらのタイプを使用するかを決定できます。
 
-!!! Tip "Stoploss on Exchange"
-    Kraken supports `stoploss_on_exchange` and can use both stop-loss-market and stop-loss-limit orders. It provides great advantages, so we recommend to benefit from it.
-    You can use either `"limit"` or `"market"` in the `order_types.stoploss` configuration setting to decide which type to use.
+### クラーケンの歴史的なデータ
 
-### Historic Kraken data
+Kraken API は 720 個の履歴キャンドルのみを提供します。これは、Freqtrade のドライランおよびライブ取引モードには十分ですが、バックテストには問題があります。
+Kraken 取引所のデータをダウンロードするには、「--dl-trades」の使用が必須です。そうしないと、ボットが同じ 720 のローソク足を何度もダウンロードすることになり、十分なバックテスト データが得られなくなります。
 
-The Kraken API does only provide 720 historic candles, which is sufficient for Freqtrade dry-run and live trade modes, but is a problem for backtesting.
-To download data for the Kraken exchange, using `--dl-trades` is mandatory, otherwise the bot will download the same 720 candles over and over, and you'll not have enough backtest data.
+ダウンロードを高速化するには、kraken が提供する [trades zip ファイル](https://support.kraken.com/hc/en-us/articles/360047543791-Downloadable-historyal-market-data-time-and-sales-) をダウンロードできます。
+これらは通常、四半期に 1 回更新されます。 Freqtrade は、これらのファイルが「user_data/data/kraken/trades_csv」に配置されることを想定しています。
 
-To speed up downloading, you can download the [trades zip files](https://support.kraken.com/hc/en-us/articles/360047543791-Downloadable-historical-market-data-time-and-sales-) kraken provides.
-These are usually updated once per quarter. Freqtrade expects these files to be placed in `user_data/data/kraken/trades_csv`.
+1 つのディレクトリに「完全な」履歴があり、別のディレクトリに増分ファイルがある増分ファイルを使用する場合、次のような構造が合理的です。
+このモードの前提条件は、データがダウンロードされ、ファイル名がそのままの状態で解凍されることです。
+重複したコンテンツは (タイムスタンプに基づいて) 無視されますが、データにギャップがないことが前提となります。
 
-A structure as follows can make sense if using incremental files, with the "full" history in one directory, and incremental files in different directories.
-The assumption for this mode is that the data is downloaded and unzipped keeping filenames as they are.
-Duplicate content will be ignored (based on timestamp) - though the assumption is that there is no gap in the data.
-
-This means, if your "full" history ends in Q4 2022 - then both incremental updates Q1 2023 and Q2 2023 are available.
-Not having this will lead to incomplete data, and therefore invalid results while using the data.
-
+つまり、「完全な」履歴が 2022 年第 4 四半期に終了する場合、2023 年第 1 四半期と 2023 年第 2 四半期の両方の増分更新が利用可能になります。
+これがないとデータが不完全になり、データ使用時の結果が無効になります。
 ```
 └── trades_csv
     ├── Kraken_full_history
@@ -194,33 +181,27 @@ Not having this will lead to incomplete data, and therefore invalid results whil
         ├── BCHEUR.csv
         └── XBTEUR.csv
 ```
-
-You can convert these files into freqtrade files:
-
+これらのファイルを freqtrade ファイルに変換できます。
 ``` bash
 freqtrade convert-trade-data --exchange kraken --format-from kraken_csv --format-to feather
 # Convert trade data to different ohlcv timeframes
 freqtrade trades-to-ohlcv -p BTC/EUR BCH/EUR --exchange kraken -t 1m 5m 15m 1h
 ```
-
-The converted data also makes downloading data possible, and will start the download after the latest loaded trade.
-
+変換されたデータはデータのダウンロードも可能であり、最後にロードされた取引の後にダウンロードが開始されます。
 ``` bash
 freqtrade download-data --exchange kraken --dl-trades -p BTC/EUR BCH/EUR 
 ```
+!!!警告「krakenからデータをダウンロードしています」
+    クラーケン データをダウンロードするには、取引データをマシン上でキャンドルに変換する必要があるため、他の取引所よりも大幅に多くのメモリ (RAM) が必要になります。
+    また、freqtrade はペアと時間範囲の組み合わせに関して取引所で発生したすべての取引をダウンロードする必要があるため、長い時間がかかります。したがって、しばらくお待ちください。
 
-!!! Warning "Downloading data from kraken"
-    Downloading kraken data will require significantly more memory (RAM) than any other exchange, as the trades-data needs to be converted into candles on your machine.
-    It will also take a long time, as freqtrade will need to download every single trade that happened on the exchange for the pair / timerange combination, therefore please be patient.
+!!!警告「rateLimit チューニング」
+    rateLimit 設定エントリは、リクエスト/秒のレートではなく、リクエスト間の遅延をミリ秒単位で保持することに注意してください。
+    したがって、Kraken API の「レート制限を超えました」例外を軽減するには、この設定を減らすのではなく増やす必要があります。
 
-!!! Warning "rateLimit tuning"
-    Please pay attention that rateLimit configuration entry holds delay in milliseconds between requests, NOT requests/sec rate.
-    So, in order to mitigate Kraken API "Rate limit exceeded" exception, this configuration should be increased, NOT decreased.
+## クコイン
 
-## Kucoin
-
-Kucoin requires a passphrase for each api key, you will therefore need to add this key into the configuration so your exchange section looks as follows:
-
+Kucoin では API キーごとにパスフレーズが必要なので、このキーを構成に追加して、交換セクションが次のようになるようにする必要があります。
 ```json
 "exchange": {
     "name": "kucoin",
@@ -230,27 +211,25 @@ Kucoin requires a passphrase for each api key, you will therefore need to add th
     // ...
 }
 ```
+Kucoin は、「GTC」（キャンセルされるまで有効）、「FOK」（完全またはキャンセル）および「IOC」（即時またはキャンセル）設定で [time_in_force](configuration.md# Understand-order_time_in_force) をサポートしています。
 
-Kucoin supports [time_in_force](configuration.md#understand-order_time_in_force) with settings "GTC" (good till cancelled), "FOK" (full-or-cancel) and "IOC" (immediate-or-cancel) settings.
+!!!ヒント「取引所でのストップロス」
+    Kucoin は「stoploss_on_exchange」をサポートしており、ストップロスマーケット注文とストップロスリミット注文の両方を使用できます。大きなメリットがあるので、ぜひ活用することをおすすめします。
+    `order_types.stoploss` 構成設定で `"limit"` または `"market"` を使用して、使用するストップロスのタイプを決定できます。
 
-!!! Tip "Stoploss on Exchange"
-    Kucoin supports `stoploss_on_exchange` and can use both stop-loss-market and stop-loss-limit orders. It provides great advantages, so we recommend to benefit from it.
-    You can use either `"limit"` or `"market"` in the `order_types.stoploss` configuration setting to decide which type of stoploss shall be used.
+### Kucoin ブラックリスト
 
-### Kucoin Blacklists
-
-For Kucoin, it is suggested to add `"KCS/<STAKE>"` to your blacklist to avoid issues, unless you are willing to maintain enough extra `KCS` on the account or unless you're willing to disable using `KCS` for fees. 
-Kucoin accounts may use `KCS` for fees, and if a trade happens to be on `KCS`, further trades may consume this position and make the initial `KCS` trade unsellable as the expected amount is not there anymore.
+Kucoin の場合、アカウントに十分な追加の `KCS` を維持する意思がある場合、または手数料のために `KCS` の使用を無効にする意志がない限り、問題を回避するためにブラックリストに `"KCS/<STAKE>" を追加することをお勧めします。 
+Kucoin アカウントは手数料に「KCS」を使用する場合があり、取引がたまたま「KCS」上で行われた場合、さらなる取引によってこのポジションが消費され、期待額がもう存在しないため最初の「KCS」取引が販売できなくなる可能性があります。
 
 ## HTX
 
-!!! Tip "Stoploss on Exchange"
-    HTX supports `stoploss_on_exchange` and uses `stop-limit` orders. It provides great advantages, so we recommend to benefit from it by enabling stoploss on exchange.
+!!!ヒント「取引所でのストップロス」
+    HTX は「stoploss_on_exchange」をサポートし、「stop-limit」注文を使用します。これには大きなメリットがあるため、取引所でストップロスを有効にしてその恩恵を受けることをお勧めします。
 
 ## OKX
 
-OKX requires a passphrase for each api key, you will therefore need to add this key into the configuration so your exchange section looks as follows:
-
+OKX では API キーごとにパスフレーズが必要なので、このキーを構成に追加して、交換セクションが次のようになるようにする必要があります。
 ```json
 "exchange": {
     "name": "okx",
@@ -260,71 +239,69 @@ OKX requires a passphrase for each api key, you will therefore need to add this 
     // ...
 }
 ```
+ホスト my.okx.com (OKX EAA) 上の OKX に登録している場合は、交換名として「myokx」` を使用する必要があります。
+間違った交換を使用すると、2 つは別個のエンティティであるため、「OKX エラー 50119: API キーが存在しません」というエラーが発生します。
 
-If you've registered with OKX on the host my.okx.com (OKX EAA)- you will need to use `"myokx"` as the exchange name.
-Using the wrong exchange will result in the error "OKX Error 50119: API key doesn't exist" - as the 2 are separate entities.
+!!!警告
+    OKX は、API 呼び出しごとに 100 個のキャンドルのみを提供します。したがって、この戦略では、バックテスト モードで使用できるデータはかなり少量のみになります。
 
-!!! Warning
-    OKX only provides 100 candles per api call. Therefore, the strategy will only have a pretty low amount of data available in backtesting mode.
-
-!!! Warning "Futures"
-    OKX Futures has the concept of "position mode" - which can be "Buy/Sell" or long/short (hedge mode).
-    Freqtrade supports both modes (we recommend to use Buy/Sell mode) - but changing the mode mid-trading is not supported and will lead to exceptions and failures to place trades.
-    OKX also only provides MARK candles for the past ~3 months. Backtesting futures prior to that date will therefore lead to slight deviations, as funding-fees cannot be calculated correctly without this data.
+!!!警告「先物」
+    OKX Futures には「ポジション モード」という概念があり、これは「買い/売り」またはロング/ショート (ヘッジ モード) になります。
+    Freqtrade は両方のモードをサポートしています (買い/売りモードを使用することをお勧めします)。ただし、取引中のモード変更はサポートされていないため、例外が発生し、取引が失敗します。
+    また、OKX は過去 3 か月以内の MARK キャンドルのみを提供しています。したがって、このデータがなければファンディング手数料を正しく計算できないため、その日より前の先物バックテストではわずかな誤差が生じる可能性があります。
 
 ## Gate.io
 
-!!! Tip "Stoploss on Exchange"
-    Gate.io supports `stoploss_on_exchange` and uses `stop-loss-limit` orders. It provides great advantages, so we recommend to benefit from it by enabling stoploss on exchange.
+!!!ヒント「取引所でのストップロス」
+    Gate.io は「stoploss_on_exchange」をサポートし、「stop-loss-limit」注文を使用します。これには大きなメリットがあるため、取引所でストップロスを有効にしてその恩恵を受けることをお勧めします。
 
-Gate.io supports [time_in_force](configuration.md#understand-order_time_in_force) with settings "GTC" (good till cancelled), and "IOC" (immediate-or-cancel) settings.
+Gate.io は、「GTC」(キャンセルされるまで有効) 設定および「IOC」(即時またはキャンセル) 設定で [time_in_force](configuration.md# Understand-order_time_in_force) をサポートします。
 
-Gate.io allows the use of `POINT` to pay for fees. As this is not a tradable currency (no regular market available), automatic fee calculations will fail (and default to a fee of 0).
-The configuration parameter `exchange.unknown_fee_rate` can be used to specify the exchange rate between Point and the stake currency. Obviously, changing the stake-currency will also require changes to this value.
+Gate.ioでは料金の支払いに「POINT」を利用することができます。これは取引可能な通貨ではない (利用可能な通常の市場がない) ため、手数料の自動計算は失敗します (デフォルトの手数料は 0 になります)。
+構成パラメータ `exchange.unknown_fee_rate` を使用して、ポイントとステーク通貨の間の為替レートを指定できます。明らかに、ステーク通貨を変更するには、この値も変更する必要があります。
 
-Gate API keys require the following permissions on top of the market type you want to trade:
+ゲート API キーには、取引する市場タイプに加えて次の権限が必要です。
 
-* "Spot Trade" _or_ "Perpetual Futures" (Read and Write) (either select both, or the one matching the market you want to trade)
-* "Wallet" (read only)
-* "Account" (read only)
+* 「スポット取引」 _または_ 「無期限先物」 (読み取りおよび書き込み) (両方を選択するか、取引したい市場に一致する方を選択してください)
+* 「ウォレット」(読み取り専用)
+* 「アカウント」(読み取り専用)
 
-Without these permissions, the bot will not start correctly and show errors like "permission missing".
+これらの権限がないと、ボットは正しく起動せず、「権限がありません」などのエラーが表示されます。
 
-## Bybit
+## バイビット
 
-!!! Tip "Stoploss on Exchange"
-    Bybit (futures only) supports `stoploss_on_exchange` and uses `stop-loss-limit` orders. It provides great advantages, so we recommend to benefit from it by enabling stoploss on exchange.
-    On futures, Bybit supports both `stop-limit` as well as `stop-market` orders. You can use either `"limit"` or `"market"` in the `order_types.stoploss` configuration setting to decide which type to use.
+!!!ヒント「取引所でのストップロス」
+    Bybit (先物のみ) は「stoploss_on_exchange」をサポートし、「stop-loss-limit」注文を使用します。これには大きなメリットがあるため、取引所でストップロスを有効にしてその恩恵を受けることをお勧めします。
+    先物に関しては、Bybit は「ストップリミット」注文と「ストップマーケット」注文の両方をサポートしています。 `order_types.stoploss` 構成設定で `"limit"` または `"market"` を使用して、どちらのタイプを使用するかを決定できます。
 
-Bybit supports [time_in_force](configuration.md#understand-order_time_in_force) with settings "GTC" (good till cancelled), "FOK" (full-or-cancel), "IOC" (immediate-or-cancel) and "PO" (Post only) settings.
+Bybit は、「GTC」（キャンセルされるまで有効）、「FOK」（完全またはキャンセル）、「IOC」（即時またはキャンセル）および「PO」（投稿のみ）設定で [time_in_force](configuration.md#question-order_time_in_force) をサポートしています。
 
-!!! Warning "Unified accounts"
-    Freqtrade assumes accounts to be dedicated to the bot.
-    We therefore recommend the usage of one subaccount per bot. This is especially important when using unified accounts.  
-    Other configurations (multiple bots on one account, manual non-bot trades on the bot account) are not supported and may lead to unexpected behavior.
+!!!警告「アカウントの統合」
+Freqtrade はアカウントがボット専用であることを前提としています。
+    したがって、ボットごとに 1 つのサブアカウントを使用することをお勧めします。これは、統合アカウントを使用する場合に特に重要です。  
+    他の構成 (1 つのアカウントでの複数のボット、ボット アカウントでの手動の非ボット取引) はサポートされておらず、予期しない動作が発生する可能性があります。
 
-### Bybit Futures
+### Bybit先物
 
-Futures trading on bybit is supported for isolated futures mode.
+bybit での先物取引は、分離先物モードでサポートされています。
 
-On startup, freqtrade will set the position mode to "One-way Mode" for the whole (sub)account. This avoids making this call over and over again (slowing down bot operations), but means that manual changes to this setting may result in exceptions and errors.
+起動時に、freqtrade は (サブ) アカウント全体のポジション モードを「一方向モード」に設定します。これにより、この呼び出しを何度も繰り返す (ボットの動作が遅くなる) ことは避けられますが、この設定を手動で変更すると例外やエラーが発生する可能性があります。
 
-As bybit doesn't provide funding rate history, the dry-run calculation is used for live trades as well.
+bybit は資金調達率の履歴を提供しないため、予行計算はライブ取引にも使用されます。
 
-API Keys for live futures trading must have the following permissions:
+ライブ先物取引の API キーには次の権限が必要です。
 
-* Read-write
-* Contract - Orders
-* Contract - Positions
+* 読み書き可能
+* 契約 - 注文
+* 契約 - ポジション
 
-We do strongly recommend to limit all API keys to the IP you're going to use it from.
+すべての API キーを、使用する IP に制限することを強くお勧めします。
 
 
-## Bitmart
+## ビットマート
 
-Bitmart requires the API key Memo (the name you give the API key) to go along with the exchange key and secret.
-It's therefore required to pass the UID as well.
-
+Bitmart では、交換キーとシークレットに加えて API キー メモ (API キーに付ける名前) が必要です。
+したがって、UID も渡す必要があります。
 ```json
 "exchange": {
     "name": "bitmart",
@@ -334,14 +311,12 @@ It's therefore required to pass the UID as well.
     // ...
 }
 ```
+!!!警告「要確認」
+    Bitmart では、UI 経由の取引はレベル 1 の検証だけで問題なく機能しますが、API を介してスポット市場で正常に取引するには検証レベル 2 が必要です。
 
-!!! Warning "Necessary Verification"
-    Bitmart requires Verification Lvl2 to successfully trade on the spot market through the API - even though trading via UI works just fine with just Lvl1 verification.
+## ビゲット
 
-## Bitget
-
-Bitget requires a passphrase for each api key, you will therefore need to add this key into the configuration so your exchange section looks as follows:
-
+Bitget では API キーごとにパスフレーズが必要なので、このキーを構成に追加して、交換セクションが次のようになるようにする必要があります。
 ```json
 "exchange": {
     "name": "bitget",
@@ -351,27 +326,25 @@ Bitget requires a passphrase for each api key, you will therefore need to add th
     // ...
 }
 ```
+Bitget は、「GTC」（キャンセルされるまで有効）、「FOK」（完全またはキャンセル）、「IOC」（即時またはキャンセル）、および「PO」（投稿のみ）設定で [time_in_force](configuration.md# Understand-order_time_in_force) をサポートします。
 
-Bitget supports [time_in_force](configuration.md#understand-order_time_in_force) with settings "GTC" (good till cancelled), "FOK" (full-or-cancel), "IOC" (immediate-or-cancel) and "PO" (Post only) settings.
+!!!ヒント「取引所でのストップロス」
+    Bitget は「stoploss_on_exchange」をサポートしており、ストップロスマーケット注文とストップロスリミット注文の両方を使用できます。大きなメリットがあるので、ぜひ活用することをおすすめします。
+    `order_types.stoploss` 構成設定で `"limit"` または `"market"` を使用して、使用するストップロスのタイプを決定できます。
 
-!!! Tip "Stoploss on Exchange"
-    Bitget supports `stoploss_on_exchange` and can use both stop-loss-market and stop-loss-limit orders. It provides great advantages, so we recommend to benefit from it.
-    You can use either `"limit"` or `"market"` in the `order_types.stoploss` configuration setting to decide which type of stoploss shall be used.
+### ビゲット先物
 
-### Bitget Futures
+bitget での先物取引は、分離先物モードでサポートされています。
 
-Futures trading on bitget is supported for isolated futures mode.
+起動時に、freqtrade は (サブ) アカウント全体のポジション モードを「一方向モード」に設定します。これにより、この呼び出しを何度も繰り返す (ボットの動作が遅くなる) ことは避けられますが、この設定を手動で変更すると例外やエラーが発生する可能性があります。
 
-On startup, freqtrade will set the position mode to "One-way Mode" for the whole (sub)account. This avoids making this call over and over again (slowing down bot operations), but means that manual changes to this setting may result in exceptions and errors.
+## ハイパーリキッド
 
-## Hyperliquid
+!!!ヒント「取引所でのストップロス」
+    Hyperliquid は「stoploss_on_exchange」をサポートし、「stop-loss-limit」注文を使用します。大きなメリットがあるので、ぜひ活用することをおすすめします。
 
-!!! Tip "Stoploss on Exchange"
-    Hyperliquid supports `stoploss_on_exchange` and uses `stop-loss-limit` orders. It provides great advantages, so we recommend to benefit from it.
-
-Hyperliquid is a Decentralized Exchange (DEX). Decentralized exchanges work a bit different compared to normal exchanges. Instead of authenticating private API calls using an API key, private API calls need to be signed with the private key of your wallet (We recommend using an api Wallet for this, generated either on Hyperliquid or in your wallet of choice).
-This needs to be configured like this:
-
+Hyperliquid は分散型取引所 (DEX) です。分散型取引所は、通常の取引所と比較して動作が少し異なります。 API キーを使用してプライベート API 呼び出しを認証する代わりに、プライベート API 呼び出しはウォレットの秘密キーで署名する必要があります (これには、Hyperliquid または選択したウォレットで生成された API ウォレットを使用することをお勧めします)。
+これは次のように構成する必要があります。
 ```json
 "exchange": {
     "name": "hyperliquid",
@@ -380,30 +353,28 @@ This needs to be configured like this:
     // ...
 }
 ```
+* 16 進形式のウォレットアドレス: `0x<40 の 16 進文字>` - ウォレットから簡単にコピーできます。API ウォレット アドレスではなく、メインのウォレット アドレスにする必要があります。
+* 16 進数形式の privateKey: `0x<64 の 16 進数文字>` - API ウォレットの作成時に表示されるキーを使用します。
 
-* walletAddress in hex format: `0x<40 hex characters>` - Can be easily copied from your wallet - and should be your main wallet address, not your API Wallet Address.
-* privateKey in hex format: `0x<64 hex characters>` - Use the key the API Wallet shows on creation.
+Hyperliquid は、イーサリアム上に構築されたレイヤー 2 スケーリング ソリューションである Arbitrum One チェーンでの入金と出金を処理します。 Hyperliquid は見積/担保として USDC を使用します。 Hyperliquid に USDC を入金するプロセスにはいくつかの手順が必要です。必要な手順の詳細については、[取引を開始する方法](https://hyperliquid.gitbook.io/hyperliquid-docs/onboarding/how-to-start-trading) を参照してください。
 
-Hyperliquid handles deposits and withdrawals on the Arbitrum One chain, a Layer 2 scaling solution built on top of Ethereum. Hyperliquid uses USDC as quote / collateral. The process of depositing USDC on Hyperliquid requires a couple of steps, see [how to start trading](https://hyperliquid.gitbook.io/hyperliquid-docs/onboarding/how-to-start-trading) for details on what steps are needed.
+!!!注「Hyperliquid の一般的な使用上の注意」
+    Hyperliquid は成行注文をサポートしていませんが、ccxt は最大 5% のスリッページで指値注文を発注することで成行注文をシミュレートします。  
+    残念ながら、Hyperliquid は 5000 個の履歴ローソク足しか提供しないため、バックテストでは (時間をかけて段階的にデータをダウンロードして待機してダウンロードすることにより) 履歴的にローソク足を構築するか、最後の 5000 個のローソク足に制限する必要があります。
 
-!!! Note "Hyperliquid general usage Notes"
-    Hyperliquid does not support market orders, however ccxt will simulate market orders by placing limit orders with a maximum slippage of 5%.  
-    Unfortunately, hyperliquid only offers 5000 historic candles, so backtesting will either need to build candles historically (by waiting and downloading the data incrementally over time) - or will be limited to the last 5000 candles.
+!!!情報「いくつかの一般的なベスト プラクティス (すべてを網羅しているわけではありません)」
+    * pip パッケージ ポイズニングなどのサプライ チェーン攻撃に注意してください。秘密キーを使用するときは常に、環境が安全であることを確認してください。
+    * 実際のウォレットの秘密キーを取引に使用しないでください。 Hyperliquid [API ジェネレーター](https://app.hyperliquid.xyz/API) を使用して、別の API ウォレットを作成します。
+    * freqtrade に使用するサーバーに実際のウォレットの秘密キーを保存しないでください。代わりに API ウォレットの秘密キーを使用してください。このキーでは出金はできず、取引のみが可能です。
+    * ニーモニックフレーズと秘密鍵は常に秘密にしておいてください。
+    * ハードウェアウォレットを初期化するときにバックアップする必要があったニーモニックと同じニーモニックを使用しないでください。同じニーモニックを使用すると、基本的にハードウェアウォレットのセキュリティが削除されます。
+    * 別のソフトウェア ウォレットを作成し、取引したい資金のみをそのウォレットに転送し、そのウォレットを使用して Hyperliquid で取引します。
+    * 取引に使用したくない資金がある場合（利益を得た後など）、ハードウェア ウォレットに戻してください。
 
-!!! Info "Some general best practices (non exhaustive)"
-    * Beware of supply chain attacks, like pip package poisoning etcetera. Whenever you use your private key, make sure your environment is safe.
-    * Don't use your actual wallet private key for trading. Use the Hyperliquid [API generator](https://app.hyperliquid.xyz/API) to create a separate API wallet.
-    * Don't store your actual wallet private key on the server you use for freqtrade. Use the API wallet private key instead. This key won't allow withdrawals, only trading.
-    * Always keep your mnemonic phrase and private key private.
-    * Don't use the same mnemonic as the one you had to backup when initializing a hardware wallet, using the same mnemonic basically deletes the security of your hardware wallet.
-    * Create a different software wallet, only transfer the funds you want to trade with to that wallet, and use that wallet to trade on Hyperliquid.
-    * If you have funds you don't want to use for trading (after making a profit for example), transfer them back to your hardware wallet.
+### Hyperliquid Vault / サブアカウント
 
-### Hyperliquid Vault / Subaccount
-
-Hyperliquid allows you to create either a vault or a subaccount.  
-To use these with Freqtrade, you will need to use the following configuration pattern:
-
+Hyperliquid を使用すると、ボールトまたはサブアカウントを作成できます。  
+これらを Freqtrade で使用するには、次の構成パターンを使用する必要があります。
 ``` json
 "exchange": {
     "name": "hyperliquid",
@@ -417,17 +388,15 @@ To use these with Freqtrade, you will need to use the following configuration pa
     // ...
 }
 ```
+あなたの残高と取引は、メインアカウントからではなく、ボールト/サブアカウントから使用されるようになります。
 
-Your balance and trades will now be used from your vault / subaccount - and no longer from your main account.
+### 過去の Hyperliquid データ
 
-### Historic Hyperliquid data
+Hyperliquid API は、現在のデータを取得するための 1 回の呼び出しを超える履歴データを提供しないため、ダウンロードされたデータは適切な履歴データを構成しないため、データをダウンロードすることはできません。
 
-The Hyperliquid API does not provide historic data beyond the single call to fetch current data, so downloading data is not possible, as the downloaded data would not constitute proper historic data.
+## ビトバボ
 
-## Bitvavo
-
-If your account is required to use an operatorId, you can set it in the configuration file as follows:
-
+アカウントで OperatorId を使用する必要がある場合は、次のように構成ファイルでそれを設定できます。
 ``` json
 "exchange": {
         "name": "bitvavo",
@@ -440,40 +409,36 @@ If your account is required to use an operatorId, you can set it in the configur
         },
    }
 ```
+Bitvavo は、「operatorId」が整数であることを期待します。
 
-Bitvavo expects the `operatorId` to be an integer.
+## すべての交換
 
-## All exchanges
+Nonce でエラー (「InvalidNonce」など) が継続的に発生する場合は、API キーを再生成することをお勧めします。 Nonce のリセットは困難ですが、通常は API キーを再生成する方が簡単です。
 
-Should you experience constant errors with Nonce (like `InvalidNonce`), it is best to regenerate the API keys. Resetting Nonce is difficult and it's usually easier to regenerate the API keys.
+## 他の交換用のランダムなメモ
 
-## Random notes for other exchanges
-
-* The Ocean (exchange id: `theocean`) exchange uses Web3 functionality and requires `web3` python package to be installed:
-
+* Ocean (取引所 ID: `theocean`) 取引所は Web3 機能を使用しており、`web3` Python パッケージがインストールされている必要があります。
 ```shell
 pip3 install web3
 ```
+### 最新価格の取得 / 不完全なキャンドル
 
-### Getting latest price / Incomplete candles
+ほとんどの取引所は、OHLCV/kline API インターフェイスを介して、現在の不完全なローソク足を返します。
+デフォルトでは、Freqtrade は不完全なローソク足が取引所から取得されたものとみなし、最後のローソク足を不完全なローソク足であるとみなして削除します。
 
-Most exchanges return current incomplete candle via their OHLCV/klines API interface.
-By default, Freqtrade assumes that incomplete candle is fetched from the exchange and removes the last candle assuming it's the incomplete candle.
+交換が不完全なキャンドルを返したかどうかは、Contributor ドキュメントの [ヘルパー スクリプト](developer.md#incomplete-candles) を使用して確認できます。
 
-Whether your exchange returns incomplete candles or not can be checked using [the helper script](developer.md#incomplete-candles) from the Contributor documentation.
+再塗装の危険性があるため、Freqtrade ではこの不完全なキャンドルの使用を許可していません。
 
-Due to the danger of repainting, Freqtrade does not allow you to use this incomplete candle.
+ただし、戦略の最新価格の必要性に基づいている場合、この要件は、戦略内から [データ プロバイダー](strategy-customization.md#possible-options-for-dataprovider) を使用して取得できます。
 
-However, if it is based on the need for the latest price for your strategy - then this requirement can be acquired using the [data provider](strategy-customization.md#possible-options-for-dataprovider) from within the strategy.
+### 高度な Freqtrade Exchange 構成
 
-### Advanced Freqtrade Exchange configuration
+詳細オプションは、「_ft_has_params」設定を使用して構成できます。これにより、デフォルトと Exchange 固有の動作がオーバーライドされます。
 
-Advanced options can be configured using the `_ft_has_params` setting, which will override Defaults and exchange-specific behavior.
+利用可能なオプションは、exchange クラスに `_ft_has_default` としてリストされます。
 
-Available options are listed in the exchange-class as `_ft_has_default`.
-
-For example, to test the order type `FOK` with Kraken, and modify candle limit to 200 (so you only get 200 candles per API call):
-
+たとえば、Kraken で注文タイプ「FOK」をテストし、キャンドル制限を 200 に変更します (つまり、API 呼び出しごとに 200 キャンドルのみを取得します)。
 ```json
 "exchange": {
     "name": "kraken",
@@ -484,8 +449,7 @@ For example, to test the order type `FOK` with Kraken, and modify candle limit t
     //...
 }
 ```
-
-!!! Warning
-    Please make sure to fully understand the impacts of these settings before modifying them.
-    Using `_ft_has_params` overrides may lead to unexpected behavior, and may even break your bot. 
-    We will not be able to provide support for issues caused by custom settings in `_ft_has_params`.
+!!!警告
+    これらの設定を変更する前に、その影響を十分に理解してください。
+    `_ft_has_params` オーバーライドを使用すると、予期しない動作が発生したり、ボットが壊れたりする可能性があります。 
+    `_ft_has_params` のカスタム設定によって引き起こされる問題についてはサポートを提供できません。

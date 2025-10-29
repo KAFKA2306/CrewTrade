@@ -1,100 +1,99 @@
-# Deprecated features
+# 廃止された機能
 
-This page contains description of the command line arguments, configuration parameters
-and the bot features that were declared as DEPRECATED by the bot development team
-and are no longer supported. Please avoid their usage in your configuration.
+このページには、コマンドライン引数、構成パラメータの説明が含まれています
+ボット開発チームによって非推奨と宣言されたボット機能
+サポートされなくなりました。構成内での使用は避けてください。
 
-## Removed features
+## 削除された機能
 
-### the `--refresh-pairs-cached` command line option
+### `--refresh-pairs-cached` コマンドライン オプション
 
-`--refresh-pairs-cached` in the context of backtesting, hyperopt and edge allows to refresh candle data for backtesting.
-Since this leads to much confusion, and slows down backtesting (while not being part of backtesting) this has been singled out as a separate freqtrade sub-command `freqtrade download-data`.
+バックテスト、hyperopt、edge のコンテキストで「--refresh-pairs-cached」を使用すると、バックテスト用のローソク足データを更新できます。
+これは多くの混乱を招き、バックテストの速度を低下させるため (バックテストの一部ではありませんが)、これは別個の freqtrade サブコマンド `freqtrade download-data` として取り上げられています。
 
-This command line option was deprecated in 2019.7-dev (develop branch) and removed in 2019.9.
+このコマンド ライン オプションは 2019.7-dev (開発ブランチ) で非推奨となり、2019.9 で削除されました。
 
-### The **--dynamic-whitelist** command line option
+### **--dynamic-whitelist** コマンドライン オプション
 
-This command line option was deprecated in 2018 and removed freqtrade 2019.6-dev (develop branch) and in freqtrade 2019.7.
-Please refer to [pairlists](plugins.md#pairlists-and-pairlist-handlers) instead.
+このコマンド ライン オプションは 2018 年に非推奨となり、freqtrade 2019.6-dev (開発ブランチ) と freqtrade 2019.7 では削除されました。
+代わりに、[ペアリスト](plugins.md#pairlists-and-pairlist-handlers) を参照してください。
 
-### the `--live` command line option
+### `--live` コマンドライン オプション
 
-`--live` in the context of backtesting allowed to download the latest tick data for backtesting.
-Did only download the latest 500 candles, so was ineffective in getting good backtest data.
-Removed in 2019-7-dev (develop branch) and in freqtrade 2019.8.
+バックテストのコンテキストで「--live」を使用すると、バックテスト用の最新のティック データをダウンロードできます。
+最新の 500 個のローソク足しかダウンロードしなかったため、適切なバックテスト データを取得するには効果がありませんでした。
+2019-7-dev (開発ブランチ) および freqtrade 2019.8 で削除されました。
 
-### `ticker_interval` (now `timeframe`)
+### `ticker_interval` (現在は `timeframe`)
 
-Support for `ticker_interval` terminology was deprecated in 2020.6 in favor of `timeframe` - and compatibility code was removed in 2022.3.
+「ticker_interval」用語のサポートは、「timeframe」を優先して 2020.6 で非推奨となり、互換性コードは 2022.3 で削除されました。
 
-### Allow running multiple pairlists in sequence
+### 複数のペアリストを順番に実行できるようにする
 
-The former `"pairlist"` section in the configuration has been removed, and is replaced by `"pairlists"` - being a list to specify a sequence of pairlists.
+設定内の以前の「pairlist」セクションは削除され、一連のペアリストを指定するリストである「pairlists」に置き換えられました。
 
-The old section of configuration parameters (`"pairlist"`) has been deprecated in 2019.11 and has been removed in 2020.4.
+構成パラメータの古いセクション (「ペアリスト」`) は 2019.11 で非推奨となり、2020.4 で削除されました。
 
-### deprecation of bidVolume and askVolume from volume-pairlist
+### volume-pairlist からの bidVolume と askVolume の非推奨
 
-Since only quoteVolume can be compared between assets, the other options (bidVolume, askVolume) have been deprecated in 2020.4, and have been removed in 2020.9.
+アセット間で比較できるのは quoteVolume のみであるため、他のオプション (bidVolume、askVolume) は 2020.4 で非推奨となり、2020.9 で削除されました。
 
-### Using order book steps for exit price
+### オーダーブックのステップを使用してエグジット価格を計算する
 
-Using `order_book_min` and `order_book_max` used to allow stepping the orderbook and trying to find the next ROI slot - trying to place sell-orders early.
-As this does however increase risk and provides no benefit, it's been removed for maintainability purposes in 2021.7.
+`order_book_min` と `order_book_max` を使用すると、オーダーブックをステップ実行して、次の ROI スロットを見つけようとして、早めに売り注文を出すことができました。
+ただし、これはリスクを増大させるだけでメリットがないため、2021.7 では保守性の目的で削除されました。
 
-### Legacy Hyperopt mode
+### レガシー Hyperopt モード
 
-Using separate hyperopt files was deprecated in 2021.4 and was removed in 2021.9.
-Please switch to the new [Parametrized Strategies](hyperopt.md) to benefit from the new hyperopt interface.
+個別の hyperopt ファイルの使用は 2021.4 で非推奨となり、2021.9 で削除されました。
+新しい hyperopt インターフェイスを活用するには、新しい [パラメータ化された戦略](hyperopt.md) に切り替えてください。
 
-## Strategy changes between V2 and V3
+## V2 と V3 の間で戦略が変更される
 
-Isolated Futures / short trading was introduced in 2022.4. This required major changes to configuration settings, strategy interfaces, ...
+個別先物/空売り取引は 2022.4 に導入されました。これには、構成設定、戦略インターフェイスなどに大幅な変更が必要でした。
+私たちは既存の戦略との互換性を保つことに多大な努力を払ってきたため、スポット市場で freqtrade を使い続けたいだけの場合は、変更する必要はありません。
+将来的に現在のインターフェイスのサポートを終了する可能性がありますが、これについては別途発表し、適切な移行期間を設けます。
 
-We have put a great effort into keeping compatibility with existing strategies, so if you just want to continue using freqtrade in spot markets, there are no changes necessary.
-While we may drop support for the current interface sometime in the future, we will announce this separately and have an appropriate transition period.
+[戦略の移行](strategy_migration.md) ガイドに従って戦略を新しい形式に移行し、新しい機能の使用を開始してください。
 
-Please follow the [Strategy migration](strategy_migration.md) guide to migrate your strategy to the new format to start using the new functionalities.
+### Webhook - 2022.4 での変更点
 
-### webhooks - changes with 2022.4
+#### `buy_tag` は `enter_tag` に名前変更されました
 
-#### `buy_tag` has been renamed to `enter_tag`
+これは戦略にのみ適用され、場合によっては Webhook にも適用されます。
+1 ～ 2 バージョンの互換性レイヤーは維持します (そのため、`buy_tag` と `enter_tag` は両方とも引き続き機能します) が、それ以降は Webhook での互換性レイヤーのサポートはなくなります。
 
-This should apply only to your strategy and potentially to webhooks.
-We will keep a compatibility layer for 1-2 versions (so both `buy_tag` and `enter_tag` will still work), but support for this in webhooks will disappear after that.
+#### ネーミングの変更
 
-#### Naming changes
+Webhook の用語が「売り」から「出口」に、「買い」から「エントリー」に変更され、その過程で「Webhook」が削除されました。
 
-Webhook terminology changed from "sell" to "exit", and from "buy" to "entry", removing "webhook" in the process.
+* `webhookbuy`、`webhookentry` -> `entry`
+* `webhookbuyfill`、`webhookentryfill` -> `entry_fill`
+* `webhookbuycancel`、`webhookentrycancel` -> `entry_cancel`
+* `webhooksell`、`webhookexit` -> `exit`
+* `webhooksellfill`、`webhookexitfill` -> `exit_fill`
+* `webhooksellcancel`、`webhookexitcancel` -> `exit_cancel`
 
-* `webhookbuy`, `webhookentry` -> `entry`
-* `webhookbuyfill`, `webhookentryfill` -> `entry_fill`
-* `webhookbuycancel`, `webhookentrycancel` -> `entry_cancel`
-* `webhooksell`, `webhookexit` -> `exit`
-* `webhooksellfill`, `webhookexitfill` -> `exit_fill`
-* `webhooksellcancel`, `webhookexitcancel` -> `exit_cancel`
+## `populate_any_indicators` の削除
 
-## Removal of `populate_any_indicators`
+バージョン 2023.3 では、「populate_any_indicators」が削除され、特徴量エンジニアリングとターゲットの分割メソッドが採用されました。詳細については、[移行ドキュメント](strategy_migration.md#freqai-strategy) をお読みください。
 
-version 2023.3 saw the removal of `populate_any_indicators` in favor of split methods for feature engineering and targets. Please read the [migration document](strategy_migration.md#freqai-strategy) for full details.
+## 設定からの「保護」の削除
 
-## Removal of `protections` from configuration
+`"protections": [],` による構成からの保護の設定は、3 年以上にわたって非推奨の警告を発してきた後、2024.10 で削除されました。
 
-Setting protections from the configuration via `"protections": [],` has been removed in 2024.10, after having raised deprecation warnings for over 3 years.
+## HDF5 データ ストレージ
 
-## hdf5 data storage
+データ ストレージとしての hdf5 の使用は 2024.12 で非推奨となり、2025.1 で削除されました。フェザー データ形式に切り替えることをお勧めします。
 
-Using hdf5 as data storage has been deprecated in 2024.12 and was removed in 2025.1. We recommend switching to the feather data format.
+更新する前に、[`convert-data` サブコマンド](data-download.md#sub-command-convert-data) を使用して、既存のデータをサポートされている形式のいずれかに変換してください。
 
-Please use the [`convert-data` subcommand](data-download.md#sub-command-convert-data) to convert your existing data to one of the supported formats before updating.
+## config による高度なログの設定
 
-## Configuring advanced logging via config
+それぞれ「--logfile systemd」および「--logfilejournald」を使用した syslog とjournald の構成は、2025.3 で非推奨になりました。
+代わりに、構成ベースの [ログ セットアップ](advanced-setup.md#advanced-logging) を使用してください。
 
-Configuring syslog and journald via `--logfile systemd` and `--logfile journald` respectively has been deprecated in 2025.3.
-Please use configuration based [log setup](advanced-setup.md#advanced-logging) instead.
+## エッジモジュールの取り外し
 
-## Removal of the edge module
-
-The edge module has been deprecated in 2023.9 and removed in 2025.6.
-All functionalities of edge have been removed, and having edge configured will result in an error.
+エッジ モジュールは 2023.9 で非推奨となり、2025.6 で削除されました。
+エッジのすべての機能が削除されているため、エッジを構成するとエラーが発生します。

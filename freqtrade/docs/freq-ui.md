@@ -1,93 +1,93 @@
-# FreqUI
+# 頻度UI
 
-Freqtrade provides a builtin webserver, which can serve [FreqUI](https://github.com/freqtrade/frequi), the freqtrade frontend.
+Freqtrade は、freqtrade フロントエンドである [FreqUI](https://github.com/freqtrade/frequi) を提供できる組み込み Web サーバーを提供します。
 
-By default, the UI is automatically installed as part of the installation (script, docker).
-freqUI can also be manually installed by using the `freqtrade install-ui` command.
-This same command can also be used to update freqUI to new releases.
+デフォルトでは、UI はインストール (スクリプト、Docker) の一部として自動的にインストールされます。
+freqUI は、「freqtrade install-ui」コマンドを使用して手動でインストールすることもできます。
+これと同じコマンドを使用して、freqUI を新しいリリースに更新することもできます。
 
-Once the bot is started in trade / dry-run mode (with `freqtrade trade`) - the UI will be available under the configured API port (by default `http://127.0.0.1:8080`).
+ボットがトレード / ドライラン モード (`freqtrade trade` を使用) で開始されると、設定された API ポート (デフォルトでは `http://127.0.0.1:8080`) で UI が利用可能になります。
 
-??? Note "Looking to contribute to freqUI?"
-    Developers should not use this method, but instead clone the corresponding use the method described in the [freqUI repository](https://github.com/freqtrade/frequi) to get the source-code of freqUI. A working installation of node will be required to build the frontend.
+??? 「freqUI に貢献したいですか?」に注意してください。
+    開発者はこのメソッドを使用せず、[freqUI リポジトリ](https://github.com/freqtrade/frequi) で説明されているメソッドを使用して対応するクローンを作成し、freqUI のソースコードを取得する必要があります。フロントエンドを構築するには、動作するノードのインストールが必要です。
 
-!!! tip "freqUI is not required to run freqtrade"
-    freqUI is an optional component of freqtrade, and is not required to run the bot.
-    It is a frontend that can be used to monitor the bot and to interact with it - but freqtrade itself will work perfectly fine without it.
+!!!ヒント「freqtrade を実行するのに freqUI は必要ありません」
+    freqUI は freqtrade のオプションのコンポーネントであり、ボットの実行には必須ではありません。
+    これはボットを監視し、ボットと対話するために使用できるフロントエンドです。しかし、freqtrade 自体はそれなしでも完全に正常に動作します。
 
-## Configuration
+## 構成
 
-FreqUI does not have it's own configuration file - but assumes a working setup for the [rest-api](rest-api.md) is available.
-Please refer to the corresponding documentation page to get setup with freqUI
+FreqUI には独自の構成ファイルがありませんが、[rest-api](rest-api.md) の動作セットアップが利用可能であることを前提としています。
+freqUI を使用してセットアップするには、対応するドキュメント ページを参照してください。
 
 ## UI
 
-FreqUI is a modern, responsive web application that can be used to monitor and interact with your bot.
+FreqUI は、ボットの監視と対話に使用できる最新の応答性の高い Web アプリケーションです。
 
-FreqUI provides a light, as well as a dark theme.
-Themes can be easily switched via a prominent button at the top of the page.
-The theme of the screenshots on this page will adapt to the selected documentation Theme, so to see the dark (or light) version, please switch the theme of the Documentation.
+FreqUI は、明るいテーマと暗いテーマを提供します。
+テーマは、ページ上部の目立つボタンから簡単に切り替えることができます。
+このページのスクリーンショットのテーマは、選択したドキュメントのテーマに適応するため、ダーク (またはライト) バージョンを表示するには、ドキュメントのテーマを切り替えてください。
 
-### Login
+### ログイン
 
-The below screenshot shows the login screen of freqUI.
+以下のスクリーンショットは、freqUI のログイン画面を示しています。
 
-![FreqUI - login](assets/frequi-login-CORS.png#only-dark)
-![FreqUI - login](assets/frequi-login-CORS-light.png#only-light)
+![FreqUI - ログイン](assets/frequi-login-CORS.png#only-dark)
+![FreqUI - ログイン](assets/frequi-login-CORS-light.png#only-light)
 
-!!! Hint "CORS"
-    The Cors error shown in this screenshot is due to the fact that the UI is running on a different port than the API, and [CORS](#cors) has not been setup correctly yet.
+!!!ヒント「CORS」
+    このスクリーンショットに示されている Cors エラーは、UI が API とは異なるポートで実行されており、[CORS](#cors) がまだ正しくセットアップされていないことが原因です。
 
-### Trade view
+### 取引ビュー
 
-The trade view allows you to visualize the trades that the bot is making and to interact with the bot.
-On this page, you can also interact with the bot by starting and stopping it and - if configured - force trade entries and exits.
+取引ビューを使用すると、ボットが行っている取引を視覚化し、ボットと対話することができます。
+このページでは、ボットを開始および停止して対話することもできます。また、設定されている場合は、強制的にトレードのエントリーとエグジットを行うこともできます。
 
-![FreqUI - trade view](assets/freqUI-trade-pane-dark.png#only-dark)
-![FreqUI - trade view](assets/freqUI-trade-pane-light.png#only-light)
+![FreqUI - トレードビュー](assets/freqUI-trade-pane-dark.png#only-dark)
+![FreqUI - トレードビュー](assets/freqUI-trade-pane-light.png#only-light)
 
-### Plot Configurator
+### プロットコンフィギュレーター
 
-FreqUI Plots can be configured either via a `plot_config` configuration object in the strategy (which can be loaded via "from strategy" button) or via the UI.
-Multiple plot configurations can be created and switched at will - allowing for flexible, different views into your charts.
+FreqUI プロットは、戦略内の `plot_config` 設定オブジェクト (「戦略から」ボタンでロード可能) または UI 経由で設定できます。
+複数のプロット構成を作成し、自由に切り替えることができるため、チャートに柔軟でさまざまなビューを表示できます。
 
-The plot configuration can be accessed via the "Plot Configurator" (Cog icon) button in the top right corner of the trade view.
+プロット設定には、取引ビューの右上隅にある「プロット コンフィギュレーター」(歯車アイコン) ボタンからアクセスできます。
 
-![FreqUI - plot configuration](assets/freqUI-plot-configurator-dark.png#only-dark)
-![FreqUI - plot configuration](assets/freqUI-plot-configurator-light.png#only-light)
+![FreqUI - プロット構成](assets/freqUI-plot-configurator-dark.png#only-dark)
+![FreqUI - プロット構成](assets/freqUI-plot-configurator-light.png#only-light)
 
-### Settings
+### 設定
 
-Several UI related settings can be changed by accessing the settings page.
+設定ページにアクセスすると、いくつかの UI 関連の設定を変更できます。
 
-Things you can change (among others):
+変更できるもの (特に):
 
-* Timezone of the UI
-* Visualization of open trades as part of the favicon (browser tab)
-* Candle colors (up/down -> red/green)
-* Enable / disable in-app notification types
+* UIのタイムゾーン
+* ファビコン (ブラウザ タブ) の一部としてオープン取引を視覚化
+※キャンドルの色（上/下→赤/緑）
+* アプリ内通知タイプを有効/無効にします
 
-![FreqUI - Settings view](assets/frequi-settings-dark.png#only-dark)
-![FreqUI - Settings view](assets/frequi-settings-light.png#only-light)
+![FreqUI - 設定ビュー](assets/frequi-settings-dark.png#only-dark)
+![FreqUI - 設定ビュー](assets/frequi-settings-light.png#only-light)
 
-## Webserver mode
+## Webサーバーモード
 
-when freqtrade is started in [webserver mode](utils.md#webserver-mode) (freqtrade started with `freqtrade webserver`), the webserver will start in a special mode allowing for additional features, for example:
+freqtrade が [ウェブサーバー モード](utils.md#webserver-mode) で開始されると (freqtrade は `freqtrade webserver` で開始されます)、ウェブサーバーは追加機能を許可する特別なモードで開始されます。例:
 
-* Downloading data
-* Testing pairlists
-* [Backtesting strategies](#backtesting)
-* ... to be expanded
+※データのダウンロード中
+* ペアリストのテスト
+* [バックテスト戦略](#backtesting)
+* ... 拡張予定
 
-### Backtesting
+### バックテスト
 
-When freqtrade is started in [webserver mode](utils.md#webserver-mode) (freqtrade started with `freqtrade webserver`), the backtesting view becomes available.
-This view allows you to backtest strategies and visualize the results.
+freqtrade が [ウェブサーバー モード](utils.md#webserver-mode) で開始されると (freqtrade は `freqtrade webserver` で開始されます)、バックテスト ビューが利用可能になります。
+このビューにより、戦略をバックテストし、結果を視覚化することができます。
 
-You can also load and visualize previous backtest results, as well as compare the results with each other.
+以前のバックテスト結果をロードして視覚化したり、結果を相互に比較したりすることもできます。
 
-![FreqUI - Backtesting](assets/freqUI-backtesting-dark.png#only-dark)
-![FreqUI - Backtesting](assets/freqUI-backtesting-light.png#only-light)
+![FreqUI - バックテスト](assets/freqUI-backtesting-dark.png#only-dark)
+![FreqUI - バックテスト](assets/freqUI-backtesting-light.png#only-light)
 
 
 --8<-- "includes/cors.md"

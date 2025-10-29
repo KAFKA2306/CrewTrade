@@ -1,121 +1,106 @@
-# Data Downloading
+# データのダウンロード
 
-## Getting data for backtesting and hyperopt
+## バックテストとハイパーオプト用のデータの取得
 
-To download data (candles / OHLCV) needed for backtesting and hyperoptimization use the `freqtrade download-data` command.
+バックテストと超最適化に必要なデータ (ローソク足/OHLCV) をダウンロードするには、`freqtrade download-data` コマンドを使用します。
 
-If no additional parameter is specified, freqtrade will download data for `"1m"` and `"5m"` timeframes for the last 30 days.
-Exchange and pairs will come from `config.json` (if specified using `-c/--config`).
-Without provided configuration, `--exchange` becomes mandatory.
+追加のパラメーターが指定されていない場合、freqtrade は過去 30 日間の `"1m"` および `"5m"` の時間枠のデータをダウンロードします。
+Exchange とペアは `config.json` から取得されます (`-c/--config` を使用して指定した場合)。
+構成が提供されていない場合、「--exchange」は必須になります。
 
-You can use a relative timerange (`--days 20`) or an absolute starting point (`--timerange 20200101-`). For incremental downloads, the relative approach should be used.
+相対的な時間範囲 (「--days 20」) または絶対的な開始点 (「--timerange 20200101-」) を使用できます。増分ダウンロードの場合は、相対的なアプローチを使用する必要があります。
 
-!!! Tip "Tip: Updating existing data"
-    If you already have backtesting data available in your data-directory and would like to refresh this data up to today, freqtrade will automatically calculate the missing timerange for the existing pairs and the download will occur from the latest available point until "now", neither `--days` or `--timerange` parameters are required. Freqtrade will keep the available data and only download the missing data.  
-    If you are updating existing data after inserting new pairs that you have no data for, use the `--new-pairs-days xx` parameter. Specified number of days will be downloaded for new pairs while old pairs will be updated with missing data only.  
+!!!ヒント「ヒント: 既存のデータの更新」
+    データ ディレクトリに利用可能なバックテスト データがすでにあり、このデータを今日まで更新したい場合、freqtrade は既存のペアの欠落している時間範囲を自動的に計算し、利用可能な最新の時点から「現在」までダウンロードが行われます。`--days` パラメーターも `--timerange` パラメーターも必要ありません。 Freqtrade は利用可能なデータを保持し、不足しているデータのみをダウンロードします。  
+    データのない新しいペアを挿入した後に既存のデータを更新する場合は、「--new-pairs-days xx」パラメータを使用します。新しいペアについては指定された日数がダウンロードされ、古いペアは欠落したデータのみで更新されます。  
 
-### Usage
+### 使用法
 
 --8<-- "commands/download-data.md"
 
-!!! Tip "Downloading all data for one quote currency"
-    Often, you'll want to download data for all pairs of a specific quote-currency. In such cases, you can use the following shorthand:
-    `freqtrade download-data --exchange binance --pairs ".*/USDT" <...>`. The provided "pairs" string will be expanded to contain all active pairs on the exchange.
-    To also download data for inactive (delisted) pairs, add `--include-inactive-pairs` to the command.
+!!!ヒント「1 つの相場通貨のすべてのデータをダウンロードする」
+    多くの場合、特定の相場通貨のすべてのペアのデータをダウンロードしたいことがあります。このような場合は、次の省略表現を使用できます。
+    `freqtrade download-data --exchange binance --pairs ".*/USDT" <...>`。指定された「ペア」文字列は、取引所上のすべてのアクティブなペアを含むように拡張されます。
+    非アクティブな (リストから削除された) ペアのデータもダウンロードするには、コマンドに `--include-inactive-pairs` を追加します。
 
-!!! Note "Startup period"
-    `download-data` is a strategy-independent command. The idea is to download a big chunk of data once, and then iteratively increase the amount of data stored.
+!!!注意「起動期間」
+    `download-data` は戦略に依存しないコマンドです。このアイデアは、大量のデータを一度ダウンロードし、保存されるデータの量を繰り返し増加させることです。
 
-    For that reason, `download-data` does not care about the "startup-period" defined in a strategy. It's up to the user to download additional days if the backtest should start at a specific point in time (while respecting startup period).
+    そのため、`download-data` はストラテジで定義された「起動期間」を気にしません。バックテストを特定の時点で (開始期間を考慮しながら) 開始する必要がある場合は、追加の日数をダウンロードするかどうかはユーザー次第です。
 
-### Start download
+### ダウンロードを開始します
 
-A very simple command (assuming an available `config.json` file) can look as follows.
-
+非常に単純なコマンド (利用可能な `config.json` ファイルがあると仮定) は次のようになります。
 ```bash
 freqtrade download-data --exchange binance
 ```
+これにより、設定で定義されたすべての通貨ペアのヒストリカル ローソク足 (OHLCV) データがダウンロードされます。
 
-This will download historical candle (OHLCV) data for all the currency pairs defined in the configuration.
-
-Alternatively, specify the pairs directly
-
+または、ペアを直接指定します
 ```bash
 freqtrade download-data --exchange binance --pairs ETH/USDT XRP/USDT BTC/USDT
 ```
-
-or as regex (in this case, to download all active USDT pairs)
-
+または正規表現として (この場合、すべてのアクティブな USDT ペアをダウンロードするため)
 ```bash
 freqtrade download-data --exchange binance --pairs ".*/USDT"
 ```
+### その他の注意事項
 
-### Other Notes
+* Exchange 固有のデフォルトとは異なるディレクトリを使用するには、「--datadir user_data/data/some_directory」を使用します。
+* 履歴データのダウンロードに使用される取引所を変更するには、「--exchange <exchange>」を使用するか、別の設定ファイルを指定します。
+* 他のディレクトリから `pairs.json` を使用するには、`--pairs-file some_other_dir/pairs.json` を使用します。
+* 10 日間のみのヒストリカル ローソク足 (OHLCV) データをダウンロードするには、`--days 10` を使用します (デフォルトは 30 日)。
+* 固定開始点からヒストリカル ローソク足 (OHLCV) データをダウンロードするには、「--timerange 20200101-」を使用します。これにより、2020 年 1 月 1 日からのすべてのデータがダウンロードされます。
+* データがすでに利用可能な場合、指定された開始点は無視され、今日までの不足しているデータのみがダウンロードされます。
+* `--timeframes` を使用して、ヒストリカル ローソク足 (OHLCV) データをダウンロードする時間枠を指定します。デフォルトは「--timeframes 1m 5m」で、1 分と 5 分のデータをダウンロードします。
+* 設定ファイルで定義されているエクスチェンジ、タイムフレーム、ペアのリストを使用するには、`-c/--config` オプションを使用します。これにより、スクリプトはデータをダウンロードする通貨ペアのリストとして構成で定義されたホワイトリストを使用し、pairs.json ファイルを必要としません。 `-c/--config` を他のほとんどのオプションと組み合わせることができます。
 
-* To use a different directory than the exchange specific default, use `--datadir user_data/data/some_directory`.
-* To change the exchange used to download the historical data from, either use `--exchange <exchange>` - or specify a different configuration file.
-* To use `pairs.json` from some other directory, use `--pairs-file some_other_dir/pairs.json`.
-* To download historical candle (OHLCV) data for only 10 days, use `--days 10` (defaults to 30 days).
-* To download historical candle (OHLCV) data from a fixed starting point, use `--timerange 20200101-` - which will download all data from January 1st, 2020.
-* Given starting points are ignored if data is already available, downloading only missing data up to today.
-* Use `--timeframes` to specify what timeframe download the historical candle (OHLCV) data for. Default is `--timeframes 1m 5m` which will download 1-minute and 5-minute data.
-* To use exchange, timeframe and list of pairs as defined in your configuration file, use the `-c/--config` option. With this, the script uses the whitelist defined in the config as the list of currency pairs to download data for and does not require the pairs.json file. You can combine `-c/--config` with most other options.
-
-??? Note "Permission denied errors"
-    If your configuration directory `user_data` was made by docker, you may get the following error:
-
+??? 「アクセス許可拒否エラー」に注意してください。
+    構成ディレクトリ `user_data` が docker によって作成された場合、次のエラーが発生する可能性があります。
     ```
     cp: cannot create regular file 'user_data/data/binance/pairs.json': Permission denied
     ```
-
-    You can fix the permissions of your user-data directory as follows:
-
+次のようにして、ユーザー データ ディレクトリの権限を修正できます。
     ```
     sudo chown -R $UID:$GID user_data
     ```
+### 現在の時間範囲より前に追加データをダウンロードする
 
-### Download additional data before the current timerange
-
-Assuming you downloaded all data from 2022 (`--timerange 20220101-`) - but you'd now like to also backtest with earlier data.
-You can do so by using the `--prepend` flag, combined with `--timerange` - specifying an end-date.
-
+2022 年からすべてのデータをダウンロードしたと仮定します (`--timerange 20220101-`)。ただし、以前のデータでもバックテストしたいとします。
+これを行うには、「--prepend」フラグを「--timerange」と組み合わせて使用​​し、終了日を指定します。
 ``` bash
 freqtrade download-data --exchange binance --pairs ETH/USDT XRP/USDT BTC/USDT --prepend --timerange 20210101-20220101
 ```
+!!!注記
+    データが利用可能な場合、Freqtrade はこのモードで終了日を無視し、終了日を既存のデータの開始点に更新します。
 
-!!! Note
-    Freqtrade will ignore the end-date in this mode if data is available, updating the end-date to the existing data start point.
+### データ形式
 
-### Data format
+Freqtrade は現在、次のデータ形式をサポートしています。
 
-Freqtrade currently supports the following data-formats:
+* `feather` - Apache Arrow に基づくデータ形式
+* `json` - プレーンな「テキスト」json ファイル
+* `jsongz` - json ファイルの gzip 圧縮バージョン
+* `parquet` - 列指向データストア (OHLCV のみ)
 
-* `feather` - a dataformat based on Apache Arrow
-* `json` -  plain "text" json files
-* `jsongz` - a gzip-zipped version of json files
-* `parquet` - columnar datastore (OHLCV only)
+デフォルトでは、OHLCV データと取引データは両方とも「フェザー」形式で保存されます。
 
-By default, both OHLCV data and trades data are stored in the `feather` format.
-
-This can be changed via the `--data-format-ohlcv` and `--data-format-trades` command line arguments respectively.
-To persist this change, you should also add the following snippet to your configuration, so you don't have to insert the above arguments each time:
-
+これは、それぞれ「--data-format-ohlcv」および「--data-format-trades」コマンドライン引数を介して変更できます。
+この変更を永続化するには、次のスニペットを構成に追加する必要もあります。これにより、毎回上記の引数を挿入する必要がなくなります。
 ``` jsonc
     // ...
     "dataformat_ohlcv": "feather",
     "dataformat_trades": "feather",
     // ...
 ```
+ダウンロード中にデフォルトのデータ形式が変更された場合は、設定ファイル内のキー「dataformat_ohlcv」と「dataformat_trades」も選択したデータ形式に合わせて調整する必要があります。
 
-If the default data-format has been changed during download, then the keys `dataformat_ohlcv` and `dataformat_trades` in the configuration file need to be adjusted to the selected dataformat as well.
+!!!注記
+    [convert-data](#sub-command-convert-data) メソッドと [convert-trade-data](#sub-command-convert-trade-data) メソッドを使用して、データ形式を変換できます。
 
-!!! Note
-    You can convert between data-formats using the [convert-data](#sub-command-convert-data) and [convert-trade-data](#sub-command-convert-trade-data) methods.
+#### データ形式の比較
 
-#### Dataformat comparison
-
-The following comparisons have been made with the following data, and by using the linux `time` command.
-
+次の比較は、次のデータと Linux の `time` コマンドを使用して行われました。
 ```
 Found 6 pair / timeframe combinations.
 +----------+-------------+--------+---------------------+---------------------+
@@ -129,40 +114,34 @@ Found 6 pair / timeframe combinations.
 | ETH/USDT |          5m |   spot | 2017-08-17 04:00:00 | 2022-09-13 19:20:00 |
 +----------+-------------+--------+---------------------+---------------------+
 ```
-
-Timings have been taken in a not very scientific way with the following command, which forces reading the data into memory.
-
+次のコマンドを使用すると、あまり科学的ではない方法でタイミングが取得され、データをメモリに強制的に読み込むことができます。
 ``` bash
 time freqtrade list-data --show-timerange --data-format-ohlcv <dataformat>
 ```
+|  フォーマット |サイズ |タイミング |
+|-----------|---------------|---------------|
+| '羽' | 72MB | 3.5秒 |
+| `json` | 149MB | 25.6秒 |
+| `jsongz` | 39MB | 27秒 |
+|寄木細工83MB | 3.8秒 |
 
-|  Format | Size | timing |
-|------------|-------------|-------------|
-| `feather` | 72Mb | 3.5s |
-| `json` | 149Mb | 25.6s |
-| `jsongz` | 39Mb | 27s |
-| `parquet` | 83Mb | 3.8s |
+サイズは、上記で指定された時間範囲の BTC/USDT 1m スポットの組み合わせから取得されています。
 
-Size has been taken from the BTC/USDT 1m spot combination for the timerange specified above.
+パフォーマンスとサイズの組み合わせを最適化するには、デフォルトのフェザー形式、つまり寄木細工を使用することをお勧めします。
 
-To have a best performance/size mix, we recommend using the default feather format, or parquet.
+### ペアファイル
 
-### Pairs file
+「config.json」のホワイトリストの代わりに、「pairs.json」ファイルを使用できます。
+たとえば、Binance を使用している場合:
 
-In alternative to the whitelist from `config.json`, a `pairs.json` file can be used.
-If you are using Binance for example:
-
-* create a directory `user_data/data/binance` and copy or create the `pairs.json` file in that directory.
-* update the `pairs.json` file to contain the currency pairs you are interested in.
-
+* ディレクトリ `user_data/data/binance` を作成し、そのディレクトリに `pairs.json` ファイルをコピーまたは作成します。
+* 関心のある通貨ペアが含まれるように「pairs.json」ファイルを更新します。
 ```bash
 mkdir -p user_data/data/binance
 touch user_data/data/binance/pairs.json
 ```
-
-The format of the `pairs.json` file is a simple json list.
-Mixing different stake-currencies is allowed for this file, since it's only used for downloading.
-
+「pairs.json」ファイルの形式は、単純な JSON リストです。
+このファイルはダウンロードにのみ使用されるため、異なるステーク通貨の混合が許可されています。
 ``` json
 [
     "ETH/BTC",
@@ -171,58 +150,50 @@ Mixing different stake-currencies is allowed for this file, since it's only used
     "XRP/ETH"
 ]
 ```
+!!!注記
+    `pairs.json` ファイルは、設定が読み込まれていない場合にのみ使用されます (名前付けまたは `--config` フラグによって暗黙的に)。
+    `--pairs-filepairs.json` を介してこのファイルの使用を強制できますが、構成内の `exchange.pair_whitelist` または `pairs` 設定を介して、構成内からペアリストを使用することをお勧めします。
 
-!!! Note
-    The `pairs.json` file is only used when no configuration is loaded (implicitly by naming, or via `--config` flag).
-    You can force the usage of this file via `--pairs-file pairs.json` - however we recommend to use the pairlist from within the configuration, either via `exchange.pair_whitelist` or `pairs` setting in the configuration.
-
-## Sub-command convert data
+## サブコマンドデータ変換
 
 --8<-- "commands/convert-data.md"
 
-### Example converting data
+### データの変換例
 
-The following command will convert all candle (OHLCV) data available in `~/.freqtrade/data/binance` from json to jsongz, saving diskspace in the process.
-It'll also remove original json data files (`--erase` parameter).
-
+次のコマンドは、`~/.freqtrade/data/binance` で利用可能なすべてのローソク足 (OHLCV) データを json から jsongz に変換し、プロセスのディスク領域を節約します。
+また、元の json データ ファイル (`--erase` パラメーター) も削除されます。
 ``` bash
 freqtrade convert-data --format-from json --format-to jsongz --datadir ~/.freqtrade/data/binance -t 5m 15m --erase
 ```
-
-## Sub-command convert trade data
+## サブコマンド 取引データの変換
 
 --8<-- "commands/convert-trade-data.md"
 
-### Example converting trades
+### 取引の変換例
 
-The following command will convert all available trade-data in `~/.freqtrade/data/kraken` from jsongz to json.
-It'll also remove original jsongz data files (`--erase` parameter).
-
+次のコマンドは、`~/.freqtrade/data/kraken` 内の利用可能なすべての取引データを jsongz から json に変換します。
+また、元の jsongz データ ファイルも削除されます (`--erase` パラメーター)。
 ``` bash
 freqtrade convert-trade-data --format-from jsongz --format-to json --datadir ~/.freqtrade/data/kraken --erase
 ```
+## サブコマンドは ohlcv にトレードします
 
-## Sub-command trades to ohlcv
-
-When you need to use `--dl-trades` (kraken only) to download data, conversion of trades data to ohlcv data is the last step.
-This command will allow you to repeat this last step for additional timeframes without re-downloading the data.
+データをダウンロードするために `--dl-trades` (kraken のみ) を使用する必要がある場合、取引データを ohlcv データに変換するのが最後のステップです。
+このコマンドを使用すると、データを再ダウンロードせずに、追加の時間枠でこの最後のステップを繰り返すことができます。
 
 --8<-- "commands/trades-to-ohlcv.md"
 
-### Example trade-to-ohlcv conversion
-
+### trade-to-ohlcv 変換の例
 ``` bash
 freqtrade trades-to-ohlcv --exchange kraken -t 5m 1h 1d --pairs BTC/EUR ETH/EUR
 ```
+## サブコマンドリストデータ
 
-## Sub-command list-data
-
-You can get a list of downloaded data using the `list-data` sub-command.
+ダウンロードしたデータのリストは「list-data」サブコマンドを使用して取得できます。
 
 --8<-- "commands/list-data.md"
 
-### Example list-data
-
+### リストデータの例
 ```bash
 > freqtrade list-data --userdir ~/.freqtrade/user_data/
 
@@ -237,9 +208,7 @@ You can get a list of downloaded data using the `list-data` sub-command.
 └───────────────┴───────────────────────────────────────────┴──────┘
 
 ```
-
-Show all trades data including from/to timerange
-
+開始/終了の時間範囲を含むすべての取引データを表示します
 ``` bash
 > freqtrade list-data --show --trades
                      Found trades data for 1 pair.                     
@@ -250,33 +219,30 @@ Show all trades data including from/to timerange
 └─────────┴──────┴─────────────────────┴─────────────────────┴────────┘
 
 ```
+## 取引 (ティック) データ
 
-## Trades (tick) data
+デフォルトでは、「download-data」サブコマンドはキャンドル (OHLCV) データをダウンロードします。ほとんどの取引所は、API 経由で過去の取引データも提供します。
+このデータは、一度ダウンロードされるだけで、ローカルで希望の時間枠にリサンプリングされるため、多くの異なる時間枠が必要な場合に役立ちます。
 
-By default, `download-data` sub-command downloads Candles (OHLCV) data. Most exchanges also provide historic trade-data via their API.
-This data can be useful if you need many different timeframes, since it is only downloaded once, and then resampled locally to the desired timeframes.
+このデータはデフォルトで大きいため、ファイルはデフォルトでフェザー ファイル形式を使用します。これらは、`<pair>-trades.feather` (`ETH_BTC-trades.feather`) の命名規則に従ってデータ ディレクトリに保存されます。履歴 OHLCV データと同様に増分モードもサポートされているため、「--days 8」を使用して週に 1 回データをダウンロードすると、増分データ リポジトリが作成されます。
 
-Since this data is large by default, the files use the feather file format by default. They are stored in your data-directory with the naming convention of `<pair>-trades.feather` (`ETH_BTC-trades.feather`). Incremental mode is also supported, as for historic OHLCV data, so downloading the data once per week with `--days 8` will create an incremental data-repository.
+このモードを使用するには、呼び出しに「--dl-trades」を追加するだけです。これにより、ダウンロード方法が取引のダウンロードに切り替わります。
+`--convert` も指定すると、リサンプル ステップが自動的に実行され、最終的には指定されたペア/タイムフレームの組み合わせに対する既存の OHLCV データが上書きされます。
 
-To use this mode, simply add `--dl-trades` to your call. This will swap the download method to download trades.
-If `--convert` is also provided, the resample step will happen automatically and overwrite eventually existing OHLCV data for the given pair/timeframe combinations.
+!!!警告「使用しないでください」
+    kraken ユーザーでない限り、これを使用しないでください (Kraken は履歴 OHLCV データを提供しません)。  
+    他のほとんどの取引所は、十分な履歴を含む OHLCV データを提供しているため、その方法で複数のタイムフレームをダウンロードする方が、取引データをダウンロードするよりもはるかに高速であることがわかります。
 
-!!! Warning "Do not use"
-    You should not use this unless you're a kraken user (Kraken does not provide historic OHLCV data).  
-    Most other exchanges provide OHLCV data with sufficient history, so downloading multiple timeframes through that method will still proof to be a lot faster than downloading trades data.
+!!!注「クラーケン使い」
+    Kraken ユーザーは、データのダウンロードを開始する前に [これ](exchanges.md#history-kraken-data) を読む必要があります。
 
-!!! Note "Kraken user"
-    Kraken users should read [this](exchanges.md#historic-kraken-data) before starting to download data.
-
-Example call:
-
+呼び出しの例:
 ```bash
 freqtrade download-data --exchange kraken --pairs XRP/EUR ETH/EUR --days 20 --dl-trades
 ```
+!!!注記
+    このメソッドは非同期呼び出しを使用しますが、交換への次のリクエストを生成するには前の呼び出しの結果が必要であるため、速度が遅くなります。
 
-!!! Note
-    While this method uses async calls, it will be slow, since it requires the result of the previous call to generate the next request to the exchange.
+## 次のステップ
 
-## Next step
-
-Great, you now have some data downloaded, so you can now start [backtesting](backtesting.md) your strategy.
+データがダウンロードされたので、戦略の [バックテスト](backtesting.md) を開始できます。

@@ -1,20 +1,19 @@
-# Feature engineering
+# 特徴量エンジニアリング
 
-## Defining the features
+## 機能の定義
 
-Low level feature engineering is performed in the user strategy within a set of functions called `feature_engineering_*`. These function set the `base features` such as, `RSI`, `MFI`, `EMA`, `SMA`, time of day, volume, etc. The `base features` can be custom indicators or they can be imported from any technical-analysis library that you can find. FreqAI is equipped with a set of functions to simplify rapid large-scale feature engineering:
+低レベルの特徴量エンジニアリングは、「feature_engineering_*」と呼ばれる一連の関数内のユーザー ストラテジーで実行されます。これらの関数は、「RSI」、「MFI」、「EMA」、「SMA」、時刻、出来高などの「基本特徴」を設定します。「基本特徴」はカスタム指標にすることも、見つけられるテクニカル分析ライブラリからインポートすることもできます。 FreqAI には、迅速な大規模な特徴量エンジニアリングを簡素化するための一連の機能が装備されています。
 
-|  Function | Description |
-|---------------|-------------|
-| `feature_engineering_expand_all()` | This optional function will automatically expand the defined features on the config defined `indicator_periods_candles`, `include_timeframes`, `include_shifted_candles`, and `include_corr_pairs`.
-| `feature_engineering_expand_basic()` | This optional function will automatically expand the defined features on the config defined `include_timeframes`, `include_shifted_candles`, and `include_corr_pairs`. Note: this function does *not* expand across `indicator_periods_candles`.
-| `feature_engineering_standard()` | This optional function will be called once with the dataframe of the base timeframe. This is the final function to be called, which means that the dataframe entering this function will contain all the features and columns from the base asset created by the other `feature_engineering_expand` functions. This function is a good place to do custom exotic feature extractions (e.g. tsfresh). This function is also a good place for any feature that should not be auto-expanded upon (e.g., day of the week).
-| `set_freqai_targets()` | Required function to set the targets for the model. All targets must be prepended with `&` to be recognized by the FreqAI internals.
+|  機能 |説明 |
+|--------------|---------------|
+| `feature_engineering_expand_all()` |このオプション関数は、設定で定義された `indicator_periods_candles`、`include_timeframes`、`include_shifted_candles`、および `include_corr_pairs` で定義された機能を自動的に展開します。
+| `feature_engineering_expand_basic()` |このオプション関数は、設定で定義された `include_timeframes`、`include_shifted_candles`、および `include_corr_pairs` で定義された機能を自動的に拡張します。注: この関数は「indicator_periods_candles」全体に拡張*しません*。
+| `feature_engineering_standard()` |このオプションの関数は、基本タイムフレームのデータフレームで 1 回呼び出されます。これは呼び出される最後の関数です。つまり、この関数に入るデータフレームには、他の `feature_engineering_expand` 関数によって作成されたベース アセットのすべてのフィーチャと列が含まれることになります。この関数は、カスタムのエキゾチックな特徴抽出 (tsfresh など) を行うのに適しています。この関数は、自動展開すべきではない機能 (曜日など) にも適しています。
+| `set_freqai_targets()` |モデルのターゲットを設定するために必要な関数。 FreqAI 内部で認識されるように、すべてのターゲットの前に「&」を付ける必要があります。
 
-Meanwhile, high level feature engineering is handled within `"feature_parameters":{}` in the FreqAI config. Within this file, it is possible to decide large scale feature expansions on top of the `base_features` such as "including correlated pairs" or "including informative timeframes" or even "including recent candles."
+一方、高レベルの特徴エンジニアリングは、FreqAI 設定の「feature_parameters」:{}` 内で処理されます。このファイル内では、「相関ペアを含む」、「有益なタイムフレームを含む」、さらには「最近のローソク足を含む」など、「base_features」に加えて大規模な機能拡張を決定することができます。
 
-It is advisable to start from the template `feature_engineering_*` functions in the source provided example strategy (found in `templates/FreqaiExampleStrategy.py`) to ensure that the feature definitions are following the correct conventions. Here is an example of how to set the indicators and labels in the strategy:
-
+機能定義が正しい規則に従っていることを確認するために、ソースが提供する戦略例 (`templates/FreqaiExampleStrategy.py` にあります) 内のテンプレート `feature_engineering_*` 関数から開始することをお勧めします。以下は、戦略でインジケーターとラベルを設定する方法の例です。
 ```python
     def feature_engineering_expand_all(self, dataframe: DataFrame, period, metadata, **kwargs) -> DataFrame:
         """
@@ -147,13 +146,11 @@ It is advisable to start from the template `feature_engineering_*` functions in 
         
         return dataframe
 ```
+提示された例では、ユーザーは `bb_ lowerband` を特徴としてモデルに渡したくありません。
+したがって、先頭に「%」を付けていません。ただし、ユーザーは `bb_width` を
+トレーニング/予測用のモデルなので、先頭に「%」が付加されています。
 
-In the presented example, the user does not wish to pass the `bb_lowerband` as a feature to the model,
-and has therefore not prepended it with `%`. The user does, however, wish to pass `bb_width` to the
-model for training/prediction and has therefore prepended it with `%`.
-
-After having defined the `base features`, the next step is to expand upon them using the powerful `feature_parameters` in the configuration file:
-
+「基本機能」を定義したら、次のステップは、構成ファイル内の強力な「feature_parameters」を使用してそれらを拡張することです。
 ```json
     "freqai": {
         //...
@@ -171,72 +168,66 @@ After having defined the `base features`, the next step is to expand upon them u
         //...
     }
 ```
+上記の設定の `include_timeframes` は、ストラテジー内の `feature_engineering_expand_*()` への各呼び出しのタイムフレーム (`tf`) です。ここで示したケースでは、ユーザーは機能セットに含める「rsi」、「mfi」、「roc」、および「bb_width」の「5m」、「15m」、および「4h」タイムフレームを要求しています。
 
-The `include_timeframes` in the config above are the timeframes (`tf`) of each call to `feature_engineering_expand_*()` in the strategy. In the presented case, the user is asking for the `5m`, `15m`, and `4h` timeframes of the `rsi`, `mfi`, `roc`, and `bb_width` to be included in the feature set.
+「include_corr_pairlist」を使用して、定義された各機能を情報ペアにも含めるように要求できます。これは、機能セットには、構成で定義された相関ペア (提示された例では「ETH/USD」、「LINK/USD」、および「BNB/USD」) のすべての「include_timeframes」にある「feature_engineering_expand_*()」のすべての機能が含まれることを意味します。
 
-You can ask for each of the defined features to be included also for informative pairs using the `include_corr_pairlist`. This means that the feature set will include all the features from `feature_engineering_expand_*()` on all the `include_timeframes` for each of the correlated pairs defined in the config (`ETH/USD`, `LINK/USD`, and `BNB/USD` in the presented example).
+`include_shifted_candles` は、機能セットに含める以前のキャンドルの数を示します。たとえば、「include_shifted_candles: 2」は、機能セット内の各機能の過去 2 つのローソク足を含めるよう FreqAI に指示します。
 
-`include_shifted_candles` indicates the number of previous candles to include in the feature set. For example, `include_shifted_candles: 2` tells FreqAI to include the past 2 candles for each of the features in the feature set.
-
-In total, the number of features the user of the presented example strategy has created is: length of `include_timeframes` * no. features in `feature_engineering_expand_*()` * length of `include_corr_pairlist` * no. `include_shifted_candles` * length of `indicator_periods_candles`
- $= 3 * 3 * 3 * 2 * 2 = 108$.
+提示された戦略例のユーザーが作成したフィーチャの合計数は、「include_timeframes」の長さ * 数になります。 `feature_engineering_expand_*()` の機能 * `include_corr_pairlist` の長さ * いいえ。 `include_shifted_candles` * `indicator_periods_candles` の長さ
+ $= 3 * 3 * 3 * 2 * 2 = 108$。
  
-!!! note "Learn more about creative feature engineering"
-    Check out our [medium article](https://emergentmethods.medium.com/freqai-from-price-to-prediction-6fadac18b665) geared toward helping users learn how to creatively engineer features.
+!!! note「クリエイティブ特徴量エンジニアリングについて詳しく学ぶ」
+    ユーザーが創造的に機能を設計する方法を学習できるようにすることを目的とした [中記事](https://emergentmethods.medium.com/freqai-from-price-to-prediction-6fadac18b665) をご覧ください。
 
-### Gain finer control over `feature_engineering_*` functions with `metadata`
+### `metadata` を使用して `feature_engineering_*` 関数をより細かく制御します
 
-All `feature_engineering_*` and `set_freqai_targets()` functions are passed a `metadata` dictionary which contains information about the `pair`, `tf` (timeframe), and `period` that FreqAI is automating for feature building. As such, a user can use `metadata` inside `feature_engineering_*` functions as criteria for blocking/reserving features for certain timeframes, periods, pairs etc.
-
+すべての `feature_engineering_*` および `set_freqai_targets()` 関数には、FreqAI が機能構築のために自動化している `pair`、`tf` (タイムフレーム)、および `period` に関する情報を含む `metadata` 辞書が渡されます。そのため、ユーザーは特定の時間枠、期間、ペアなどの機能をブロック/予約する基準として「feature_engineering_*」関数内の「メタデータ」を使用できます。
 ```python
 def feature_engineering_expand_all(self, dataframe: DataFrame, period, metadata, **kwargs) -> DataFrame:
     if metadata["tf"] == "1h":
         dataframe["%-roc-period"] = ta.ROC(dataframe, timeperiod=period)
 ```
+これにより、`ta.ROC()` が `"1h"` 以外のタイムフレームに追加されることがブロックされます。
 
-This will block `ta.ROC()` from being added to any timeframes other than `"1h"`.
+### トレーニングから追加情報を返す
 
-### Returning additional info from training
+重要なメトリックは、カスタム予測モデル クラス内の `dk.data['extra_returns_per_train']['my_new_value'] = XYZ` に割り当てることで、各モデルのトレーニングの最後に戦略に返すことができます。 
 
-Important metrics can be returned to the strategy at the end of each model training by assigning them to `dk.data['extra_returns_per_train']['my_new_value'] = XYZ` inside the custom prediction model class. 
+FreqAI は、このディクショナリに割り当てられた `my_new_value` を取得し、ストラテジーに返されるデータフレームに適合するようにそれを拡張します。その後、「dataframe['my_new_value']」を通じて、返されたメトリクスを戦略で使用できます。 FreqAI で戻り値をどのように使用できるかの例は、[動的ターゲットしきい値の作成](freqai-configuration.md#creating-a-dynamic-target-threshold) に使用される `&*_mean` 値と `&*_std` 値です。
 
-FreqAI takes the `my_new_value` assigned in this dictionary and expands it to fit the dataframe that is returned to the strategy. You can then use the returned metrics in your strategy through `dataframe['my_new_value']`. An example of how return values can be used in FreqAI are the `&*_mean` and `&*_std` values that are used to [created a dynamic target threshold](freqai-configuration.md#creating-a-dynamic-target-threshold).
-
-Another example, where the user wants to use live metrics from the trade database, is shown below:
-
+ユーザーが取引データベースからのライブ指標を使用したい別の例を以下に示します。
 ```json
     "freqai": {
         "extra_returns_per_train": {"total_profit": 4}
     }
 ```
+FreqAI が適切なデータフレーム形状を返すことができるように、構成で標準辞書を設定する必要があります。これらの値は予測モデルによってオーバーライドされる可能性がありますが、モデルがまだ値を設定していない場合、またはデフォルトの初期値が必要な場合には、事前に設定された値が返されます。
 
-You need to set the standard dictionary in the config so that FreqAI can return proper dataframe shapes. These values will likely be overridden by the prediction model, but in the case where the model has yet to set them, or needs a default initial value, the pre-set values are what will be returned.
+### 時間的重要性に対する特徴の重み付け
 
-### Weighting features for temporal importance
-
-FreqAI allows you to set a `weight_factor` to weight recent data more strongly than past data via an exponential function:
+FreqAI を使用すると、指数関数を使用して過去のデータよりも最近のデータに重み付けを強くする「weight_factor」を設定できます。
 
 $$ W_i = \exp(\frac{-i}{\alpha*n}) $$
 
-where $W_i$ is the weight of data point $i$ in a total set of $n$ data points. Below is a figure showing the effect of different weight factors on the data points in a feature set.
+ここで、$W_i$ は、$n$ データ ポイントの合計セット内のデータ ポイント $i$ の重みです。以下の図は、特徴セット内のデータ ポイントに対するさまざまな重み係数の影響を示しています。
 
-![weight-factor](assets/freqai_weight-factor.jpg)
+![ウェイトファクター](assets/freqai_weight-factor.jpg)
 
-## Building the data pipeline
+## データ パイプラインの構築
 
-By default, FreqAI builds a dynamic pipeline based on user configuration settings. The default settings are robust and designed to work with a variety of methods. These two steps are a `MinMaxScaler(-1,1)` and a `VarianceThreshold` which removes any column that has 0 variance. Users can activate other steps with more configuration parameters. For example if users add `use_SVM_to_remove_outliers: true` to the `freqai` config, then FreqAI will automatically add the [`SVMOutlierExtractor`](#identifying-outliers-using-a-support-vector-machine-svm) to the pipeline. Likewise, users can add `principal_component_analysis: true` to the `freqai` config to activate PCA. The [DissimilarityIndex](#identifying-outliers-with-the-dissimilarity-index-di) is activated with `DI_threshold: 1`. Finally, noise can also be added to the data with `noise_standard_deviation: 0.1`. Finally, users can add [DBSCAN](#identifying-outliers-with-dbscan) outlier removal with `use_DBSCAN_to_remove_outliers: true`.
+デフォルトでは、FreqAI はユーザー構成設定に基づいて動的パイプラインを構築します。デフォルト設定は堅牢で、さまざまな方法で動作するように設計されています。これら 2 つのステップは、`MinMaxScaler(-1,1)` と、分散が 0 の列を削除する `VarianceThreshold` です。ユーザーは、より多くの構成パラメータを使用して他のステップをアクティブ化できます。たとえば、ユーザーが「use_SVM_to_remove_outliers: true」を「freqai」設定に追加すると、FreqAI は自動的に [`SVMOutlierExtractor`](#identifying-outliers-using-a-support-vector-machine-svm) をパイプラインに追加します。同様に、ユーザーは「principal_component_analysis: true」を「freqai」設定に追加して PCA をアクティブ化できます。 [DissimilarityIndex](#identifying-outliers-with-the-dissimilarity-index-di) は、「DI_threshold: 1」でアクティブになります。最後に、「noise_standard_deviation: 0.1」を使用してデータにノイズを追加することもできます。最後に、ユーザーは「use_DBSCAN_to_remove_outliers: true」を使用して [DBSCAN](#identifying-outliers-with-dbscan) 外れ値の除去を追加できます。
 
-!!! note "More information available"
-    Please review the [parameter table](freqai-parameter-table.md) for more information on these parameters.
+!!!注「さらに詳しい情報が利用可能です」
+    これらのパラメータの詳細については、[パラメータ テーブル](freqai-parameter-table.md)を参照してください。
 
 
-### Customizing the pipeline
+### パイプラインのカスタマイズ
 
-Users are encouraged to customize the data pipeline to their needs by building their own data pipeline. This can be done by simply setting `dk.feature_pipeline` to their desired `Pipeline` object inside their `IFreqaiModel` `train()` function, or if they prefer not to touch the `train()` function, they can override `define_data_pipeline`/`define_label_pipeline` functions in their `IFreqaiModel`:
+ユーザーは、独自のデータ パイプラインを構築して、ニーズに合わせてデータ パイプラインをカスタマイズすることをお勧めします。これは、`IFreqaiModel` の `train()` 関数内の目的の `Pipeline` オブジェクトに `dk.feature_pipeline` を設定するだけで実行できます。または、`train()` 関数に触れたくない場合は、`IFreqaiModel` の `define_data_pipeline`/`define_label_pipeline` 関数をオーバーライドすることもできます。
 
-!!! note "More information available"
-    FreqAI uses the [`DataSieve`](https://github.com/emergentmethods/datasieve) pipeline, which follows the SKlearn pipeline API, but adds, among other features, coherence between the X, y, and sample_weight vector point removals, feature removal, feature name following. 
-
+!!!注「さらに詳しい情報が利用可能です」
+    FreqAI は [`DataSieve`](https://github.com/emergentmethods/datasieve) パイプラインを使用します。これは SKlearn パイプライン API に従いますが、他の機能の中でも、X、y、sample_weight ベクトル点の削除、特徴の削除、特徴名の後の一貫性が追加されています。
 ```python
 from datasieve.transforms import SKLearnWrapper, DissimilarityIndex
 from datasieve.pipeline import Pipeline
@@ -276,11 +267,9 @@ class MyFreqaiModel(BaseRegressionModel):
 
         return label_pipeline
 ```
+ここでは、トレーニングと予測中に機能セットに使用される正確なパイプラインを定義しています。上に示したように、「SKLearnWrapper」クラスでラップすることで、*ほとんどの* SKLearn 変換ステップを使用できます。さらに、[`DataSieve` ライブラリ](https://github.com/emergentmethods/datasieve) で利用可能な変換を使用できます。 
 
-Here, you are defining the exact pipeline that will be used for your feature set during training and prediction. You can use *most* SKLearn transformation steps by wrapping them in the `SKLearnWrapper` class as shown above. In addition, you can use any of the transformations available in the [`DataSieve` library](https://github.com/emergentmethods/datasieve). 
-
-You can easily add your own transformation by creating a class that inherits from the datasieve `BaseTransform` and implementing your `fit()`, `transform()` and `inverse_transform()` methods:
-
+データシーブの `BaseTransform` から継承するクラスを作成し、`fit()`、`transform()`、および `inverse_transform()` メソッドを実装することで、独自の変換を簡単に追加できます。
 ```python
 from datasieve.transforms.base_transform import BaseTransform
 # import whatever else you need
@@ -302,26 +291,24 @@ class MyCoolTransform(BaseTransform):
         # do/dont do something with X, y, sample_weight, or/and feature_list
         return X, y, sample_weight, feature_list
 ```
+!!! 「ヒント」に注意してください
+    このカスタム クラスは、`IFreqaiModel` と同じファイルで定義できます。
 
-!!! note "Hint"
-    You can define this custom class in the same file as your `IFreqaiModel`.
+### カスタム `IFreqaiModel` を新しいパイプラインに移行する
 
-### Migrating a custom `IFreqaiModel` to the new Pipeline
+カスタム `train()`/`predict()` 関数を使用して独自のカスタム `IFreqaiModel` を作成し、*かつ* まだ `data_cleaning_train/predict()` に依存している場合は、新しいパイプラインに移行する必要があります。モデルが `data_cleaning_train/predict()` に依存していない場合は、この移行について心配する必要はありません。
 
-If you have created your own custom `IFreqaiModel` with a custom `train()`/`predict()` function, *and* you still rely on `data_cleaning_train/predict()`, then you will need to migrate to the new pipeline. If your model does *not* rely on `data_cleaning_train/predict()`, then you do not need to worry about this migration.
+移行の詳細については、[こちら](strategy_migration.md#freqai-new-data-pipeline)をご覧ください。
 
-More details about the migration can be found [here](strategy_migration.md#freqai-new-data-pipeline).
+## 外れ値の検出
 
-## Outlier detection
+株式市場と仮想通貨市場は、異常値のデータポイントという形での高レベルの非パターンノイズに悩まされています。 FreqAI は、そのような外れ値を特定し、リスクを軽減するためのさまざまな方法を実装しています。
 
-Equity and crypto markets suffer from a high level of non-patterned noise in the form of outlier data points. FreqAI implements a variety of methods to identify such outliers and hence mitigate risk.
+### 相違指数 (DI) を使用した外れ値の特定
 
-### Identifying outliers with the Dissimilarity Index (DI)
+相違指数 (DI) は、モデルによって行われた各予測に関連する不確実性を定量化することを目的としています。 
 
-The Dissimilarity Index (DI) aims to quantify the uncertainty associated with each prediction made by the model. 
-
-You can tell FreqAI to remove outlier data points from the training/test data sets using the DI by including the following statement in the config:
-
+構成に次のステートメントを含めることで、DI を使用してトレーニング/テスト データ セットから異常値データ ポイントを削除するように FreqAI に指示できます。
 ```json
     "freqai": {
         "feature_parameters" : {
@@ -329,33 +316,31 @@ You can tell FreqAI to remove outlier data points from the training/test data se
         }
     }
 ```
-
-Which will add `DissimilarityIndex` step to your `feature_pipeline` and set the threshold to 1. The DI allows predictions which are outliers (not existent in the model feature space) to be thrown out due to low levels of certainty. To do so, FreqAI measures the distance between each training data point (feature vector), $X_{a}$, and all other training data points:
+これにより、`DissimilarityIndex` ステップが `feature_pipeline` に追加され、しきい値が 1 に設定されます。DI を使用すると、外れ値 (モデルの特徴空間に存在しない) の予測を、確実性のレベルが低いために除外できます。これを行うために、FreqAI は、各トレーニング データ ポイント (特徴ベクトル)、$X_{a}$、および他のすべてのトレーニング データ ポイント間の距離を測定します。
 
 $$ d_{ab} = \sqrt{\sum_{j=1}^p(X_{a,j}-X_{b,j})^2} $$
 
-where $d_{ab}$ is the distance between the normalized points $a$ and $b$, and $p$ is the number of features, i.e., the length of the vector $X$. The characteristic distance, $\overline{d}$, for a set of training data points is simply the mean of the average distances:
+ここで、$d_{ab}$ は正規化された点 $a$ と $b$ の間の距離、$p$ は特徴の数、つまりベクトル $X$ の長さです。一連のトレーニング データ ポイントの特性距離 $\overline{d}$ は、単に平均距離の平均です。
 
 $$ \overline{d} = \sum_{a=1}^n(\sum_{b=1}^n(d_{ab}/n)/n) $$
 
-$\overline{d}$ quantifies the spread of the training data, which is compared to the distance between a new prediction feature vectors, $X_k$ and all the training data:
+$\overline{d}$ はトレーニング データの広がりを定量化します。これは、新しい予測特徴ベクトル $X_k$ とすべてのトレーニング データの間の距離と比較されます。
 
 $$ d_k = \arg \min d_{k,i} $$
 
-This enables the estimation of the Dissimilarity Index as:
+これにより、次のような相違指数の推定が可能になります。
 
 $$ DI_k = d_k/\overline{d} $$
 
-You can tweak the DI through the `DI_threshold` to increase or decrease the extrapolation of the trained model. A higher `DI_threshold` means that the DI is more lenient and allows predictions further away from the training data to be used whilst a lower `DI_threshold` has the opposite effect and hence discards more predictions.
+「DI_threshold」を通じて DI を微調整して、トレーニング済みモデルの外挿を増減させることができます。より高い「DI_threshold」は、DI がより寛大で、トレーニング データからさらに離れた予測を使用できることを意味しますが、より低い「DI_threshold」は逆の効果があり、より多くの予測が破棄されます。
 
-Below is a figure that describes the DI for a 3D data set.
+以下は、3D データセットの DI を説明する図です。
 
 ![DI](assets/freqai_DI.jpg)
 
-### Identifying outliers using a Support Vector Machine (SVM)
+### サポート ベクター マシン (SVM) を使用した外れ値の特定
 
-You can tell FreqAI to remove outlier data points from the training/test data sets using a Support Vector Machine (SVM) by including the following statement in the config:
-
+次のステートメントを構成に含めることで、サポート ベクター マシン (SVM) を使用してトレーニング/テスト データ セットから異常値データ ポイントを削除するように FreqAI に指示できます。
 ```json
     "freqai": {
         "feature_parameters" : {
@@ -363,19 +348,17 @@ You can tell FreqAI to remove outlier data points from the training/test data se
         }
     }
 ```
+これにより、「SVMOutlierExtractor」ステップが「feature_pipeline」に追加されます。 SVM はトレーニング データに基づいてトレーニングされ、SVM が特徴空間を超えているとみなしたデータ ポイントは削除されます。
 
-Which will add `SVMOutlierExtractor` step to your `feature_pipeline`. The SVM will be trained on the training data and any data point that the SVM deems to be beyond the feature space will be removed.
+構成内の「feature_parameters.svm_params」ディクショナリを介して、「shuffle」や「nu」などの追加パラメータを SVM に提供することを選択できます。
 
-You can elect to provide additional parameters for the SVM, such as `shuffle`, and `nu` via the `feature_parameters.svm_params` dictionary in the config.
+パラメータ「shuffle」は、一貫した結果を保証するためにデフォルトで「False」に設定されています。 「True」に設定されている場合、同じデータセットに対して SVM を複数回実行すると、アルゴリズムが要求された「tol」に達するには「max_iter」が低すぎるため、異なる結果が生じる可能性があります。 `max_iter` を増やすとこの問題は解決しますが、手順にかかる時間が長くなります。
 
-The parameter `shuffle` is by default set to `False` to ensure consistent results. If it is set to `True`, running the SVM multiple times on the same data set might result in different outcomes due to `max_iter` being to low for the algorithm to reach the demanded `tol`. Increasing `max_iter` solves this issue but causes the procedure to take longer time.
+パラメーター `nu` は、*非常に*広範に、外れ値とみなされるデータ ポイントの量であり、0 から 1 の間にある必要があります。
 
-The parameter `nu`, *very* broadly, is the amount of data points that should be considered outliers and should be between 0 and 1.
+### DBSCAN による外れ値の特定
 
-### Identifying outliers with DBSCAN
-
-You can configure FreqAI to use DBSCAN to cluster and remove outliers from the training/test data set or incoming outliers from predictions, by activating `use_DBSCAN_to_remove_outliers` in the config:
-
+設定で「use_DBSCAN_to_remove_outliers」を有効にすることで、DBSCAN を使用してトレーニング/テスト データ セットから外れ値をクラスタリングして削除したり、予測から受信した外れ値を削除したりするように FreqAI を設定できます。
 ```json
     "freqai": {
         "feature_parameters" : {
@@ -383,20 +366,18 @@ You can configure FreqAI to use DBSCAN to cluster and remove outliers from the t
         }
     }
 ```
+これにより、「DataSieveDBSCAN」ステップが「feature_pipeline」に追加されます。これは、必要なクラスターの数を知る必要なく、データをクラスター化する教師なし機械学習アルゴリズムです。
 
-Which will add the `DataSieveDBSCAN` step to your `feature_pipeline`. This is an unsupervised machine learning algorithm that clusters data without needing to know how many clusters there should be.
-
-Given a number of data points $N$, and a distance $\varepsilon$, DBSCAN clusters the data set by setting all data points that have $N-1$ other data points within a distance of $\varepsilon$ as *core points*. A data point that is within a distance of $\varepsilon$ from a *core point* but that does not have $N-1$ other data points within a distance of $\varepsilon$ from itself is considered an *edge point*. A cluster is then the collection of *core points* and *edge points*. Data points that have no other data points at a distance $<\varepsilon$ are considered outliers. The figure below shows a cluster with $N = 3$.
+データ ポイントの数 $N$ と距離 $\varepsilon$ が与えられると、DBSCAN は $\varepsilon$ の距離内に $N-1$ 個の他のデータ ポイントを持つすべてのデータ ポイントを *コア ポイント* として設定することによってデータ セットをクラスター化します。 *コア ポイント*から $\varepsilon$ の距離内にあるが、それ自体から $\varepsilon$ の距離内に $N-1$ 個の他のデータ ポイントがないデータ ポイントは、*エッジ ポイント*とみなされます。クラスターは、*コア ポイント* と *エッジ ポイント* の集合になります。 $<\varepsilon$ の距離に他のデータ ポイントがないデータ ポイントは外れ値とみなされます。以下の図は、$N = 3$ のクラスターを示しています。
 
 ![dbscan](assets/freqai_dbscan.jpg)
 
-FreqAI uses `sklearn.cluster.DBSCAN` (details are available on scikit-learn's webpage [here](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html) (external website)) with `min_samples` ($N$) taken as 1/4 of the no. of time points (candles) in the feature set. `eps` ($\varepsilon$) is computed automatically as the elbow point in the *k-distance graph* computed from the nearest neighbors in the pairwise distances of all data points in the feature set.
+FreqAI は `sklearn.cluster.DBSCAN` (詳細は scikit-learn の Web ページ [こちら](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html) (外部 Web サイト) で参照できます) を使用し、`min_samples` ($N$) を no.1 の 1/4 として使用します。特徴セット内の時点 (ローソク足) の数。 `eps` ($\varepsilon$) は、特徴セット内のすべてのデータ ポイントのペアごとの距離の最近傍から計算される *k 距離グラフ* のエルボ ポイントとして自動的に計算されます。
 
 
-### Data dimensionality reduction with Principal Component Analysis
+### 主成分分析によるデータの次元削減
 
-You can reduce the dimensionality of your features by activating the principal_component_analysis in the config:
-
+構成でプリンシパル_コンポーネント_分析を有効にすることで、機能の次元を減らすことができます。
 ```json
     "freqai": {
         "feature_parameters" : {
@@ -404,5 +385,4 @@ You can reduce the dimensionality of your features by activating the principal_c
         }
     }
 ```
-
-This will perform PCA on the features and reduce their dimensionality so that the explained variance of the data set is >= 0.999. Reducing data dimensionality makes training the model faster and hence allows for more up-to-date models.
+これにより、特徴に対して PCA が実行され、データ セットの説明分散が 0.999 以上になるように次元が削減されます。データの次元を削減すると、モデルのトレーニングが高速化されるため、より最新のモデルを使用できるようになります。

@@ -1,34 +1,33 @@
-# Using Freqtrade with Docker
+# Docker で Freqtrade を使用する
 
-This page explains how to run the bot with Docker. It is not meant to work out of the box. You'll still need to read through the documentation and understand how to properly configure it.
+このページではDockerでボットを実行する方法を説明します。そのまま使えるようにするものではありません。引き続きドキュメントを読み、適切な構成方法を理解する必要があります。
 
-## Install Docker
+## Docker をインストールする
 
-Start by downloading and installing Docker / Docker Desktop for your platform:
+まずは、ご使用のプラットフォーム用の Docker / Docker Desktop をダウンロードしてインストールします。
 
 * [Mac](https://docs.docker.com/docker-for-mac/install/)
 * [Windows](https://docs.docker.com/docker-for-windows/install/)
 * [Linux](https://docs.docker.com/install/)
 
-!!! Info "Docker compose install"
-    Freqtrade documentation assumes the use of Docker desktop (or the docker compose plugin).  
-    While the docker-compose standalone installation still works, it will require changing all `docker compose` commands from `docker compose` to `docker-compose` to work (e.g. `docker compose up -d` will become `docker-compose up -d`).
+!!!情報「Docker Compose インストール」
+    Freqtrade のドキュメントでは、Docker デスクトップ (または docker compose プラグイン) の使用を前提としています。  
+    docker-compose スタンドアロン インストールはまだ機能しますが、機能するにはすべての `docker compose` コマンドを `docker compose` から `docker-compose` に変更する必要があります (たとえば、`docker compose up -d` は `docker-compose up -d` になります)。
 
-??? Warning "Docker on windows"
-    If you just installed docker on a windows system, make sure to reboot your system, otherwise you might encounter unexplainable Problems related to network connectivity to docker containers.
+???警告「Windows 上の Docker」
+    Windows システムに docker をインストールしたばかりの場合は、必ずシステムを再起動してください。再起動しないと、docker コンテナへのネットワーク接続に関連する説明できない問題が発生する可能性があります。
 
-## Freqtrade with docker
+## Docker を使用した Freqtrade
 
-Freqtrade provides an official Docker image on [Dockerhub](https://hub.docker.com/r/freqtradeorg/freqtrade/), as well as a [docker compose file](https://github.com/freqtrade/freqtrade/blob/stable/docker-compose.yml) ready for usage.
+Freqtrade は、[Dockerhub](https://hub.docker.com/r/freqtradeorg/freqtrade/) で公式の Docker イメージを提供しており、すぐに使用できる [docker compose ファイル](https://github.com/freqtrade/freqtrade/blob/stable/docker-compose.yml) も提供しています。
 
-!!! Note
-    - The following section assumes that `docker` is installed and available to the logged in user.
-    - All below commands use relative directories and will have to be executed from the directory containing the `docker-compose.yml` file.
+!!!注記
+    - 次のセクションでは、「docker」がインストールされており、ログインしたユーザーが使用できることを前提としています。
+    - 以下のすべてのコマンドは相対ディレクトリを使用するため、`docker-compose.yml` ファイルを含むディレクトリから実行する必要があります。
 
-### Docker quick start
+### Docker クイック スタート
 
-Create a new directory and place the [docker-compose file](https://raw.githubusercontent.com/freqtrade/freqtrade/stable/docker-compose.yml) in this directory.
-
+新しいディレクトリを作成し、[docker-compose ファイル](https://raw.githubusercontent.com/freqtrade/freqtrade/stable/docker-compose.yml) をこのディレクトリに配置します。
 ``` bash
 mkdir ft_userdata
 cd ft_userdata/
@@ -44,183 +43,164 @@ docker compose run --rm freqtrade create-userdir --userdir user_data
 # Create configuration - Requires answering interactive questions
 docker compose run --rm freqtrade new-config --config user_data/config.json
 ```
+上記のスニペットは、「ft_userdata」という新しいディレクトリを作成し、最新の構成ファイルをダウンロードして、freqtrade イメージをプルします。
+スニペットの最後の 2 つのステップでは、`user_data` を含むディレクトリと、選択に基づいたデフォルト設定を (対話的に) 作成します。
 
-The above snippet creates a new directory called `ft_userdata`, downloads the latest compose file and pulls the freqtrade image.
-The last 2 steps in the snippet create the directory with `user_data`, as well as (interactively) the default configuration based on your selections.
+!!!質問「ボットの設定を編集するにはどうすればよいですか?」
+    構成はいつでも編集できます。上記の構成を使用する場合、この構成は `user_data/config.json` (ディレクトリ `ft_userdata` 内) として利用できます。
 
-!!! Question "How to edit the bot configuration?"
-    You can edit the configuration at any time, which is available as `user_data/config.json` (within the directory `ft_userdata`) when using the above configuration.
+    `docker-compose.yml` ファイルのコマンド セクションを編集して、ストラテジーとコマンドの両方を変更することもできます。
 
-    You can also change the both Strategy and commands by editing the command section of your `docker-compose.yml` file.
+#### カスタム戦略の追加
 
-#### Adding a custom strategy
+1. 設定は「user_data/config.json」として利用できるようになりました。
+2. カスタム戦略をディレクトリ `user_data/strategies/` にコピーします。
+3. Strategy クラス名を `docker-compose.yml` ファイルに追加します。
 
-1. The configuration is now available as `user_data/config.json`
-2. Copy a custom strategy to the directory `user_data/strategies/`
-3. Add the Strategy' class name to the `docker-compose.yml` file
+「SampleStrategy」はデフォルトで実行されます。
 
-The `SampleStrategy` is run by default.
+!!!危険「『SampleStrategy』は単なるデモです!」
+    「SampleStrategy」は参照用にあり、独自の戦略のアイデアを提供します。
+    リアルマネーを危険にさらす前に、常に戦略をバックテストし、しばらく予行演習を行ってください。
+    戦略開発の詳細については、[戦略ドキュメント](strategy-customization.md) を参照してください。
 
-!!! Danger "`SampleStrategy` is just a demo!"
-    The `SampleStrategy` is there for your reference and give you ideas for your own strategy.
-    Please always backtest your strategy and use dry-run for some time before risking real money!
-    You will find more information about Strategy development in the [Strategy documentation](strategy-customization.md).
-
-Once this is done, you're ready to launch the bot in trading mode (Dry-run or Live-trading, depending on your answer to the corresponding question you made above).
-
+これが完了すると、取引モード (上記で作成した対応する質問への回答に応じて、ドライランまたはライブ取引) でボットを起動する準備が整います。
 ``` bash
 docker compose up -d
 ```
+!!!警告「デフォルト設定」
+    生成された構成はほとんど機能しますが、ボットを開始する前に、すべてのオプションが希望するもの (価格設定、ペアリストなど) に対応していることを確認する必要があります。
 
-!!! Warning "Default configuration"
-    While the configuration generated will be mostly functional, you will still need to verify that all options correspond to what you want (like Pricing, pairlist, ...) before starting the bot.
+#### UI へのアクセス
 
-#### Accessing the UI
+「new-config」ステップで FreqUI を有効にすることを選択した場合は、ポート「localhost:8080」で freqUI を使用できるようになります。
 
-If you've selected to enable FreqUI in the `new-config` step, you will have freqUI available at port `localhost:8080`.
+これで、ブラウザに「localhost:8080」と入力して UI にアクセスできるようになります。
 
-You can now access the UI by typing localhost:8080 in your browser.
+??? 「リモートサーバー上の UI アクセス」に注意してください
+    VPS 上で実行している場合は、ボットに接続するために ssh トンネルを使用するか、VPN (openVPN、ワイヤーガード) をセットアップすることを検討する必要があります。
+    これにより、freqUI がインターネットに直接公開されなくなりますが、これはセキュリティ上の理由から推奨されません (freqUI はそのままでは https をサポートしません)。
+    これらのツールのセットアップはこのチュートリアルの一部ではありませんが、インターネット上で多くの優れたチュートリアルが見つかります。
+    この構成の詳細については、[Docker を使用した API 構成](rest-api.md#configuration-with-docker) セクションもお読みください。
 
-??? Note "UI Access on a remote server"
-    If you're running on a VPS, you should consider using either a ssh tunnel, or setup a VPN (openVPN, wireguard) to connect to your bot.
-    This will ensure that freqUI is not directly exposed to the internet, which is not recommended for security reasons (freqUI does not support https out of the box).
-    Setup of these tools is not part of this tutorial, however many good tutorials can be found on the internet.
-    Please also read the [API configuration with docker](rest-api.md#configuration-with-docker) section to learn more about this configuration.
+#### ボットの監視
 
-#### Monitoring the bot
+「docker compose ps」を使用して、実行中のインスタンスを確認できます。
+これにより、サービス「freqtrade」が「running」としてリストされるはずです。そうでない場合は、ログを確認してください (次の点を参照)。
 
-You can check for running instances with `docker compose ps`.
-This should list the service `freqtrade` as `running`. If that's not the case, best check the logs (see next point).
+#### Docker 構成ログ
 
-#### Docker compose logs
+ログは `user_data/logs/freqtrade.log` に書き込まれます。  
+コマンド `docker compose logs -f` を使用して最新のログを確認することもできます。
 
-Logs will be written to: `user_data/logs/freqtrade.log`.  
-You can also check the latest log with the command `docker compose logs -f`.
+#### データベース
 
-#### Database
+データベースは「user_data/tradesv3.sqlite」にあります。
 
-The database will be located at: `user_data/tradesv3.sqlite`
+#### docker を使用して freqtrade を更新する
 
-#### Updating freqtrade with docker
-
-Updating freqtrade when using `docker` is as simple as running the following 2 commands:
-
+「docker」を使用する場合の freqtrade の更新は、次の 2 つのコマンドを実行するだけで簡単です。
 ``` bash
 # Download the latest image
 docker compose pull
 # Restart the image
 docker compose up -d
 ```
+これにより、最初に最新のイメージがプルされ、次にプルされたばかりのバージョンでコンテナーが再起動されます。
 
-This will first pull the latest image, and will then restart the container with the just pulled version.
+!!!警告「変更ログを確認してください」
+    重大な変更や必要な手動介入がないか常に変更ログを確認し、更新後にボットが正しく起動することを確認する必要があります。
 
-!!! Warning "Check the Changelog"
-    You should always check the changelog for breaking changes / manual interventions required and make sure the bot starts correctly after the update.
+### docker-compose ファイルの編集
 
-### Editing the docker-compose file
+上級ユーザーは、docker-compose ファイルをさらに編集して、考えられるすべてのオプションまたは引数を含めることができます。
 
-Advanced users may edit the docker-compose file further to include all possible options or arguments.
+すべての freqtrade 引数は、「docker compose run --rm freqtrade <command> <optional argument>」を実行することで利用可能になります。
 
-All freqtrade arguments will be available by running `docker compose run --rm freqtrade <command> <optional arguments>`.
+!!!警告「取引コマンドの「docker compose」」
+    取引コマンド (`freqtrade trade <...>`) は、`docker compose run` を介して実行されるべきではなく、代わりに `docker compose up -d` を使用する必要があります。
+    これにより、コンテナーが適切に開始されていること (ポート転送を含む) が確認され、システムの再起動後にコンテナーが確実に再起動されます。
+    freqUI を使用する場合は、[それに応じて設定](rest-api.md#configuration-with-docker) も必ず調整してください。そうしないと、UI が使用できなくなります。
 
-!!! Warning "`docker compose` for trade commands"
-    Trade commands (`freqtrade trade <...>`) should not be ran via `docker compose run` - but should use `docker compose up -d` instead.
-    This makes sure that the container is properly started (including port forwardings) and will make sure that the container will restart after a system reboot.
-    If you intend to use freqUI, please also ensure to adjust the [configuration accordingly](rest-api.md#configuration-with-docker), otherwise the UI will not be available.
+!!! 「`docker compose run --rm`」に注意してください。
+    `--rm` を含めると完了後にコンテナが削除され、取引モード (`freqtrade trade` コマンドで実行) を除くすべてのモードで強く推奨されます。
 
-!!! Note "`docker compose run --rm`"
-    Including `--rm` will remove the container after completion, and is highly recommended for all modes except trading mode (running with `freqtrade trade` command).
+??? 「docker compose を使用しない docker の使用」に注意してください。
+    「`docker compose run --rm`」では、構成ファイルを指定する必要があります。
+    「list-pairs」などの認証を必要としない一部の freqtrade コマンドは、代わりに「docker run --rm」を使用して実行できます。  
+    たとえば、「docker run --rm freqtradeorg/freqtrade:stable list-pairs --exchange binance --quote BTC --print-json」などです。  
+    これは、実行中のコンテナに影響を与えることなく、交換情報を取得して「config.json」に追加する場合に役立ちます。
 
-??? Note "Using docker without docker compose"
-    "`docker compose run --rm`" will require a compose file to be provided.
-    Some freqtrade commands that don't require authentication such as `list-pairs` can be run with "`docker run --rm`" instead.  
-    For example `docker run --rm freqtradeorg/freqtrade:stable list-pairs --exchange binance --quote BTC --print-json`.  
-    This can be useful for fetching exchange information to add to your `config.json` without affecting your running containers.
+#### 例: Docker を使用してデータをダウンロードする
 
-#### Example: Download data with docker
-
-Download backtesting data for 5 days for the pair ETH/BTC and 1h timeframe from Binance. The data will be stored in the directory `user_data/data/` on the host.
-
+Binance から ETH/BTC ペアと 1 時間のタイムフレームの 5 日間のバックテスト データをダウンロードします。データはホスト上のディレクトリ `user_data/data/` に保存されます。
 ``` bash
 docker compose run --rm freqtrade download-data --pairs ETH/BTC --exchange binance --days 5 -t 1h
 ```
+データのダウンロードの詳細については、[データ ダウンロード ドキュメント](data-download.md)を参照してください。
 
-Head over to the [Data Downloading Documentation](data-download.md) for more details on downloading data.
+#### 例: Docker を使用したバックテスト
 
-#### Example: Backtest with docker
-
-Run backtesting in docker-containers for SampleStrategy and specified timerange of historical data, on 5m timeframe:
-
+SampleStrategy と指定された期間の履歴データのバックテストを Docker コンテナーで 5 分間のタイムフレームで実行します。
 ``` bash
 docker compose run --rm freqtrade backtesting --config user_data/config.json --strategy SampleStrategy --timerange 20190801-20191001 -i 5m
 ```
+詳細については、[バックテストのドキュメント](backtesting.md) にアクセスしてください。
 
-Head over to the [Backtesting Documentation](backtesting.md) to learn more.
+### docker による追加の依存関係
 
-### Additional dependencies with docker
+戦略でデフォルトのイメージに含まれていない依存関係が必要な場合は、ホスト上にイメージを構築する必要があります。
+このためには、追加の依存関係のインストール手順を含む Dockerfile を作成してください (例については、[docker/Dockerfile.custom](https://github.com/freqtrade/freqtrade/blob/develop/docker/Dockerfile.custom) を参照してください)。
 
-If your strategy requires dependencies not included in the default image - it will be necessary to build the image on your host.
-For this, please create a Dockerfile containing installation steps for the additional dependencies (have a look at [docker/Dockerfile.custom](https://github.com/freqtrade/freqtrade/blob/develop/docker/Dockerfile.custom) for an example).
-
-You'll then also need to modify the `docker-compose.yml` file and uncomment the build step, as well as rename the image to avoid naming collisions.
-
+次に、`docker-compose.yml` ファイルを変更してビルド ステップのコメントを解除し、名前の衝突を避けるためにイメージの名前を変更する必要もあります。
 ``` yaml
     image: freqtrade_custom
     build:
       context: .
       dockerfile: "./Dockerfile.<yourextension>"
 ```
+次に、「docker compose build --pull」を実行して docker イメージを構築し、上記のコマンドを使用して実行します。
 
-You can then run `docker compose build --pull` to build the docker image, and run it using the commands described above.
+### Docker を使用したプロット
 
-### Plotting with docker
-
-Commands `freqtrade plot-profit` and `freqtrade plot-dataframe` ([Documentation](plotting.md)) are available by changing the image to `*_plot` in your `docker-compose.yml` file.
-You can then use these commands as follows:
-
+コマンド `freqtrade Lot-profit` および `freqtrade put-dataframe` ([Documentation](plotting.md)) は、`docker-compose.yml` ファイル内の画像を `*_plot` に変更することで利用可能になります。
+これらのコマンドは次のように使用できます。
 ``` bash
 docker compose run --rm freqtrade plot-dataframe --strategy AwesomeStrategy -p BTC/ETH --timerange=20180801-20180805
 ```
+出力は「user_data/plot」ディレクトリに保存され、最新のブラウザで開くことができます。
 
-The output will be stored in the `user_data/plot` directory, and can be opened with any modern browser.
+### docker compose を使用したデータ分析
 
-### Data analysis using docker compose
-
-Freqtrade provides a docker-compose file which starts up a jupyter lab server.
-You can run this server using the following command:
-
+Freqtrade は、jupyter lab サーバーを起動する docker-compose ファイルを提供します。
+次のコマンドを使用してこのサーバーを実行できます。
 ``` bash
 docker compose -f docker/docker-compose-jupyter.yml up
 ```
+これにより、jupyter lab を実行する docker コンテナが作成され、「https://127.0.0.1:8888/lab」を使用してアクセスできるようになります。
+簡素化されたログインのために、起動後にコンソールに出力されるリンクを使用してください。
 
-This will create a docker-container running jupyter lab, which will be accessible using `https://127.0.0.1:8888/lab`.
-Please use the link that's printed in the console after startup for simplified login.
-
-Since part of this image is built on your machine, it is recommended to rebuild the image from time to time to keep freqtrade (and dependencies) up-to-date.
-
+このイメージの一部はマシン上に構築されるため、freqtrade (および依存関係) を最新の状態に保つために、イメージを時々再構築することをお勧めします。
 ``` bash
 docker compose -f docker/docker-compose-jupyter.yml build --no-cache
 ```
+## トラブルシューティング
 
-## Troubleshooting
+### Windows 上の Docker
 
-### Docker on Windows
-
-* Error: `"Timestamp for this request is outside of the recvWindow."`  
-  The market api requests require a synchronized clock but the time in the docker container shifts a bit over time into the past.
-  To fix this issue temporarily you need to run `wsl --shutdown` and restart docker again (a popup on windows 10 will ask you to do so).
-  A permanent solution is either to host the docker container on a linux host or restart the wsl from time to time with the scheduler.
-
+* エラー: `「このリクエストのタイムスタンプは、recvWindow の外にあります。」`  
+  マーケット API リクエストには同期されたクロックが必要ですが、Docker コンテナ内の時刻は時間の経過とともに少し過去にシフトします。
+  この問題を一時的に解決するには、「wsl --shutdown」を実行し、docker を再起動する必要があります (Windows 10 では、そうするように求めるポップアップが表示されます)。
+  永続的な解決策は、Linux ホスト上で Docker コンテナをホストするか、スケジューラを使用して時々 wsl を再起動することです。
   ``` bash
   taskkill /IM "Docker Desktop.exe" /F
   wsl --shutdown
   start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"
   ```
+※APIに接続できない（Windows）  
+  Windows を使用していて、Docker (デスクトップ) をインストールしたばかりの場合は、必ずシステムを再起動してください。 Docker を再起動しないと、ネットワーク接続に問題が発生する可能性があります。
+  当然、[設定](#accessing-the-ui) もそれに応じて設定する必要があります。
 
-* Cannot connect to the API (Windows)  
-  If you're on windows and just installed Docker (desktop), make sure to reboot your System. Docker can have problems with network connectivity without a restart.
-  You should obviously also make sure to have your [settings](#accessing-the-ui) accordingly.
-
-!!! Warning
-    Due to the above, we do not recommend the usage of docker on windows for production setups, but only for experimentation, datadownload and backtesting.
-    Best use a linux-VPS for running freqtrade reliably.
+!!!警告
+    上記の理由により、本番環境のセットアップでは Windows で Docker を使用することはお勧めしません。実験、データダウンロード、バックテストの場合にのみ使用してください。
+    freqtrade を確実に実行するには、linux-VPS を使用するのが最適です。

@@ -1,118 +1,118 @@
-# Parameter table
+# パラメータテーブル
 
-The table below will list all configuration parameters available for FreqAI. Some of the parameters are exemplified in `config_examples/config_freqai.example.json`.
+以下の表に、FreqAI で使用できるすべての構成パラメータを示します。パラメータの一部は「config_examples/config_freqai.example.json」に例示されています。
 
-Mandatory parameters are marked as **Required** and have to be set in one of the suggested ways.
+必須パラメータは **必須** としてマークされており、推奨される方法のいずれかで設定する必要があります。
 
-### General configuration parameters
+### 一般的な構成パラメータ
 
-|  Parameter | Description |
-|------------|-------------|
-|  |  **General configuration parameters within the `config.freqai` tree**
-| `freqai` | **Required.** <br> The parent dictionary containing all the parameters for controlling FreqAI. <br> **Datatype:** Dictionary.
-| `train_period_days` | **Required.** <br> Number of days to use for the training data (width of the sliding window). <br> **Datatype:** Positive integer.
-| `backtest_period_days` | **Required.** <br> Number of days to inference from the trained model before sliding the `train_period_days` window defined above, and retraining the model during backtesting (more info [here](freqai-running.md#backtesting)). This can be fractional days, but beware that the provided `timerange` will be divided by this number to yield the number of trainings necessary to complete the backtest. <br> **Datatype:** Float.
-| `identifier` | **Required.** <br> A unique ID for the current model. If models are saved to disk, the `identifier` allows for reloading specific pre-trained models/data. <br> **Datatype:** String.
-| `live_retrain_hours` | Frequency of retraining during dry/live runs. <br> **Datatype:** Float > 0. <br> Default: `0` (models retrain as often as possible).
-| `expiration_hours` | Avoid making predictions if a model is more than `expiration_hours` old. <br> **Datatype:** Positive integer. <br> Default: `0` (models never expire).
-| `purge_old_models` | Number of models to keep on disk (not relevant to backtesting). Default is 2, which means that dry/live runs will keep the latest 2 models on disk. Setting to 0 keeps all models. This parameter also accepts a boolean to maintain backwards compatibility. <br> **Datatype:** Integer. <br> Default: `2`.
-| `save_backtest_models` | Save models to disk when running backtesting. Backtesting operates most efficiently by saving the prediction data and reusing them directly for subsequent runs (when you wish to tune entry/exit parameters). Saving backtesting models to disk also allows to use the same model files for starting a dry/live instance with the same model `identifier`. <br> **Datatype:** Boolean. <br> Default: `False` (no models are saved).
-| `fit_live_predictions_candles` | Number of historical candles to use for computing target (label) statistics from prediction data, instead of from the training dataset (more information can be found [here](freqai-configuration.md#creating-a-dynamic-target-threshold)). <br> **Datatype:** Positive integer.
-| `continual_learning` | Use the final state of the most recently trained model as starting point for the new model, allowing for incremental learning (more information can be found [here](freqai-running.md#continual-learning)). Beware that this is currently a naive approach to incremental learning, and it has a high probability of overfitting/getting stuck in local minima while the market moves away from your model. We have the connections here primarily for experimental purposes and so that it is ready for more mature approaches to continual learning in chaotic systems like the crypto market. <br> **Datatype:** Boolean. <br> Default: `False`.
-| `write_metrics_to_disk` | Collect train timings, inference timings and cpu usage in json file. <br> **Datatype:** Boolean. <br> Default: `False`
-| `data_kitchen_thread_count` | <br> Designate the number of threads you want to use for data processing (outlier methods, normalization, etc.). This has no impact on the number of threads used for training. If user does not set it (default), FreqAI will use max number of threads - 2 (leaving 1 physical core available for Freqtrade bot and FreqUI) <br> **Datatype:** Positive integer.
-| `activate_tensorboard` | <br> Indicate whether or not to activate tensorboard for the tensorboard enabled modules (currently Reinforcment Learning, XGBoost, Catboost, and PyTorch). Tensorboard needs Torch installed, which means you will need the torch/RL docker image or you need to answer "yes" to the install question about whether or not you wish to install Torch. <br> **Datatype:** Boolean. <br> Default: `True`.
-| `wait_for_training_iteration_on_reload` | <br> When using /reload or ctrl-c, wait for the current training iteration to finish before completing graceful shutdown. If set to `False`, FreqAI will break the current training iteration, allowing you to shutdown gracefully more quickly, but you will lose your current training iteration. <br> **Datatype:** Boolean. <br> Default: `True`.
+|  パラメータ |説明 |
+|-----------|---------------|
+|  |  **「config.freqai」ツリー内の一般的な構成パラメータ**
+| `頻繁` | **必須。** <br> FreqAI を制御するためのすべてのパラメータを含む親ディクショナリ。 <br> **データ型:** 辞書。
+| `train_period_days` | **必須。** <br> トレーニング データに使用する日数 (スライディング ウィンドウの幅)。 <br> **データ型:** 正の整数。
+| `バックテスト期間_日` | **必須。** <br> 上記で定義した「train_period_days」ウィンドウをスライドさせ、バックテスト中にモデルを再トレーニングする前に、トレーニングされたモデルから推論する日数 (詳細は [こちら](freqai-running.md#backtesting))。これは小数日になる可能性がありますが、指定された「時間範囲」がこの数値で除算され、バックテストを完了するために必要なトレーニングの数が算出されることに注意してください。 <br> **データ型:** 浮動小数点数。
+| `識別子` | **必須。** <br> 現在のモデルの一意の ID。モデルがディスクに保存されている場合、「識別子」を使用して、特定の事前トレーニングされたモデル/データを再ロードできます。 <br> **データ型:** 文字列。
+| `live_retrain_hours` |ドライ/ライブ実行中の再トレーニングの頻度。 <br> **データ型:** Float > 0。<br> デフォルト: `0` (モデルはできるだけ頻繁に再トレーニングします)。
+| `有効期限` |モデルが「expiration_hours」以上古い場合は、予測を行わないでください。 <br> **データ型:** 正の整数。 <br> デフォルト: `0` (モデルに期限はありません)。
+| `purge_old_models` |ディスク上に保持するモデルの数 (バックテストには関係ありません)。デフォルトは 2 で、ドライ/ライブ実行では最新の 2 つのモデルがディスク上に保持されることを意味します。 0 に設定すると、すべてのモデルが保持されます。このパラメータは、下位互換性を維持するためにブール値も受け入れます。 <br> **データ型:** 整数。 <br> デフォルト: `2`。
+| `save_backtest_models` |バックテストの実行時にモデルをディスクに保存します。バックテストは、予測データを保存し、それを後続の実行で直接再利用することによって最も効率的に動作します (エントリ/エグジット パラメータを調整する場合)。バックテスト モデルをディスクに保存すると、同じモデル ファイルを使用して、同じモデルの「識別子」でドライ/ライブ インスタンスを開始することもできます。 <br> **データ型:** ブール値。 <br> デフォルト: `False` (モデルは保存されません)。
+| `fit_live_predictions_candles` |トレーニング データセットからではなく、予測データからターゲット (ラベル) 統計を計算するために使用する履歴キャンドルの数 (詳細については、[こちら](freqai-configuration.md#creating-a-dynamic-target-threshold) を参照してください)。 <br> **データ型:** 正の整数。
+| `継続学習` |最近トレーニングされたモデルの最終状態を新しいモデルの開始点として使用し、増分学習を可能にします (詳細については、[こちら](freqai-running.md#continual-learning) を参照してください)。これは現時点では増分学習に対する素朴なアプローチであり、市場がモデルから遠ざかるにつれて過剰適合したり極小値に陥ったりする可能性が高いことに注意してください。私たちは主に実験目的でここに接続しており、暗号市場のような混沌としたシステムで継続的に学習するためのより成熟したアプローチの準備ができています。 <br> **データ型:** ブール値。 <br> デフォルト:「False」。
+| `write_metrics_to_disk` |トレーニングのタイミング、推論のタイミング、CPU 使用率を json ファイルに収集します。 <br> **データ型:** ブール値。 <br> デフォルト: `False`
+| `データキッチンスレッド数` | <br> データ処理 (異常値メソッド、正規化など) に使用するスレッドの数を指定します。これは、トレーニングに使用されるスレッドの数には影響しません。ユーザーが設定しない場合 (デフォルト)、FreqAI は最大スレッド数 - 2 を使用します (Freqtrade ボットと FreqUI に利用可能な 1 つの物理コアを残します) <br> **データ型:** 正の整数。
+| `activate_tensorboard` | <br> テンソルボード対応モジュール (現在強化学習、XGBoost、Catboost、および PyTorch) に対してテンソルボードをアクティブにするかどうかを示します。 Tensorboard には、Torch がインストールされている必要があります。つまり、Torch/RL Docker イメージが必要になるか、Torch をインストールするかどうかに関するインストールの質問に「はい」と答える必要があります。 <br> **データ型:** ブール値。 <br> デフォルト: 「True」。
+| `リロード時のトレーニング反復の待機` | <br> /reload または Ctrl-C を使用する場合は、現在のトレーニングの反復が終了するまで待ってから、正常なシャットダウンを完了してください。 「False」に設定すると、FreqAI は現在のトレーニング反復を中断し、より迅速に正常にシャットダウンできるようになりますが、現在のトレーニング反復は失われます。 <br> **データ型:** ブール値。 <br> デフォルト: 「True」。
 
-### Feature parameters
+### 機能パラメータ
 
-|  Parameter | Description |
-|------------|-------------|
-|  |  **Feature parameters within the `freqai.feature_parameters` sub dictionary**
-| `feature_parameters` | A dictionary containing the parameters used to engineer the feature set. Details and examples are shown [here](freqai-feature-engineering.md). <br> **Datatype:** Dictionary.
-| `include_timeframes` | A list of timeframes that all indicators in `feature_engineering_expand_*()` will be created for. The list is added as features to the base indicators dataset. <br> **Datatype:** List of timeframes (strings).
-| `include_corr_pairlist` | A list of correlated coins that FreqAI will add as additional features to all `pair_whitelist` coins. All indicators set in `feature_engineering_expand_*()` during feature engineering (see details [here](freqai-feature-engineering.md)) will be created for each correlated coin. The correlated coins features are added to the base indicators dataset. <br> **Datatype:** List of assets (strings).
-| `label_period_candles` | Number of candles into the future that the labels are created for. This can be used in `set_freqai_targets()` (see `templates/FreqaiExampleStrategy.py` for detailed usage). This parameter is not necessarily required, you can create custom labels and choose whether to make use of this parameter or not. Please see `templates/FreqaiExampleStrategy.py` to see the example usage. <br> **Datatype:** Positive integer.
-| `include_shifted_candles` | Add features from previous candles to subsequent candles with the intent of adding historical information. If used, FreqAI will duplicate and shift all features from the `include_shifted_candles` previous candles so that the information is available for the subsequent candle. <br> **Datatype:** Positive integer.
-| `weight_factor` | Weight training data points according to their recency (see details [here](freqai-feature-engineering.md#weighting-features-for-temporal-importance)). <br> **Datatype:** Positive float (typically < 1).
-| `indicator_max_period_candles` | **No longer used (#7325)**. Replaced by `startup_candle_count` which is set in the [strategy](freqai-configuration.md#building-a-freqai-strategy). `startup_candle_count` is timeframe independent and defines the maximum *period* used in `feature_engineering_*()` for indicator creation. FreqAI uses this parameter together with the maximum timeframe in `include_time_frames` to calculate how many data points to download such that the first data point does not include a NaN. <br> **Datatype:** Positive integer.
-| `indicator_periods_candles` | Time periods to calculate indicators for. The indicators are added to the base indicator dataset. <br> **Datatype:** List of positive integers.
-| `principal_component_analysis` | Automatically reduce the dimensionality of the data set using Principal Component Analysis. See details about how it works [here](freqai-feature-engineering.md#data-dimensionality-reduction-with-principal-component-analysis) <br> **Datatype:** Boolean. <br> Default: `False`.
-| `plot_feature_importances` | Create a feature importance plot for each model for the top/bottom `plot_feature_importances` number of features. Plot is stored in `user_data/models/<identifier>/sub-train-<COIN>_<timestamp>.html`. <br> **Datatype:** Integer. <br> Default: `0`.
-| `DI_threshold` | Activates the use of the Dissimilarity Index for outlier detection when set to > 0. See details about how it works [here](freqai-feature-engineering.md#identifying-outliers-with-the-dissimilarity-index-di). <br> **Datatype:** Positive float (typically < 1).
-| `use_SVM_to_remove_outliers` | Train a support vector machine to detect and remove outliers from the training dataset, as well as from incoming data points. See details about how it works [here](freqai-feature-engineering.md#identifying-outliers-using-a-support-vector-machine-svm). <br> **Datatype:** Boolean.
-| `svm_params` | All parameters available in Sklearn's `SGDOneClassSVM()`. See details about some select parameters [here](freqai-feature-engineering.md#identifying-outliers-using-a-support-vector-machine-svm). <br> **Datatype:** Dictionary.
-| `use_DBSCAN_to_remove_outliers` | Cluster data using the DBSCAN algorithm to identify and remove outliers from training and prediction data. See details about how it works [here](freqai-feature-engineering.md#identifying-outliers-with-dbscan). <br> **Datatype:** Boolean. 
-| `noise_standard_deviation` | If set, FreqAI adds noise to the training features with the aim of preventing overfitting. FreqAI generates random deviates from a gaussian distribution with a standard deviation of `noise_standard_deviation` and adds them to all data points. `noise_standard_deviation` should be kept relative to the normalized space, i.e., between -1 and 1. In other words, since data in FreqAI is always normalized to be between -1 and 1, `noise_standard_deviation: 0.05` would result in 32% of the data being randomly increased/decreased by more than 2.5% (i.e., the percent of data falling within the first standard deviation). <br> **Datatype:** Integer. <br> Default: `0`.
-| `outlier_protection_percentage` | Enable to prevent outlier detection methods from discarding too much data. If more than `outlier_protection_percentage` % of points are detected as outliers by the SVM or DBSCAN, FreqAI will log a warning message and ignore outlier detection, i.e., the original dataset will be kept intact. If the outlier protection is triggered, no predictions will be made based on the training dataset. <br> **Datatype:** Float. <br> Default: `30`.
-| `reverse_train_test_order` | Split the feature dataset (see below) and use the latest data split for training and test on historical split of the data. This allows the model to be trained up to the most recent data point, while avoiding overfitting. However, you should be careful to understand the unorthodox nature of this parameter before employing it. <br> **Datatype:** Boolean. <br> Default: `False` (no reversal).
-| `shuffle_after_split` | Split the data into train and test sets, and then shuffle both sets individually. <br> **Datatype:** Boolean. <br> Default: `False`.
-| `buffer_train_data_candles` | Cut `buffer_train_data_candles` off the beginning and end of the training data *after* the indicators were populated. The main example use is when predicting maxima and minima, the argrelextrema function  cannot know the maxima/minima at the edges of the timerange. To improve model accuracy, it is best to compute argrelextrema on the full timerange and then use this function to cut off the edges (buffer) by the kernel. In another case, if the targets are set to a shifted price movement, this buffer is unnecessary because the shifted candles at the end of the timerange will be NaN and FreqAI will automatically cut those off of the training dataset.<br> **Datatype:** Integer. <br> Default: `0`.
+|  パラメータ |説明 |
+|-----------|---------------|
+|  |  **「freqai.feature_parameters」サブ辞書内の特徴パラメータ**
+| `機能パラメータ` |機能セットを設計するために使用されるパラメータを含む辞書。詳細と例は [こちら](freqai-feature-engineering.md) に示されています。 <br> **データ型:** 辞書。
+| `include_timeframes` | `feature_engineering_expand_*()` 内のすべてのインジケーターが作成される時間枠のリスト。リストは、ベース インジケーター データセットにフィーチャとして追加されます。 <br> **データ型:** タイムフレーム (文字列) のリスト。
+| `include_corr_pairlist` | FreqAI がすべての「pair_whitelist」コインに追加機能として追加する、相関コインのリスト。特徴量エンジニアリング中に `feature_engineering_expand_*()` で設定されたすべてのインジケーター (詳細は [こちら](freqai-feature-engineering.md) を参照) は、相関するコインごとに作成されます。相関コインの特徴が基本インジケーター データセットに追加されます。 <br> **データ型:** アセット (文字列) のリスト。
+| `ラベル期間_キャンドル` |ラベルが作成される将来のキャンドルの数。これは `set_freqai_targets()` で使用できます (詳細な使用法については `templates/FreqaiExampleStrategy.py` を参照してください)。このパラメータは必ずしも必須ではありません。カスタム ラベルを作成し、このパラメータを使用するかどうかを選択できます。使用例については、「templates/FreqaiExampleStrategy.py」を参照してください。 <br> **データ型:** 正の整数。
+| `include_shifted_candles` |履歴情報を追加する目的で、前のローソク足の特徴を後続のローソク足に追加します。使用すると、FreqAI は、前のローソク足の「include_shifted_candles」からすべての特徴を複製してシフトし、後続のローソク足で情報を利用できるようにします。 <br> **データ型:** 正の整数。
+| `体重係数` |トレーニング データ ポイントを最新性に応じて重み付けします (詳細は [こちら](freqai-feature-engineering.md#weighting-features-for-temporal-importance) を参照してください)。 <br> **データ型:** 正の浮動小数点数 (通常は < 1)。
+| `indicator_max_period_candles` | **使用されなくなりました (#7325)**。 [strategy](freqai-configuration.md#building-a-freqai-strategy) で設定されている `startup_candle_count` に置き換えられます。 `startup_candle_count` はタイムフレームに依存せず、インジケーター作成のために `feature_engineering_*()` で使用される最大 *期間* を定義します。 FreqAI は、このパラメーターを「include_time_frames」の最大タイムフレームとともに使用して、最初のデータ ポイントに NaN が含まれないようにダウンロードするデータ ポイントの数を計算します。 <br> **データ型:** 正の整数。
+| `indicator_periods_candles` |インジケーターを計算する期間。インジケーターはベース インジケーター データセットに追加されます。 <br> **データ型:** 正の整数のリスト。
+| `プリンシパルコンポーネント分析` |主成分分析を使用して、データセットの次元を自動的に削減します。仕組みの詳細については、[こちら](freqai-feature-engineering.md#data-Dimensionity-reduction-with-principal-component-analysis) をご覧ください。<br> **データ型:** ブール型。 <br> デフォルト:「False」。
+| `plot_feature_importances` |モデルごとに、上位/下位の `plot_feature_importances` 個の特徴量について特徴量重要度プロットを作成します。プロットは `user_data/models/<identifier>/sub-train-<COIN>_<timestamp>.html` に保存されます。 <br> **データ型:** 整数。 <br> デフォルト: `0`。
+| `DI_しきい値` | > 0 に設定すると、外れ値検出のための相違指数の使用が有効になります。その仕組みの詳細については、[こちら](freqai-feature-engineering.md#identifying-outliers-with-the-dissimilarity-index-di) をご覧ください。 <br> **データ型:** 正の浮動小数点数 (通常は < 1)。
+| `use_SVM_to_remove_outliers` |サポート ベクター マシンをトレーニングして、トレーニング データセットおよび受信データ ポイントから外れ値を検出して削除します。仕組みの詳細については、[こちら](freqai-feature-engineering.md#identifying-outliers-using-a-support-vector-machine-svm) をご覧ください。 <br> **データ型:** ブール値。
+| `svm_params` |すべてのパラメータは Sklearn の `SGDOneClassSVM()` で利用できます。一部の選択パラメーターの詳細については、[こちら](freqai-feature-engineering.md#identifying-outliers-using-a-support-vector-machine-svm) を参照してください。 <br> **データ型:** 辞書。
+| `use_DBSCAN_to_remove_outliers` | DBSCAN アルゴリズムを使用してデータをクラスター化し、トレーニング データと予測データから外れ値を特定して削除します。仕組みの詳細については、[こちら](freqai-feature-engineering.md#identifying-outliers-with-dbscan) をご覧ください。 <br> **データ型:** ブール値。 
+| `ノイズ標準偏差` |設定すると、FreqAI は過学習を防ぐ目的でトレーニング特徴にノイズを追加します。 FreqAI は、「noise_standard_deviation」の標準偏差を持つガウス分布からランダムな偏差を生成し、それらをすべてのデータ ポイントに追加します。 「noise_standard_deviation」は、正規化された空間、つまり、-1 から 1 の間の相対値に保つ必要があります。言い換えると、FreqAI のデータは常に -1 から 1 の間に正規化されるため、「noise_standard_deviation: 0.05」では、データの 32% が 2.5% を超えてランダムに増減することになります (つまり、最初の標準偏差内に収まるデータの割合)。 <br> **データ型:** 整数。 <br> デフォルト: `0`。
+| `outlier_protection_percentage` |外れ値検出メソッドが大量のデータを破棄するのを防ぐために有効にします。 SVM または DBSCAN によって `outlier_protection_percentage` % を超えるポイントが外れ値として検出された場合、FreqAI は警告メッセージをログに記録し、外れ値の検出を無視します。つまり、元のデータセットはそのまま維持されます。外れ値保護がトリガーされた場合、トレーニング データセットに基づいた予測は行われません。 <br> **データ型:** 浮動小数点数。 <br> デフォルト: `30`。
+| `reverse_train_test_order` |フィーチャ データセットを分割し (以下を参照)、最新のデータ分割をトレーニングに使用し、データの履歴分割でテストします。これにより、過剰適合を回避しながら、モデルを最新のデータ ポイントまでトレーニングすることができます。ただし、このパラメータを使用する前に、このパラメータの型破りな性質を注意して理解する必要があります。 <br> **データ型:** ブール値。 <br> デフォルト: `False` (反転なし)。
+| `分割後のシャッフル` |データをトレーニング セットとテスト セットに分割し、両方のセットを個別にシャッフルします。 <br> **データ型:** ブール値。 <br> デフォルト:「False」。
+| `buffer_train_data_candles` |インジケーターが設定された後、トレーニング データの先頭と末尾から `buffer_train_data_candles` を切り取ります。主な使用例は、最大値と最小値を予測する場合、argrelextrema 関数は時間範囲の端で最大値/最小値を知ることができません。モデルの精度を向上させるには、全時間範囲で argrelextrema を計算し、この関数を使用してカーネルによってエッジ (バッファー) をカットオフすることが最善です。別のケースでは、ターゲットがシフトされた価格変動に設定されている場合、時間範囲の終わりのシフトされたローソク足は NaN になり、FreqAI がそれらをトレーニング データセットから自動的にカットするため、このバッファーは不要です。<br> **データ型:** 整数。 <br> デフォルト: `0`。
 
-### Data split parameters
+### データ分割パラメータ
 
-|  Parameter | Description |
-|------------|-------------|
-|  |  **Data split parameters within the `freqai.data_split_parameters` sub dictionary**
-| `data_split_parameters` | Include any additional parameters available from scikit-learn `test_train_split()`, which are shown [here](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) (external website). <br> **Datatype:** Dictionary.
-| `test_size` | The fraction of data that should be used for testing instead of training. <br> **Datatype:** Positive float < 1.
-| `shuffle` | Shuffle the training data points during training. Typically, to not remove the chronological order of data in time-series forecasting, this is set to `False`. <br> **Datatype:** Boolean. <br> Default: `False`.
+|  パラメータ |説明 |
+|-----------|---------------|
+|  |  **「freqai.data_split_parameters」サブディクショナリ内のデータ分割パラメータ**
+| `データ分割パラメータ` | scikit-learn `test_train_split()` から利用可能な追加パラメータを含めます。これは、[こちら](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) (外部 Web サイト) に示されています。 <br> **データ型:** 辞書。
+| `テストサイズ` |トレーニングではなくテストに使用する必要があるデータの割合。 <br> **データ型:** 正の浮動小数点 < 1。
+| `シャッフル` |トレーニング中にトレーニング データ ポイントをシャッフルします。通常、時系列予測でデータの時系列順を削除しないようにするには、これを「False」に設定します。 <br> **データ型:** ブール値。 <br> デフォルト:「False」。
 
-### Model training parameters
+### モデルトレーニングパラメータ
 
-|  Parameter | Description |
-|------------|-------------|
-|  |  **Model training parameters within the `freqai.model_training_parameters` sub dictionary**
-| `model_training_parameters` | A flexible dictionary that includes all parameters available by the selected model library. For example, if you use `LightGBMRegressor`, this dictionary can contain any parameter available by the `LightGBMRegressor` [here](https://lightgbm.readthedocs.io/en/latest/pythonapi/lightgbm.LGBMRegressor.html) (external website). If you select a different model, this dictionary can contain any parameter from that model. A list of the currently available models can be found [here](freqai-configuration.md#using-different-prediction-models).  <br> **Datatype:** Dictionary.
-| `n_estimators` | The number of boosted trees to fit in the training of the model. <br> **Datatype:** Integer.
-| `learning_rate` | Boosting learning rate during training of the model. <br> **Datatype:** Float.
-| `n_jobs`, `thread_count`, `task_type` | Set the number of threads for parallel processing and the `task_type` (`gpu` or `cpu`). Different model libraries use different parameter names. <br> **Datatype:** Float.
+|  パラメータ |説明 |
+|-----------|---------------|
+|  |  **「freqai.model_training_parameters」サブディクショナリ内のモデル トレーニング パラメーター**
+| `モデルトレーニングパラメータ` |選択したモデル ライブラリで使用できるすべてのパラメータを含む柔軟な辞書。たとえば、`LightGBMRegressor` を使用する場合、このディクショナリには、`LightGBMRegressor` [こちら](https://lightgbm.readthedocs.io/en/latest/pythonapi/lightgbm.LGBMRegressor.html) (外部 Web サイト) で利用可能なパラメータを含めることができます。別のモデルを選択した場合、このディクショナリにはそのモデルのパラメータを含めることができます。現在利用可能なモデルのリストは、[こちら](freqai-configuration.md#using-Difference-prediction-models) でご覧いただけます。  <br> **データ型:** 辞書。
+| `n_estimators` |モデルのトレーニングに適合するブーストされたツリーの数。 <br> **データ型:** 整数。
+| `学習率` |モデルのトレーニング中の学習率を向上させます。 <br> **データ型:** 浮動小数点数。
+| `n_jobs`、`thread_count`、`task_type` |並列処理のスレッド数と `task_type` (`gpu` または `cpu`) を設定します。モデル ライブラリが異なれば、使用するパラメーター名も異なります。 <br> **データ型:** 浮動小数点数。
 
-### Reinforcement Learning parameters
+### 強化学習パラメータ
 
-|  Parameter | Description |
-|------------|-------------|
-|  |  **Reinforcement Learning Parameters within the `freqai.rl_config` sub dictionary**
-| `rl_config` | A dictionary containing the control parameters for a Reinforcement Learning model. <br> **Datatype:** Dictionary.
-| `train_cycles` | Training time steps will be set based on the `train_cycles * number of training data points. <br> **Datatype:** Integer.
-| `max_trade_duration_candles`| Guides the agent training to keep trades below desired length. Example usage shown in `prediction_models/ReinforcementLearner.py` within the customizable `calculate_reward()` function. <br> **Datatype:** int.
-| `model_type` | Model string from stable_baselines3 or SBcontrib. Available strings include: `'TRPO', 'ARS', 'RecurrentPPO', 'MaskablePPO', 'PPO', 'A2C', 'DQN'`. User should ensure that `model_training_parameters` match those available to the corresponding stable_baselines3 model by visiting their documentation. [PPO doc](https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html) (external website) <br> **Datatype:** string.
-| `policy_type` | One of the available policy types from stable_baselines3 <br> **Datatype:** string.
-| `max_training_drawdown_pct` | The maximum drawdown that the agent is allowed to experience during training. <br> **Datatype:** float. <br> Default: 0.8
-| `cpu_count` | Number of threads/cpus to dedicate to the Reinforcement Learning training process (depending on if `ReinforcementLearner_multiproc` is selected or not). Recommended to leave this untouched, by default, this value is set to the total number of physical cores minus 1. <br> **Datatype:** int.
-| `model_reward_parameters` | Parameters used inside the customizable `calculate_reward()` function in `ReinforcementLearner.py` <br> **Datatype:** int.
-| `add_state_info` | Tell FreqAI to include state information in the feature set for training and inferencing. The current state variables include trade duration, current profit, trade position. This is only available in dry/live runs, and is automatically switched to false for backtesting. <br> **Datatype:** bool. <br> Default: `False`.
-| `net_arch` | Network architecture which is well described in [`stable_baselines3` doc](https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html#examples). In summary: `[<shared layers>, dict(vf=[<non-shared value network layers>], pi=[<non-shared policy network layers>])]`. By default this is set to `[128, 128]`, which defines 2 shared hidden layers with 128 units each.
-| `randomize_starting_position` | Randomize the starting point of each episode to avoid overfitting. <br> **Datatype:** bool. <br> Default: `False`.
-| `drop_ohlc_from_features` | Do not include the normalized ohlc data in the feature set passed to the agent during training (ohlc will still be used for driving the environment in all cases) <br> **Datatype:** Boolean. <br> **Default:** `False`
-| `progress_bar` | Display a progress bar with the current progress, elapsed time and estimated remaining time. <br> **Datatype:** Boolean. <br> Default: `False`.
+|  パラメータ |説明 |
+|-----------|---------------|
+|  |  **「freqai.rl_config」サブ辞書内の強化学習パラメータ**
+| `rl_config` |強化学習モデルの制御パラメーターを含む辞書。 <br> **データ型:** 辞書。
+| `train_cycles` |トレーニング タイム ステップは、「train_cycles * トレーニング データ ポイントの数」に基づいて設定されます。 <br> **データ型:** 整数。
+| `max_trade_duration_candles`|取引を希望の長さ未満に抑えるためのエージェントのトレーニングをガイドします。使用例は、カスタマイズ可能な `calculate_reward()` 関数内の `prediction_models/ReinforcementLearner.py` に示されています。 <br> **データ型:** int.
+| `モデルタイプ` |モデル文字列は、stable_baselines3 または SBcontrib から取得します。使用可能な文字列には、「TRPO」、「ARS」、「RecurrentPPO」、「MaskablePPO」、「PPO」、「A2C」、「DQN」があります。ユーザーは、ドキュメントにアクセスして、「model_training_parameters」が、対応するstable_baselines3 モデルで利用可能なパラメータと一致していることを確認する必要があります。 [PPO ドキュメント](https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html) (外部 Web サイト) <br> **データ型:** 文字列。
+| `ポリシーの種類` | Stable_baselines3 から使用可能なポリシー タイプの 1 つ<br> **Datatype:** 文字列。
+| `max_training_drawdown_pct` |エージェントがトレーニング中に経験できる最大ドローダウン。 <br> **データ型:** 浮動小数点数。 <br> デフォルト: 0.8
+| `cpu_count` |強化学習トレーニング プロセス専用のスレッド/CPU の数 (「ReinforcementLearner_multiproc」が選択されているかどうかに応じて)。これは変更しないことをお勧めします。デフォルトでは、この値は物理コアの合計数から 1 を引いた値に設定されます。<br> **データ型:** int.
+| `モデル報酬パラメータ` | `ReinforcementLearner.py` のカスタマイズ可能な `calculate_reward()` 関数内で使用されるパラメーター <br> **データ型:** int.
+| `add_state_info` |トレーニングと推論のための機能セットに状態情報を含めるよう FreqAI に指示します。現在の状態変数には、取引期間、現在の利益、取引ポジションが含まれます。これはドライ/ライブ実行でのみ使用でき、バックテストでは自動的に false に切り替えられます。 <br> **データ型:** ブール値。 <br> デフォルト:「False」。
+| `ネットアーチ` |ネットワーク アーキテクチャについては、[`stable_baselines3` ドキュメント](https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html#examples) で詳しく説明されています。要約すると、 `[<共有レイヤ>, dict(vf=[<非共有値ネットワーク層>], pi=[<非共有ポリシー ネットワーク層>])]` となります。デフォルトでは、これは `[128, 128]` に設定されており、それぞれ 128 ユニットを持つ 2 つの共有隠れ層を定義します。
+| `ランダム開始位置` |過剰適合を避けるために、各エピソードの開始点をランダム化します。 <br> **データ型:** ブール値。 <br> デフォルト:「False」。
+| `drop_ohlc_from_features` |トレーニング中にエージェントに渡される機能セットに正規化された ohlc データを含めないでください (ohlc はどのような場合でも環境の駆動に使用されます) <br> **データ型:** ブール型。 <br> **デフォルト:** `False`
+| `進捗バー` |現在の進行状況、経過時間、推定残り時間を示す進行状況バーを表示します。 <br> **データ型:** ブール値。 <br> デフォルト:「False」。
 
-### PyTorch parameters
+### PyTorch パラメータ
 
-#### general
+#### 一般
 
-|  Parameter | Description |
-|------------|-------------|
-|  |  **Model training parameters within the `freqai.model_training_parameters` sub dictionary**
-| `learning_rate` | Learning rate to be passed to the optimizer. <br> **Datatype:** float. <br> Default: `3e-4`.
-| `model_kwargs` | Parameters to be passed to the model class. <br> **Datatype:** dict. <br> Default: `{}`.
-| `trainer_kwargs` | Parameters to be passed to the trainer class. <br> **Datatype:** dict. <br> Default: `{}`.
+|  パラメータ |説明 |
+|-----------|---------------|
+|  |  **「freqai.model_training_parameters」サブディクショナリ内のモデル トレーニング パラメーター**
+| `学習率` |オプティマイザに渡される学習率。 <br> **データ型:** 浮動小数点数。 <br> デフォルト: `3e-4`。
+| `モデル_kwargs` |モデルクラスに渡されるパラメータ。 <br> **データ型:** 辞書。 <br> デフォルト: `{}`。
+| `トレーナー_クワーグス` |トレーナー クラスに渡されるパラメーター。 <br> **データ型:** 辞書。 <br> デフォルト: `{}`。
 
-#### trainer_kwargs
+#### トレーナー_クワーグス
 
-| Parameter    | Description |
-|--------------|-------------|
-|              |  **Model training parameters within the `freqai.model_training_parameters.model_kwargs` sub dictionary**
-| `n_epochs`   | The `n_epochs` parameter is a crucial setting in the PyTorch training loop that determines the number of times the entire training dataset will be used to update the model's parameters. An epoch represents one full pass through the entire training dataset. Overrides `n_steps`. Either `n_epochs` or `n_steps` must be set. <br><br> **Datatype:** int. optional. <br> Default: `10`.
-| `n_steps`    | An alternative way of setting `n_epochs` -  the number of training iterations to run. Iteration here refer to the number of times we call `optimizer.step()`. Ignored if `n_epochs` is set. A simplified version of the function: <br><br> n_epochs = n_steps / (n_obs / batch_size) <br><br> The motivation here is that `n_steps` is easier to optimize and keep stable across different n_obs - the number of data points.  <br> <br> **Datatype:** int. optional. <br> Default: `None`.
-| `batch_size` | The size of the batches to use during training. <br><br> **Datatype:** int. <br> Default: `64`.
+|パラメータ |説明 |
+|--------------|---------------|
+|              |  **「freqai.model_training_parameters.model_kwargs」サブディクショナリ内のモデル トレーニング パラメーター**
+| `n_epochs` | 「n_epochs」パラメーターは、モデルのパラメーターを更新するためにトレーニング データセット全体が使用される回数を決定する、PyTorch トレーニング ループの重要な設定です。エポックは、トレーニング データセット全体の 1 回の完全なパスを表します。 `n_steps` をオーバーライドします。 `n_epochs` または `n_steps` のいずれかを設定する必要があります。 <br><br> **データ型:** int.オプション。 <br> デフォルト: `10`。
+| `n_steps` | `n_epochs` (実行するトレーニング反復数) を設定する別の方法。ここでの反復とは、「optimizer.step()」を呼び出す回数を指します。 `n_epochs` が設定されている場合は無視されます。関数の簡略化されたバージョン: <br><br> n_epochs = n_steps / (n_obs / batch_size) <br><br> ここでの動機は、`n_steps` の方が最適化が容易であり、さまざまな n_obs (データ ポイントの数) 間で安定性を保つことができるということです。  <br> <br> **データ型:** int.オプション。 <br> デフォルト:「なし」。
+| `バッチサイズ` |トレーニング中に使用するバッチのサイズ。 <br><br> **データ型:** int. <br> デフォルト: `64`。
 
 
-### Additional parameters
+### 追加パラメータ
 
-|  Parameter | Description |
-|------------|-------------|
-|  |  **Extraneous parameters**
-| `freqai.keras` | If the selected model makes use of Keras (typical for TensorFlow-based prediction models), this flag needs to be activated so that the model save/loading follows Keras standards. <br> **Datatype:** Boolean. <br> Default: `False`.
-| `freqai.conv_width` | The width of a neural network input tensor. This replaces the need for shifting candles (`include_shifted_candles`) by feeding in historical data points as the second dimension of the tensor. Technically, this parameter can also be used for regressors, but it only adds computational overhead and does not change the model training/prediction. <br> **Datatype:** Integer. <br> Default: `2`.
-| `freqai.reduce_df_footprint` | Recast all numeric columns to float32/int32, with the objective of reducing ram/disk usage and decreasing train/inference timing. This parameter is set in the main level of the Freqtrade configuration file (not inside FreqAI). <br> **Datatype:** Boolean. <br> Default: `False`.
+|  パラメータ |説明 |
+|-----------|---------------|
+|  |  **無関係なパラメータ**
+| `freqai.keras` |選択したモデルが Keras (TensorFlow ベースの予測モデルに一般的) を利用する場合、モデルの保存/読み込みが Keras 標準に従うように、このフラグをアクティブにする必要があります。 <br> **データ型:** ブール値。 <br> デフォルト:「False」。
+| `freqai.conv_width` |ニューラル ネットワーク入力テンソルの幅。これは、履歴データ ポイントをテンソルの 2 次元としてフィードすることにより、ローソク足をシフトする (`include_shifted_candles`) 必要性を置き換えます。技術的には、このパラメーターはリグレッサーにも使用できますが、計算オーバーヘッドが追加されるだけで、モデルのトレーニング/予測は変更されません。 <br> **データ型:** 整数。 <br> デフォルト: `2`。
+| `freqai.reduce_df_footprint` | RAM/ディスクの使用量を削減し、トレーニング/推論のタイミングを減らすことを目的として、すべての数値列を float32/int32 に再キャストします。このパラメータは、Freqtrade 構成ファイルのメイン レベルで設定されます (FreqAI 内ではありません)。 <br> **データ型:** ブール値。 <br> デフォルト:「False」。
