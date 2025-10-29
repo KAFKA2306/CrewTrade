@@ -5,9 +5,9 @@
 
 # AI Trading Crew 🤖
 
-## Tired of Spending 2 Hours Daily on Stock Market Research? Use This Agentic AI System Instead
+## 毎日2時間の株式市場リサーチに疲れていませんか？代わりにこのエージェントAIシステムを使いましょう
 
-From VIX analysis to StockTwits sentiment, here's how six specialized AI agents using free LLMs provide surprisingly accurate trading signals.
+VIX分析からStockTwitsセンチメントまで、無料LLMを使用する6つの専門AIエージェントが驚くほど正確なトレードシグナルを提供します。
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
@@ -15,174 +15,174 @@ From VIX analysis to StockTwits sentiment, here's how six specialized AI agents 
 
 ---
 
-## 🎯 What This Does
+## 🎯 これは何をするのか
 
-This AI trading crew automates the entire daily stock research process using a team of specialized AI agents. Instead of manually browsing financial news, analyzing technical indicators, and monitoring social sentiment for hours each morning, you get **crystal-clear trading recommendations** in minutes.
+このAIトレーディングクルーは、専門AIエージェントのチームを使用して、毎日の株式リサーチプロセス全体を自動化します。毎朝数時間かけて金融ニュースを手動で閲覧したり、テクニカル指標を分析したり、ソーシャルセンチメントを監視したりする代わりに、数分で**明確なトレード推奨**を取得できます。
 
-**The system provides:**
-- 🔍 **Comprehensive Market Analysis**: VIX volatility, global indices, currency movements
-- 📰 **Breaking News Processing**: Dozens of articles from major financial sources  
-- 📱 **Social Sentiment Analysis**: Thousands of StockTwits posts and retail trader sentiment
-- 📊 **Technical Indicator Analysis**: 20+ indicators covering trend, momentum, volatility, and volume
-- 🔮 **AI-Powered Forecasting**: Machine learning predictions using TimeGPT
-- 💰 **Fundamental Analysis**: Financial ratios, analyst ratings, intrinsic value calculations
-- ⚡ **Final Trading Signal**: Clear Bullish/Neutral/Bearish recommendation with confidence levels
+**システムが提供するもの:**
+- 🔍 **包括的な市場分析**: VIXボラティリティ、グローバル指数、通貨の動き
+- 📰 **速報ニュース処理**: 主要金融ソースからの数十の記事
+- 📱 **ソーシャルセンチメント分析**: 数千のStockTwits投稿と個人投資家のセンチメント
+- 📊 **テクニカル指標分析**: トレンド、モメンタム、ボラティリティ、ボリュームをカバーする20以上の指標
+- 🔮 **AI駆動型予測**: TimeGPTを使用した機械学習予測
+- 💰 **ファンダメンタル分析**: 財務比率、アナリスト評価、本質的価値計算
+- ⚡ **最終トレードシグナル**: 信頼度レベルを持つ明確な強気/中立/弱気推奨
 
-### 🚀 Want to See This System in Action?
+### 🚀 このシステムの動作を見たいですか？
 
-For a deep dive into how this AI agent system works in practice and to see a real-world example of the analysis in action, check out my detailed [hands-on demonstration and implementation guide](https://ostiguyphilippe.medium.com/d53bbc54075f). This article walks through the complete process and shows you exactly how the AI agents collaborate to generate trading insights.
+このAIエージェントシステムが実際にどのように機能するかの詳細と、実際の分析例を確認するには、私の詳細な[実践デモンストレーションと実装ガイド](https://ostiguyphilippe.medium.com/d53bbc54075f)をご覧ください。この記事では、完全なプロセスを説明し、AIエージェントがどのように協力してトレードインサイトを生成するかを正確に示しています。
 
 
 ---
 
 
-## 🏗️ Architecture: How AI Agents Collaborate
+## 🏗️ アーキテクチャ: AIエージェントの協力方法
 
-The system follows a sophisticated three-phase approach:
+システムは洗練された3段階のアプローチに従います:
 
-### Phase 1: 🌍 Market Conditions Analysis
-- Analyzes VIX volatility and global market environment
-- Processes S&P 500 (SPY) as market overview indicator
-- Monitors international indices, currencies, and overnight developments
+### フェーズ1: 🌍 市場状況分析
+- VIXボラティリティとグローバル市場環境を分析
+- 市場概要指標としてS&P 500 (SPY)を処理
+- 国際指数、通貨、オーバーナイトの動向を監視
 
-### Phase 2: 🔍 Individual Stock Analysis (6 Specialized Agents)
-1. **📰 News Summarizer Agent**: Processes breaking news from TipRanks, FinViz, Seeking Alpha, MarketWatch
-2. **📱 Sentiment Summarizer Agent**: Analyzes 500+ StockTwits posts for retail sentiment
-3. **📈 Technical Indicator Agent**: Calculates 20+ indicators (RSI, MACD, Bollinger Bands, etc.)
-4. **🔮 TimeGPT Analyst Agent**: Machine learning forecasts using Nixtla's state-of-the-art model
-5. **🔍 Fundamental Analysis Agent**: Financial health, valuation metrics, analyst opinions
-6. **🎯 Day Trader Advisor Agent**: Synthesizes all data into actionable trading signals
+### フェーズ2: 🔍 個別株式分析（6つの専門エージェント）
+1. **📰 ニュース要約エージェント**: TipRanks、FinViz、Seeking Alpha、MarketWatchからの速報ニュースを処理
+2. **📱 センチメント要約エージェント**: 500以上のStockTwits投稿を分析して個人投資家のセンチメントを把握
+3. **📈 テクニカル指標エージェント**: 20以上の指標（RSI、MACD、ボリンジャーバンドなど）を計算
+4. **🔮 TimeGPTアナリストエージェント**: Nixtlaの最先端モデルを使用した機械学習予測
+5. **🔍 ファンダメンタル分析エージェント**: 財務健全性、バリュエーション指標、アナリストの意見
+6. **🎯 デイトレーダーアドバイザーエージェント**: すべてのデータを実行可能なトレードシグナルに統合
 
 ---
 
-## 🚀 Installation & Setup
+## 🚀 インストールとセットアップ
 
-### Prerequisites
+### 前提条件
 - Python 3.10+ (< 3.13)
-- [UV](https://docs.astral.sh/uv/) or [Poetry](https://python-poetry.org/) (recommended) or pip
+- [UV](https://docs.astral.sh/uv/) または [Poetry](https://python-poetry.org/) (推奨) または pip
 
-### 1. Install CrewAI Framework
+### 1. CrewAIフレームワークのインストール
 
-**Visit the official [CrewAI GitHub](https://github.com/crewAIInc/crewAI) for the latest installation instructions and requirements.**
+**最新のインストール手順と要件については、公式[CrewAI GitHub](https://github.com/crewAIInc/crewAI)をご覧ください。**
 
 ```bash
-# Using uv (recommended)
+# uvを使用（推奨）
 uv add crewai[tools]
 
-# Or using poetry
+# または poetryを使用
 poetry add "crewai[tools]"
 
-# Or using pip
+# または pipを使用
 pip install "crewai[tools]"
 ```
 
-### 2. Clone and Install the Project
+### 2. プロジェクトのクローンとインストール
 ```bash
-# Clone the repository
+# リポジトリをクローン
 git clone https://github.com/philippe-ostiguy/AITradingCrew.git
 cd AITradingCrew
 
-# Install with uv (recommended)
+# uvでインストール（推奨）
 uv sync
 
-# Or install with poetry
+# または poetryでインストール
 poetry install
 
-# Or install with pip
+# または pipでインストール
 pip install -e .
 ```
 
-### 3. 🔑 Required API Keys
+### 3. 🔑 必要なAPIキー
 
-Create a `.env` file in the project root with the following API keys:
+プロジェクトルートに`.env`ファイルを作成し、以下のAPIキーを設定します:
 
 ```bash
-# LLM Provider (OpenRouter recommended)
+# LLMプロバイダー（OpenRouter推奨）
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 OPENROUTER_DEEPSEEK_R1=deepseek/deepseek-r1:free
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 
-# Data Providers
+# データプロバイダー
 TWELVE_API_KEY=your_twelvedata_api_key_here
 TIMEGPT_API_KEY=your_nixtla_api_key_here
 RAPID_API_KEY=your_rapidapi_key_here
 ```
 
-### 🔑 How to Get API Keys (All Have Free Tiers):
+### 🔑 APIキーの取得方法（すべて無料プランあり）:
 
-1. **OpenRouter** (Free LLMs): [openrouter.ai](https://openrouter.ai) - Get free access to DeepSeek R1
-2. **TwelveData** (Financial Data): [twelvedata.com](https://twelvedata.com) - Free tier available
-3. **Nixtla TimeGPT** (Forecasting): [nixtla.io](https://nixtla.io) - AI forecasting API
-4. **RapidAPI** (Social Data): [rapidapi.com](https://rapidapi.com) - For StockTwits sentiment data
+1. **OpenRouter** (無料LLM): [openrouter.ai](https://openrouter.ai) - DeepSeek R1への無料アクセスを取得
+2. **TwelveData** (金融データ): [twelvedata.com](https://twelvedata.com) - 無料プランあり
+3. **Nixtla TimeGPT** (予測): [nixtla.io](https://nixtla.io) - AI予測API
+4. **RapidAPI** (ソーシャルデータ): [rapidapi.com](https://rapidapi.com) - StockTwitsセンチメントデータ用
 
-### 4. 🎯 Run the System
+### 4. 🎯 システムの実行
 
 ```bash
-# Simply run the trading crew
+# トレーディングクルーを実行
 crewai run
 
-# Or use the direct command
+# または直接コマンドを使用
 python -m ai_trading_crew.main
 ```
 
-**That's it!** 🎉 The system will analyze your configured stocks and provide trading recommendations.
+**これだけです！** 🎉 システムは設定された株式を分析し、トレード推奨を提供します。
 
 ---
 
-## 📊 Default Configuration
+## 📊 デフォルト設定
 
-- **Analyzed Stocks**: AAPL, NVDA, MSFT, AMZN, GLD, GOOGL, TSLA
-- **Market Overview**: SPY (S&P 500 ETF)
-- **News Sources**: TipRanks, FinViz, Seeking Alpha, MarketWatch
-- **Social Data**: 500 StockTwits posts per symbol
-- **Technical Indicators**: 20+ indicators with 30-day historical context
-- **Forecast Models**: TimeGPT 1-day ahead predictions
+- **分析対象株式**: AAPL, NVDA, MSFT, AMZN, GLD, GOOGL, TSLA
+- **市場概要**: SPY (S&P 500 ETF)
+- **ニュースソース**: TipRanks, FinViz, Seeking Alpha, MarketWatch
+- **ソーシャルデータ**: 銘柄ごとに500のStockTwits投稿
+- **テクニカル指標**: 30日間の履歴コンテキストを持つ20以上の指標
+- **予測モデル**: TimeGPT 1日先予測
 
-## 📝 Sample Output
+## 📝 サンプル出力
 
 ```
-**RECOMMENDATION**: Bullish  
-**CONFIDENCE LEVEL**: High  
+**推奨**: 強気
+**信頼度レベル**: 高
 
-**KEY FACTORS**:  
-- Dominant AI Leadership & Growth Catalysts: Q1 FY2026 Data Center revenue surged 73% YoY
-- Technical Breakout Momentum: Price closed near 52-week highs with bullish MACD signals
-- Overwhelming Social Sentiment: 213 bullish signals cite AI dominance and institutional FOMO
-- ETF & Institutional Support: Top holding in semiconductor ETFs with record-high volume
+**主要要因**:
+- 圧倒的なAIリーダーシップと成長要因: Q1 FY2026データセンター収益が前年同期比73%急増
+- テクニカルブレイクアウトモメンタム: 価格が52週高値付近で終了、強気のMACDシグナル
+- 圧倒的なソーシャルセンチメント: 213の強気シグナルがAI優位性と機関投資家のFOMOを引用
+- ETFと機関投資家のサポート: 半導体ETFのトップ保有銘柄で過去最高のボリューム
 
-**RETURN/RISK ASSESSMENT**: Upside to $150–$153 (5.3–6.6% gain) outweighs downside risk...
+**リターン/リスク評価**: $150–$153への上昇余地（5.3–6.6%の利益）が下落リスクを上回る...
 
-**TRADING RATIONALE**: Initiate long positions at market open, targeting breakout above $145.16...
+**トレード根拠**: 市場開始時にロングポジションを開始し、$145.16を超えるブレイクアウトを目標に...
 ```
 
 ---
 
-## 🛠️ Customization
+## 🛠️ カスタマイズ
 
-You can customize the analysis by modifying the configuration in `ai_trading_crew/config.py`:
+`ai_trading_crew/config.py`の設定を変更することで分析をカスタマイズできます:
 
-- **Change Stock Symbols**: Update the `SYMBOLS` list
-- **Adjust Data Limits**: Modify `NEWS_FETCH_LIMIT` and `SOCIAL_FETCH_LIMIT`  
-- **Technical Indicators**: Customize periods and parameters
-- **LLM Models**: Switch between different AI models
-
----
-
-## ⚠️ Disclaimer
-
-**This software is for informational purposes only and does not constitute financial advice.** Always conduct your own research or consult with a financial advisor before making any investment decisions. Past performance does not guarantee future results.
+- **株式シンボルの変更**: `SYMBOLS`リストを更新
+- **データ制限の調整**: `NEWS_FETCH_LIMIT`と`SOCIAL_FETCH_LIMIT`を変更
+- **テクニカル指標**: 期間とパラメーターをカスタマイズ
+- **LLMモデル**: 異なるAIモデル間で切り替え
 
 ---
 
-## 📄 License
+## ⚠️ 免責事項
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+**このソフトウェアは情報提供のみを目的としており、金融アドバイスを構成するものではありません。** 投資決定を行う前に、常に独自の調査を行うか、ファイナンシャルアドバイザーに相談してください。過去のパフォーマンスは将来の結果を保証するものではありません。
 
 ---
 
-## 💡 Liked this project? Show your support!
+## 📄 ライセンス
 
-⭐ **Give the project a star**  
-🤝 **Send me a [LinkedIn](https://www.linkedin.com/in/philippe-ostiguy/) connection request to stay in touch**
+このプロジェクトはApache License 2.0の下でライセンスされています - 詳細は[LICENSE](LICENSE)ファイルをご覧ください。
 
-Happy automation! 🚀📈 
+---
+
+## 💡 このプロジェクトが気に入りましたか？サポートを表明してください！
+
+⭐ **プロジェクトにスターを付ける**
+🤝 **連絡を取り合うために[LinkedIn](https://www.linkedin.com/in/philippe-ostiguy/)で接続リクエストを送信してください**
+
+ハッピーオートメーション！ 🚀📈
