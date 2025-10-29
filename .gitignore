@@ -10,6 +10,12 @@ __pycache__/
 *.sqlite3
 *.parquet
 
+# Test files
+test_*.py
+*_test.py
+tests/
+test/
+
 # Submodules
 AITradingCrew/.git/
 freqtrade/.git/
