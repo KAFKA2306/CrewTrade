@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict
 import pandas as pd
 from ai_trading_crew.use_cases.precious_metals_spread.config import PreciousMetalsSpreadConfig
+from ai_trading_crew.use_cases.precious_metals_spread.insights import build_insight_markdown
 
 
 class PreciousMetalsSpreadReporter:
@@ -35,6 +36,10 @@ class PreciousMetalsSpreadReporter:
         markdown = self._format_report(edges_frame)
         report_path.write_text(markdown)
         stored_paths["report"] = report_path
+        insight_path = self.report_dir / "edge_insights.md"
+        insight_markdown = build_insight_markdown(analysis_payload)
+        insight_path.write_text(insight_markdown)
+        stored_paths["insights"] = insight_path
         return stored_paths
 
     def _format_report(self, edges_frame: pd.DataFrame) -> str:
