@@ -48,7 +48,7 @@ output_files/
 uv.lock
 
 # Reports and generated files
-*.md
+
 !README.md
 *.png
 *.html
