@@ -14,14 +14,12 @@
 ### 公開取引の有効化
 
 `config.json`ファイルで、`exchange`セクションの下にある`use_public_trades`オプションをtrueに設定します。
-
 ```json
 "exchange": {
    ...
    "use_public_trades": true,
 }
 ```
-
 ### オーダーフロー処理の設定
 
 config.jsonのorderflowセクション内で、オーダーフロー処理の望ましい設定を定義します。ここで、次のような要因を調整できます：
@@ -32,7 +30,6 @@ config.jsonのorderflowセクション内で、オーダーフロー処理の望
 - `stacked_imbalance_range`: 考慮される最小の連続した不均衡価格レベルを定義します。
 - `imbalance_volume`: このしきい値未満のボリュームの不均衡をフィルタリングします。
 - `imbalance_ratio`: この値よりも低い比率（askとbidボリュームの差）の不均衡をフィルタリングします。
-
 ```json
 "orderflow": {
     "cache_size": 1000,
@@ -43,22 +40,18 @@ config.jsonのorderflowセクション内で、オーダーフロー処理の望
     "imbalance_ratio": 3 //  比率が低いものをフィルタリング
   },
 ```
-
 ## バックテスト用の取引データのダウンロード
 
 バックテスト用の過去の取引データをダウンロードするには、freqtrade download-dataコマンドで--dl-tradesフラグを使用します。
-
 ```bash
 freqtrade download-data -p BTC/USDT:USDT --timerange 20230101- --trading-mode futures --timeframes 5m --dl-trades
 ```
-
 !!! Warning "データの利用可能性"
     すべての取引所が公開取引データを提供しているわけではありません。サポートされている取引所の場合、`--dl-trades`フラグでデータのダウンロードを開始すると、公開取引データが利用できない場合はfreqtradeが警告します。
 
 ## オーダーフローデータへのアクセス
 
 有効化すると、データフレームでいくつかの新しい列が利用可能になります：
-
 ``` python
 
 dataframe["trades"] # 各個別取引に関する情報を含みます。
@@ -73,9 +66,7 @@ dataframe["total_trades"] # 総取引数
 dataframe["stacked_imbalances_bid"] # スタックされたbid不均衡範囲の開始の価格レベルのリスト
 dataframe["stacked_imbalances_ask"] # スタックされたask不均衡範囲の開始の価格レベルのリスト
 ```
-
 ストラテジーコードでこれらの列にアクセスして、さらに分析できます。以下は例です：
-
 ``` python
 def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     # 累積deltaの計算
@@ -89,13 +80,11 @@ def cumulative_delta(delta: Series):
     return cumdelta
 
 ```
-
 ### フットプリントチャート（`dataframe["orderflow"]`）
 
 この列は、異なる価格レベルでの買い注文と売り注文の詳細な内訳を提供し、オーダーフローのダイナミクスに関する貴重な洞察を提供します。設定の`scale`パラメータは、この表現の価格ビンサイズを決定します。
 
 `orderflow`列には、次の構造のdictが含まれています：
-
 ``` output
 {
     "price": {
@@ -109,7 +98,6 @@ def cumulative_delta(delta: Series):
     }
 }
 ```
-
 #### オーダーフロー列の説明
 
 - key: 価格ビン - `scale`間隔でビン化
@@ -142,7 +130,6 @@ def cumulative_delta(delta: Series):
 この列は、オーダーフローの不均衡に関する情報を含むdictを提供します。不均衡は、特定の価格レベルでaskとbid量の間に大きな差がある場合に発生します。
 
 各行は次のようになります - 価格をインデックスとし、対応するbidとask不均衡値を列として持ちます
-
 ``` output
 {
     "price": {

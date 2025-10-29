@@ -1,164 +1,144 @@
-# Backtesting
+# バックテスト
 
-This page explains how to validate your strategy performance by using Backtesting.
+このページでは、バックテストを使用して戦略のパフォーマンスを検証する方法について説明します。
 
-Backtesting requires historic data to be available.
-To learn how to get data for the pairs and exchange you're interested in, head over to the [Data Downloading](data-download.md) section of the documentation.
+バックテストには履歴データが必要です。
+関心のあるペアと交換のデータを取得する方法については、ドキュメントの [データのダウンロード](data-download.md) セクションにアクセスしてください。
 
-Backtesting is also available in [webserver mode](freq-ui.md#backtesting), which allows you to run backtests via the web interface.
+バックテストは [Web サーバー モード](freq-ui.md#backtesting) でも利用でき、Web インターフェイス経由でバックテストを実行できます。
 
-## Backtesting command reference
+## バックテスト コマンド リファレンス
 
 --8<-- "commands/backtesting.md"
 
-## Test your strategy with Backtesting
+## バックテストで戦略をテストする
 
-Now you have good Entry and exit strategies and some historic data, you want to test it against
-real data. This is what we call [backtesting](https://en.wikipedia.org/wiki/Backtesting).
+これで、優れた参入戦略と撤退戦略といくつかの履歴データが得られたので、それをテストしてみます。
+実際のデータ。これは私たちが [バックテスト](https://en.wikipedia.org/wiki/Backtesting) と呼ぶものです。
 
-Backtesting will use the crypto-currencies (pairs) from your config file and load historical candle (OHLCV) data from `user_data/data/<exchange>` by default.
-If no data is available for the exchange / pair / timeframe combination, backtesting will ask you to download them first using `freqtrade download-data`.
-For details on downloading, please refer to the [Data Downloading](data-download.md) section in the documentation.
+バックテストでは、設定ファイルの暗号通貨 (ペア) が使用され、デフォルトで `user_data/data/<exchange>` から履歴ローソク足 (OHLCV) データがロードされます。
+取引所/ペア/タイムフレームの組み合わせに利用可能なデータがない場合、バックテストでは最初に「freqtrade download-data」を使用してデータをダウンロードするように求められます。
+ダウンロードの詳細については、ドキュメントの「データダウンロード」(data-download.md)を参照してください。
 
-The result of backtesting will confirm if your bot has better odds of making a profit than a loss.
+バックテストの結果により、ボットが損失よりも利益を得る可能性が高いかどうかが確認されます。
 
-All profit calculations include fees, and freqtrade will use the exchange's default fees for the calculation.
+すべての利益の計算には手数料が含まれており、freqtrade は計算に取引所のデフォルトの手数料を使用します。
 
-!!! Warning "Using dynamic pairlists for backtesting"
-    Using dynamic pairlists is possible (not all of the handlers are allowed to be used in backtest mode), however it relies on the current market conditions - which will not reflect the historic status of the pairlist.
-    Also, when using pairlists other than StaticPairlist, reproducibility of backtesting-results cannot be guaranteed.
-    Please read the [pairlists documentation](plugins.md#pairlists) for more information.
+!!!警告「バックテストに動的ペアリストを使用する」
+    動的ペアリストの使用は可能ですが (すべてのハンドラーがバックテスト モードで使用できるわけではありません)、現在の市場状況に依存します。これはペアリストの履歴ステータスを反映しません。
+    また、StaticPairlist以外のペアリストを使用した場合、バックテスト結果の再現性は保証できません。
+    詳細については、[ペアリストのドキュメント](plugins.md#pairlists) を参照してください。
 
-    To achieve reproducible results, best generate a pairlist via the [`test-pairlist`](utils.md#test-pairlist) command and use that as static pairlist.
+    再現可能な結果を​​得るには、[`test-pairlist`](utils.md#test-pairlist) コマンドを使用してペアリストを生成し、それを静的ペアリストとして使用するのが最善です。
 
-!!! Note
-    By default, Freqtrade will export backtesting results to `user_data/backtest_results`.
-    The exported trades can be used for [further analysis](#further-backtest-result-analysis) or can be used by the [plotting sub-command](plotting.md#plot-price-and-indicators) (`freqtrade plot-dataframe`) in the scripts directory.
+!!!注記
+    デフォルトでは、Freqtrade はバックテスト結果を「user_data/backtest_results」にエクスポートします。
+    エクスポートされた取引は、[さらなる分析](#further-backtest-result-analysis) に使用することも、スクリプト ディレクトリ内の [プロット サブコマンド](plotting.md#plot-price-and-indicators) (`freqtrade put-dataframe`) によって使用することもできます。
 
 
-### Starting balance
+### 開始残高
 
-Backtesting will require a starting balance, which can be provided as `--dry-run-wallet <balance>` or `--starting-balance <balance>` command line argument, or via `dry_run_wallet` configuration setting.
-This amount must be higher than `stake_amount`, otherwise the bot will not be able to simulate any trade.
+バックテストには開始残高が必要です。これは、`--dry-run-wallet <balance>` または `--starting-balance <balance>` コマンドライン引数として、または `dry_run_wallet` 構成設定を介して指定できます。
+この金額は「stake_amount」より大きくなければなりません。そうでない場合、ボットは取引をシミュレートできません。
 
-### Dynamic stake amount
+### 動的ステーク額
+バックテストは、`stake_amount` を `"unlimited"` として設定することで [動的ステーク量](configuration.md#dynamic-stake-amount) をサポートします。これにより、開始残高が `max_open_trades` 部分に分割されます。
+初期の取引で利益が得られると、その後の賭け金が増加し、バックテスト期間中に利益が複利化します。
 
-Backtesting supports [dynamic stake amount](configuration.md#dynamic-stake-amount) by configuring `stake_amount` as `"unlimited"`, which will split the starting balance into `max_open_trades` pieces.
-Profits from early trades will result in subsequent higher stake amounts, resulting in compounding of profits over the backtesting period.
+### バックテスト コマンドの例
 
-### Example backtesting commands
-
-With 5 min candle (OHLCV) data (per default)
-
+5 分足ローソク足 (OHLCV) データ付き (デフォルト)
 ```bash
 freqtrade backtesting --strategy AwesomeStrategy
 ```
-
-Where `--strategy AwesomeStrategy` / `-s AwesomeStrategy` refers to the class name of the strategy, which is within a python file in the `user_data/strategies` directory.
+ここで、`--strategy AwesomeStrategy` / `-s AwesomeStrategy` は、`user_data/strategies` ディレクトリの Python ファイル内にあるストラテジーのクラス名を指します。
 
 ---
 
-With 1 min candle (OHLCV) data
-
+1 分ローソク足 (OHLCV) データ付き
 ```bash
 freqtrade backtesting --strategy AwesomeStrategy --timeframe 1m
 ```
-
 ---
 
-Providing a custom starting balance of 1000 (in stake currency)
-
+カスタム開始残高 1000 (ステーク通貨) を提供します。
 ```bash
 freqtrade backtesting --strategy AwesomeStrategy --dry-run-wallet 1000
 ```
-
 ---
 
-Using a different on-disk historical candle (OHLCV) data source
+別のディスク上のヒストリカル キャンドル (OHLCV) データ ソースの使用
 
-Assume you downloaded the history data from the Binance exchange and kept it in the `user_data/data/binance-20180101` directory. 
-You can then use this data for backtesting as follows:
-
+Binance 取引所から履歴データをダウンロードし、`user_data/data/binance-20180101` ディレクトリに保存したと仮定します。 
+このデータは、次のようにバックテストに使用できます。
 ```bash
 freqtrade backtesting --strategy AwesomeStrategy --datadir user_data/data/binance-20180101 
 ```
-
 ---
 
-Comparing multiple Strategies
-
+複数の戦略の比較
 ```bash
 freqtrade backtesting --strategy-list SampleStrategy1 AwesomeStrategy --timeframe 5m
 ```
-
-Where `SampleStrategy1` and `AwesomeStrategy` refer to class names of strategies.
+ここで、`SampleStrategy1` と `AwesomeStrategy` はストラテジのクラス名を指します。
 
 ---
 
-Prevent exporting trades to file
-
+取引をファイルにエクスポートしないようにする
 ```bash
 freqtrade backtesting --strategy backtesting --export none --config config.json 
 ```
-
-Only use this if you're sure you'll not want to plot or analyze your results further.
+これは、結果をさらにプロットしたり分析したくない場合にのみ使用してください。
 
 ---
 
-Exporting trades to file specifying a custom directory
-
+カスタムディレクトリを指定して取引をファイルにエクスポートする
 ```bash
 freqtrade backtesting --strategy backtesting --export trades --backtest-directory=user_data/custom-backtest-results
 ```
+---
+
+[戦略起動期間](strategy-customization.md#strategy-startup-period)についてもお読みください。
 
 ---
 
-Please also read about the [strategy startup period](strategy-customization.md#strategy-startup-period).
+カスタム料金値の提供
 
----
+アカウントに特定の手数料リベート (特定のアカウント サイズまたは月次ボリュームから始まる手数料減額) が適用される場合がありますが、これらは ccxt には表示されません。
+バックテストでこれを考慮するには、「--fee」コマンド ライン オプションを使用して、この値をバックテストに提供します。
+この手数料は比率である必要があり、2 回適用されます (取引のエントリに 1 回、取引の終了に 1 回)。
 
-Supplying custom fee value
-
-Sometimes your account has certain fee rebates (fee reductions starting with a certain account size or monthly volume), which are not visible to ccxt.
-To account for this in backtesting, you can use the `--fee` command line option to supply this value to backtesting.
-This fee must be a ratio, and will be applied twice (once for trade entry, and once for trade exit).
-
-For example, if the commission fee per order is 0.1% (i.e., 0.001 written as ratio), then you would run backtesting as the following:
-
+たとえば、注文あたりの手数料が 0.1% (つまり、比率として書かれた 0.001) の場合、次のようにバックテストを実行します。
 ```bash
 freqtrade backtesting --fee 0.001
 ```
-
-!!! Note
-    Only supply this option (or the corresponding configuration parameter) if you want to experiment with different fee values. By default, Backtesting fetches the default fee from the exchange pair/market info.
+!!!注記
+    さまざまな料金値を試したい場合にのみ、このオプション (または対応する構成パラメーター) を指定します。デフォルトでは、バックテストは取引ペア/市場情報からデフォルトの手数料を取得します。
 
 ---
 
-Running backtest with smaller test-set by using timerange
+タイムレンジを使用して、より小さいテストセットでバックテストを実行する
 
-Use the `--timerange` argument to change how much of the test-set you want to use.
+`--timerange` 引数を使用して、使用するテストセットの量を変更します。
 
-For example, running backtesting with the `--timerange=20190501-` option will use all available data starting with May 1st, 2019 from your input data.
-
+たとえば、「--timerange=20190501-」オプションを指定してバックテストを実行すると、入力データから 2019 年 5 月 1 日以降の利用可能なすべてのデータが使用されます。
 ```bash
 freqtrade backtesting --timerange=20190501-
 ```
+特定の日付範囲を指定することもできます。
 
-You can also specify particular date ranges.
+全時間範囲の仕様:
 
-The full timerange specification:
+- 2018/01/31 までのデータを使用: `--timerange=-20180131`
+- 2018/01/31 以降のデータを使用: `--timerange=20180131-`
+- 2018/01/31 から 2018/03/01 までのデータを使用: `--timerange=20180131-20180301`
+- POSIX / エポックタイムスタンプ 1527595200 1527618600 間のデータを使用: `--timerange=1527595200-1527618600`
 
-- Use data until 2018/01/31: `--timerange=-20180131`
-- Use data since 2018/01/31: `--timerange=20180131-`
-- Use data since 2018/01/31 till 2018/03/01 : `--timerange=20180131-20180301`
-- Use data between POSIX / epoch timestamps 1527595200 1527618600: `--timerange=1527595200-1527618600`
+## バックテストの結果を理解する
 
-## Understand the backtesting result
+バックテストで最も重要なのは結果を理解することです。
 
-The most important in the backtesting is to understand the result.
-
-A backtesting result will look like that:
-
+バックテストの結果は次のようになります。
 ```
                                                  BACKTESTING REPORT                                                  
 ┏━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -272,62 +252,56 @@ Backtested 2025-07-01 00:00:00 -> 2025-08-01 00:00:00 | Max open trades : 3
 │ SampleStrategy │     77 │         0.22 │          54.774 │         5.48 │     22:12:00 │   67     0    10  87.0 │ 94.647 USDT  8.23% │
 └────────────────┴────────┴──────────────┴─────────────────┴──────────────┴──────────────┴────────────────────────┴────────────────────┘
 ```
+### バックテストレポート表
 
-### Backtesting report table
+最初のテーブルには、「放置されたオープン取引」を含む、ボットが行ったすべての取引が含まれています。
 
-The first table contains all trades the bot made, including "left open trades".
-
-The last line will give you the overall performance of your strategy,
-here:
-
+最後の行は戦略の全体的なパフォーマンスを示します。
+ここで：
 ```
 │         TOTAL │     77 │         0.22 │          54.774 │         5.48 │        22:12:00 │   67     0    10  87.0 │
 ```
+このボットは、平均継続時間「22:12:00」で「77」の取引を行い、パフォーマンス「5.48%」(利益)を達成しました。これは、資本金 1,000 USDT から合計「54.774 USDT」を獲得したことを意味します。
 
-The bot has made `77` trades for an average duration of `22:12:00`, with a performance of `5.48%` (profit), that means it has earned a total of `54.774 USDT` starting with a capital of 1000 USDT.
+「平均利益 %」列には、行われたすべての取引の平均利益が表示されます。
+「合計利益 %」列には、開始残高に対する合計利益 % が表示されます。
 
-The column `Avg Profit %` shows the average profit for all trades made.
-The column `Tot Profit %` shows instead the total profit % in relation to the starting balance.
+上記の結果では、開始残高が 1000 USDT、絶対利益が 54.774 USDT であるため、「総利益 %」は「(54.774 / 1000) * 100 ~= 5.48%」となります。
 
-In the above results, we have a starting balance of 1000 USDT and an absolute profit of 54.774 USDT - so the `Tot Profit %` will be `(54.774 / 1000) * 100 ~= 5.48%`.
+戦略のパフォーマンスは、エントリー戦略、エグジット戦略に加え、設定した「minimal_roi」と「stop_loss」にも影響されます。
 
-Your strategy performance is influenced by your entry strategy, your exit strategy, and also by the `minimal_roi` and `stop_loss` you have set.
-
-For example, if your `minimal_roi` is only `"0":  0.01` you cannot expect the bot to make more profit than 1% (because it will exit every time a trade reaches 1%).
-
+たとえば、`minimal_roi` が `"0": 0.01` のみの場合、ボットが 1% を超える利益を上げることは期待できません (取引が 1% に達するたびにボットは終了するため)。
 ```json
 "minimal_roi": {
     "0":  0.01
 },
 ```
+逆に、「minimal_roi」を「0」のように大きくしすぎると、0.55となります。
+(55%)、ボットがこの利益に達する可能性はほとんどありません。
+したがって、パフォーマンスは、戦略、設定、設定した暗号通貨ペアのさまざまな要素がすべて統合されたものであることに留意してください。
 
-On the other hand, if you set a too high `minimal_roi` like `"0":  0.55`
-(55%), there is almost no chance that the bot will ever reach this profit.
-Hence, keep in mind that your performance is an integral mix of all different elements of the strategy, your configuration, and the crypto-currency pairs you have set up.
+### 開いたままの取引テーブル
 
-### Left open trades table
+2 番目の表には、全体像を示すためにバックテスト期間の終了時にボットが「force_exit」する必要があったすべての取引が含まれています。
+バックテスト期間はある時点で終了する必要がある一方で、現実的にはボットを永久に実行し続けることもできるため、これは現実的な動作をシミュレートするために必要です。
+これらの取引は最初の表にも含まれていますが、わかりやすくするためにこの表でも個別に示しています。
 
-The second table contains all trades the bot had to `force_exit` at the end of the backtesting period to present you the full picture.
-This is necessary to simulate realistic behavior, since the backtest period has to end at some point, while realistically, you could leave the bot running forever.
-These trades are also included in the first table, but are also shown separately in this table for clarity.
+### タグ統計テーブルを入力してください
 
-### Enter tag stats table
+3 番目の表は、エントリー タグ (例: 「enter_long」、「enter_short」) ごとに取引の内訳を示し、エントリー数、平均利益率、ステーク通貨での合計利益、合計利益率、平均期間、各タグの勝ち数、引き分け数、負け数を示しています。
 
-The third table provides a breakdown of trades by their entry tags (e.g., `enter_long`, `enter_short`), showing the number of entries, average profit percentage, total profit in the stake currency, total profit percentage, average duration, and the number of wins, draws, and losses for each tag.
+### 終了理由の統計表
 
-### Exit reason stats table
+4 番目の表には、終了理由の要約が含まれています (例: `exit_signal`、`roi`、`stop_loss`、`force_exit`)。この表は、どの領域に追加の作業が必要かを示します (たとえば、多くの「exit_signal」取引が損失である場合は、exit シグナルの改善に取り組むか、無効にすることを検討する必要があります)。
 
-The fourth table contains a recap of exit reasons (e.g., `exit_signal`, `roi`, `stop_loss`, `force_exit`). This table can tell you which area needs additional work (e.g., if many `exit_signal` trades are losses, you should work on improving the exit signal or consider disabling it).
+### 混合タグ統計表
 
-### Mixed tag stats table
+5 番目の表は、エントリ タグと終了理由を組み合わせたもので、さまざまなエントリ タグが特定の終了理由でどのように実行されたかを詳細に示しています。これは、参入戦略と撤退戦略のどの組み合わせが最も効果的かを特定するのに役立ちます。
 
-The fifth table combines entry tags and exit reasons, providing a detailed view of how different entry tags performed with specific exit reasons. This can help identify which combinations of entry and exit strategies are most effective.
+### 概要メトリクス
 
-### Summary metrics
-
-The last element of the backtest report is the summary metrics table.
-It contains key metrics about the performance of your strategy on backtesting data.
-
+バックテスト レポートの最後の要素は、概要メトリック テーブルです。
+これには、バックテスト データに対する戦略のパフォーマンスに関する重要な指標が含まれています。
 ```
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ Metric                        ┃ Value                           ┃
@@ -378,51 +352,49 @@ It contains key metrics about the performance of your strategy on backtesting da
 │ Market change                 │ 30.51%                          │
 └───────────────────────────────┴─────────────────────────────────┘
 ```
+- `バックテスト開始` / `バックテスト終了`: バックテスト範囲 (通常は `--timerange` オプションで定義されます)。
+- 「取引モード」: 現物取引または先物取引。
+- `Max open trades`: `max_open_trades` (または `--max-open-trades`) の設定 - またはペアリスト内のペアの数 (いずれか小さい方)。
+- 「合計/日次平均取引数」: バックテスト出力テーブルの合計取引数 / 合計取引数をバックテスト期間 (日数) で割ったものと同じです (これにより、戦略から予想される取引数に関する情報が得られます)。
+- 「開始残高」: 開始残高 - dry-run-wallet (構成またはコマンドライン) によって指定されます。
+- 「最終残高」: 最終残高 - 開始残高 + 絶対利益。
+- 「絶対利益」: ステーク通貨で得られる利益。
+- `総利益 %`: 総利益。最初のテーブルの「TOTAL」行の「Tot Profit %」に合わせて配置されます。 「(終了資本 − 開始資本) / 開始資本」として計算されます。
+- `CAGR %`: 複合年間成長率。
+- `Sortino`: ソルティーノの年率。
+- `Sharpe`: 年換算のシャープレシオ。
+- `Calmar`: 年率換算の Calmar 比率。
+- 「SQN」: システム品質番号 (SQN) - Van Tharp 著。
+- 「利益係数」: すべての勝ち取引の利益の合計を、すべての負け取引の損失の合計で割ったもの。
+- 「期待値 (比率)」: 取引ごとの平均利益または損失である期待率。マイナスの期待率は、戦略が利益を生まないことを意味します。
+- 「平均」日次利益`: 1 日あたりの平均利益。「(総利益 / バックテスト日数)」として計算されます。
+- 「平均」 stake amount`: 平均ステーク量。`stake_amount` または動的ステーク量を使用する場合の平均。
+- 「総取引量」: 上記の利益を達成するために取引所で生成される取引量。
+- 「ロング/ショート取引」: ロング/ショート取引回数を分割します(ショート取引が行われた場合のみ表示されます)。
+- `ロング/ショート利益 %`: ロングおよびショート取引の利益のパーセンテージ (ショート取引が行われた場合のみ表示されます)。
+- 「ロング/ショート利益 USDT」: ロングおよびショート取引のステーク通貨での利益 (ショート取引が行われた場合のみ表示)。
+- 「最良のペア」/「最悪のペア」: (総利益率に基づく) 最もパフォーマンスの高いペアと最も悪いペア、およびそれに対応する「総利益 %」。
+- 「最良のトレード」/「最悪のトレード」: 単一の最大の勝利トレードと最大の単一の損失トレード。
+- `最良の日` / `最悪の日`: 1 日の利益に基づいて最良の日と最悪の日。
+- 「勝ち/引き分け/負けの日」: 勝ち/負けの日 (引き分けは通常、取引が終了していない日です)。
+- `最小/最大/平均期間勝者`: 勝ちトレードの最小、最大、平均期間。
+- `最小/最大/平均期間敗者`: 損失取引の最小、最大、および平均期間。
+- `最大連続勝利数/最大連続敗北数`: 連続した最大連続勝利数/連続敗北数。
+- 「拒否されたエントリーシグナル」: 「max_open_trades」に達したために実行できなかったトレードエントリーシグナル。
+- 「エントリー/エグジットタイムアウト」: 約定しなかったエントリー/エグジット注文 (カスタム価格設定が使用されている場合にのみ適用されます)。
+- 「最小残高」 / 「最大残高」: バックテスト期間中のウォレット残高の最低値と最高値。
+- 「水中のアカウントの最大 %」: シミュレーション開始以来、アカウントがトップから減少した最大パーセンテージ。 「(最大残高 - 現在の残高) / (最大残高)」の最大値として計算されます。
+- 「絶対ドローダウン」: 「(絶対ドローダウン) / (ドローダウン高 + 開始残高)」として計算されるアカウントに対する割合を含む、経験した最大絶対ドローダウン。
+- 「ドローダウン期間」: 最大ドローダウン期間の期間。
+- 「ドローダウン開始時の利益」 / 「ドローダウン終了時の利益」: 最大ドローダウン期間の開始時と終了時の利益。
+- `ドローダウン開始` / `ドローダウン終了`: 最大ドローダウンの開始日時と終了日時 (`plot-dataframe` サブコマンドを使用して視覚化することもできます)。
+- 「市場変化」: バックテスト期間中の市場の変化。 「終値」列を使用して、最初のローソク足から最後のローソク足までのすべてのペアの変化の平均として計算されます。
 
-- `Backtesting from` / `Backtesting to`: Backtesting range (usually defined with the `--timerange` option).
-- `Trading Mode`: Spot or Futures trading.
-- `Max open trades`: Setting of `max_open_trades` (or `--max-open-trades`) - or number of pairs in the pairlist (whatever is lower).
-- `Total/Daily Avg Trades`: Identical to the total trades of the backtest output table / Total trades divided by the backtesting duration in days (this will give you information about how many trades to expect from the strategy).
-- `Starting balance`: Start balance - as given by dry-run-wallet (config or command line).
-- `Final balance`: Final balance - starting balance + absolute profit.
-- `Absolute profit`: Profit made in stake currency.
-- `Total profit %`: Total profit. Aligned to the `TOTAL` row's `Tot Profit %` from the first table. Calculated as `(End capital − Starting capital) / Starting capital`.
-- `CAGR %`: Compound annual growth rate.
-- `Sortino`: Annualized Sortino ratio.
-- `Sharpe`: Annualized Sharpe ratio.
-- `Calmar`: Annualized Calmar ratio.
-- `SQN`: System Quality Number (SQN) - by Van Tharp.
-- `Profit factor`: Sum of the profits of all winning trades divided by the sum of the losses of all losing trades.
-- `Expectancy (Ratio)`: Expectancy ratio, which is the average profit or loss per trade. A negative expectancy ratio means that your strategy is not profitable.
-- `Avg. daily profit`: Average profit per day, calculated as `(Total Profit / Backtest Days)`.
-- `Avg. stake amount`: Average stake amount, either `stake_amount` or the average when using dynamic stake amount.
-- `Total trade volume`: Volume generated on the exchange to reach the above profit.
-- `Long / Short trades`: Split long/short trade counts (only shown when short trades were made).
-- `Long / Short profit %`: Profit percentage for long and short trades (only shown when short trades were made).
-- `Long / Short profit USDT`: Profit in stake currency for long and short trades (only shown when short trades were made).
-- `Best Pair` / `Worst Pair`: Best and worst performing pair (based on total profit percentage), and its corresponding `Tot Profit %`.
-- `Best trade` / `Worst trade`: Biggest single winning trade and biggest single losing trade.
-- `Best day` / `Worst day`: Best and worst day based on daily profit.
-- `Days win/draw/lose`: Winning / Losing days (draws are usually days without closed trades).
-- `Min/Max/Avg. Duration Winners`: Minimum, maximum, and average durations for winning trades.
-- `Min/Max/Avg. Duration Losers`: Minimum, maximum, and average durations for losing trades.
-- `Max Consecutive Wins / Loss`: Maximum consecutive wins/losses in a row.
-- `Rejected Entry signals`: Trade entry signals that could not be acted upon due to `max_open_trades` being reached.
-- `Entry/Exit Timeouts`: Entry/exit orders which did not fill (only applicable if custom pricing is used).
-- `Min balance` / `Max balance`: Lowest and Highest Wallet balance during the backtest period.
-- `Max % of account underwater`: Maximum percentage your account has decreased from the top since the simulation started. Calculated as the maximum of `(Max Balance - Current Balance) / (Max Balance)`.
-- `Absolute drawdown`: Maximum absolute drawdown experienced, including percentage relative to the account calculated as `(Absolute Drawdown) / (DrawdownHigh + startingBalance)`..
-- `Drawdown duration`: Duration of the largest drawdown period.
-- `Profit at drawdown start` / `Profit at drawdown end`: Profit at the beginning and end of the largest drawdown period.
-- `Drawdown start` / `Drawdown end`: Start and end datetime for the largest drawdown (can also be visualized via the `plot-dataframe` sub-command).
-- `Market change`: Change of the market during the backtest period. Calculated as the average of all pairs' changes from the first to the last candle using the "close" column.
+### 日次 / 週次 / 月次 / 年次の内訳
 
-### Daily / Weekly / Monthly / Yearly breakdown
+「--breakdown <>」スイッチを使用すると、日次、週次、月次、または年次の結果の概要を取得できます。
 
-You can get an overview over daily, weekly, monthly, or yearly results by using the `--breakdown <>` switch.
-
-To visualize monthly and yearly breakdowns, you can use the following:
-
+月次および年次の内訳を視覚化するには、次を使用できます。
 ``` bash
 freqtrade backtesting --strategy MyAwesomeStrategy --breakdown month year
 ```
@@ -455,171 +427,163 @@ freqtrade backtesting --strategy MyAwesomeStrategy --breakdown month year
 │ 31/12/2025 │   1042 │         716.174 │          1.33 │  420     0   622  40.3 │
 └────────────┴────────┴─────────────────┴───────────────┴────────────────────────┘
 ```
+出力には、選択した期間に実現された絶対利益 (ステーク通貨) を含む表が、取引数、プロフィットファクター、この期間に実現した (クローズされた) 勝ち、引き分け、損失の分布などの追加統計とともに表示されます。
 
-The output will display tables containing the realized absolute profit (in stake currency) for the selected period, along with additional statistics such as number of trades, profit factor, and distribution of wins, draws, and losses that materialized (closed) on this period.
+### バックテスト結果のキャッシュ
 
-### Backtest result caching
+時間を節約するために、バックテストの戦略と構成が以前のバックテストのものと一致する場合、デフォルトではバックテストは、過去 1 日以内にキャッシュされた結果を再利用します。同一の実行に対する既存の結果にもかかわらず新しいバックテストを強制するには、「--cache none」パラメータを指定します。
 
-To save time, by default backtest will reuse a cached result from within the last day when the backtested strategy and config match that of a previous backtest. To force a new backtest despite existing result for an identical run specify `--cache none` parameter.
+!!!警告
+    freqtrade では基になるデータが変更されていないことを確実に保証できないため、無制限の時間範囲 (`--timerange 20210101-`) ではキャッシュが自動的に無効になります。また、元のバックテストの最後にデータが欠落していた場合、キャッシュされた結果を使用すべきでない場所で使用することもできますが、これはさらにデータをダウンロードすることで修正されました。
+    この場合、「--cache none」を 1 回使用して、新しいバックテストを強制してください。
 
-!!! Warning
-    Caching is automatically disabled for open-ended timeranges (`--timerange 20210101-`), as freqtrade cannot ensure reliably that the underlying data didn't change. It can also use cached results where it shouldn't if the original backtest had missing data at the end, which was fixed by downloading more data.
-    In this instance, please use `--cache none` once to force a fresh backtest.
+### バックテスト結果のさらなる分析
 
-### Further backtest-result analysis
+バックテスト結果をさらに分析するために、freqtrade はデフォルトで取引をファイルにエクスポートします。
+その後、取引をロードして、[データ分析](strategy_analysis_example.md#load-backtest-results-to-pandas-dataframe) バックテスト セクションに示すように、さらなる分析を実行できます。
 
-To further analyze your backtest results, freqtrade will export the trades to file by default.
-You can then load the trades to perform further analysis as shown in the [data analysis](strategy_analysis_example.md#load-backtest-results-to-pandas-dataframe) backtesting section.
+また、freqtrade を [Web サーバー モード](freq-ui.md#backtesting) で使用して、Web インターフェイスでバックテスト結果を視覚化することもできます。
+このモードでは、既存のバックテスト結果を読み込むこともできるため、バックテストを再度実行することなく分析できます。  
+このモードの場合 - `--notes "<notes>"` を使用してバックテスト結果にメモを追加でき、Web インターフェイスに表示されます。
 
-Also, you can use freqtrade in [webserver mode](freq-ui.md#backtesting) to visualize the backtest results in a web interface.
-This mode also allows you to load existing backtest results, so you can analyze them without running the backtest again.  
-For this mode - `--notes "<notes>"` can be used to add notes to the backtest results, which will be shown in the web interface.
+### バックテスト出力ファイル
 
-### Backtest output file
+freqtrade が生成する出力ファイルは、次のファイルを含む zip ファイルです。
 
-The output file freqtrade produces is a zip file containing the following files:
+- JSON形式のバックテストレポート
+- フェザー形式の市場変動データ
+- 戦略ファイルのコピー
+- 戦略パラメーターのコピー (パラメーター ファイルが使用された場合)
+- 設定ファイルのサニタイズされたコピー
 
-- The backtest report in json format
-- The market change data in feather format
-- A copy of the strategy file
-- A copy of the strategy parameters (if a parameter file was used)
-- A sanitized copy of the config file
+これにより、同じデータが利用できるという前提の下で、結果の再現性が保証されます。
 
-This will ensure results are reproducible - under the assumption that the same data is available.
+zip ファイルには戦略ファイルと構成ファイルのみが含まれており、最終的な依存関係は含まれません。
 
-Only the strategy file and the config file are included in the zip file, eventual dependencies are not included.
+## バックテストによる仮定
 
-## Assumptions made by backtesting
+バックテストにはローソク足内で何が起こるかについての詳細な情報が欠けているため、いくつかの仮定を置く必要があります。
 
-Since backtesting lacks some detailed information about what happens within a candle, it needs to take a few assumptions:
-
-- Exchange [trading limits](#trading-limits-in-backtesting) are respected
-- Entries happen at open-price unless a custom price logic has been specified
-- All orders are filled at the requested price (no slippage) as long as the price is within the candle's high/low range
-- Exit-signal exits happen at open-price of the consecutive candle
-- Exits free their trade slot for a new trade with a different pair
-- Exit-signal is favored over Stoploss, because exit-signals are assumed to trigger on candle's open
+- 取引所の[取引制限](#trading-limits-in-backtesting)が尊重されます
+- カスタム価格ロジックが指定されていない限り、エントリーはオープン価格で行われます
+- 価格がローソク足の高値/安値の範囲内にある限り、すべての注文は要求された価格で約定されます（スリッページなし）。
+- 終了シグナルの終了は、連続するローソク足の始値で発生します。
+- エグジットは、別のペアとの新しい取引のために取引スロットを解放します
+- エグジットシグナルはローソク足のオープン時にトリガーされると想定されているため、ストップロスよりもエグジットシグナルが優先されます。
 - ROI
-  - Exits are compared to high - but the ROI value is used (e.g. ROI = 2%, high=5% - so the exit will be at 2%)
-  - Exits are never "below the candle", so a ROI of 2% may result in an exit at 2.4% if low was at 2.4% profit
-  - ROI entries which came into effect on the triggering candle (e.g. `120: 0.02` for 1h candles, from `60: 0.05`) will use the candle's open as exit rate
-  - Force-exits caused by `<N>=-1` ROI entries use low as exit value, unless N falls on the candle open (e.g. `120: -1` for 1h candles)
-- Stoploss exits happen exactly at stoploss price, even if low was lower, but the loss will be `2 * fees` higher than the stoploss price
-- Stoploss is evaluated before ROI within one candle. So you can often see more trades with the `stoploss` exit reason comparing to the results obtained with the same strategy in the Dry Run/Live Trade modes
-- Low happens before high for stoploss, protecting capital first
-- Trailing stoploss
-  - Trailing Stoploss is only adjusted if it's below the candle's low (otherwise it would be triggered)
-  - On trade entry candles that trigger trailing stoploss, the "minimum offset" (`stop_positive_offset`) is assumed (instead of high) - and the stop is calculated from this point. This rule is NOT applicable to custom-stoploss scenarios, since there's no information about the stoploss logic available.
-  - High happens first - adjusting stoploss
-  - Low uses the adjusted stoploss (so exits with large high-low difference are backtested correctly)
-  - ROI applies before trailing-stop, ensuring profits are "top-capped" at ROI if both ROI and trailing stop applies
-- Exit-reason does not explain if a trade was positive or negative, just what triggered the exit (this can look odd if negative ROI values are used)
-- Evaluation sequence (if multiple signals happen on the same candle)
-  - Exit-signal
-  - Stoploss
+  - 出口は高と比較されますが、ROI 値が使用されます (例: ROI = 2%、高 = 5% - したがって出口は 2% になります)
+  - エグジットが「ローソク足を下回る」ことは決してないため、ROI が 2% の場合、利益が 2.4% であった場合、エグジットは 2.4% になる可能性があります。
+  - トリガーとなるローソク足で有効になった ROI エントリ (例: 1 時間足ローソク足の「120: 0.02」、「60: 0.05」から) は、ローソク足の始値をエグジット レートとして使用します。
+  - `<N>=-1` ROI エントリによって引き起こされる強制終了は、N がローソク足のオープンに該当しない限り、終了値として Low を使用します (例: 1h ローソク足の場合は `120: -1`)
+- ストップロスのエグジットは、たとえ安値が低かったとしても、ストップロス価格で正確に行われますが、損失はストップロス価格よりも「2 * 手数料」高くなります。
+- ストップロスは、1 つのキャンドル内の ROI の前に評価されます。そのため、ドライラン/ライブトレードモードで同じ戦略で得られた結果と比較して、「ストップロス」終了理由を持つより多くの取引が見られることがよくあります。
+- ストップロスの高値の前に安値が発生し、最初に資本を保護します
+- トレーリングストップロス
+  - トレーリングストップロスはローソク足の安値を下回っている場合にのみ調整されます（そうでない場合はトリガーされます）
+  - トレーリングストップロスをトリガーするトレードエントリーキャンドルでは、「最小オフセット」(`stop_positive_offset`) が (高値ではなく) 想定され、ストップはこの時点から計算されます。利用可能なストップロス ロジックに関する情報がないため、このルールはカスタム ストップロス シナリオには適用されません。
+  - ハイが最初に発生します - ストップロスを調整します
+  - Low は調整されたストップロスを使用します (そのため、高値と安値の差が大きい出口は正しくバックテストされます)
+  - ROIはトレーリングストップの前に適用され、ROIとトレーリングストップの両方が適用される場合、利益はROIで「上限に達する」ことが保証されます。
+- Exit-reason では、取引がプラスだったのかマイナスだったのかは説明されず、何がエグジットのきっかけとなったのかだけが説明されています (負の ROI 値が使用されている場合、これは奇妙に見える可能性があります)
+- 評価シーケンス (同じローソク足で複数のシグナルが発生した場合)
+  - 出口信号
+  - ストップロス
   - ROI
-  - Trailing stoploss
-- Position reversals (futures only) happen if an entry signal in the other direction than the closing trade triggers at the candle the existing trade closes.
+  - トレーリングストップロス
+- ポジションの反転（先物のみ）は、既存の取引が終了するローソク足で終了取引とは別の方向のエントリーシグナルがトリガーされた場合に発生します。
 
-Taking these assumptions, backtesting tries to mirror real trading as closely as possible. However, backtesting will **never** replace running a strategy in dry-run mode.
-Also, keep in mind that past results don't guarantee future success.
+これらの仮定に基づいて、バックテストは実際の取引を可能な限り忠実に反映しようとします。ただし、バックテストがドライラン モードでの戦略の実行に代わることは**決して**ありません。
+また、過去の結果が将来の成功を保証するものではないことにも留意してください。
 
-In addition to the above assumptions, strategy authors should carefully read the [Common Mistakes](strategy-customization.md#common-mistakes-when-developing-strategies) section, to avoid using data in backtesting which is not available in real market conditions.
+上記の前提に加えて、戦略作成者は、実際の市場状況では利用できないデータをバックテストで使用することを避けるために、[よくある間違い](strategy-customization.md#common-mistakes-when-developing-strategies) セクションを注意深く読む必要があります。
 
-### Trading limits in backtesting
+### バックテストにおける取引制限
+取引所には、最小（および最大）基本通貨や最小/最大ステーク（相場）通貨など、特定の取引制限があります。
+これらの制限は通常、「取引ルール」または同様のものとして取引所の文書に記載されており、異なるペア間では大きく異なる場合があります。
 
-Exchanges have certain trading limits, like minimum (and maximum) base currency, or minimum/maximum stake (quote) currency.
-These limits are usually listed in the exchange documentation as "trading rules" or similar and can be quite different between different pairs.
+バックテスト (およびライブおよびドライラン) ではこれらの制限が尊重され、ストップロスをこの値よりも下に設定できることが保証されます。そのため、値は取引所が指定するものよりわずかに高くなります。
+ただし、Freqtrade は過去の制限に関する情報を持っていません。
 
-Backtesting (as well as live and dry-run) does honor these limits, and will ensure that a stoploss can be placed below this value - so the value will be slightly higher than what the exchange specifies.
-Freqtrade has however no information about historic limits.
+これにより、過去の価格を使用して取引制限が膨らみ、最低金額が 50\$ を超える状況が発生する可能性があります。
 
-This can lead to situations where trading-limits are inflated by using a historic price, resulting in minimum amounts > 50\$.
+たとえば:
 
-For example:
+BTCの最低取引可能量は0.001です。
+BTC は今日 22.000\$ で取引されています (0.001 BTC がこれに関連しています) - しかし、バックテスト期間には 50.000\$ もの高価格が含まれています。
+今日の最小値は `0.001 * 22_000`、つまり 22\$ になります。  
+ただし、過去の設定では `0.001 * 50_000` に基づいて、制限が 50$ になることもあります。
 
-BTC minimum tradable amount is 0.001.
-BTC trades at 22.000\$ today (0.001 BTC is related to this) - but the backtesting period includes prices as high as 50.000\$.
-Today's minimum would be `0.001 * 22_000` - or 22\$.  
-However the limit could also be 50$ - based on `0.001 * 50_000` in some historic setting.
+#### 取引精度の制限
 
-#### Trading precision limits
+ほとんどの取引所では価格と金額の両方に精度制限があるため、ペアの 1.0020401 を購入したり、価格 1.24567123123 で購入したりすることはできません。  
+代わりに、これらの価格と金額は、定義された取引精度に合わせて (取引所の定義に基づいて) 四捨五入または切り捨てられます。
+上記の値は、たとえば、金額 1.002、価格 1.24567 に丸められます。
 
-Most exchanges pose precision limits on both price and amounts, so you cannot buy 1.0020401 of a pair, or at a price of 1.24567123123.  
-Instead, these prices and amounts will be rounded or truncated (based on the exchange definition) to the defined trading precision.
-The above values may for example be rounded to an amount of 1.002, and a price of 1.24567.
+過去の精度制限は利用できないため、これらの精度値は現在の為替制限に基づいています ([上記のセクション](#trading-limits-in-backtesting) で説明されているように)。
 
-These precision values are based on current exchange limits (as described in the [above section](#trading-limits-in-backtesting)), as historic precision limits are not available.
+## バックテストの精度の向上
 
-## Improved backtest accuracy
+バックテストの大きな制限の 1 つは、価格がローソク足内でどのように推移したか (取引終了前に高かったのか、それともその逆か) を知ることができないことです。
+したがって、1 時間の時間枠でバックテストを実行すると仮定すると、そのローソク足には 4 つの価格 (始値、高値、安値、終値) が存在します。
 
-One big limitation of backtesting is it's inability to know how prices moved intra-candle (was high before close, or vice-versa?).
-So assuming you run backtesting with a 1h timeframe, there will be 4 prices for that candle (Open, High, Low, Close).
+バックテストではこれについていくつかの前提条件が必要ですが (上記をお読みください)、これは決して完璧ではなく、常に何らかの形でバイアスがかかります。
+これを軽減するために、freqtrade はより低い (より速い) タイムフレームを使用してローソク足内の動きをシミュレートできます。
 
-While backtesting does take some assumptions (read above) about this - this can never be perfect, and will always be biased in one way or the other.
-To mitigate this, freqtrade can use a lower (faster) timeframe to simulate intra-candle movements.
-
-To utilize this, you can append `--timeframe-detail 5m` to your regular backtesting command.
-
+これを利用するには、通常のバックテスト コマンドに「--timeframe-detail 5m」を追加します。
 ``` bash
 freqtrade backtesting --strategy AwesomeStrategy --timeframe 1h --timeframe-detail 5m
 ```
+これにより、選択した時間範囲の 1 時間のデータ (メインの時間枠) と 5 分のデータ (詳細な時間枠) がロードされます。
+戦略は 1 時間の時間枠で分析されます。
+アクティビティが発生する可能性がある (アクティブなシグナルがあり、ペアが取引中である) ローソク足は 5 メートルのタイムフレームで評価されます。
+これにより、キャンドル内の動きをより正確にシミュレーションできるようになり、特に長い時間枠では異なる結果が生じる可能性があります。
 
-This will load 1h data (the main timeframe) as well as 5m data (detail timeframe) for the selected timerange.
-The strategy will be analyzed with the 1h timeframe.
-Candles where activity may take place (there's an active signal, the pair is in a trade) are evaluated at the 5m timeframe.
-This will allow for a more accurate simulation of intra-candle movements - and can lead to different results, especially on higher timeframes.
+通常、エントリーはメインローソク足の始値で発生しますが、解放された取引スロットは（5m ローソク足で出口シグナルがトリガーされた場合）より早く解放される可能性があり、その後、別のペアの新しい取引に使用できます。
 
-Entries will generally still happen at the main candle's open, however freed trade slots may be freed earlier (if the exit signal is triggered on the 5m candle), which can then be used for a new trade of a different pair.
+すべてのコールバック関数 (`custom_exit()`、`custom_stoploss()` など) は、取引が開始されると 5 メートルのローソク足ごとに実行されます (つまり、上記の 1 時間のタイムフレームと 5 メートルの詳細なタイムフレームの例では 12 回実行されます)。
 
-All callback functions (`custom_exit()`, `custom_stoploss()`, ... ) will be running for each 5m candle once the trade is opened (so 12 times in the above example of 1h timeframe, and 5m detailed timeframe).
+`--timeframe-detail` は元のタイムフレームより小さくする必要があります。そうでないとバックテストの開始に失敗します。
 
-`--timeframe-detail` must be smaller than the original timeframe, otherwise backtesting will fail to start.
+明らかに、これにはより多くのメモリが必要になり (500 万のデータは 1 時間のデータより大きい)、実行時間にも影響します (取引量と取引期間に応じて)。
+また、データはすでに利用可能またはダウンロードされている必要があります。
 
-Obviously this will require more memory (5m data is bigger than 1h data), and will also impact runtime (depending on the amount of trades and trade durations).
-Also, data must be available / downloaded already.
+!!!ヒント
+    この関数を戦略開発の最後の部分として使用して、戦略が [バックテストの仮定](#assumptions-made-by-backtesting) のいずれかを悪用していないことを確認できます。このモードで同様に良好なパフォーマンスを示す戦略は、ドライ/ライブ モードでも良好なパフォーマンスを発揮する可能性が高くなります (ただし、戦略を実際に確認できるのはフォワード テスト (ドライ モード) のみです)。
 
-!!! Tip
-    You can use this function as the last part of strategy development, to ensure your strategy is not exploiting one of the [backtesting assumptions](#assumptions-made-by-backtesting). Strategies that perform similarly well with this mode have a good chance to perform well in dry/live modes too (although only forward-testing (dry-mode) can really confirm a strategy).
+???サンプル「極端な違いの例」
+    極端な例で `--timeframe-detail` を使用すると (以下のすべてのペアにエントリーシグナルのある 10:00 のローソク足がある)、1 max_open_trades で次のバックテスト取引シーケンスが発生する可能性があります。
 
-??? Sample "Extreme Difference Example"
-    Using `--timeframe-detail` on an extreme example (all below pairs have the 10:00 candle with an entry signal) may lead to the following backtesting Trade sequence with 1 max_open_trades:
-
-    | Pair | Entry Time | Exit Time | Duration |
-    |------|------------|-----------| -------- |
+    |ペア |入場時間 |終了時間 |期間 |
+    |------|-----------|----------| -------- |
     | BTC/USDT | 2024-01-01 10:00:00 | 2021-01-01 10:05:00 | 5m |
-    | ETH/USDT | 2024-01-01 10:05:00 | 2021-01-01 10:15:00 | 10m |
-    | XRP/USDT | 2024-01-01 10:15:00 | 2021-01-01 10:30:00 | 15m |
-    | SOL/USDT | 2024-01-01 10:15:00 | 2021-01-01 11:05:00 | 50m |
-    | BTC/USDT | 2024-01-01 11:05:00 | 2021-01-01 12:00:00 | 55m |
+    | ETH/USDT | 2024-01-01 10:05:00 | 2021-01-01 10:15:00 | 10メートル |
+    | XRP/USDT | 2024-01-01 10:15:00 | 2021-01-01 10:30:00 | 15メートル |
+    |ソル/USDT | 2024-01-01 10:15:00 | 2021-01-01 11:05:00 | 50メートル |
+    | BTC/USDT | 2024-01-01 11:05:00 | 2021-01-01 12:00:00 | 55メートル |
 
-    Without timeframe-detail, this would look like:
+    timeframe-detail がない場合、これは次のようになります。
 
-    | Pair | Entry Time | Exit Time | Duration |
-    |------|------------|-----------| -------- |
-    | BTC/USDT | 2024-01-01 10:00:00 | 2021-01-01 11:00:00 | 1h |
-    | BTC/USDT | 2024-01-01 11:00:00 | 2021-01-01 12:00:00 | 1h |
+    |ペア |入場時間 |終了時間 |期間 |
+    |------|-----------|----------| -------- |
+    | BTC/USDT | 2024-01-01 10:00:00 | 2021-01-01 11:00:00 | 1時間 |
+    | BTC/USDT | 2024-01-01 11:00:00 | 2021-01-01 12:00:00 | 1時間 |
 
-    The difference is significant, as without detail data, only the first `max_open_trades` signals per candle are evaluated, and the trade slots are only freed at the end of the candle, allowing for a new trade to be opened at the next candle.
+    詳細データがない場合、ローソクごとの最初の「max_open_trades」シグナルのみが評価され、取引スロットはローソクの終わりにのみ解放され、次のローソクで新しい取引を開始できるため、この違いは重要です。
 
 
-## Backtesting multiple strategies
+## 複数の戦略のバックテスト
+複数の戦略を比較するために、バックテストに戦略のリストを提供できます。
 
-To compare multiple strategies, a list of Strategies can be provided to backtesting.
+これは、実行ごとに 1 つのタイムフレーム値に制限されます。ただし、データはディスクから 1 回しかロードされないため、複数のデータがある場合は、
+比較したい戦略を選択すると、実行時間が大幅に向上します。
 
-This is limited to 1 timeframe value per run. However, data is only loaded once from disk so if you have multiple
-strategies you'd like to compare, this will give a nice runtime boost.
-
-All listed Strategies need to be in the same directory, unless also `--recursive-strategy-search` is specified, where sub-directories within the strategy directory are also considered.
-
+`--recursive-strategy-search` も指定されていない限り、リストされたすべての Strategy は同じディレクトリに存在する必要があります。この場合、Strategy ディレクトリ内のサブディレクトリも考慮されます。
 ``` bash
 freqtrade backtesting --timerange 20180401-20180410 --timeframe 5m --strategy-list Strategy001 Strategy002 --export trades
 ```
-
-This will save the results to `user_data/backtest_results/backtest-result-<datetime>.json`, including results for both `Strategy001` and `Strategy002`.
-There will be an additional table comparing win/losses of the different strategies (identical to the "Total" row in the first table).
-Detailed output for all strategies one after the other will be available, so make sure to scroll up to see the details per strategy.
-
+これにより、「Strategy001」と「Strategy002」の両方の結果を含む結果が「user_data/backtest_results/backtest-result-<datetime>.json」に保存されます。
+さまざまな戦略の勝敗を比較する追加の表があります (最初の表の「合計」行と同じ)。
+すべての戦略の詳細な出力が次々と表示されるため、必ず上にスクロールして戦略ごとの詳細を確認してください。
 ```
 ================================================== STRATEGY SUMMARY ===================================================================
 | Strategy    |  Trades |   Avg Profit % |   Tot Profit BTC |   Tot Profit % | Avg Duration   |  Wins |  Draws | Losses | Drawdown % |
@@ -627,8 +591,7 @@ Detailed output for all strategies one after the other will be available, so mak
 | Strategy1   |     429 |           0.36 |       0.00762792 |          76.20 | 4:12:00        |   186 |      0 |    243 |       45.2 |
 | Strategy2   |    1487 |          -0.13 |      -0.00988917 |         -98.79 | 4:43:00        |   662 |      0 |    825 |     241.68 |
 ```
+## 次のステップ
 
-## Next step
-
-Great, your strategy is profitable. What if the bot can give you the optimal parameters to use for your strategy?
-Your next step is to learn [how to find optimal parameters with Hyperopt](hyperopt.md)
+なるほど、あなたの戦略は有益です。ボットが戦略に使用する最適なパラメーターを提供できるとしたらどうなるでしょうか?
+次のステップは、[Hyperopt で最適なパラメーターを見つける方法](hyperopt.md) を学習することです。

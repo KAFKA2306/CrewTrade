@@ -1,105 +1,104 @@
-# Freqtrade basics
+# Freqtradeの基本
 
-This page provides you some basic concepts on how Freqtrade works and operates.
+このページでは、Freqtradeがどのように機能し、動作するかについての基本的な概念を提供します。
 
-## Freqtrade terminology
+## Freqtrade用語
 
-* **Strategy**: Your trading strategy, telling the bot what to do.
-* **Trade**: Open position.
-* **Open Order**: Order which is currently placed on the exchange, and is not yet complete.
-* **Pair**: Tradable pair, usually in the format of Base/Quote (e.g. `XRP/USDT` for spot, `XRP/USDT:USDT` for futures).
-* **Timeframe**: Candle length to use (e.g. `"5m"`, `"1h"`, ...).
-* **Indicators**: Technical indicators (SMA, EMA, RSI, ...).
-* **Limit order**: Limit orders which execute at the defined limit price or better.
-* **Market order**: Guaranteed to fill, may move price depending on the order size.
-* **Current Profit**: Currently pending (unrealized) profit for this trade. This is mainly used throughout the bot and UI.
-* **Realized Profit**: Already realized profit. Only relevant in combination with [partial exits](strategy-callbacks.md#adjust-trade-position) - which also explains the calculation logic for this.
-* **Total Profit**: Combined realized and unrealized profit. The relative number (%) is calculated against the total investment in this trade.
+* **Strategy（戦略）**: あなたのトレーディング戦略で、ボットに何をすべきかを指示します。
+* **Trade（トレード）**: オープンポジション。
+* **Open Order（オープンオーダー）**: 現在取引所に発注されているが、まだ完了していない注文。
+* **Pair（ペア）**: トレード可能なペアで、通常Base/Quoteの形式（例：スポットの場合は`XRP/USDT`、先物の場合は`XRP/USDT:USDT`）。
+* **Timeframe（時間枠）**: 使用するローソク足の長さ（例：`"5m"`、`"1h"`、...）。
+* **Indicators（インジケーター）**: テクニカル指標（SMA、EMA、RSI、...）。
+* **Limit order（指値注文）**: 定義された指値価格またはそれ以上で実行される指値注文。
+* **Market order（成行注文）**: 確実に約定されるが、注文サイズに応じて価格が動く可能性がある。
+* **Current Profit（現在の利益）**: このトレードの現在保留中（未実現）の利益。これは主にボットとUI全体で使用されます。
+* **Realized Profit（実現利益）**: すでに実現された利益。[部分的な出口](strategy-callbacks.md#adjust-trade-position)と組み合わせた場合にのみ関連します - これはこの計算ロジックも説明しています。
+* **Total Profit（合計利益）**: 実現利益と未実現利益の合計。相対数（%）は、このトレードの総投資額に対して計算されます。
 
-## Fee handling
+## 手数料の処理
 
-All profit calculations of Freqtrade include fees. For Backtesting / Hyperopt / Dry-run modes, the exchange default fee is used (lowest tier on the exchange). For live operations, fees are used as applied by the exchange (this includes BNB rebates etc.).
+Freqtradeのすべての利益計算には手数料が含まれます。バックテスト / Hyperopt / ドライランモードでは、取引所のデフォルト手数料が使用されます（取引所の最低ティア）。ライブ操作では、取引所によって適用される手数料が使用されます（これにはBNBリベートなどが含まれます）。
 
-## Pair naming
+## ペアの命名
 
-Freqtrade follows the [ccxt naming convention](https://docs.ccxt.com/#/README?id=consistency-of-base-and-quote-currencies) for currencies.
-Using the wrong naming convention in the wrong market will usually result in the bot not recognizing the pair, usually resulting in errors like "this pair is not available".
+Freqtradeは通貨の[ccxt命名規則](https://docs.ccxt.com/#/README?id=consistency-of-base-and-quote-currencies)に従います。
+間違った市場で間違った命名規則を使用すると、通常、ボットがペアを認識できず、「このペアは利用できません」などのエラーが発生します。
 
-### Spot pair naming
+### スポットペアの命名
 
-For spot pairs, naming will be `base/quote` (e.g. `ETH/USDT`).
+スポットペアの場合、命名は`base/quote`になります（例：`ETH/USDT`）。
 
-### Futures pair naming
+### 先物ペアの命名
 
-For futures pairs, naming will be `base/quote:settle` (e.g. `ETH/USDT:USDT`).
+先物ペアの場合、命名は`base/quote:settle`になります（例：`ETH/USDT:USDT`）。
 
-## Bot execution logic
+## ボット実行ロジック
+ドライランまたはライブモードでfreqtradeを起動すると（`freqtrade trade`を使用）、ボットが起動し、ボットイテレーションループが開始されます。
+これにより、`bot_start()`コールバックも実行されます。
 
-Starting freqtrade in dry-run or live mode (using `freqtrade trade`) will start the bot and start the bot iteration loop.
-This will also run the `bot_start()` callback.
+デフォルトでは、ボットループは数秒ごと（`internals.process_throttle_secs`）に実行され、以下のアクションを実行します：
 
-By default, the bot loop runs every few seconds (`internals.process_throttle_secs`) and performs the following actions:
+* 永続性からオープントレードを取得します。
+* 現在のトレード可能なペアのリストを計算します。
+* すべての[情報ペア](strategy-customization.md#get-data-for-non-tradeable-pairs)を含むペアリストのOHLCVデータをダウンロードします
+  このステップは、不要なネットワークトラフィックを回避するために、ローソク足ごとに1回だけ実行されます。
+* `bot_loop_start()`戦略コールバックを呼び出します。
+* ペアごとに戦略を分析します。
+  * `populate_indicators()`を呼び出します
+  * `populate_entry_trend()`を呼び出します
+  * `populate_exit_trend()`を呼び出します
+* 取引所からトレードのオープンオーダー状態を更新します。
+  * 約定した注文に対して`order_filled()`戦略コールバックを呼び出します。
+  * オープンオーダーのタイムアウトをチェックします。
+    * オープンエントリー注文に対して`check_entry_timeout()`戦略コールバックを呼び出します。
+    * オープンイグジット注文に対して`check_exit_timeout()`戦略コールバックを呼び出します。
+    * オープンオーダーに対して`adjust_order_price()`戦略コールバックを呼び出します。
+      * オープンエントリー注文に対して`adjust_entry_price()`戦略コールバックを呼び出します。*`adjust_order_price()`が実装されていない場合のみ呼び出されます*
+      * オープンイグジット注文に対して`adjust_exit_price()`戦略コールバックを呼び出します。*`adjust_order_price()`が実装されていない場合のみ呼び出されます*
+* 既存のポジションを検証し、最終的に出口注文を発注します。
+  * ストップロス、ROI、出口シグナル、`custom_exit()`、`custom_stoploss()`を考慮します。
+  * `exit_pricing`設定または`custom_exit_price()`コールバックを使用して出口価格を決定します。
+  * 出口注文が発注される前に、`confirm_trade_exit()`戦略コールバックが呼び出されます。
+* 有効な場合、`adjust_trade_position()`を呼び出してオープントレードのポジション調整をチェックし、必要に応じて追加注文を発注します。
+* トレードスロットがまだ利用可能かどうかをチェックします（`max_open_trades`に達した場合）。
+* エントリーシグナルを検証して新しいポジションに入ろうとします。
+  * `entry_pricing`設定または`custom_entry_price()`コールバックを使用してエントリー価格を決定します。
+  * マージンおよび先物モードでは、`leverage()`戦略コールバックが呼び出されて、希望するレバレッジが決定されます。
+  * `custom_stake_amount()`コールバックを呼び出してステークサイズを決定します。
+  * エントリー注文が発注される前に、`confirm_trade_entry()`戦略コールバックが呼び出されます。
 
-* Fetch open trades from persistence.
-* Calculate current list of tradable pairs.
-* Download OHLCV data for the pairlist including all [informative pairs](strategy-customization.md#get-data-for-non-tradeable-pairs)  
-  This step is only executed once per Candle to avoid unnecessary network traffic.
-* Call `bot_loop_start()` strategy callback.
-* Analyze strategy per pair.
-  * Call `populate_indicators()`
-  * Call `populate_entry_trend()`
-  * Call `populate_exit_trend()`
-* Update trades open order state from exchange.
-  * Call `order_filled()` strategy callback for filled orders.
-  * Check timeouts for open orders.
-    * Calls `check_entry_timeout()` strategy callback for open entry orders.
-    * Calls `check_exit_timeout()` strategy callback for open exit orders.
-    * Calls `adjust_order_price()` strategy callback for open orders.
-      * Calls `adjust_entry_price()` strategy callback for open entry orders. *only called when `adjust_order_price()` is not implemented*
-      * Calls `adjust_exit_price()` strategy callback for open exit orders. *only called when `adjust_order_price()` is not implemented*
-* Verifies existing positions and eventually places exit orders.
-  * Considers stoploss, ROI and exit-signal, `custom_exit()` and `custom_stoploss()`.
-  * Determine exit-price based on `exit_pricing` configuration setting or by using the `custom_exit_price()` callback.
-  * Before an exit order is placed, `confirm_trade_exit()` strategy callback is called.
-* Check position adjustments for open trades if enabled by calling `adjust_trade_position()` and place additional order if required.
-* Check if trade-slots are still available (if `max_open_trades` is reached).
-* Verifies entry signal trying to enter new positions.
-  * Determine entry-price based on `entry_pricing` configuration setting, or by using the `custom_entry_price()` callback.
-  * In Margin and Futures mode, `leverage()` strategy callback is called to determine the desired leverage.
-  * Determine stake size by calling the `custom_stake_amount()` callback.
-  * Before an entry order is placed, `confirm_trade_entry()` strategy callback is called.
+このループは、ボットが停止されるまで何度も繰り返されます。
 
-This loop will be repeated again and again until the bot is stopped.
+## バックテスト / Hyperopt実行ロジック
 
-## Backtesting / Hyperopt execution logic
+[backtesting](backtesting.md)または[hyperopt](hyperopt.md)は、ほとんどのトレーディング操作が完全にシミュレートされるため、上記のロジックの一部のみを実行します。
 
-[backtesting](backtesting.md) or [hyperopt](hyperopt.md) do only part of the above logic, since most of the trading operations are fully simulated.
-
-* Load historic data for configured pairlist.
-* Calls `bot_start()` once.
-* Calculate indicators (calls `populate_indicators()` once per pair).
-* Calculate entry / exit signals (calls `populate_entry_trend()` and `populate_exit_trend()` once per pair).
-* Loops per candle simulating entry and exit points.
-  * Calls `bot_loop_start()` strategy callback.
-  * Check for Order timeouts, either via the `unfilledtimeout` configuration, or via `check_entry_timeout()` / `check_exit_timeout()` strategy callbacks.
-  * Calls `adjust_order_price()` strategy callback for open orders.
-    * Calls `adjust_entry_price()` strategy callback for open entry orders. *only called when `adjust_order_price()` is not implemented!*
-    * Calls `adjust_exit_price()` strategy callback for open exit orders. *only called when `adjust_order_price()` is not implemented!*
-  * Check for trade entry signals (`enter_long` / `enter_short` columns).
-  * Confirm trade entry / exits (calls `confirm_trade_entry()` and `confirm_trade_exit()` if implemented in the strategy).
-  * Call `custom_entry_price()` (if implemented in the strategy) to determine entry price (Prices are moved to be within the opening candle).
-  * In Margin and Futures mode, `leverage()` strategy callback is called to determine the desired leverage.
-  * Determine stake size by calling the `custom_stake_amount()` callback.
-  * Check position adjustments for open trades if enabled and call `adjust_trade_position()` to determine if an additional order is requested.
-  * Call `order_filled()` strategy callback for filled entry orders.
-  * Call `custom_stoploss()` and `custom_exit()` to find custom exit points.
-  * For exits based on exit-signal, custom-exit and partial exits: Call `custom_exit_price()` to determine exit price (Prices are moved to be within the closing candle).
-  * Call `order_filled()` strategy callback for filled exit orders.
-* Generate backtest report output
+* 設定されたペアリストの履歴データを読み込みます。
+* `bot_start()`を1回呼び出します。
+* インジケーターを計算します（ペアごとに`populate_indicators()`を1回呼び出します）。
+* エントリー / 出口シグナルを計算します（ペアごとに`populate_entry_trend()`と`populate_exit_trend()`を1回呼び出します）。
+* エントリーと出口ポイントをシミュレートして、ローソク足ごとにループします。
+  * `bot_loop_start()`戦略コールバックを呼び出します。
+  * `unfilledtimeout`設定、または`check_entry_timeout()` / `check_exit_timeout()`戦略コールバックを介してオーダータイムアウトをチェックします。
+  * オープンオーダーに対して`adjust_order_price()`戦略コールバックを呼び出します。
+    * オープンエントリー注文に対して`adjust_entry_price()`戦略コールバックを呼び出します。*`adjust_order_price()`が実装されていない場合のみ呼び出されます！*
+    * オープンイグジット注文に対して`adjust_exit_price()`戦略コールバックを呼び出します。*`adjust_order_price()`が実装されていない場合のみ呼び出されます！*
+  * トレードエントリーシグナル（`enter_long` / `enter_short`列）をチェックします。
+  * トレードエントリー / 出口を確認します（戦略に実装されている場合、`confirm_trade_entry()`と`confirm_trade_exit()`を呼び出します）。
+* エントリー価格を決定するために`custom_entry_price()`を呼び出します（戦略に実装されている場合）（価格は開始ローソク足内に移動されます）。
+  * マージンおよび先物モードでは、`leverage()`戦略コールバックが呼び出されて、希望するレバレッジが決定されます。
+  * `custom_stake_amount()`コールバックを呼び出してステークサイズを決定します。
+  * 有効な場合、オープントレードのポジション調整をチェックし、`adjust_trade_position()`を呼び出して追加注文が要求されているかどうかを判断します。
+  * 約定したエントリー注文に対して`order_filled()`戦略コールバックを呼び出します。
+  * カスタム出口ポイントを見つけるために`custom_stoploss()`と`custom_exit()`を呼び出します。
+  * 出口シグナル、カスタム出口、部分的な出口に基づく出口の場合：出口価格を決定するために`custom_exit_price()`を呼び出します（価格は閉鎖ローソク足内に移動されます）。
+  * 約定した出口注文に対して`order_filled()`戦略コールバックを呼び出します。
+* バックテストレポート出力を生成します
 
 !!! Note
-    Both Backtesting and Hyperopt include exchange default Fees in the calculation. Custom fees can be passed to backtesting / hyperopt by specifying the `--fee` argument.
+    バックテストとHyperoptの両方は、計算に取引所のデフォルト手数料を含みます。カスタム手数料は、`--fee`引数を指定することにより、バックテスト / hyperoptに渡すことができます。
 
-!!! Warning "Callback call frequency"
-    Backtesting will call each callback at max. once per candle (`--timeframe-detail` modifies this behavior to once per detailed candle).
-    Most callbacks will be called once per iteration in live (usually every ~5s) - which can cause backtesting mismatches.
+!!! Warning "コールバック呼び出し頻度"
+    バックテストは、各コールバックをローソク足ごとに最大1回呼び出します（`--timeframe-detail`はこの動作を詳細なローソク足ごとに1回に変更します）。
+    ほとんどのコールバックは、ライブでは反復ごとに1回呼び出されます（通常は約5秒ごと） - これによりバックテストの不一致が発生する可能性があります。

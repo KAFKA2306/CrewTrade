@@ -8,7 +8,6 @@
 以下のサンプルの場合、この関数が使用されるように、hyperopt呼び出しにコマンドラインパラメータ`--hyperopt-loss SuperDuperHyperOptLoss`を追加する必要があります。
 
 以下にこのサンプルがあります。これはデフォルトのHyperopt損失実装と同じです。完全なサンプルは[userdata/hyperopts](https://github.com/freqtrade/freqtrade/blob/develop/freqtrade/templates/sample_hyperopt_loss.py)にあります。
-
 ``` python
 from datetime import datetime
 from typing import Any, Dict
@@ -57,7 +56,6 @@ class SuperDuperHyperOptLoss(IHyperOptLoss):
         result = trade_loss + profit_loss + duration_loss
         return result
 ```
-
 現在、引数は次のとおりです：
 
 * `results`: 結果の取引を含むDataFrame。
@@ -82,7 +80,6 @@ class SuperDuperHyperOptLoss(IHyperOptLoss):
 ## 事前定義されたスペースのオーバーライド
 
 事前定義されたスペース（`roi_space`、`generate_roi_table`、`stoploss_space`、`trailing_space`、`max_open_trades_space`）をオーバーライドするには、Hyperoptという名前のネストされたクラスを定義し、次のように必要なスペースを定義します：
-
 ```python
 from freqtrade.optimize.space import Categorical, Dimension, Integer, SKDecimal
 
@@ -136,14 +133,12 @@ class MyAwesomeStrategy(IStrategy):
                 Integer(-1, 10, name='max_open_trades'),
             ]
 ```
-
 !!! Note
     すべてのオーバーライドはオプションであり、必要に応じて混合/照合できます。
 
 ### 動的パラメータ
 
 パラメータは動的に定義することもできますが、[`bot_start()`コールバック](strategy-callbacks.md#bot-start)が呼び出されると、インスタンスで利用可能である必要があります。
-
 ``` python
 
 class MyAwesomeStrategy(IStrategy):
@@ -153,14 +148,12 @@ class MyAwesomeStrategy(IStrategy):
 
     # ...
 ```
-
 !!! Warning
     この方法で作成されたパラメータは、`list-strategies`パラメータカウントに表示されません。
 
 ### ベースエスティメータのオーバーライド
 
 Hyperoptサブクラスで`generate_estimator()`を実装することにより、Hyperopt用の独自のoptunaサンプラーを定義できます。
-
 ```python
 class MyAwesomeStrategy(IStrategy):
     class HyperOpt:
@@ -168,7 +161,6 @@ class MyAwesomeStrategy(IStrategy):
             return "NSGAIIISampler"
 
 ```
-
 可能な値は、「NSGAIISampler」、「TPESampler」、「GPSampler」、「CmaEsSampler」、「NSGAIIISampler」、「QMCSampler」のいずれか（詳細は[optuna-samplersドキュメント](https://optuna.readthedocs.io/en/stable/reference/samplers/index.html)にあります）、または「`optuna.samplers.BaseSampler`を継承するクラスのインスタンス」です。
 
 たとえば、optunahubから追加のサンプラーを見つけるには、いくつかの調査が必要になります。
@@ -185,8 +177,7 @@ class MyAwesomeStrategy(IStrategy):
     ``` bash
     pip install optunahub cmaes torch scipy
     ```
-    ストラテジーで`generate_estimator()`を実装
-
+ストラテジーで`generate_estimator()`を実装
     ``` python
     # ...
     from freqtrade.strategy.interface import IStrategy
@@ -203,8 +194,7 @@ class MyAwesomeStrategy(IStrategy):
                     return optunahub.load_module("samplers/auto_sampler").AutoSampler()
 
     ```
-
-    明らかに、同じアプローチは、optunaがサポートする他のすべてのサンプラーで機能します。
+明らかに、同じアプローチは、optunaがサポートする他のすべてのサンプラーで機能します。
 
 
 ## スペースオプション
@@ -217,11 +207,9 @@ class MyAwesomeStrategy(IStrategy):
 * `Real` - 完全な精度の小数の範囲から選択（例：`Real(0.1, 0.5, name='adx')`
 
 これらすべてを`freqtrade.optimize.space`からインポートできますが、`Categorical`、`Integer`、`Real`は、対応するscikit-optimizeスペースの単なるエイリアスです。`SKDecimal`は、より高速な最適化のためにfreqtradeによって提供されています。
-
 ``` python
 from freqtrade.optimize.space import Categorical, Dimension, Integer, SKDecimal, Real  # noqa
 ```
-
 !!! Hint "SKDecimal vs. Real"
     ほとんどすべてのケースで、`Real`スペースの代わりに`SKDecimal`を使用することをお勧めします。Realスペースは完全な精度（最大約16桁）を提供しますが、この精度はほとんど必要なく、不必要に長いhyperopt時間につながります。
 
