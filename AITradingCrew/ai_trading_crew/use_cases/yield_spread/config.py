@@ -36,10 +36,10 @@ class YieldSpreadConfig(UseCaseConfig):
                     description="ICE BofA US High Yield Index Effective Yield (%)",
                 ),
                 treasury=YieldSeriesConfig(
-                    source="yfinance",
-                    identifier="^TNX",
-                    scaling=0.1,
-                    description="US 10Y Treasury Yield Index (%)",
+                    source="fred",
+                    identifier="DGS10",
+                    field="value",
+                    description="US 10Y Treasury Constant Maturity Rate (%)",
                 ),
                 description="US High Yield minus 10Y Treasury yield spread",
             )
