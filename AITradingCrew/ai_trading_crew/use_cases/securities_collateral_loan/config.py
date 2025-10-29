@@ -1,0 +1,54 @@
+from __future__ import annotations
+
+from typing import Dict, List
+
+from pydantic import BaseModel, Field, validator
+
+from ai_trading_crew.use_cases.base import UseCaseConfig
+
+
+class CollateralAsset(BaseModel):
+    ticker: str
+    quantity: float = Field(gt=0)
+    description: str | None = None
+
+
+class LoanScenario(BaseModel):
+    drop_pct: float = Field(gt=0, lt=1, description="Price drop ratio (e.g., 0.2 for -20%).")
+    label: str | None = None
+
+
+class SecuritiesCollateralLoanConfig(UseCaseConfig):
+    period: str = Field(default="3y")
+    loan_amount: float = Field(default=10_000_000, gt=0)
+    annual_interest_rate: float = Field(default=0.01875, gt=0, description="Annual simple interest rate.")
+    ltv_limit: float = Field(default=0.60, gt=0, lt=1, description="Maximum borrowing ratio vs collateral market value.")
+    warning_ratio: float = Field(default=0.70, gt=0, lt=1)
+    liquidation_ratio: float = Field(default=0.85, gt=0, lt=1)
+    collateral_assets: List[CollateralAsset] = Field(default_factory=list)
+    scenarios: List[LoanScenario] = Field(
+        default_factory=lambda: [
+            LoanScenario(drop_pct=0.10, label="-10%"),
+            LoanScenario(drop_pct=0.20, label="-20%"),
+            LoanScenario(drop_pct=0.30, label="-30%"),
+            LoanScenario(drop_pct=0.40, label="-40%"),
+        ]
+    )
+    interest_horizons_days: List[int] = Field(default_factory=lambda: [30, 90, 180])
+
+    @validator("period")
+    def _validate_period(cls, value: str) -> str:
+        value = value.strip().lower()
+        if len(value) < 2 or value[-1] not in {"y", "m", "d"}:
+            raise ValueError("period must end with 'y', 'm', or 'd' (e.g., '3y').")
+        int(value[:-1])
+        return value
+
+
+DEFAULT_CONFIG = SecuritiesCollateralLoanConfig(
+    name="securities_collateral_loan",
+    collateral_assets=[
+        CollateralAsset(ticker="1489.T", quantity=4000, description="Nikkei High Dividend Yield 50 ETF"),
+        CollateralAsset(ticker="348A.T", quantity=30000, description="Yomiuri 333 ETF"),
+    ],
+)

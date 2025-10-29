@@ -6,6 +6,7 @@ from ai_trading_crew.use_cases import get_use_case_class, get_use_case_config_mo
 import ai_trading_crew.use_cases.precious_metals_spread  # noqa: F401
 import ai_trading_crew.use_cases.credit_spread  # noqa: F401
 import ai_trading_crew.use_cases.yield_spread  # noqa: F401
+import ai_trading_crew.use_cases.securities_collateral_loan  # noqa: F401
 from ai_trading_crew.use_cases.base import UseCasePaths
 
 

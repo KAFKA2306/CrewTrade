@@ -166,6 +166,7 @@ python -m ai_trading_crew.main
 | `precious_metals_spread` | 東京市場の貴金属ETFと先物価格の乖離を検出し、統計的な異常シグナルを抽出します。 | `config/use_cases/precious_metals_spread.yaml` |
 | `credit_spread` | ジャンク社債ETFと米国債ETFの価格比率をモニタリングし、クレジットスプレッドの拡大/縮小を検知します。 | `config/use_cases/credit_spread.yaml` |
 | `yield_spread` | ジャンク社債利回りと国債利回りのイールドスプレッドを追跡し、zスコアによる拡大/縮小シグナルとリスク配分ガイダンスを生成します。 | `config/use_cases/yield_spread.yaml` |
+| `securities_collateral_loan` | 証券担保ローン（楽天証券/楽天銀行向け）ポートフォリオの貸出余力・ドローダウン・ロスカットリスクを分析し、ストレスシナリオと利息見積りを提示します。 | `config/use_cases/securities_collateral_loan.yaml` |
 
 いずれのユースケースも以下のように実行できます:
 
@@ -173,6 +174,8 @@ python -m ai_trading_crew.main
 python -m ai_trading_crew.use_case_runner credit_spread --config config/use_cases/credit_spread.yaml
 # イールドスプレッドトラッカー
 python -m ai_trading_crew.use_case_runner yield_spread --config config/use_cases/yield_spread.yaml
+# 証券担保ローンリスク分析
+python -m ai_trading_crew.use_case_runner securities_collateral_loan --config config/use_cases/securities_collateral_loan.yaml
 ```
 
 ### リスク配分ガイダンスについて

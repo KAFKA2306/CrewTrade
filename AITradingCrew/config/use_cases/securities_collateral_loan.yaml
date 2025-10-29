@@ -1,0 +1,27 @@
+name: securities_collateral_loan
+period: 3y
+loan_amount: 10000000
+annual_interest_rate: 0.01875
+ltv_limit: 0.6
+warning_ratio: 0.7
+liquidation_ratio: 0.85
+collateral_assets:
+  - ticker: 1489.T
+    quantity: 4000
+    description: Nikkei High Dividend Yield 50 ETF
+  - ticker: 348A.T
+    quantity: 30000
+    description: Yomiuri 333 ETF
+scenarios:
+  - drop_pct: 0.1
+    label: "-10%"
+  - drop_pct: 0.2
+    label: "-20%"
+  - drop_pct: 0.3
+    label: "-30%"
+  - drop_pct: 0.4
+    label: "-40%"
+interest_horizons_days:
+  - 30
+  - 90
+  - 180
