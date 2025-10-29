@@ -177,8 +177,9 @@ def _compute_gap_threshold_stats(metrics: pd.DataFrame) -> Dict[float, pd.DataFr
         ticker_frame = ticker_frame.sort_index()
         ticker_frame["abs_gap"] = ticker_frame["gap_pct"].abs()
         for threshold in thresholds:
-            trigger_mask = (ticker_frame["abs_gap"] >= threshold) & (ticker_frame["abs_gap"].shift(1) < threshold)
-            trigger_dates = ticker_frame.index[trigger_mask.fillna(True)]
+            prev_abs = ticker_frame["abs_gap"].shift(1)
+            trigger_mask = (ticker_frame["abs_gap"] >= threshold) & ((prev_abs < threshold) | prev_abs.isna())
+            trigger_dates = ticker_frame.index[trigger_mask]
             for trigger_date in trigger_dates:
                 future = ticker_frame.loc[ticker_frame.index > trigger_date]
                 target = future[future["abs_gap"] < threshold / 2]
