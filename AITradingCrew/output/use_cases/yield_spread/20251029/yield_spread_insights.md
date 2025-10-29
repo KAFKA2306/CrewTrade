@@ -1,28 +1,28 @@
 # Yield Spread Insight Report
 
 ## Data Coverage
-- Date range: 2020-10-29 → 2025-10-29
+- Date range: 2020-10-29 → 2025-10-28
 - Pairs analysed: 1
 
 ## Latest Snapshot
 | Pair | Date | Spread (bp) | Z | Junk % | Treasury % |
 | --- | --- | --- | --- | --- | --- |
-| us_high_yield_vs_us10y | 2025-10-29 | 600.10 | -1.18 | 6.40 | 0.40 |
+| us_high_yield_vs_us10y | 2025-10-28 | 239.00 | -0.26 | 6.40 | 4.01 |
 
 ## Signals
-- Total signals: 364
+- Total signals: 337
 
 | Pair | Direction | Count |
 | --- | --- | --- |
-| us_high_yield_vs_us10y | tightening | 157 |
-| us_high_yield_vs_us10y | widening | 207 |
+| us_high_yield_vs_us10y | tightening | 172 |
+| us_high_yield_vs_us10y | widening | 165 |
 
 ## 90-Day Activity
 | Pair | Signals | Median |Z| | Median bp |
 | --- | --- | --- | --- |
-| us_high_yield_vs_us10y | 23 | 1.76 | 605.60 |
+| us_high_yield_vs_us10y | 16 | 1.77 | 229.50 |
 
 ## Spread Distribution (bp)
 | Pair | Mean | Median | Max | Min |
 | --- | --- | --- | --- | --- |
-| us_high_yield_vs_us10y | 649.00 | 680.10 | 912.50 | 378.80 |
+| us_high_yield_vs_us10y | 355.70 | 332.00 | 602.00 | 222.00 |
