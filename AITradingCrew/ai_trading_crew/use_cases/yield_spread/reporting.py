@@ -91,6 +91,44 @@ class YieldSpreadReporter:
                 lines.append(f"| Samples | {opt_meta.get('sample_size')} |")
                 lines.append(f"| Risk-free | {opt_meta.get('risk_free_rate')} |")
                 lines.append("")
+            metrics = allocation.get("metrics") or allocation.get("base_metrics")
+            if metrics:
+                lines.append("| Metric | Value |")
+                lines.append("| --- | --- |")
+                for key in ["annual_return", "annual_volatility", "sharpe", "max_drawdown", "total_return"]:
+                    value = metrics.get(key)
+                    if value is None:
+                        continue
+                    formatted = f"{value:.4f}" if isinstance(value, (int, float)) else value
+                    lines.append(f"| {key.replace('_', ' ').title()} | {formatted} |")
+                lines.append("")
+            if method == "optimized" and allocation.get("base_metrics"):
+                base_metrics = allocation["base_metrics"]
+                lines.append("| Base Metric | Value |")
+                lines.append("| --- | --- |")
+                for key in ["annual_return", "annual_volatility", "sharpe", "max_drawdown", "total_return"]:
+                    value = base_metrics.get(key)
+                    if value is None:
+                        continue
+                    formatted = f"{value:.4f}" if isinstance(value, (int, float)) else value
+                    lines.append(f"| {key.replace('_', ' ').title()} | {formatted} |")
+                lines.append("")
+            sensitivity = allocation.get("sensitivity")
+            if sensitivity:
+                lines.append("| Sample Size | Sharpe | Ann. Return | Ann. Vol |")
+                lines.append("| --- | --- | --- | --- |")
+                for row in sensitivity:
+                    sharpe_val = row.get("sharpe")
+                    ann_ret = row.get("annual_return")
+                    ann_vol = row.get("annual_volatility")
+                    sharpe_str = f"{sharpe_val:.4f}" if isinstance(sharpe_val, (int, float)) else sharpe_val
+                    ann_ret_str = f"{ann_ret:.4f}" if isinstance(ann_ret, (int, float)) else ann_ret
+                    ann_vol_str = f"{ann_vol:.4f}" if isinstance(ann_vol, (int, float)) else ann_vol
+                    lines.append(
+                        f"| {row.get('sample_size')} | {sharpe_str} | {ann_ret_str} | {ann_vol_str} |"
+                    )
+                lines.append("")
+                lines.append("")
             lines.append("| Asset | Weight |")
             lines.append("| --- | --- |")
             for asset, weight in allocation["weights"].items():

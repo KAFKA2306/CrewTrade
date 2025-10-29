@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Literal
+from typing import Dict, List, Literal
 
 from pydantic import BaseModel, Field, validator
 
@@ -42,6 +42,7 @@ class OptimizationConfig(BaseModel):
     min_weight: float = Field(default=0.0)
     max_weight: float = Field(default=1.0)
     risk_free_rate: float = Field(default=0.0)
+    sensitivity_sample_sizes: List[int] = Field(default_factory=lambda: [1000, 5000, 10000])
 
     @validator("lookback")
     def _validate_lookback(cls, value: str) -> str:

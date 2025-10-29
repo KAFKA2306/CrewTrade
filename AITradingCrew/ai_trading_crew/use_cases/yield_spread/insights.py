@@ -6,14 +6,14 @@ import pandas as pd
 
 
 def build_insight_markdown(analysis_payload: Dict[str, Any]) -> str:
-    metrics = analysis_payload["metrics"]
+    metrics_frame = analysis_payload["metrics"]
     snapshot = analysis_payload["snapshot"]
     edges = analysis_payload["edges"]
     allocation = analysis_payload.get("allocation")
 
     # Determine coverage from underlying metrics index
-    date_start = metrics.index.min()
-    date_end = metrics.index.max()
+    date_start = metrics_frame.index.min()
+    date_end = metrics_frame.index.max()
 
     lines: List[str] = []
     lines.append("# Yield Spread Insight Report")
@@ -45,6 +45,26 @@ def build_insight_markdown(analysis_payload: Dict[str, Any]) -> str:
         )
         lines.append(_format_table(alloc_table, ["Asset", "Weight"], ["Asset", "Weight"]))
         lines.append("")
+        alloc_metrics = allocation.get("metrics") or allocation.get("base_metrics")
+        if alloc_metrics:
+            metric_rows = []
+            for key in ["annual_return", "annual_volatility", "sharpe", "max_drawdown", "total_return"]:
+                value = alloc_metrics.get(key)
+                if value is not None:
+                    metric_rows.append({"Metric": key.replace("_", " ").title(), "Value": value})
+            if metric_rows:
+                lines.append(_format_table(pd.DataFrame(metric_rows), ["Metric", "Value"], ["Metric", "Value"]))
+                lines.append("")
+        if method == "optimized" and allocation.get("base_metrics"):
+            base_metrics = allocation["base_metrics"]
+            base_rows = []
+            for key in ["annual_return", "annual_volatility", "sharpe", "max_drawdown", "total_return"]:
+                value = base_metrics.get(key)
+                if value is not None:
+                    base_rows.append({"Base Metric": key.replace("_", " ").title(), "Value": value})
+            if base_rows:
+                lines.append(_format_table(pd.DataFrame(base_rows), ["Base Metric", "Value"], ["Base Metric", "Value"]))
+                lines.append("")
         opt_meta = allocation.get("optimization_meta")
         if opt_meta is not None:
             meta_table = pd.DataFrame(
@@ -55,6 +75,11 @@ def build_insight_markdown(analysis_payload: Dict[str, Any]) -> str:
                 ]
             )
             lines.append(_format_table(meta_table, ["Param", "Value"], ["Param", "Value"]))
+            lines.append("")
+        sensitivity = allocation.get("sensitivity")
+        if sensitivity:
+            sens_table = pd.DataFrame(sensitivity)
+            lines.append(_format_table(sens_table, sens_table.columns.tolist(), [col.replace("_", " ").title() for col in sens_table.columns]))
             lines.append("")
 
     if snapshot.empty:
@@ -114,7 +139,7 @@ def build_insight_markdown(analysis_payload: Dict[str, Any]) -> str:
     lines.append("")
 
     try:
-        spread_bp = metrics.xs("spread_bp", axis=1, level=1)
+        spread_bp = metrics_frame.xs("spread_bp", axis=1, level=1)
     except (KeyError, ValueError):
         spread_bp = pd.DataFrame()
     if not spread_bp.empty:

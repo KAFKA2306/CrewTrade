@@ -9,7 +9,7 @@
 - Method: Optimized
 - Latest z-score: -0.26
 - Spread: 239.0 bp
-- Estimated Sharpe: 0.8869
+- Estimated Sharpe: 0.8909
 
 | Asset | Weight |
 | --- | --- |
@@ -17,11 +17,33 @@
 | IEF | 44.83% |
 | HYG | 0.04% |
 
+| Metric | Value |
+| --- | --- |
+| Annual Return | 0.12 |
+| Annual Volatility | 0.11 |
+| Sharpe | 0.89 |
+| Max Drawdown | -0.11 |
+| Total Return | 0.12 |
+
+| Base Metric | Value |
+| --- | --- |
+| Annual Return | 0.11 |
+| Annual Volatility | 0.11 |
+| Sharpe | 0.80 |
+| Max Drawdown | -0.11 |
+| Total Return | 0.11 |
+
 | Param | Value |
 | --- | --- |
 | Lookback | 1y |
 | Samples | 15000 |
 | Risk-free | 0.02 |
+
+| Sample Size | Sharpe | Annual Return | Annual Volatility |
+| --- | --- | --- | --- |
+| 1000.00 | 0.89 | 0.12 | 0.12 |
+| 5000.00 | 0.89 | 0.12 | 0.11 |
+| 10000.00 | 0.89 | 0.11 | 0.10 |
 
 ## Latest Snapshot
 | Pair | Date | Spread (bp) | Z | Junk % | Treasury % |

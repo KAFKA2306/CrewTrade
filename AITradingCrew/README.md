@@ -177,7 +177,7 @@ python -m ai_trading_crew.use_case_runner yield_spread --config config/use_cases
 
 ### リスク配分ガイダンスについて
 
-`yield_spread` ユースケースでは、最新のスプレッドzスコアに応じて `Risk-On / Neutral / Defensive` の推奨ウェイトを提示します。`allocation.optimization.enabled` を `true` にすると、指定した候補アセットの1年リターンをもとにモンテカルロで最大シャープレシオを探索し、推奨ウェイトを自動調整します。`config/use_cases/yield_spread.yaml` の `allocation` セクションでしきい値・ウェイト候補・最適化パラメータを調整できます。実行後は `output/use_cases/yield_spread/<日付>/yield_spread_report.md` を参照すると現在のレジームと推奨ウェイトが確認できます。
+`yield_spread` ユースケースでは、最新のスプレッドzスコアに応じて `Risk-On / Neutral / Defensive` の推奨ウェイトを提示します。`allocation.optimization.enabled` を `true` にすると、指定した候補アセットのリターン系列を使ってモンテカルロ探索で最大シャープレシオを推定し、推奨ウェイト・推定Sharpe・バックテスト指標（年間リターン/ボラティリティ/最大ドローダウン）をレポートに出力します。さらに `sensitivity_sample_sizes` を設定するとサンプル数ごとのシャープ安定度テーブルも生成されます。`config/use_cases/yield_spread.yaml` の `allocation` セクションでしきい値・ウェイト候補・最適化パラメータを調整できます。実行後は `output/use_cases/yield_spread/<日付>/yield_spread_report.md` を参照すると現在のレジームと推奨ウェイトが確認できます。
 
 ---
 
