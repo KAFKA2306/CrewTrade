@@ -29,8 +29,13 @@ def build_insight_markdown(analysis_payload: Dict[str, Any]) -> str:
     if allocation:
         lines.append("## Allocation Guidance")
         lines.append(f"- Regime: **{allocation['regime']}**")
+        method = allocation.get("method", "static")
+        lines.append(f"- Method: {method.title()}")
         lines.append(f"- Latest z-score: {allocation['z_score']:.2f}")
         lines.append(f"- Spread: {allocation['spread_bp']:.1f} bp")
+        sharpe = allocation.get("sharpe")
+        if sharpe is not None:
+            lines.append(f"- Estimated Sharpe: {sharpe}")
         lines.append("")
         alloc_table = pd.DataFrame(
             [
@@ -40,6 +45,17 @@ def build_insight_markdown(analysis_payload: Dict[str, Any]) -> str:
         )
         lines.append(_format_table(alloc_table, ["Asset", "Weight"], ["Asset", "Weight"]))
         lines.append("")
+        opt_meta = allocation.get("optimization_meta")
+        if opt_meta is not None:
+            meta_table = pd.DataFrame(
+                [
+                    {"Param": "Lookback", "Value": opt_meta.get("lookback")},
+                    {"Param": "Samples", "Value": opt_meta.get("sample_size")},
+                    {"Param": "Risk-free", "Value": opt_meta.get("risk_free_rate")},
+                ]
+            )
+            lines.append(_format_table(meta_table, ["Param", "Value"], ["Param", "Value"]))
+            lines.append("")
 
     if snapshot.empty:
         lines.append("No spreads available for summary.")

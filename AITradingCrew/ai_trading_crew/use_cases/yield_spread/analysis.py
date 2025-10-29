@@ -14,6 +14,7 @@ class YieldSpreadAnalyzer:
 
     def evaluate(self, data_payload: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
         series_frame = data_payload["series"]
+        asset_prices = data_payload.get("asset_prices")
         metrics = self._compute_pair_metrics(series_frame)
         edges = self._detect_edges(metrics)
         snapshot = self._build_snapshot(metrics)
@@ -23,9 +24,11 @@ class YieldSpreadAnalyzer:
             "edges": edges,
             "snapshot": snapshot,
         }
+        if asset_prices is not None:
+            payload["asset_prices"] = asset_prices
         allocation = None
         if self.config.allocation is not None:
-            allocation = compute_allocation(self.config.allocation, snapshot)
+            allocation = compute_allocation(self.config.allocation, snapshot, asset_prices)
         if allocation is not None:
             payload["allocation"] = allocation
         return payload

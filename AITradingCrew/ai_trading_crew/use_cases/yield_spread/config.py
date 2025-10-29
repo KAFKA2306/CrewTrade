@@ -35,6 +35,23 @@ class AllocationProfile(BaseModel):
         return value
 
 
+class OptimizationConfig(BaseModel):
+    enabled: bool = Field(default=False)
+    lookback: str = Field(default="1y")
+    sample_size: int = Field(default=5000)
+    min_weight: float = Field(default=0.0)
+    max_weight: float = Field(default=1.0)
+    risk_free_rate: float = Field(default=0.0)
+
+    @validator("lookback")
+    def _validate_lookback(cls, value: str) -> str:
+        value = value.strip().lower()
+        if len(value) < 2 or value[-1] not in {"y", "m", "d"}:
+            raise ValueError("lookback must end with 'y', 'm', or 'd' (e.g., '1y', '6m')")
+        int(value[:-1])
+        return value
+
+
 class AllocationConfig(BaseModel):
     upper_z: float = Field(default=1.0, description="Threshold above which the regime is defensive.")
     lower_z: float = Field(default=-1.0, description="Threshold below which the regime is risk-on.")
@@ -56,6 +73,7 @@ class AllocationConfig(BaseModel):
             weights={"SPY": 0.6, "QQQ": 0.2, "HYG": 0.2},
         )
     )
+    optimization: OptimizationConfig = Field(default_factory=OptimizationConfig)
 
     @validator("upper_z")
     def _check_upper(cls, value: float, values: Dict[str, float]) -> float:

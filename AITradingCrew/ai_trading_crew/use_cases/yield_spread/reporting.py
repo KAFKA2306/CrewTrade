@@ -23,6 +23,7 @@ class YieldSpreadReporter:
         metrics_frame = analysis_payload["metrics"]
         edges_frame = analysis_payload["edges"]
         snapshot_frame = analysis_payload["snapshot"]
+        asset_prices = analysis_payload.get("asset_prices")
         allocation_payload = analysis_payload.get("allocation")
 
         stored_paths: Dict[str, Path] = {}
@@ -42,6 +43,11 @@ class YieldSpreadReporter:
         snapshot_path = self.processed_dir / "snapshot.parquet"
         snapshot_frame.to_parquet(snapshot_path)
         stored_paths["snapshot"] = snapshot_path
+
+        if isinstance(asset_prices, pd.DataFrame):
+            asset_price_path = self.processed_dir / "allocation_prices.parquet"
+            asset_prices.to_parquet(asset_price_path)
+            stored_paths["allocation_prices"] = asset_price_path
 
         if allocation_payload is not None:
             allocation_path = self.processed_dir / "allocation.json"
@@ -69,9 +75,22 @@ class YieldSpreadReporter:
         if allocation is not None:
             lines.append("## Risk Allocation Guidance")
             lines.append(f"- Regime: **{allocation['regime']}**")
+            method = allocation.get("method", "static")
+            lines.append(f"- Method: {method.title()}")
             lines.append(f"- Latest z-score: {allocation['z_score']:.2f}")
             lines.append(f"- Spread: {allocation['spread_bp']:.1f} bp")
+            sharpe = allocation.get("sharpe")
+            if sharpe is not None:
+                lines.append(f"- Estimated Sharpe: {sharpe}")
             lines.append("")
+            opt_meta = allocation.get("optimization_meta")
+            if opt_meta is not None:
+                lines.append("| Param | Value |")
+                lines.append("| --- | --- |")
+                lines.append(f"| Lookback | {opt_meta.get('lookback')} |")
+                lines.append(f"| Samples | {opt_meta.get('sample_size')} |")
+                lines.append(f"| Risk-free | {opt_meta.get('risk_free_rate')} |")
+                lines.append("")
             lines.append("| Asset | Weight |")
             lines.append("| --- | --- |")
             for asset, weight in allocation["weights"].items():

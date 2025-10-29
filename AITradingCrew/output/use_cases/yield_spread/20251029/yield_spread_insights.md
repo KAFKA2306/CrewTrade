@@ -6,14 +6,22 @@
 
 ## Allocation Guidance
 - Regime: **Neutral**
+- Method: Optimized
 - Latest z-score: -0.26
 - Spread: 239.0 bp
+- Estimated Sharpe: 0.8869
 
 | Asset | Weight |
 | --- | --- |
-| SPY | 50.00% |
-| IEF | 30.00% |
-| HYG | 20.00% |
+| SPY | 55.13% |
+| IEF | 44.83% |
+| HYG | 0.04% |
+
+| Param | Value |
+| --- | --- |
+| Lookback | 1y |
+| Samples | 5000 |
+| Risk-free | 0.02 |
 
 ## Latest Snapshot
 | Pair | Date | Spread (bp) | Z | Junk % | Treasury % |
