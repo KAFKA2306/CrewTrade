@@ -2,79 +2,79 @@
     <a href="#"><img src="docs/docs/img/full.png"></a>
 </p>
 <p align="center">
-    <em>Python wrapper for an unofficial Yahoo Finance API</em>
+    <em>非公式Yahoo Finance APIのPythonラッパー</em>
 </p>
 <p align="center">
     <a href="https://codecov.io/gh/dpguthrie/yahooquery" target="_blank">
-        <img src="https://img.shields.io/codecov/c/github/dpguthrie/yahooquery" alt="Coverage">
+        <img src="https://img.shields.io/codecov/c/github/dpguthrie/yahooquery" alt="カバレッジ">
     </a>
     <a href="https://pypi.org/project/yahooquery" target="_blank">
-        <img src="https://badge.fury.io/py/yahooquery.svg" alt="Package version">
+        <img src="https://badge.fury.io/py/yahooquery.svg" alt="パッケージバージョン">
     </a>
     <a href="https://pepy.tech/project/yahooquery" target="_blank">
-        <img src="https://pepy.tech/badge/yahooquery" alt="Downloads">
+        <img src="https://pepy.tech/badge/yahooquery" alt="ダウンロード">
     </a>
 </p>
 
 ---
 
-**Documentation**: <a target="_blank" href="https://yahooquery.dpguthrie.com">https://yahooquery.dpguthrie.com</a>
+**ドキュメント**: <a target="_blank" href="https://yahooquery.dpguthrie.com">https://yahooquery.dpguthrie.com</a>
 
-**Interactive Demo**: <a target="_blank" href="https://yahooquery.streamlit.app/">https://yahooquery.streamlit.app/</a>
+**インタラクティブデモ**: <a target="_blank" href="https://yahooquery.streamlit.app/">https://yahooquery.streamlit.app/</a>
 
-**Source Code**: <a target="_blank" href="https://github.com/dpguthrie/yahooquery">https://github.com/dpguthrie/yahooquery</a>
+**ソースコード**: <a target="_blank" href="https://github.com/dpguthrie/yahooquery">https://github.com/dpguthrie/yahooquery</a>
 
-**Blog Post**: <a target="_blank" href="https://towardsdatascience.com/the-unofficial-yahoo-finance-api-32dcf5d53df">https://towardsdatascience.com/the-unofficial-yahoo-finance-api-32dcf5d53df</a>
+**ブログ投稿**: <a target="_blank" href="https://towardsdatascience.com/the-unofficial-yahoo-finance-api-32dcf5d53df">https://towardsdatascience.com/the-unofficial-yahoo-finance-api-32dcf5d53df</a>
 
 ---
 
-## Overview
+## 概要
 
-Yahooquery is a python interface to unofficial Yahoo Finance API endpoints. The package allows a user to retrieve nearly all the data visible via the Yahoo Finance front-end.
+Yahooqueryは、非公式のYahoo Finance APIエンドポイントへのPythonインターフェースです。このパッケージを使用すると、ユーザーはYahoo Financeのフロントエンドで表示されるほぼすべてのデータを取得できます。
 
-Some features of yahooquery:
+Yahooqueryのいくつかの機能：
 
-- **Fast**: Data is retrieved through API endpoints instead of web scraping. Additionally, asynchronous requests can be utilized with simple configuration
-- **Simple**: Data for multiple symbols can be retrieved with simple one-liners
-- **User-friendly**: Pandas Dataframes are utilized where appropriate
-- **Premium**: Yahoo Finance premium subscribers are able to retrieve data available through their subscription
+- **高速**: データはWebスクレイピングではなくAPIエンドポイントを介して取得されます。さらに、非同期リクエストは簡単な設定で利用できます。
+- **シンプル**: 複数のシンボルのデータは、簡単なワンライナーで取得できます。
+- **ユーザーフレンドリー**: 必要に応じてPandasデータフレームが利用されます。
+- **プレミアム**: Yahoo Financeプレミアム加入者は、サブスクリプションで利用可能なデータを取得できます。
 
-## Requirements
+## 要件
 
-Python 3.9+ - **Versions on or after 2.4.0 require python 3.9+**
+Python 3.9以降 - **バージョン2.4.0以降ではPython 3.9以降が必要です**
 
-- [Pandas](https://pandas.pydata.org) - Fast, powerful, flexible and easy to use open source data analysis and manipulation tool
-- [Requests](https://requests.readthedocs.io/en/master/) - The elegant and simple HTTP library for Python, built for human beings.
-- [Requests-Futures](https://github.com/ross/requests-futures) - Asynchronous Python HTTP Requests for Humans
+- [Pandas](https://pandas.pydata.org) - 高速で強力、柔軟で使いやすいオープンソースのデータ分析および操作ツール
+- [Requests](https://requests.readthedocs.io/en/master/) - 人間のために作られた、エレガントでシンプルなPython用HTTPライブラリ。
+- [Requests-Futures](https://github.com/ross/requests-futures) - 人間のための非同期Python HTTPリクエスト
 
-### Yahoo Finance Premium Subscribers
+### Yahoo Financeプレミアム加入者
 
-- [Selenium](https://www.selenium.dev/selenium/docs/api/py/) - Web browser automation
+- [Selenium](https://www.selenium.dev/selenium/docs/api/py/) - Webブラウザの自動化
 
-  Selenium is only utilized to login to Yahoo, which is done when the user passes certain keyword arguments. Logging into Yahoo enables users who are subscribers to Yahoo Finance Premium to retrieve data only accessible to premium subscribers.
+  SeleniumはYahooへのログインにのみ利用されます。これは、ユーザーが特定のキーワード引数を渡したときに行われます。Yahooにログインすると、Yahoo Finance Premiumの加入者であるユーザーは、プレミアム加入者のみがアクセスできるデータを取得できます。
 
-## Installation
+## インストール
 
-If you're a Yahoo Finance premium subscriber and would like to retrieve data available through your subscription, do the following:
+Yahoo Financeプレミアム加入者で、サブスクリプションで利用可能なデータを取得したい場合は、次のようにします。
 
 ```bash
 pip install yahooquery[premium]
 ```
 
-Otherwise, omit the premium argument:
+それ以外の場合は、premium引数を省略します。
 
 ```bash
 pip install yahooquery
 ```
 
-You can also install with uv if you have that installed:
+インストール済みの場合は、uvでインストールすることもできます。
 ```bash
 uv pip install yahooquery
 ```
 
-## Example
+## 例
 
-The majority of the data available through the unofficial Yahoo Finance API is related to a company, which is represented in yahooquery as a `Ticker`. You can instantiate the `Ticker` class by passing the company's ticker symbol. For instance, to get data for Apple, Inc., pass `aapl` as the first argument to the `Ticker` class:
+非公式のYahoo Finance APIで利用可能なデータの大部分は会社に関連しており、これはyahooqueryでは`Ticker`として表されます。会社のティッカーシンボルを渡すことで`Ticker`クラスをインスタンス化できます。たとえば、Apple, Inc.のデータを取得するには、`aapl`を`Ticker`クラスの最初の引数として渡します。
 
 ```python
 from yahooquery import Ticker
@@ -84,9 +84,9 @@ aapl = Ticker('aapl')
 aapl.summary_detail
 ```
 
-## Multiple Symbol Example
+## 複数シンボルの例
 
-The `Ticker` class also makes it easy to retrieve data for a list of symbols with the same API. Simply pass a list of symbols as the argument to the `Ticker` class.
+`Ticker`クラスを使用すると、同じAPIでシンボルのリストのデータを簡単に取得することもできます。シンボルのリストを`Ticker`クラスの引数として渡すだけです。
 
 ```python
 from yahooquery import Ticker
@@ -98,6 +98,6 @@ faang = Ticker(symbols)
 faang.summary_detail
 ```
 
-## License
+## ライセンス
 
-This project is licensed under the terms of the MIT license.
+このプロジェクトは、MITライセンスの条件の下でライセンスされています。

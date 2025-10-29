@@ -1,45 +1,45 @@
-# Contributing to Yahooquery
-We would love your input and want to make contributing to this project as easy and transparent as possible, whether it's:
+# Yahooqueryへの貢献
+私たちはあなたの意見を歓迎し、このプロジェクトへの貢献をできるだけ簡単かつ透明にしたいと考えています。それが以下のものであってもです。
 
-- Reporting a bug
-- Discussing the current state of the code
-- Submitting a fix
-- Proposing new features
-- Becoming a maintainer
+- バグの報告
+- コードの現状についての議論
+- 修正の提出
+- 新機能の提案
+- メンテナーになる
 
-## We Develop with Github
-We use github to host code, to track issues and feature requests, as well as accept pull requests.
+## 私たちはGithubで開発しています
+私たちはコードをホストし、問題や機能リクエストを追跡し、プルリクエストを受け入れるためにgithubを使用しています。
 
-## We Use [Github Flow](https://guides.github.com/introduction/flow/index.html), So All Code Changes Happen Through Pull Requests
-Pull requests are the best way to propose changes to the codebase (we use [Github Flow](https://guides.github.com/introduction/flow/index.html)). We actively welcome your pull requests:
+## 私たちは[Github Flow](https://guides.github.com/introduction/flow/index.html)を使用しているので、すべてのコード変更はプルリクエストを介して行われます
+プルリクエストは、コードベースへの変更を提案するための最良の方法です（私たちは[Github Flow](https://guides.github.com/introduction/flow/index.html)を使用しています）。私たちはあなたのプルリクエストを積極的に歓迎します。
 
-1. Fork the repo and create your branch from `master`.
-2. If you've added code that should be tested, add tests.
-3. If you've changed APIs, update the documentation.
-4. Ensure the test suite passes.
-5. Make sure your code lints.
-6. Issue that pull request!
+1. レポをフォークし、`master`からブランチを作成します。
+2. テストが必要なコードを追加した場合は、テストを追加します。
+3. APIを変更した場合は、ドキュメントを更新します。
+4. テストスイートがパスすることを確認します。
+5. コードがリントされていることを確認します。
+6. そのプルリクエストを発行してください！
 
-## Any contributions you make will be under the MIT Software License
-In short, when you submit code changes, your submissions are understood to be under the same [MIT License](http://choosealicense.com/licenses/mit/) that covers the project. Feel free to contact the maintainers if that's a concern.
+## あなたが行う貢献はすべてMITソフトウェアライセンスの下に置かれます
+要するに、コードの変更を送信すると、あなたの提出物はプロジェクトをカバーするのと同じ[MITライセンス](http://choosealicense.com/licenses/mit/)の下にあると理解されます。それが懸念事項である場合は、メンテナーに連絡してください。
 
-## Report bugs using Github's [issues](https://github.com/dpguthrie/yahooquery/issues)
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](); it's that easy!
+## Githubの[issues](https://github.com/dpguthrie/yahooquery/issues)を使用してバグを報告してください
+私たちは公開バグを追跡するためにGitHubの問題を使用しています。[新しい問題を開く]()だけでバグを報告できます。とても簡単です！
 
-## Write bug reports with detail, background, and sample code
-[Here's a good example](http://stackoverflow.com/q/12488905/180626) of a bug report.
+## 詳細、背景、サンプルコードを含むバグ報告を作成する
+[これはバグ報告の良い例です](http://stackoverflow.com/q/12488905/180626)。
 
-**Great Bug Reports** tend to have:
+**素晴らしいバグ報告**には、次の傾向があります。
 
-- A quick summary and/or background
-- Steps to reproduce
-  - Be specific!
-  - Give sample code if you can.
-- What you expected would happen
-- What actually happens
-- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+- 簡単な要約および/または背景
+- 再現する手順
+  - 具体的に！
+  - できればサンプルコードを提供してください。
+- あなたが期待したこと
+- 実際に起こること
+- 注意事項（これが起こっている理由、またはうまくいかなかったことについてのあなたの考えを含む可能性があります）
 
-People *love* thorough bug reports. I'm not even kidding.
+人々は徹底的なバグ報告が大好きです。冗談ではありません。
 
-## License
-By contributing, you agree that your contributions will be licensed under its MIT License.
+## ライセンス
+貢献することにより、あなたの貢献がそのMITライセンスの下でライセンスされることに同意したことになります。

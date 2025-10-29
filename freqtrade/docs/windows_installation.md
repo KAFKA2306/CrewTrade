@@ -1,27 +1,27 @@
-# Windows installation
+# Windowsへのインストール
 
-We **strongly** recommend that Windows users use [Docker](docker_quickstart.md) as this will work much easier and smoother (also more secure).
+Windowsユーザーは、[Docker](docker_quickstart.md)を使用することを**強く**お勧めします。これは、はるかに簡単かつスムーズに（そしてより安全に）動作するためです。
 
-If that is not possible, try using the Windows Linux subsystem (WSL) - for which the Ubuntu instructions should work.
-Otherwise, please follow the instructions below.
+それが不可能な場合は、Windows Linuxサブシステム（WSL）を使用してみてください。その場合、Ubuntuの手順が機能するはずです。
+それ以外の場合は、以下の手順に従ってください。
 
-All instructions assume that python 3.11+ is installed and available.
+すべての手順は、python 3.11以降がインストールされ、利用可能であることを前提としています。
 
-## Clone the git repository
+## gitリポジトリのクローン
 
-First of all clone the repository by running:
+まず、次を実行してリポジトリをクローンします。
 
-``` powershell
+```powershell
 git clone https://github.com/freqtrade/freqtrade.git
 ```
 
-Now, choose your installation method, either automatically via script (recommended) or manually following the corresponding instructions.
+次に、スクリプトによる自動インストール（推奨）または対応する手動の手順に従って、インストール方法を選択します。
 
-## Install freqtrade automatically
+## freqtradeを自動的にインストールする
 
-### Run the installation script
+### インストールスクリプトの実行
 
-The script will ask you a few questions to determine which parts should be installed.
+スクリプトは、インストールする部分を決定するためにいくつかの質問をします。
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy Bypass
@@ -29,26 +29,26 @@ cd freqtrade
 . .\setup.ps1
 ```
 
-## Install freqtrade manually
+## freqtradeを手動でインストールする
 
-!!! Note "64bit Python version"
-    Please make sure to use 64bit Windows and 64bit Python to avoid problems with backtesting or hyperopt due to the memory constraints 32bit applications have under Windows.
-    32bit python versions are no longer supported under Windows.
+!!! Note "64ビットPythonバージョン"
+    Windowsで32ビットアプリケーションが持つメモリ制約のためにバックテストやハイパーオプトで問題が発生するのを避けるために、64ビットWindowsと64ビットPythonを使用してください。
+    32ビットPythonバージョンはWindowsではサポートされなくなりました。
 
 !!! Hint
-    Using the [Anaconda Distribution](https://www.anaconda.com/distribution/) under Windows can greatly help with installation problems. Check out the [Anaconda installation section](installation.md#installation-with-conda) in the documentation for more information.
+    Windowsで[Anacondaディストリビューション](https://www.anaconda.com/distribution/)を使用すると、インストールの問題を大幅に解決できます。詳細については、ドキュメントの[Anacondaインストールセクション](installation.md#installation-with-conda)を参照してください。
 
 
-### Error during installation on Windows
+### Windowsでのインストール中のエラー
 
-``` bash
+```bash
 error: Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools": http://landinghub.visualstudio.com/visual-cpp-build-tools
 ```
 
-Unfortunately, many packages requiring compilation don't provide a pre-built wheel. It is therefore mandatory to have a C/C++ compiler installed and available for your python environment to use.
+残念ながら、コンパイルを必要とする多くのパッケージは、事前にビルドされたホイールを提供していません。したがって、Python環境で使用するためにC/C++コンパイラをインストールして利用できるようにすることが必須です。
 
-You can download the Visual C++ build tools from [here](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and install "Desktop development with C++" in it's default configuration. Unfortunately, this is a heavy download / dependency so you might want to consider WSL2 or [docker compose](docker_quickstart.md) first.
+Visual C++ビルドツールは[ここ](https://visualstudio.microsoft.com/visual-cpp-build-tools/)からダウンロードし、デフォルト構成で「C++によるデスクトップ開発」をインストールできます。残念ながら、これは重いダウンロード/依存関係であるため、WSL2または[docker compose](docker_quickstart.md)を最初に検討することをお勧めします。
 
-![Windows installation](assets/windows_install.png)
+![Windowsインストール](assets/windows_install.png)
 
 ---
