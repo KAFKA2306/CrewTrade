@@ -1,93 +1,93 @@
-# Installation
+# インストール
 
-This page explains how to prepare your environment for running the bot.
+このページでは、ボットを実行するための環境を準備する方法を説明します。
 
-The freqtrade documentation describes various ways to install freqtrade
+freqtradeドキュメントでは、freqtradeをインストールするさまざまな方法を説明しています
 
-* [Docker images](docker_quickstart.md) (separate page)
-* [Script Installation](#script-installation)
-* [Manual Installation](#manual-installation)
-* [Installation with Conda](#installation-with-conda)
+* [Dockerイメージ](docker_quickstart.md)（別ページ）
+* [スクリプトインストール](#script-installation)
+* [手動インストール](#manual-installation)
+* [Condaを使用したインストール](#installation-with-conda)
 
-Please consider using the prebuilt [docker images](docker_quickstart.md) to get started quickly while evaluating how freqtrade works.
+freqtradeの動作を評価する間、事前構築された[dockerイメージ](docker_quickstart.md)を使用してすぐに開始することを検討してください。
 
 ------
 
-## Information
+## 情報
 
-For Windows installation, please use the [windows installation guide](windows_installation.md).
+Windowsインストールについては、[Windowsインストールガイド](windows_installation.md)を使用してください。
 
-The easiest way to install and run Freqtrade is to clone the bot Github repository and then run the `./setup.sh` script, if it's available for your platform.
+FreqtradeをインストールおよびLMするための最も簡単な方法は、ボットのGithubリポジトリをクローンしてから、プラットフォームで利用可能な場合は`./setup.sh`スクリプトを実行することです。
 
-!!! Note "Version considerations"
-    When cloning the repository the default working branch has the name `develop`. This branch contains all last features (can be considered as relatively stable, thanks to automated tests).
-    The `stable` branch contains the code of the last release (done usually once per month on an approximately one week old snapshot of the `develop` branch to prevent packaging bugs, so potentially it's more stable).
+!!! Note "バージョンに関する考慮事項"
+    リポジトリをクローンすると、デフォルトの作業ブランチは`develop`という名前です。このブランチには、最新の機能がすべて含まれています（自動テストのおかげで比較的安定していると考えられます）。
+    `stable`ブランチには、最新リリースのコードが含まれています（通常、パッケージングバグを防ぐために、`develop`ブランチの約1週間前のスナップショットで月に1回実行されるため、潜在的により安定しています）。
 
 !!! Note
-    Either [uv](https://docs.astral.sh/uv/), or Python3.11 or higher and the corresponding `pip` are assumed to be available. The install-script will warn you and stop if that's not the case. `git` is also needed to clone the Freqtrade repository.  
-    Also, python headers (`python<yourversion>-dev` / `python<yourversion>-devel`) must be available for the installation to complete successfully.
+    [uv](https://docs.astral.sh/uv/)、またはPython3.11以上と対応する`pip`が利用可能であることが前提です。そうでない場合、インストールスクリプトは警告を出して停止します。Freqtradeリポジトリをクローンするには`git`も必要です。
+    また、インストールが正常に完了するには、Pythonヘッダー（`python<yourversion>-dev` / `python<yourversion>-devel`）が利用可能である必要があります。
 
-!!! Warning "Up-to-date clock"
-    The clock on the system running the bot must be accurate, synchronized to a NTP server frequently enough to avoid problems with communication to the exchanges.
+!!! Warning "最新の時計"
+    ボットを実行しているシステムの時計は正確でなければならず、取引所との通信の問題を回避するために、NTPサーバーに十分頻繁に同期する必要があります。
 
 ------
 
-## Requirements
+## 要件
 
-These requirements apply to both [Script Installation](#script-installation) and [Manual Installation](#manual-installation).
+これらの要件は、[スクリプトインストール](#script-installation)と[手動インストール](#manual-installation)の両方に適用されます。
 
-!!! Note "ARM64 systems"
-    If you are running an ARM64 system (like a MacOS M1 or an Oracle VM), please use [docker](docker_quickstart.md) to run freqtrade.
-    While native installation is possible with some manual effort, this is not supported at the moment.
+!!! Note "ARM64システム"
+    ARM64システム（MacOS M1やOracle VMなど）を実行している場合は、[docker](docker_quickstart.md)を使用してfreqtradeを実行してください。
+    手動で作業すればネイティブインストールも可能ですが、現時点ではサポートされていません。
 
-### Install guide
+### インストールガイド
 
 * [Python >= 3.11](http://docs.python-guide.org/en/latest/starting/installation/)
 * [pip](https://pip.pypa.io/en/stable/installing/)
 * [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-* [virtualenv](https://virtualenv.pypa.io/en/stable/installation.html) (Recommended)
+* [virtualenv](https://virtualenv.pypa.io/en/stable/installation.html)（推奨）
 
-### Install code
+### インストールコード
 
-We've included/collected install instructions for Ubuntu, MacOS, and Windows. These are guidelines and your success may vary with other distros.
-OS Specific steps are listed first, the common section below is necessary for all systems.
+Ubuntu、MacOS、およびWindowsのインストール手順を含めて/収集しました。これらはガイドラインであり、他のディストリビューションでの成功は異なる場合があります。
+OS固有の手順が最初にリストされ、以下の共通セクションはすべてのシステムに必要です。
 
 !!! Note
-    Python3.11 or higher and the corresponding pip are assumed to be available.
+    Python3.11以上と対応するpipが利用可能であることが前提です。
 
 === "Debian/Ubuntu"
-    #### Install necessary dependencies
+    #### 必要な依存関係をインストール
 
     ```bash
-    # update repository
+    # リポジトリを更新
     sudo apt-get update
 
-    # install packages
+    # パッケージをインストール
     sudo apt install -y python3-pip python3-venv python3-dev python3-pandas git curl
     ```
 
 === "MacOS"
-    #### Install necessary dependencies
+    #### 必要な依存関係をインストール
 
-    Install [Homebrew](https://brew.sh/) if you don't have it already.
+    まだ持っていない場合は、[Homebrew](https://brew.sh/)をインストールしてください。
 
     ```bash
-    # install packages
+    # パッケージをインストール
     brew install gettext libomp
     ```
     !!! Note
-        The `setup.sh` script will install these dependencies for you - assuming brew is installed on your system.
+        `setup.sh`スクリプトは、brewがシステムにインストールされていることを前提として、これらの依存関係をインストールします。
 
 === "RaspberryPi/Raspbian"
-    The following assumes the latest [Raspbian Buster lite image](https://www.raspberrypi.org/downloads/raspbian/).
-    This image comes with python3.11 preinstalled, making it easy to get freqtrade up and running.
+    以下は、最新の[Raspbian Buster liteイメージ](https://www.raspberrypi.org/downloads/raspbian/)を前提としています。
+    このイメージにはpython3.11がプリインストールされているため、freqtradeを簡単に起動できます。
 
-    Tested using a Raspberry Pi 3 with the Raspbian Buster lite image, all updates applied.
+    Raspbian Buster liteイメージを使用したRaspberry Pi 3でテストされ、すべての更新が適用されています。
 
 
     ```bash
     sudo apt-get install python3-venv libatlas-base-dev cmake curl libffi-dev
-    # Use piwheels.org to speed up installation
+    # piwheels.orgを使用してインストールを高速化
     sudo echo "[global]\nextra-index-url=https://www.piwheels.org/simple" > tee /etc/pip.conf
 
     git clone https://github.com/freqtrade/freqtrade.git
@@ -96,40 +96,40 @@ OS Specific steps are listed first, the common section below is necessary for al
     bash setup.sh -i
     ```
 
-    !!! Note "Installation duration"
-        Depending on your internet speed and the Raspberry Pi version, installation can take multiple hours to complete.
-        Due to this, we recommend to use the pre-build docker-image for Raspberry, by following the [Docker quickstart documentation](docker_quickstart.md)
+    !!! Note "インストール期間"
+        インターネット速度とRaspberry Piのバージョンによっては、インストールに数時間かかる場合があります。
+        このため、[Docker quickstartドキュメント](docker_quickstart.md)に従って、Raspberry用の事前構築されたdockerイメージを使用することをお勧めします。
 
     !!! Note
-        The above does not install hyperopt dependencies. To install these, please use `python3 -m pip install -e .[hyperopt]`.
-        We do not advise to run hyperopt on a Raspberry Pi, since this is a very resource-heavy operation, which should be done on powerful machine.
+        上記はhyperoptの依存関係をインストールしません。これらをインストールするには、`python3 -m pip install -e .[hyperopt]`を使用してください。
+        Raspberry Piでhyperoptを実行することはお勧めしません。これは非常にリソースを消費する操作であり、強力なマシンで実行する必要があるためです。
 
 ------
 
-## Freqtrade repository
+## Freqtradeリポジトリ
 
-Freqtrade is an open source crypto-currency trading bot, whose code is hosted on `github.com`
+Freqtradeは、コードが`github.com`でホストされているオープンソース暗号通貨トレーディングボットです
 
 ```bash
-# Download `develop` branch of freqtrade repository
+# freqtradeリポジトリの`develop`ブランチをダウンロード
 git clone https://github.com/freqtrade/freqtrade.git
 
-# Enter downloaded directory
+# ダウンロードしたディレクトリに入る
 cd freqtrade
 
-# your choice (1): novice user
+# 選択肢(1): 初心者ユーザー
 git checkout stable
 
-# your choice (2): advanced user
+# 選択肢(2): 上級ユーザー
 git checkout develop
 ```
 
-(1) This command switches the cloned repository to the use of the `stable` branch. It's not needed, if you wish to stay on the (2) `develop` branch.
+(1) このコマンドは、クローンされたリポジトリを`stable`ブランチの使用に切り替えます。(2) `develop`ブランチにとどまりたい場合は必要ありません。
 
-You may later switch between branches at any time with the `git checkout stable`/`git checkout develop` commands.
+後で`git checkout stable`/`git checkout develop`コマンドを使用して、いつでもブランチ間を切り替えることができます。
 
-??? Note "Install from pypi"
-    An alternative way to install Freqtrade is from [pypi](https://pypi.org/project/freqtrade/). The downside is that this method requires ta-lib to be correctly installed beforehand, and is therefore currently not the recommended way to install Freqtrade.
+??? Note "pypiからインストール"
+    Freqtradeをインストールする別の方法は、[pypi](https://pypi.org/project/freqtrade/)からです。欠点は、この方法ではta-libを事前に正しくインストールする必要があり、したがって現在Freqtradeをインストールする推奨方法ではないことです。
 
     ``` bash
     pip install freqtrade
@@ -137,164 +137,164 @@ You may later switch between branches at any time with the `git checkout stable`
 
 ------
 
-## Script Installation
+## スクリプトインストール
 
-First of the ways to install Freqtrade, is to use provided the Linux/MacOS `./setup.sh` script, which install all dependencies and help you configure the bot.
+Freqtradeをインストールする最初の方法は、提供されているLinux/MacOS `./setup.sh`スクリプトを使用することです。これにより、すべての依存関係がインストールされ、ボットの設定が支援されます。
 
-Make sure you fulfill the [Requirements](#requirements) and have downloaded the [Freqtrade repository](#freqtrade-repository).
+[要件](#requirements)を満たし、[Freqtradeリポジトリ](#freqtrade-repository)をダウンロードしていることを確認してください。
 
-### Use /setup.sh -install (Linux/MacOS)
+### /setup.sh -installを使用（Linux/MacOS）
 
-If you are on Debian, Ubuntu or MacOS, freqtrade provides the script to install freqtrade.
+Debian、Ubuntu、またはMacOSの場合、freqtradeはfreqtradeをインストールするスクリプトを提供します。
 
 ```bash
-# --install, Install freqtrade from scratch
+# --install、ゼロからfreqtradeをインストール
 ./setup.sh -i
 ```
 
-### Activate your virtual environment
+### 仮想環境をアクティブ化
 
-Each time you open a new terminal, you must run `source .venv/bin/activate` to activate your virtual environment.
+新しいターミナルを開くたびに、`source .venv/bin/activate`を実行して仮想環境をアクティブ化する必要があります。
 
 ```bash
-# activate virtual environment
+# 仮想環境をアクティブ化
 source ./.venv/bin/activate
 ```
 
-[You are now ready](#you-are-ready) to run the bot.
+[これでボットを実行する準備ができました](#you-are-ready)。
 
-### Other options of /setup.sh script
+### /setup.shスクリプトのその他のオプション
 
-You can as well update, configure and reset the codebase of your bot with `./script.sh`
+`./script.sh`を使用して、ボットのコードベースを更新、設定、リセットすることもできます
 
 ```bash
-# --update, Command git pull to update.
+# --update、git pullコマンドで更新
 ./setup.sh -u
-# --reset, Hard reset your develop/stable branch.
+# --reset、develop/stableブランチをハードリセット
 ./setup.sh -r
 ```
 
 ```
 ** --install **
 
-With this option, the script will install the bot and most dependencies:
-You will need to have git and python3.11+ installed beforehand for this to work.
+このオプションを使用すると、スクリプトはボットとほとんどの依存関係をインストールします:
+これが機能するには、事前にgitとpython3.11+をインストールしておく必要があります。
 
-* Mandatory software as: `ta-lib`
-* Setup your virtualenv under `.venv/`
+* `ta-lib`などの必須ソフトウェア
+* `.venv/`の下に仮想環境をセットアップ
 
-This option is a combination of installation tasks and `--reset`
+このオプションは、インストールタスクと`--reset`の組み合わせです
 
 ** --update **
 
-This option will pull the last version of your current branch and update your virtualenv. Run the script with this option periodically to update your bot.
+このオプションは、現在のブランチの最新バージョンをプルし、仮想環境を更新します。ボットを更新するには、定期的にこのオプションを使用してスクリプトを実行してください。
 
 ** --reset **
 
-This option will hard reset your branch (only if you are on either `stable` or `develop`) and recreate your virtualenv.
+このオプションは、ブランチをハードリセットし（`stable`または`develop`のいずれかの場合のみ）、仮想環境を再作成します。
 ```
 
 -----
 
-## Manual Installation
+## 手動インストール
 
-Make sure you fulfill the [Requirements](#requirements) and have downloaded the [Freqtrade repository](#freqtrade-repository).
+[要件](#requirements)を満たし、[Freqtradeリポジトリ](#freqtrade-repository)をダウンロードしていることを確認してください。
 
-### Setup Python virtual environment (virtualenv)
+### Python仮想環境（virtualenv）のセットアップ
 
-You will run freqtrade in separated `virtual environment`
+freqtradeは分離された`virtual environment`で実行されます
 
 ```bash
-# create virtualenv in directory /freqtrade/.venv
+# ディレクトリ/freqtrade/.venvに仮想環境を作成
 python3 -m venv .venv
 
-# run virtualenv
+# 仮想環境を実行
 source .venv/bin/activate
 ```
 
-### Install python dependencies
+### Python依存関係をインストール
 
 ```bash
 python3 -m pip install --upgrade pip
 python3 -m pip install -r requirements.txt
-# install freqtrade
+# freqtradeをインストール
 python3 -m pip install -e .
 ```
 
-[You are now ready](#you-are-ready) to run the bot.
+[これでボットを実行する準備ができました](#you-are-ready)。
 
-### (Optional) Post-installation Tasks
+### （オプション）インストール後のタスク
 
-!!! Note 
-    If you run the bot on a server, you should consider using [Docker](docker_quickstart.md) or a terminal multiplexer like `screen` or [`tmux`](https://en.wikipedia.org/wiki/Tmux) to avoid that the bot is stopped on logout.
+!!! Note
+    サーバーでボットを実行する場合は、ログアウト時にボットが停止するのを避けるために、[Docker](docker_quickstart.md)またはターミナルマルチプレクサ（`screen`や[`tmux`](https://en.wikipedia.org/wiki/Tmux)など）の使用を検討してください。
 
-On Linux with software suite `systemd`, as an optional post-installation task, you may wish to setup the bot to run as a `systemd service` or configure it to send the log messages to the `syslog`/`rsyslog` or `journald` daemons. See [Advanced Logging](advanced-setup.md#advanced-logging) for details.
+ソフトウェアスイート`systemd`を使用するLinuxでは、オプションのインストール後のタスクとして、ボットを`systemd service`として実行するようにセットアップしたり、ログメッセージを`syslog`/`rsyslog`または`journald`デーモンに送信するように設定したりできます。詳細については、[高度なロギング](advanced-setup.md#advanced-logging)を参照してください。
 
 ------
 
-## Installation with Conda
+## Condaを使用したインストール
 
-Freqtrade can also be installed with Miniconda or Anaconda. We recommend using Miniconda as it's installation footprint is smaller. Conda will automatically prepare and manage the extensive library-dependencies of the Freqtrade program.
+FreqtradeはMinicondaまたはAnacondaでもインストールできます。インストールフットプリントが小さいため、Minicondaの使用をお勧めします。Condaは、Freqtradeプログラムの広範なライブラリ依存関係を自動的に準備および管理します。
 
-### What is Conda?
+### Condaとは？
 
-Conda is a package, dependency and environment manager for multiple programming languages: [conda docs](https://docs.conda.io/projects/conda/en/latest/index.html)
+Condaは、複数のプログラミング言語用のパッケージ、依存関係、環境マネージャーです：[condaドキュメント](https://docs.conda.io/projects/conda/en/latest/index.html)
 
-### Installation with conda
+### condaを使用したインストール
 
-#### Install Conda
+#### Condaのインストール
 
-[Installing on linux](https://conda.io/projects/conda/en/latest/user-guide/install/linux.html#install-linux-silent)
+[Linuxへのインストール](https://conda.io/projects/conda/en/latest/user-guide/install/linux.html#install-linux-silent)
 
-[Installing on windows](https://conda.io/projects/conda/en/latest/user-guide/install/windows.html)
+[Windowsへのインストール](https://conda.io/projects/conda/en/latest/user-guide/install/windows.html)
 
-Answer all questions. After installation, it is mandatory to turn your terminal OFF and ON again.
+すべての質問に答えてください。インストール後、ターミナルをオフにしてから再度オンにする必要があります。
 
-#### Freqtrade download
+#### Freqtradeのダウンロード
 
-Download and install freqtrade.
+freqtradeをダウンロードしてインストールします。
 
 ```bash
-# download freqtrade
+# freqtradeをダウンロード
 git clone https://github.com/freqtrade/freqtrade.git
 
-# enter downloaded directory 'freqtrade'
-cd freqtrade      
+# ダウンロードしたディレクトリ'freqtrade'に入る
+cd freqtrade
 ```
 
-#### Freqtrade install: Conda Environment
+#### Freqtradeインストール: Conda環境
 
 ```bash
 conda create --name freqtrade python=3.12
 ```
 
-!!! Note "Creating Conda Environment"
-    The conda command `create -n` automatically installs all nested dependencies for the selected libraries, general structure of installation command is:
+!!! Note "Conda環境の作成"
+    conda `create -n`コマンドは、選択したライブラリのすべてのネストされた依存関係を自動的にインストールします。インストールコマンドの一般的な構造は次のとおりです：
 
     ```bash
-    # choose your own packages
-    conda env create -n [name of the environment] [python version] [packages]
+    # 独自のパッケージを選択
+    conda env create -n [環境名] [Pythonバージョン] [パッケージ]
     ```
 
-#### Enter/exit freqtrade environment
+#### freqtrade環境への入退出
 
-To check available environments, type
+利用可能な環境を確認するには、次のように入力します
 
 ```bash
 conda env list
 ```
 
-Enter installed environment
+インストールされた環境に入る
 
 ```bash
-# enter conda environment
+# conda環境に入る
 conda activate freqtrade
 
-# exit conda environment - don't do it now
+# conda環境を終了 - 今はしないでください
 conda deactivate
 ```
 
-Install last python dependencies with pip
+pipで最後のPython依存関係をインストール
 
 ```bash
 python3 -m pip install --upgrade pip
@@ -302,95 +302,95 @@ python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
 
-[You are now ready](#you-are-ready) to run the bot.
+[これでボットを実行する準備ができました](#you-are-ready)。
 
-### Important shortcuts
+### 重要なショートカット
 
 ```bash
-# list installed conda environments
+# インストールされたconda環境をリスト
 conda env list
 
-# activate base environment
+# base環境をアクティブ化
 conda activate
 
-# activate freqtrade environment
+# freqtrade環境をアクティブ化
 conda activate freqtrade
 
-#deactivate any conda environments
-conda deactivate                              
+# conda環境を非アクティブ化
+conda deactivate
 ```
 
-### Further info on anaconda
+### anacondaに関する詳細情報
 
-!!! Info "New heavy packages"
-    It may happen that creating a new Conda environment, populated with selected packages at the moment of creation takes less time than installing a large, heavy library or application, into previously set environment.
+!!! Info "新しい重いパッケージ"
+    作成時に選択したパッケージが入力された新しいConda環境を作成する方が、以前に設定された環境に大規模で重いライブラリまたはアプリケーションをインストールするよりも時間がかからない場合があります。
 
-!!! Warning "pip install within conda"
-    The documentation of conda says that pip should NOT be used within conda, because internal problems can occur.
-    However, they are rare. [Anaconda Blogpost](https://www.anaconda.com/blog/using-pip-in-a-conda-environment)
+!!! Warning "conda内でのpipインストール"
+    condaのドキュメントでは、内部的な問題が発生する可能性があるため、conda内でpipを使用すべきではないと述べています。
+    しかし、それらはまれです。[Anaconda Blogpost](https://www.anaconda.com/blog/using-pip-in-a-conda-environment)
 
-    Nevertheless, that is why, the `conda-forge` channel is preferred:
+    それにもかかわらず、そのため、`conda-forge`チャンネルが推奨されます：
 
-    * more libraries are available (less need for `pip`)
-    * `conda-forge` works better with `pip`
-    * the libraries are newer
+    * より多くのライブラリが利用可能（`pip`の必要性が少ない）
+    * `conda-forge`は`pip`とよりうまく機能する
+    * ライブラリが新しい
 
-Happy trading!
+ハッピートレーディング！
 
 -----
 
-## You are ready
+## 準備完了
 
-You've made it this far, so you have successfully installed freqtrade.
+ここまで来たので、freqtradeのインストールに成功しました。
 
-### Initialize the configuration
+### 設定の初期化
 
 ```bash
-# Step 1 - Initialize user folder
+# ステップ1 - ユーザーフォルダーを初期化
 freqtrade create-userdir --userdir user_data
 
-# Step 2 - Create a new configuration file
+# ステップ2 - 新しい設定ファイルを作成
 freqtrade new-config --config user_data/config.json
 ```
 
-You are ready to run, read [Bot Configuration](configuration.md), remember to start with `dry_run: True` and verify that everything is working.
+実行する準備ができました。[ボット設定](configuration.md)を読み、`dry_run: True`で開始し、すべてが機能していることを確認してください。
 
-To learn how to setup your configuration, please refer to the [Bot Configuration](configuration.md) documentation page.
+設定のセットアップ方法については、[ボット設定](configuration.md)ドキュメントページを参照してください。
 
-### Start the Bot
+### ボットを起動
 
 ```bash
 freqtrade trade --config user_data/config.json --strategy SampleStrategy
 ```
 
 !!! Warning
-    You should read through the rest of the documentation, backtest the strategy you're going to use, and use dry-run before enabling trading with real money.
+    ドキュメントの残りの部分を読み、使用する戦略をバックテストし、実際のお金で取引を有効にする前にドライランを使用する必要があります。
 
 -----
 
-## Troubleshooting
+## トラブルシューティング
 
-### Common problem: "command not found"
+### 一般的な問題：「command not found」
 
-If you used (1)`Script` or (2)`Manual` installation, you need to run the bot in virtual environment. If you get error as below, make sure venv is active.
+(1)`Script`または(2)`Manual`インストールを使用した場合、仮想環境でボットを実行する必要があります。以下のようなエラーが発生した場合は、venvがアクティブになっていることを確認してください。
 
 ```bash
-# if:
+# もし:
 bash: freqtrade: command not found
 
-# then activate your virtual environment
+# その場合は仮想環境をアクティブ化
 source ./.venv/bin/activate
 ```
 
-### MacOS installation error
+### MacOSインストールエラー
 
-Newer versions of MacOS may have installation failed with errors like `error: command 'g++' failed with exit status 1`.
+新しいバージョンのMacOSでは、`error: command 'g++' failed with exit status 1`のようなエラーでインストールが失敗する場合があります。
 
-This error will require explicit installation of the SDK Headers, which are not installed by default in this version of MacOS.
-For MacOS 10.14, this can be accomplished with the below command.
+このエラーは、このバージョンのMacOSではデフォルトでインストールされていないSDKヘッダーの明示的なインストールが必要になります。
+MacOS 10.14の場合、これは以下のコマンドで実行できます。
 
 ```bash
 open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
 ```
 
-If this file is inexistent, then you're probably on a different version of MacOS, so you may need to consult the internet for specific resolution details.
+このファイルが存在しない場合は、おそらく別のバージョンのMacOSを使用しているため、特定の解決の詳細についてインターネットを参照する必要があるかもしれません。

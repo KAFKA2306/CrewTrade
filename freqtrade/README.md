@@ -5,26 +5,21 @@
 [![Coverage Status](https://coveralls.io/repos/github/freqtrade/freqtrade/badge.svg?branch=develop&service=github)](https://coveralls.io/github/freqtrade/freqtrade?branch=develop)
 [![Documentation](https://readthedocs.org/projects/freqtrade/badge/)](https://www.freqtrade.io)
 
-Freqtrade is a free and open source crypto trading bot written in Python. It is designed to support all major exchanges and be controlled via Telegram or webUI. It contains backtesting, plotting and money management tools as well as strategy optimization by machine learning.
+FreqtradeはPythonで書かれた無料のオープンソース暗号通貨トレーディングボットです。すべての主要取引所をサポートし、TelegramまたはWebUIを介して制御できるように設計されています。バックテスト、プロット、資金管理ツール、さらに機械学習による戦略最適化が含まれています。
 
 ![freqtrade](https://raw.githubusercontent.com/freqtrade/freqtrade/develop/docs/assets/freqtrade-screenshot.png)
 
-## Disclaimer
+## 免責事項
 
-This software is for educational purposes only. Do not risk money which
-you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK. THE AUTHORS
-AND ALL AFFILIATES ASSUME NO RESPONSIBILITY FOR YOUR TRADING RESULTS.
+このソフトウェアは教育目的のみです。失うことを恐れているお金でリスクを取らないでください。ソフトウェアは自己責任で使用してください。著者およびすべての関連会社は、あなたのトレード結果について責任を負いません。
 
-Always start by running a trading bot in Dry-run and do not engage money
-before you understand how it works and what profit/loss you should
-expect.
+常にドライランでトレーディングボットを実行することから始め、それがどのように機能するか、どのような利益/損失を期待すべきかを理解する前に資金を投入しないでください。
 
-We strongly recommend you to have coding and Python knowledge. Do not
-hesitate to read the source code and understand the mechanism of this bot.
+コーディングとPythonの知識を持つことを強く推奨します。ソースコードを読み、このボットのメカニズムを理解することをためらわないでください。
 
-## Supported Exchange marketplaces
+## サポートされている取引所
 
-Please read the [exchange specific notes](docs/exchanges.md) to learn about eventual, special configurations needed for each exchange.
+各取引所に必要な特別な設定については、[取引所固有の注意事項](docs/exchanges.md)をお読みください。
 
 - [X] [Binance](https://www.binance.com/)
 - [X] [BingX](https://bingx.com/invite/0EM9RX)
@@ -33,199 +28,187 @@ Please read the [exchange specific notes](docs/exchanges.md) to learn about even
 - [X] [Bybit](https://bybit.com/)
 - [X] [Gate.io](https://www.gate.io/ref/6266643)
 - [X] [HTX](https://www.htx.com/)
-- [X] [Hyperliquid](https://hyperliquid.xyz/) (A decentralized exchange, or DEX)
+- [X] [Hyperliquid](https://hyperliquid.xyz/) (分散型取引所、またはDEX)
 - [X] [Kraken](https://kraken.com/)
 - [X] [OKX](https://okx.com/)
 - [X] [MyOKX](https://okx.com/) (OKX EEA)
-- [ ] [potentially many others](https://github.com/ccxt/ccxt/). _(We cannot guarantee they will work)_
+- [ ] [その他多数の可能性](https://github.com/ccxt/ccxt/) _(動作を保証できません)_
 
-### Supported Futures Exchanges (experimental)
+### サポートされている先物取引所（実験的）
 
 - [X] [Binance](https://www.binance.com/)
 - [X] [Bitget](https://www.bitget.com/)
 - [X] [Gate.io](https://www.gate.io/ref/6266643)
-- [X] [Hyperliquid](https://hyperliquid.xyz/) (A decentralized exchange, or DEX)
+- [X] [Hyperliquid](https://hyperliquid.xyz/) (分散型取引所、またはDEX)
 - [X] [OKX](https://okx.com/)
 - [X] [Bybit](https://bybit.com/)
 
-Please make sure to read the [exchange specific notes](docs/exchanges.md), as well as the [trading with leverage](docs/leverage.md) documentation before diving in.
+始める前に、[取引所固有の注意事項](docs/exchanges.md)および[レバレッジ取引](docs/leverage.md)のドキュメントを必ずお読みください。
 
-### Community tested
+### コミュニティでテスト済み
 
-Exchanges confirmed working by the community:
+コミュニティによって動作が確認された取引所:
 
 - [X] [Bitvavo](https://bitvavo.com/)
 - [X] [Kucoin](https://www.kucoin.com/)
 
-## Documentation
+## ドキュメント
 
-We invite you to read the bot documentation to ensure you understand how the bot is working.
+ボットがどのように機能するかを理解するために、ボットのドキュメントを読むことをお勧めします。
 
-Please find the complete documentation on the [freqtrade website](https://www.freqtrade.io).
+完全なドキュメントは[freqtradeウェブサイト](https://www.freqtrade.io)でご覧いただけます。
 
-## Features
+## 機能
 
-- [x] **Based on Python 3.11+**: For botting on any operating system - Windows, macOS and Linux.
-- [x] **Persistence**: Persistence is achieved through sqlite.
-- [x] **Dry-run**: Run the bot without paying money.
-- [x] **Backtesting**: Run a simulation of your buy/sell strategy.
-- [x] **Strategy Optimization by machine learning**: Use machine learning to optimize your buy/sell strategy parameters with real exchange data.
-- [X] **Adaptive prediction modeling**: Build a smart strategy with FreqAI that self-trains to the market via adaptive machine learning methods. [Learn more](https://www.freqtrade.io/en/stable/freqai/)
-- [x] **Whitelist crypto-currencies**: Select which crypto-currency you want to trade or use dynamic whitelists.
-- [x] **Blacklist crypto-currencies**: Select which crypto-currency you want to avoid.
-- [x] **Builtin WebUI**: Builtin web UI to manage your bot.
-- [x] **Manageable via Telegram**: Manage the bot with Telegram.
-- [x] **Display profit/loss in fiat**: Display your profit/loss in fiat currency.
-- [x] **Performance status report**: Provide a performance status of your current trades.
+- [x] **Python 3.11+ベース**: Windows、macOS、Linuxなど、あらゆるオペレーティングシステムでボットを実行できます。
+- [x] **永続性**: sqliteによる永続性を実現しています。
+- [x] **ドライラン**: お金を使わずにボットを実行できます。
+- [x] **バックテスト**: 売買戦略のシミュレーションを実行します。
+- [x] **機械学習による戦略最適化**: 機械学習を使用して、実際の取引所データで売買戦略パラメーターを最適化します。
+- [X] **適応型予測モデリング**: 適応型機械学習手法を通じて市場に自己学習するFreqAIでスマートな戦略を構築します。[詳細はこちら](https://www.freqtrade.io/en/stable/freqai/)
+- [x] **暗号通貨のホワイトリスト**: トレードしたい暗号通貨を選択するか、動的ホワイトリストを使用します。
+- [x] **暗号通貨のブラックリスト**: 避けたい暗号通貨を選択します。
+- [x] **組み込みWebUI**: ボットを管理するための組み込みWebUI。
+- [x] **Telegram経由で管理可能**: Telegramでボットを管理します。
+- [x] **法定通貨で損益を表示**: 法定通貨で損益を表示します。
+- [x] **パフォーマンスステータスレポート**: 現在のトレードのパフォーマンスステータスを提供します。
 
-## Quick start
+## クイックスタート
 
-Please refer to the [Docker Quickstart documentation](https://www.freqtrade.io/en/stable/docker_quickstart/) on how to get started quickly.
+すぐに始める方法については、[Dockerクイックスタートドキュメント](https://www.freqtrade.io/en/stable/docker_quickstart/)を参照してください。
 
-For further (native) installation methods, please refer to the [Installation documentation page](https://www.freqtrade.io/en/stable/installation/).
+さらなる（ネイティブ）インストール方法については、[インストールドキュメントページ](https://www.freqtrade.io/en/stable/installation/)を参照してください。
 
-## Basic Usage
+## 基本的な使い方
 
-### Bot commands
+### ボットコマンド
 
 ```
-usage: freqtrade [-h] [-V]
+使用法: freqtrade [-h] [-V]
                  {trade,create-userdir,new-config,show-config,new-strategy,download-data,convert-data,convert-trade-data,trades-to-ohlcv,list-data,backtesting,backtesting-show,backtesting-analysis,edge,hyperopt,hyperopt-list,hyperopt-show,list-exchanges,list-markets,list-pairs,list-strategies,list-hyperoptloss,list-freqaimodels,list-timeframes,show-trades,test-pairlist,convert-db,install-ui,plot-dataframe,plot-profit,webserver,strategy-updater,lookahead-analysis,recursive-analysis}
                  ...
 
-Free, open source crypto trading bot
+無料のオープンソース暗号通貨トレーディングボット
 
-positional arguments:
+位置引数:
   {trade,create-userdir,new-config,show-config,new-strategy,download-data,convert-data,convert-trade-data,trades-to-ohlcv,list-data,backtesting,backtesting-show,backtesting-analysis,edge,hyperopt,hyperopt-list,hyperopt-show,list-exchanges,list-markets,list-pairs,list-strategies,list-hyperoptloss,list-freqaimodels,list-timeframes,show-trades,test-pairlist,convert-db,install-ui,plot-dataframe,plot-profit,webserver,strategy-updater,lookahead-analysis,recursive-analysis}
-    trade               Trade module.
-    create-userdir      Create user-data directory.
-    new-config          Create new config
-    show-config         Show resolved config
-    new-strategy        Create new strategy
-    download-data       Download backtesting data.
-    convert-data        Convert candle (OHLCV) data from one format to
-                        another.
-    convert-trade-data  Convert trade data from one format to another.
-    trades-to-ohlcv     Convert trade data to OHLCV data.
-    list-data           List downloaded data.
-    backtesting         Backtesting module.
-    backtesting-show    Show past Backtest results
+    trade               トレードモジュール。
+    create-userdir      user-dataディレクトリを作成します。
+    new-config          新しい設定を作成します
+    show-config         解決済み設定を表示します
+    new-strategy        新しい戦略を作成します
+    download-data       バックテスト用データをダウンロードします。
+    convert-data        ローソク足(OHLCV)データをある形式から
+                        別の形式に変換します。
+    convert-trade-data  トレードデータをある形式から別の形式に変換します。
+    trades-to-ohlcv     トレードデータをOHLCVデータに変換します。
+    list-data           ダウンロード済みデータを一覧表示します。
+    backtesting         バックテストモジュール。
+    backtesting-show    過去のバックテスト結果を表示します
     backtesting-analysis
-                        Backtest Analysis module.
-    hyperopt            Hyperopt module.
-    hyperopt-list       List Hyperopt results
-    hyperopt-show       Show details of Hyperopt results
-    list-exchanges      Print available exchanges.
-    list-markets        Print markets on exchange.
-    list-pairs          Print pairs on exchange.
-    list-strategies     Print available strategies.
-    list-hyperoptloss   Print available hyperopt loss functions.
-    list-freqaimodels   Print available freqAI models.
-    list-timeframes     Print available timeframes for the exchange.
-    show-trades         Show trades.
-    test-pairlist       Test your pairlist configuration.
-    convert-db          Migrate database to different system
-    install-ui          Install FreqUI
-    plot-dataframe      Plot candles with indicators.
-    plot-profit         Generate plot showing profits.
-    webserver           Webserver module.
-    strategy-updater    updates outdated strategy files to the current version
-    lookahead-analysis  Check for potential look ahead bias.
-    recursive-analysis  Check for potential recursive formula issue.
+                        バックテスト分析モジュール。
+    hyperopt            Hyperoptモジュール。
+    hyperopt-list       Hyperopt結果を一覧表示します
+    hyperopt-show       Hyperopt結果の詳細を表示します
+    list-exchanges      利用可能な取引所を表示します。
+    list-markets        取引所の市場を表示します。
+    list-pairs          取引所のペアを表示します。
+    list-strategies     利用可能な戦略を表示します。
+    list-hyperoptloss   利用可能なhyperopt損失関数を表示します。
+    list-freqaimodels   利用可能なfreqAIモデルを表示します。
+    list-timeframes     取引所の利用可能な時間枠を表示します。
+    show-trades         トレードを表示します。
+    test-pairlist       ペアリスト設定をテストします。
+    convert-db          データベースを別のシステムに移行します
+    install-ui          FreqUIをインストールします
+    plot-dataframe      インジケーター付きローソク足をプロットします。
+    plot-profit         利益を示すプロットを生成します。
+    webserver           Webサーバーモジュール。
+    strategy-updater    古い戦略ファイルを現在のバージョンに更新します
+    lookahead-analysis  潜在的な先読みバイアスをチェックします。
+    recursive-analysis  潜在的な再帰的な式の問題をチェックします。
 
-options:
-  -h, --help            show this help message and exit
-  -V, --version         show program's version number and exit
+オプション:
+  -h, --help            ヘルプメッセージを表示して終了します
+  -V, --version         プログラムのバージョン番号を表示して終了します
 ```
 
-### Telegram RPC commands
+### Telegram RPCコマンド
 
-Telegram is not mandatory. However, this is a great way to control your bot. More details and the full command list on the [documentation](https://www.freqtrade.io/en/latest/telegram-usage/)
+Telegramは必須ではありません。ただし、これはボットを制御する優れた方法です。詳細とコマンドの完全なリストについては、[ドキュメント](https://www.freqtrade.io/en/latest/telegram-usage/)を参照してください
 
-- `/start`: Starts the trader.
-- `/stop`: Stops the trader.
-- `/stopentry`: Stop entering new trades.
-- `/status <trade_id>|[table]`: Lists all or specific open trades.
-- `/profit [<n>]`: Lists cumulative profit from all finished trades, over the last n days.
-- `/profit_long [<n>]`: Lists cumulative profit from all finished long trades, over the last n days.
-- `/profit_short [<n>]`: Lists cumulative profit from all finished short trades, over the last n days.
-- `/forceexit <trade_id>|all`: Instantly exits the given trade (Ignoring `minimum_roi`).
-- `/fx <trade_id>|all`: Alias to `/forceexit`
-- `/performance`: Show performance of each finished trade grouped by pair
-- `/balance`: Show account balance per currency.
-- `/daily <n>`: Shows profit or loss per day, over the last n days.
-- `/help`: Show help message.
-- `/version`: Show version.
+- `/start`: トレーダーを起動します。
+- `/stop`: トレーダーを停止します。
+- `/stopentry`: 新しいトレードへのエントリーを停止します。
+- `/status <trade_id>|[table]`: すべてまたは特定のオープントレードを一覧表示します。
+- `/profit [<n>]`: 過去n日間のすべての完了したトレードからの累積利益を一覧表示します。
+- `/profit_long [<n>]`: 過去n日間のすべての完了したロングトレードからの累積利益を一覧表示します。
+- `/profit_short [<n>]`: 過去n日間のすべての完了したショートトレードからの累積利益を一覧表示します。
+- `/forceexit <trade_id>|all`: 指定されたトレードを即座に終了します（`minimum_roi`を無視）。
+- `/fx <trade_id>|all`: `/forceexit`のエイリアス
+- `/performance`: ペアでグループ化された完了した各トレードのパフォーマンスを表示します
+- `/balance`: 通貨ごとのアカウント残高を表示します。
+- `/daily <n>`: 過去n日間の1日あたりの利益または損失を表示します。
+- `/help`: ヘルプメッセージを表示します。
+- `/version`: バージョンを表示します。
 
 
-## Development branches
+## 開発ブランチ
 
-The project is currently setup in two main branches:
+プロジェクトは現在、2つの主要なブランチでセットアップされています:
 
-- `develop` - This branch has often new features, but might also contain breaking changes. We try hard to keep this branch as stable as possible.
-- `stable` - This branch contains the latest stable release. This branch is generally well tested.
-- `feat/*` - These are feature branches, which are being worked on heavily. Please don't use these unless you want to test a specific feature.
+- `develop` - このブランチには新しい機能がよくありますが、破壊的な変更も含まれる場合があります。このブランチをできるだけ安定させるよう努めています。
+- `stable` - このブランチには最新の安定リリースが含まれています。このブランチは一般的によくテストされています。
+- `feat/*` - これらは機能ブランチで、積極的に作業中です。特定の機能をテストしたい場合を除き、これらを使用しないでください。
 
-## Support
+## サポート
 
-### Help / Discord
+### ヘルプ / Discord
 
-For any questions not covered by the documentation or for further information about the bot, or to simply engage with like-minded individuals, we encourage you to join the Freqtrade [discord server](https://discord.gg/p7nuUNVfP7).
+ドキュメントでカバーされていない質問や、ボットに関する詳細情報、または単に同じ考えを持つ人々と交流したい場合は、Freqtradeの[discordサーバー](https://discord.gg/p7nuUNVfP7)に参加することをお勧めします。
 
-### [Bugs / Issues](https://github.com/freqtrade/freqtrade/issues?q=is%3Aissue)
+### [バグ / 問題](https://github.com/freqtrade/freqtrade/issues?q=is%3Aissue)
 
-If you discover a bug in the bot, please
-[search the issue tracker](https://github.com/freqtrade/freqtrade/issues?q=is%3Aissue)
-first. If it hasn't been reported, please
-[create a new issue](https://github.com/freqtrade/freqtrade/issues/new/choose) and
-ensure you follow the template guide so that the team can assist you as
-quickly as possible.
+ボットにバグを発見した場合は、まず[issue tracker](https://github.com/freqtrade/freqtrade/issues?q=is%3Aissue)を検索してください。報告されていない場合は、[新しいissueを作成](https://github.com/freqtrade/freqtrade/issues/new/choose)し、チームができるだけ早くサポートできるようにテンプレートガイドに従ってください。
 
-For every [issue](https://github.com/freqtrade/freqtrade/issues/new/choose) created, kindly follow up and mark satisfaction or reminder to close issue when equilibrium ground is reached.
+作成されたすべての[issue](https://github.com/freqtrade/freqtrade/issues/new/choose)について、満足度をマークするか、均衡点に達したときにissueをクローズするためのリマインダーを行ってください。
 
---Maintain github's [community policy](https://docs.github.com/en/site-policy/github-terms/github-community-code-of-conduct)--
+--GitHubの[コミュニティポリシー](https://docs.github.com/en/site-policy/github-terms/github-community-code-of-conduct)を維持してください--
 
-### [Feature Requests](https://github.com/freqtrade/freqtrade/labels/enhancement)
+### [機能リクエスト](https://github.com/freqtrade/freqtrade/labels/enhancement)
 
-Have you a great idea to improve the bot you want to share? Please,
-first search if this feature was not [already discussed](https://github.com/freqtrade/freqtrade/labels/enhancement).
-If it hasn't been requested, please
-[create a new request](https://github.com/freqtrade/freqtrade/issues/new/choose)
-and ensure you follow the template guide so that it does not get lost
-in the bug reports.
+ボットを改善するための素晴らしいアイデアをお持ちですか？まず、この機能が[既に議論されていない](https://github.com/freqtrade/freqtrade/labels/enhancement)か検索してください。リクエストされていない場合は、[新しいリクエストを作成](https://github.com/freqtrade/freqtrade/issues/new/choose)し、バグレポートに埋もれないようにテンプレートガイドに従ってください。
 
-### [Pull Requests](https://github.com/freqtrade/freqtrade/pulls)
+### [プルリクエスト](https://github.com/freqtrade/freqtrade/pulls)
 
-Feel like the bot is missing a feature? We welcome your pull requests!
+ボットに機能が欠けていると感じますか？プルリクエストを歓迎します！
 
-Please read the
-[Contributing document](https://github.com/freqtrade/freqtrade/blob/develop/CONTRIBUTING.md)
-to understand the requirements before sending your pull-requests.
+プルリクエストを送信する前に、要件を理解するために[貢献ドキュメント](https://github.com/freqtrade/freqtrade/blob/develop/CONTRIBUTING.md)をお読みください。
 
-Coding is not a necessity to contribute - maybe start with improving the documentation?
-Issues labeled [good first issue](https://github.com/freqtrade/freqtrade/labels/good%20first%20issue) can be good first contributions, and will help get you familiar with the codebase.
+貢献するためにコーディングは必要ありません - ドキュメントの改善から始めてみませんか？
+[good first issue](https://github.com/freqtrade/freqtrade/labels/good%20first%20issue)とラベル付けされたissueは、良い最初の貢献になり、コードベースに慣れるのに役立ちます。
 
-**Note** before starting any major new feature work, *please open an issue describing what you are planning to do* or talk to us on [discord](https://discord.gg/p7nuUNVfP7) (please use the #dev channel for this). This will ensure that interested parties can give valuable feedback on the feature, and let others know that you are working on it.
+**注意** 主要な新機能作業を開始する前に、*計画していることを説明するissueを開くか*、[discord](https://discord.gg/p7nuUNVfP7)で話し合ってください（このためには#devチャンネルを使用してください）。これにより、関係者が機能について貴重なフィードバックを提供し、あなたがそれに取り組んでいることを他の人に知らせることができます。
 
-**Important:** Always create your PR against the `develop` branch, not `stable`.
+**重要:** 常に`stable`ブランチではなく、`develop`ブランチに対してPRを作成してください。
 
-## Requirements
+## 要件
 
-### Up-to-date clock
+### 最新の時計
 
-The clock must be accurate, synchronized to a NTP server very frequently to avoid problems with communication to the exchanges.
+時計は正確でなければならず、取引所との通信の問題を回避するために、非常に頻繁にNTPサーバーと同期する必要があります。
 
-### Minimum hardware required
+### 最小ハードウェア要件
 
-To run this bot we recommend you a cloud instance with a minimum of:
+このボットを実行するには、以下の最小限のクラウドインスタンスをお勧めします:
 
-- Minimal (advised) system requirements: 2GB RAM, 1GB disk space, 2vCPU
+- 最小（推奨）システム要件: 2GB RAM、1GBディスクスペース、2vCPU
 
-### Software requirements
+### ソフトウェア要件
 
 - [Python >= 3.11](http://docs.python-guide.org/en/latest/starting/installation/)
 - [pip](https://pip.pypa.io/en/stable/installing/)
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [TA-Lib](https://ta-lib.github.io/ta-lib-python/)
-- [virtualenv](https://virtualenv.pypa.io/en/stable/installation.html) (Recommended)
-- [Docker](https://www.docker.com/products/docker) (Recommended)
+- [virtualenv](https://virtualenv.pypa.io/en/stable/installation.html) (推奨)
+- [Docker](https://www.docker.com/products/docker) (推奨)

@@ -1,15 +1,13 @@
-# Advanced Hyperopt
+# 高度なHyperopt
 
-This page explains some advanced Hyperopt topics that may require higher
-coding skills and Python knowledge than creation of an ordinal hyperoptimization
-class.
+このページでは、通常のハイパーオプティマイゼーションクラスの作成よりも高度なコーディングスキルとPythonの知識が必要な、高度なHyperoptトピックについて説明します。
 
-## Creating and using a custom loss function
+## カスタム損失関数の作成と使用
 
-To use a custom loss function class, make sure that the function `hyperopt_loss_function` is defined in your custom hyperopt loss class.
-For the sample below, you then need to add the command line parameter `--hyperopt-loss SuperDuperHyperOptLoss` to your hyperopt call so this function is being used.
+カスタム損失関数クラスを使用するには、カスタムハイパーオプト損失クラスで関数`hyperopt_loss_function`が定義されていることを確認してください。
+以下のサンプルの場合、この関数が使用されるように、hyperopt呼び出しにコマンドラインパラメータ`--hyperopt-loss SuperDuperHyperOptLoss`を追加する必要があります。
 
-A sample of this can be found below, which is identical to the Default Hyperopt loss implementation. A full sample can be found in [userdata/hyperopts](https://github.com/freqtrade/freqtrade/blob/develop/freqtrade/templates/sample_hyperopt_loss.py).
+以下にこのサンプルがあります。これはデフォルトのHyperopt損失実装と同じです。完全なサンプルは[userdata/hyperopts](https://github.com/freqtrade/freqtrade/blob/develop/freqtrade/templates/sample_hyperopt_loss.py)にあります。
 
 ``` python
 from datetime import datetime
@@ -60,41 +58,41 @@ class SuperDuperHyperOptLoss(IHyperOptLoss):
         return result
 ```
 
-Currently, the arguments are:
+現在、引数は次のとおりです：
 
-* `results`: DataFrame containing the resulting trades.
-    The following columns are available in results (corresponds to the output-file of backtesting when used with `--export trades`):  
+* `results`: 結果の取引を含むDataFrame。
+    resultsでは次の列が利用可能です（`--export trades`で使用した場合のバックテストの出力ファイルに対応）：
     `pair, profit_ratio, profit_abs, open_date, open_rate, fee_open, close_date, close_rate, fee_close, amount, trade_duration, is_open, exit_reason, stake_amount, min_rate, max_rate, stop_loss_ratio, stop_loss_abs`
-* `trade_count`: Amount of trades (identical to `len(results)`)
-* `min_date`: Start date of the timerange used
-* `min_date`: End date of the timerange used
-* `config`: Config object used (Note: Not all strategy-related parameters will be updated here if they are part of a hyperopt space).
-* `processed`: Dict of Dataframes with the pair as keys containing the data used for backtesting.
-* `backtest_stats`: Backtesting statistics using the same format as the backtesting file "strategy" substructure. Available fields can be seen in `generate_strategy_stats()` in `optimize_reports.py`.
-* `starting_balance`: Starting balance used for backtesting.
+* `trade_count`: 取引数（`len(results)`と同じ）
+* `min_date`: 使用されたタイムレンジの開始日
+* `min_date`: 使用されたタイムレンジの終了日
+* `config`: 使用されたConfigオブジェクト（注：ハイパーオプトスペースの一部である場合、すべてのストラテジー関連パラメータがここで更新されるわけではありません）。
+* `processed`: バックテストに使用されたデータを含むペアをキーとするDataFrameのDict。
+* `backtest_stats`: バックテストファイルの「strategy」サブ構造と同じ形式を使用したバックテスト統計。利用可能なフィールドは`optimize_reports.py`の`generate_strategy_stats()`で確認できます。
+* `starting_balance`: バックテストに使用された開始残高。
 
-This function needs to return a floating point number (`float`). Smaller numbers will be interpreted as better results. The parameters and balancing for this is up to you.
+この関数は浮動小数点数（`float`）を返す必要があります。より小さい数値は、より良い結果として解釈されます。これのパラメータとバランスはあなた次第です。
 
 !!! Note
-    This function is called once per epoch - so please make sure to have this as optimized as possible to not slow hyperopt down unnecessarily.
+    この関数はエポックごとに1回呼び出されます - したがって、hyperoptを不必要に遅くしないように、これを可能な限り最適化してください。
 
-!!! Note "`*args` and `**kwargs`"
-    Please keep the arguments `*args` and `**kwargs` in the interface to allow us to extend this interface in the future.
+!!! Note "`*args`と`**kwargs`"
+    将来的にこのインターフェースを拡張できるように、引数`*args`と`**kwargs`をインターフェースに保持してください。
 
-## Overriding pre-defined spaces
+## 事前定義されたスペースのオーバーライド
 
-To override a pre-defined space (`roi_space`, `generate_roi_table`, `stoploss_space`, `trailing_space`, `max_open_trades_space`), define a nested class called Hyperopt and define the required spaces as follows:
+事前定義されたスペース（`roi_space`、`generate_roi_table`、`stoploss_space`、`trailing_space`、`max_open_trades_space`）をオーバーライドするには、Hyperoptという名前のネストされたクラスを定義し、次のように必要なスペースを定義します：
 
 ```python
 from freqtrade.optimize.space import Categorical, Dimension, Integer, SKDecimal
 
 class MyAwesomeStrategy(IStrategy):
     class HyperOpt:
-        # Define a custom stoploss space.
+        # カスタムストップロススペースを定義します。
         def stoploss_space():
             return [SKDecimal(-0.05, -0.01, decimals=3, name='stoploss')]
 
-        # Define custom ROI space
+        # カスタムROIスペースを定義
         def roi_space() -> List[Dimension]:
             return [
                 Integer(10, 120, name='roi_t1'),
@@ -116,23 +114,23 @@ class MyAwesomeStrategy(IStrategy):
             return roi_table
 
         def trailing_space() -> List[Dimension]:
-            # All parameters here are mandatory, you can only modify their type or the range.
+            # ここのすべてのパラメータは必須です。タイプまたは範囲のみを変更できます。
             return [
-                # Fixed to true, if optimizing trailing_stop we assume to use trailing stop at all times.
+                # Trueに固定、trailing_stopを最適化する場合、常にtrailing stopを使用すると仮定します。
                 Categorical([True], name='trailing_stop'),
 
                 SKDecimal(0.01, 0.35, decimals=3, name='trailing_stop_positive'),
-                # 'trailing_stop_positive_offset' should be greater than 'trailing_stop_positive',
-                # so this intermediate parameter is used as the value of the difference between
-                # them. The value of the 'trailing_stop_positive_offset' is constructed in the
-                # generate_trailing_params() method.
-                # This is similar to the hyperspace dimensions used for constructing the ROI tables.
+                # 'trailing_stop_positive_offset'は'trailing_stop_positive'より大きくする必要があるため、
+                # この中間パラメータは、それらの間の差の値として使用されます。
+                # 'trailing_stop_positive_offset'の値は、
+                # generate_trailing_params()メソッドで構築されます。
+                # これは、ROIテーブルを構築するために使用されるハイパースペース次元に似ています。
                 SKDecimal(0.001, 0.1, decimals=3, name='trailing_stop_positive_offset_p1'),
 
                 Categorical([True, False], name='trailing_only_offset_is_reached'),
         ]
 
-        # Define a custom max_open_trades space
+        # カスタムmax_open_tradesスペースを定義
         def max_open_trades_space(self) -> List[Dimension]:
             return [
                 Integer(-1, 10, name='max_open_trades'),
@@ -140,11 +138,11 @@ class MyAwesomeStrategy(IStrategy):
 ```
 
 !!! Note
-    All overrides are optional and can be mixed/matched as necessary.
+    すべてのオーバーライドはオプションであり、必要に応じて混合/照合できます。
 
-### Dynamic parameters
+### 動的パラメータ
 
-Parameters can also be defined dynamically, but must be available to the instance once the [`bot_start()` callback](strategy-callbacks.md#bot-start) has been called.
+パラメータは動的に定義することもできますが、[`bot_start()`コールバック](strategy-callbacks.md#bot-start)が呼び出されると、インスタンスで利用可能である必要があります。
 
 ``` python
 
@@ -157,11 +155,11 @@ class MyAwesomeStrategy(IStrategy):
 ```
 
 !!! Warning
-    Parameters created this way will not show up in the `list-strategies` parameter count.
+    この方法で作成されたパラメータは、`list-strategies`パラメータカウントに表示されません。
 
-### Overriding Base estimator
+### ベースエスティメータのオーバーライド
 
-You can define your own optuna sampler for Hyperopt by implementing `generate_estimator()` in the Hyperopt subclass.
+Hyperoptサブクラスで`generate_estimator()`を実装することにより、Hyperopt用の独自のoptunaサンプラーを定義できます。
 
 ```python
 class MyAwesomeStrategy(IStrategy):
@@ -171,30 +169,30 @@ class MyAwesomeStrategy(IStrategy):
 
 ```
 
-Possible values are either one of "NSGAIISampler", "TPESampler", "GPSampler", "CmaEsSampler", "NSGAIIISampler", "QMCSampler" (Details can be found in the [optuna-samplers documentation](https://optuna.readthedocs.io/en/stable/reference/samplers/index.html)), or "an instance of a class that inherits from `optuna.samplers.BaseSampler`".
+可能な値は、「NSGAIISampler」、「TPESampler」、「GPSampler」、「CmaEsSampler」、「NSGAIIISampler」、「QMCSampler」のいずれか（詳細は[optuna-samplersドキュメント](https://optuna.readthedocs.io/en/stable/reference/samplers/index.html)にあります）、または「`optuna.samplers.BaseSampler`を継承するクラスのインスタンス」です。
 
-Some research will be necessary to find additional Samplers (from optunahub) for example.
+たとえば、optunahubから追加のサンプラーを見つけるには、いくつかの調査が必要になります。
 
 !!! Note
-    While custom estimators can be provided, it's up to you as User to do research on possible parameters and analyze / understand which ones should be used.
-    If you're unsure about this, best use one of the Defaults (`"NSGAIIISampler"` has proven to be the most versatile) without further parameters.
+    カスタムエスティメータを提供できますが、可能なパラメータを調査し、どれを使用すべきかを分析/理解するのはユーザーとしてのあなた次第です。
+    これについて不確かな場合は、さらなるパラメータなしでデフォルトの1つ（`"NSGAIIISampler"`は最も汎用的であることが証明されています）を使用するのが最善です。
 
-??? Example "Using `AutoSampler` from Optunahub"
+??? Example "Optunahubから`AutoSampler`を使用"
 
-    [AutoSampler docs](https://hub.optuna.org/samplers/auto_sampler/)
-    
-    Install the necessary dependencies 
+    [AutoSamplerドキュメント](https://hub.optuna.org/samplers/auto_sampler/)
+
+    必要な依存関係をインストール
     ``` bash
     pip install optunahub cmaes torch scipy
     ```
-    Implement `generate_estimator()`  in your strategy
+    ストラテジーで`generate_estimator()`を実装
 
     ``` python
     # ...
     from freqtrade.strategy.interface import IStrategy
     from typing import List
     import optunahub
-    # ... 
+    # ...
 
     class my_strategy(IStrategy):
         class HyperOpt:
@@ -206,27 +204,27 @@ Some research will be necessary to find additional Samplers (from optunahub) for
 
     ```
 
-    Obviously the same approach will work for all other Samplers optuna supports.
+    明らかに、同じアプローチは、optunaがサポートする他のすべてのサンプラーで機能します。
 
 
-## Space options
+## スペースオプション
 
-For the additional spaces, scikit-optimize (in combination with Freqtrade) provides the following space types:
+追加のスペースについて、scikit-optimize（Freqtradeと組み合わせて）は次のスペースタイプを提供します：
 
-* `Categorical` - Pick from a list of categories (e.g. `Categorical(['a', 'b', 'c'], name="cat")`)
-* `Integer` - Pick from a range of whole numbers (e.g. `Integer(1, 10, name='rsi')`)
-* `SKDecimal` - Pick from a range of decimal numbers with limited precision (e.g. `SKDecimal(0.1, 0.5, decimals=3, name='adx')`). *Available only with freqtrade*.
-* `Real` - Pick from a range of decimal numbers with full precision (e.g. `Real(0.1, 0.5, name='adx')`
+* `Categorical` - カテゴリのリストから選択（例：`Categorical(['a', 'b', 'c'], name="cat")`）
+* `Integer` - 整数の範囲から選択（例：`Integer(1, 10, name='rsi')`）
+* `SKDecimal` - 限定された精度の小数の範囲から選択（例：`SKDecimal(0.1, 0.5, decimals=3, name='adx')`）。*Freqtradeでのみ利用可能*。
+* `Real` - 完全な精度の小数の範囲から選択（例：`Real(0.1, 0.5, name='adx')`
 
-You can import all of these from `freqtrade.optimize.space`, although `Categorical`, `Integer` and `Real` are only aliases for their corresponding scikit-optimize Spaces. `SKDecimal` is provided by freqtrade for faster optimizations.
+これらすべてを`freqtrade.optimize.space`からインポートできますが、`Categorical`、`Integer`、`Real`は、対応するscikit-optimizeスペースの単なるエイリアスです。`SKDecimal`は、より高速な最適化のためにfreqtradeによって提供されています。
 
 ``` python
 from freqtrade.optimize.space import Categorical, Dimension, Integer, SKDecimal, Real  # noqa
 ```
 
 !!! Hint "SKDecimal vs. Real"
-    We recommend to use `SKDecimal` instead of the `Real` space in almost all cases. While the Real space provides full accuracy (up to ~16 decimal places) - this precision is rarely needed, and leads to unnecessary long hyperopt times.
+    ほとんどすべてのケースで、`Real`スペースの代わりに`SKDecimal`を使用することをお勧めします。Realスペースは完全な精度（最大約16桁）を提供しますが、この精度はほとんど必要なく、不必要に長いhyperopt時間につながります。
 
-    Assuming the definition of a rather small space (`SKDecimal(0.10, 0.15, decimals=2, name='xxx')`) - SKDecimal will have 5 possibilities (`[0.10, 0.11, 0.12, 0.13, 0.14, 0.15]`).
+    かなり小さいスペースの定義を仮定（`SKDecimal(0.10, 0.15, decimals=2, name='xxx')`） - SKDecimalは5つの可能性（`[0.10, 0.11, 0.12, 0.13, 0.14, 0.15]`）を持ちます。
 
-    A corresponding real space `Real(0.10, 0.15 name='xxx')`  on the other hand has an almost unlimited number of possibilities (`[0.10, 0.010000000001, 0.010000000002, ... 0.014999999999, 0.01500000000]`).
+    一方、対応するrealスペース`Real(0.10, 0.15 name='xxx')`には、ほぼ無制限の数の可能性（`[0.10, 0.010000000001, 0.010000000002, ... 0.014999999999, 0.01500000000]`）があります。

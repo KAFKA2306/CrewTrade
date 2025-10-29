@@ -1,60 +1,54 @@
-# Advanced Post-installation Tasks
+# 高度なインストール後のタスク
 
-This page explains some advanced tasks and configuration options that can be performed after the bot installation and may be uselful in some environments.
+このページでは、ボットのインストール後に実行できる高度なタスクと設定オプションについて説明します。これらは一部の環境で役立つ場合があります。
 
-If you do not know what things mentioned here mean, you probably do not need it.
+ここで言及されている内容が何を意味するのか分からない場合は、おそらく必要ありません。
 
-## Running multiple instances of Freqtrade
+## Freqtradeの複数インスタンスの実行
 
-This section will show you how to run multiple bots at the same time, on the same machine.
+このセクションでは、同じマシン上で複数のボットを同時に実行する方法を説明します。
 
-### Things to consider
+### 考慮すべき事項
 
-* Use different database files.
-* Use different Telegram bots (requires multiple different configuration files; applies only when Telegram is enabled).
-* Use different ports (applies only when Freqtrade REST API webserver is enabled).
+* 異なるデータベースファイルを使用する。
+* 異なるTelegramボットを使用する（複数の異なる設定ファイルが必要です。Telegramが有効な場合のみ適用されます）。
+* 異なるポートを使用する（Freqtrade REST APIウェブサーバーが有効な場合のみ適用されます）。
 
-### Different database files
+### 異なるデータベースファイル
 
-In order to keep track of your trades, profits, etc., freqtrade is using a SQLite database where it stores various types of information such as the trades you performed in the past and the current position(s) you are holding at any time. This allows you to keep track of your profits, but most importantly, keep track of ongoing activity if the bot process would be restarted or would be terminated unexpectedly.
+取引、利益などを追跡するために、freqtradeはSQLiteデータベースを使用しており、過去に実行した取引や、いつでも保有している現在のポジションなど、さまざまな種類の情報を保存します。これにより、利益を追跡できるだけでなく、最も重要なこととして、ボットプロセスが再起動されたり予期せず終了した場合でも、進行中のアクティビティを追跡できます。
 
-Freqtrade will, by default, use separate database files for dry-run and live bots (this assumes no database-url is given in either configuration nor via command line argument).
-For live trading mode, the default database will be `tradesv3.sqlite` and for dry-run it will be `tradesv3.dryrun.sqlite`.
+Freqtradeはデフォルトで、ドライラン用とライブボット用に別々のデータベースファイルを使用します（これは、設定ファイルまたはコマンドライン引数でdatabase-urlが指定されていないことを前提としています）。
+ライブトレーディングモードの場合、デフォルトのデータベースは`tradesv3.sqlite`で、ドライランの場合は`tradesv3.dryrun.sqlite`になります。
 
-The optional argument to the trade command used to specify the path of these files is `--db-url`, which requires a valid SQLAlchemy url.
-So when you are starting a bot with only the config and strategy arguments in dry-run mode, the following 2 commands would have the same outcome.
-
+これらのファイルのパスを指定するためにtradeコマンドで使用されるオプションの引数は`--db-url`で、有効なSQLAlchemy URLが必要です。
+したがって、ドライランモードで設定とストラテジーの引数のみでボットを起動する場合、次の2つのコマンドは同じ結果になります。
 ``` bash
 freqtrade trade -c MyConfig.json -s MyStrategy
-# is equivalent to
+# 次と同等
 freqtrade trade -c MyConfig.json -s MyStrategy --db-url sqlite:///tradesv3.dryrun.sqlite
 ```
+つまり、たとえばUSDTでの取引と別のインスタンスでのBTCでの取引の両方でストラテジーをテストするために、2つの異なるターミナルでtradeコマンドを実行している場合、異なるデータベースで実行する必要があります。
 
-It means that if you are running the trade command in two different terminals, for example to test your strategy both for trades in USDT and in another instance for trades in BTC, you will have to run them with different databases.
-
-If you specify the URL of a database which does not exist, freqtrade will create one with the name you specified. So to test your custom strategy with BTC and USDT stake currencies, you could use the following commands (in 2 separate terminals):
-
+存在しないデータベースのURLを指定すると、freqtradeは指定した名前でデータベースを作成します。したがって、BTCとUSDTのステークカレンシーでカスタムストラテジーをテストするには、次のコマンドを使用できます（2つの別々のターミナルで）：
 ``` bash
-# Terminal 1:
+# ターミナル1:
 freqtrade trade -c MyConfigBTC.json -s MyCustomStrategy --db-url sqlite:///user_data/tradesBTC.dryrun.sqlite
-# Terminal 2:
+# ターミナル2:
 freqtrade trade -c MyConfigUSDT.json -s MyCustomStrategy --db-url sqlite:///user_data/tradesUSDT.dryrun.sqlite
 ```
-
-Conversely, if you wish to do the same thing in production mode, you will also have to create at least one new database (in addition to the default one) and specify the path to the "live" databases, for example:
-
+逆に、本番モードで同じことをする場合は、少なくとも1つの新しいデータベース（デフォルトのデータベースに加えて）を作成し、「ライブ」データベースへのパスを指定する必要があります。例：
 ``` bash
-# Terminal 1:
+# ターミナル1:
 freqtrade trade -c MyConfigBTC.json -s MyCustomStrategy --db-url sqlite:///user_data/tradesBTC.live.sqlite
-# Terminal 2:
+# ターミナル2:
 freqtrade trade -c MyConfigUSDT.json -s MyCustomStrategy --db-url sqlite:///user_data/tradesUSDT.live.sqlite
 ```
+sqliteデータベースの使用に関する詳細情報、たとえば手動で取引を入力または削除する方法については、[SQLチートシート](sql_cheatsheet.md)を参照してください。
 
-For more information regarding usage of the sqlite databases, for example to manually enter or remove trades, please refer to the [SQL Cheatsheet](sql_cheatsheet.md).
+### dockerを使用した複数のインスタンス
 
-### Multiple instances using docker
-
-To run multiple instances of freqtrade using docker you will need to edit the docker-compose.yml file and add all the instances you want as separate services. Remember, you can separate your configuration into multiple files, so it's a good idea to think about making them modular, then if you need to edit something common to all bots, you can do that in a single config file. 
+dockerを使用してfreqtradeの複数のインスタンスを実行するには、docker-compose.ymlファイルを編集し、必要なすべてのインスタンスを個別のサービスとして追加する必要があります。設定を複数のファイルに分けることができることを覚えておいてください。そのため、モジュラー化することを考えるのが良いアイデアです。そうすれば、すべてのボットに共通の何かを編集する必要がある場合、単一の設定ファイルでそれを行うことができます。
 ``` yml
 ---
 version: '3'
@@ -85,7 +79,7 @@ services:
       --config /freqtrade/user_data/config.json
       --config /freqtrade/user_data/config.freqtrade1.json
       --strategy SampleStrategy
-  
+
   freqtrade2:
     image: freqtradeorg/freqtrade:stable
     # image: freqtradeorg/freqtrade:develop
@@ -114,91 +108,79 @@ services:
       --strategy SampleStrategy
 
 ```
+freqtrade1と2は任意の命名規則を使用できます。上記のように、インスタンスごとに異なるデータベースファイル、ポートマッピング、およびTelegram設定を使用する必要があることに注意してください。
 
-You can use whatever naming convention you want, freqtrade1 and 2 are arbitrary. Note, that you will need to use different database files, port mappings and telegram configurations for each instance, as mentioned above. 
+## 異なるデータベースシステムの使用
 
-## Use a different database system
+FreqtradeはSQLAlchemyを使用しており、複数の異なるデータベースシステムをサポートしています。そのため、多数のデータベースシステムがサポートされるはずです。
+Freqtradeは追加のデータベースドライバに依存したり、インストールしたりしません。それぞれのデータベースシステムのインストール手順については、[SQLAlchemyドキュメント](https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls)を参照してください。
 
-Freqtrade is using SQLAlchemy, which supports multiple different database systems. As such, a multitude of database systems should be supported.
-Freqtrade does not depend or install any additional database driver. Please refer to the [SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls) on installation instructions for the respective database systems.
+次のシステムはテスト済みで、freqtradeで動作することが確認されています：
 
-The following systems have been tested and are known to work with freqtrade:
-
-* sqlite (default)
+* sqlite（デフォルト）
 * PostgreSQL
 * MariaDB
 
 !!! Warning
-    By using one of the below database systems, you acknowledge that you know how to manage such a system. The freqtrade team will not provide any support with setup or maintenance (or backups) of the below database systems.
+    以下のデータベースシステムのいずれかを使用することにより、そのようなシステムの管理方法を知っていることを認めることになります。freqtradeチームは、以下のデータベースシステムのセットアップやメンテナンス（またはバックアップ）に関するサポートを提供しません。
 
 ### PostgreSQL
 
-Installation:
+インストール:
 `pip install "psycopg[binary]"`
 
-Usage:
+使用法:
 `... --db-url postgresql+psycopg://<username>:<password>@localhost:5432/<database>`
 
-Freqtrade will automatically create the tables necessary upon startup.
+Freqtradeは起動時に必要なテーブルを自動的に作成します。
 
-If you're running different instances of Freqtrade, you must either setup one database per Instance or use different users / schemas for your connections.
+Freqtradeの異なるインスタンスを実行している場合、インスタンスごとに1つのデータベースをセットアップするか、接続に異なるユーザー/スキーマを使用する必要があります。
 
 ### MariaDB / MySQL
 
-Freqtrade supports MariaDB by using SQLAlchemy, which supports multiple different database systems.
+FreqtradeはSQLAlchemyを使用してMariaDBをサポートしており、複数の異なるデータベースシステムをサポートしています。
 
-Installation:
+インストール:
 `pip install pymysql`
 
-Usage:
+使用法:
 `... --db-url mysql+pymysql://<username>:<password>@localhost:3306/<database>`
 
 
 
-## Configure the bot running as a systemd service
+## systemdサービスとして実行するボットの設定
 
-Copy the `freqtrade.service` file to your systemd user directory (usually `~/.config/systemd/user`) and update `WorkingDirectory` and `ExecStart` to match your setup.
+`freqtrade.service`ファイルをsystemdユーザーディレクトリ（通常は`~/.config/systemd/user`）にコピーし、`WorkingDirectory`と`ExecStart`を設定に合わせて更新します。
 
 !!! Note
-    Certain systems (like Raspbian) don't load service unit files from the user directory. In this case, copy `freqtrade.service` into `/etc/systemd/user/` (requires superuser permissions).
-
-After that you can start the daemon with:
-
+    特定のシステム（Raspbianなど）は、ユーザーディレクトリからサービスユニットファイルをロードしません。この場合、`freqtrade.service`を`/etc/systemd/user/`にコピーしてください（スーパーユーザー権限が必要です）。
+その後、次のコマンドでデーモンを起動できます：
 ```bash
 systemctl --user start freqtrade
 ```
-
-For this to be persistent (run when user is logged out) you'll need to enable `linger` for your freqtrade user.
-
+これを永続的にする（ユーザーがログアウトしても実行する）には、freqtradeユーザーの`linger`を有効にする必要があります。
 ```bash
 sudo loginctl enable-linger "$USER"
 ```
+ボットをサービスとして実行する場合、systemdサービスマネージャーをソフトウェアウォッチドッグとして使用して、freqtradeボットの状態を監視し、障害が発生した場合に再起動できます。設定で`internals.sd_notify`パラメータがtrueに設定されているか、`--sd-notify`コマンドラインオプションが使用されている場合、ボットはsd_notify（systemd通知）プロトコルを使用してsystemdにキープアライブpingメッセージを送信し、状態が変わったときに現在の状態（実行中、一時停止、停止）をsystemdに通知します。
 
-If you run the bot as a service, you can use systemd service manager as a software watchdog monitoring freqtrade bot 
-state and restarting it in the case of failures. If the `internals.sd_notify` parameter is set to true in the 
-configuration or the `--sd-notify` command line option is used, the bot will send keep-alive ping messages to systemd 
-using the sd_notify (systemd notifications) protocol and will also tell systemd its current state (Running, Paused or Stopped) 
-when it changes. 
-
-The `freqtrade.service.watchdog` file contains an example of the service unit configuration file which uses systemd 
-as the watchdog.
+`freqtrade.service.watchdog`ファイルには、ウォッチドッグとしてsystemdを使用するサービスユニット設定ファイルの例が含まれています。
 
 !!! Note
-    The sd_notify communication between the bot and the systemd service manager will not work if the bot runs in a Docker container.
+    ボットがDockerコンテナで実行されている場合、ボットとsystemdサービスマネージャー間のsd_notify通信は機能しません。
 
-## Advanced Logging
+## 高度なログ設定
 
-Freqtrade uses the default logging module provided by python.
-Python allows for extensive [logging configuration](https://docs.python.org/3/library/logging.config.html#logging.config.dictConfig) in this regard - way more than what can be covered here.
+Freqtradeはpythonが提供するデフォルトのログモジュールを使用しています。
+Pythonはこの点で広範な[ログ設定](https://docs.python.org/3/library/logging.config.html#logging.config.dictConfig)を可能にします - ここでカバーできる以上のものです。
 
-Default logging format (coloured terminal output) is set up by default if no `log_config` is provided in your freqtrade configuration.
-Using `--logfile logfile.log` will enable the RotatingFileHandler.
+freqtrade設定で`log_config`が提供されていない場合、デフォルトのログ形式（色付きターミナル出力）がデフォルトで設定されます。
+`--logfile logfile.log`を使用すると、RotatingFileHandlerが有効になります。
 
-If you're not content with the log format, or with the default settings provided for the RotatingFileHandler, you can customize logging to your liking by adding the `log_config` configuration to your freqtrade configuration file(s).
+ログ形式やRotatingFileHandlerに提供されるデフォルト設定に満足できない場合は、freqtrade設定ファイルに`log_config`設定を追加することで、好みに合わせてログをカスタマイズできます。
 
-The default configuration looks roughly like the below, with the file handler being provided but not enabled as the `filename` is commented out.
-Uncomment this line and supply a valid path/filename to enable it.
-
+デフォルト設定は以下のようになっており、ファイルハンドラーは提供されていますが、`filename`がコメントアウトされているため有効になっていません。
+この行のコメントを解除し、有効なパス/ファイル名を指定して有効にします。
 ``` json hl_lines="5-7 13-16 27"
 {
   "log_config": {
@@ -234,26 +216,24 @@ Uncomment this line and supply a valid path/filename to enable it.
   }
 }
 ```
+!!! Note "ハイライトされた行"
+    上記のコードブロックでハイライトされた行は、Richハンドラーを定義し、一緒に属しています。
+    フォーマッター「standard」と「file」はFileHandlerに属します。
 
-!!! Note "highlighted lines"
-    Highlighted lines in the above code-block define the Rich handler and belong together.
-    The formatter "standard" and "file" will belong to the FileHandler.
+各ハンドラーは、定義されたフォーマッターの1つを（名前で）使用する必要があり、そのクラスは利用可能で、有効なログクラスでなければなりません。
+ハンドラーを実際に使用するには、「root」セグメント内の「handlers」セクションにある必要があります。
+このセクションが省略されている場合、freqtradeは出力を提供しません（設定されていないハンドラーでは、とにかく）。
 
-Each handler must use one of the defined formatters (by name), its class must be available, and must be a valid logging class.
-To actually use a handler, it must be in the "handlers" section inside the "root" segment.
-If this section is left out, freqtrade will provide no output (in the non-configured handler, anyway).
-
-!!! Tip "Explicit log configuration"
-    We recommend to extract the logging configuration from your main freqtrade configuration file, and provide it to your bot via [multiple configuration files](configuration.md#multiple-configuration-files) functionality. This will avoid unnecessary code duplication.
+!!! Tip "明示的なログ設定"
+    メインのfreqtrade設定ファイルからログ設定を抽出し、[複数の設定ファイル](configuration.md#multiple-configuration-files)機能を介してボットに提供することをお勧めします。これにより、不必要なコードの重複を避けることができます。
 
 ---
 
-On many Linux systems the bot can be configured to send its log messages to `syslog` or `journald` system services. Logging to a remote `syslog` server is also available on Windows. The special values for the `--logfile` command line option can be used for this.
+多くのLinuxシステムでは、ボットを設定して、ログメッセージを`syslog`または`journald`システムサービスに送信できます。リモート`syslog`サーバーへのログ記録はWindowsでも利用できます。この場合、`--logfile`コマンドラインオプションの特別な値を使用できます。
 
-### Logging to syslog
+### syslogへのログ記録
 
-To send Freqtrade log messages to a local or remote `syslog` service use the `"log_config"` setup option to configure logging.
-
+Freqtradeのログメッセージをローカルまたはリモートの`syslog`サービスに送信するには、`"log_config"`設定オプションを使用してログを設定します。
 ``` json
 {
   // ...
@@ -265,11 +245,11 @@ To send Freqtrade log messages to a local or remote `syslog` service use the `"l
       }
     },
     "handlers": {
-      // Other handlers? 
+      // Other handlers?
       "syslog": {
          "class": "logging.handlers.SysLogHandler",
           "formatter": "syslog_fmt",
-          // Use one of the other options above as address instead? 
+          // Use one of the other options above as address instead?
           "address": "/dev/log"
       }
     },
@@ -277,70 +257,63 @@ To send Freqtrade log messages to a local or remote `syslog` service use the `"l
       "handlers": [
         // other handlers
         "syslog",
-        
+
       ]
     }
 
   }
 }
 ```
+たとえばコンソールにもログ出力を持つために、[追加のログハンドラー](#advanced-logging)を設定する必要がある場合があります。
 
-[Additional log-handlers](#advanced-logging) may need to be configured to for example also have log output in the console.
+#### syslogの使用法
 
-#### Syslog usage
+ログメッセージは`user`ファシリティで`syslog`に送信されます。したがって、次のコマンドで表示できます：
 
-Log messages are send to `syslog` with the `user` facility. So you can see them with the following commands:
+* `tail -f /var/log/user`、または
+* 包括的なグラフィカルビューア（たとえば、Ubuntu用の「Log File Viewer」）をインストールします。
 
-* `tail -f /var/log/user`, or
-* install a comprehensive graphical viewer (for instance, 'Log File Viewer' for Ubuntu).
+多くのシステムでは、`syslog`（`rsyslog`）は`journald`からデータを取得します（逆も同様）。したがって、syslogまたはjournaldのどちらも使用でき、メッセージは`journalctl`とsyslogビューアユーティリティの両方で表示できます。あなたにとってより良い方法で、これらを任意の方法で組み合わせることができます。
 
-On many systems `syslog` (`rsyslog`) fetches data from `journald` (and vice versa), so both syslog or journald can be used and the messages be viewed with both `journalctl` and a syslog viewer utility. You can combine this in any way which suites you better.
-
-For `rsyslog` the messages from the bot can be redirected into a separate dedicated log file. To achieve this, add
-
+`rsyslog`の場合、ボットからのメッセージを別の専用ログファイルにリダイレクトできます。これを実現するには、次を追加します
 ```
 if $programname startswith "freqtrade" then -/var/log/freqtrade.log
 ```
+rsyslog設定ファイルの1つ、たとえば`/etc/rsyslog.d/50-default.conf`の最後に。
 
-to one of the rsyslog configuration files, for example at the end of the `/etc/rsyslog.d/50-default.conf`.
-
-For `syslog` (`rsyslog`), the reduction mode can be switched on. This will reduce the number of repeating messages. For instance, multiple bot Heartbeat messages will be reduced to a single message when nothing else happens with the bot. To achieve this, set in `/etc/rsyslog.conf`:
-
+`syslog`（`rsyslog`）の場合、削減モードをオンにできます。これにより、繰り返しメッセージの数が減ります。たとえば、ボットで他に何も起こらない場合、複数のボットのハートビートメッセージは単一のメッセージに減らされます。これを実現するには、`/etc/rsyslog.conf`で次のように設定します：
 ```
 # Filter duplicated messages
 $RepeatedMsgReduction on
 ```
+#### syslogのアドレス指定
 
-#### Syslog addressing
+syslogアドレスは、Unixドメインソケット（ソケットファイル名）またはUDPソケット仕様（IPアドレスとUDPポートが`:`文字で区切られたもの）のいずれかです。
 
-The syslog address can be either a Unix domain socket (socket filename) or a UDP socket specification, consisting of IP address and UDP port, separated by the `:` character.
+したがって、次が可能なアドレスの例です：
 
-So, the following are the examples of possible addresses:
+* `"address": "/dev/log"` -- `/dev/log`ソケットを使用してsyslog（rsyslog）にログを記録します。ほとんどのシステムに適しています。
+* `"address": "/var/run/syslog"` -- `/var/run/syslog`ソケットを使用してsyslog（rsyslog）にログを記録します。macOSでこれを使用します。
+* `"address": "localhost:514"` -- ポート514でリッスンしている場合、UDPソケットを使用してローカルsyslogにログを記録します。
+* `"address": "<ip>:514"` -- リモートsyslogのIPアドレスとポート514にログを記録します。これは、外部syslogサーバーへのリモートログ記録のためにWindowsで使用できます。
 
-* `"address": "/dev/log"` -- log to syslog (rsyslog) using the `/dev/log` socket, suitable for most systems.
-* `"address": "/var/run/syslog"` -- log to syslog (rsyslog) using the `/var/run/syslog` socket. Use this on MacOS.
-* `"address": "localhost:514"` -- log to local syslog using UDP socket, if it listens on port 514.
-* `"address": "<ip>:514"` -- log to remote syslog at IP address and port 514. This may be used on Windows for remote logging to an external syslog server.
+??? Info "非推奨 - コマンドライン経由でsyslogを設定"
+    `--logfile syslog:<syslog_address>` -- `<syslog_address>`をsyslogアドレスとして使用して、`syslog`サービスにログメッセージを送信します。
 
-??? Info "Deprecated - configure syslog via command line"
-    `--logfile syslog:<syslog_address>` -- send log messages to `syslog` service using the `<syslog_address>` as the syslog address.
+    syslogアドレスは、Unixドメインソケット（ソケットファイル名）またはUDPソケット仕様（IPアドレスとUDPポートが`:`文字で区切られたもの）のいずれかです。
 
-    The syslog address can be either a Unix domain socket (socket filename) or a UDP socket specification, consisting of IP address and UDP port, separated by the `:` character.
+    したがって、次が可能な使用例です：
 
-    So, the following are the examples of possible usages:
+    * `--logfile syslog:/dev/log` -- `/dev/log`ソケットを使用してsyslog（rsyslog）にログを記録します。ほとんどのシステムに適しています。
+    * `--logfile syslog` -- 上記と同じで、`/dev/log`のショートカットです。
+    * `--logfile syslog:/var/run/syslog` -- `/var/run/syslog`ソケットを使用してsyslog（rsyslog）にログを記録します。macOSでこれを使用します。
+    * `--logfile syslog:localhost:514` -- ポート514でリッスンしている場合、UDPソケットを使用してローカルsyslogにログを記録します。
+    * `--logfile syslog:<ip>:514` -- リモートsyslogのIPアドレスとポート514にログを記録します。これは、外部syslogサーバーへのリモートログ記録のためにWindowsで使用できます。
 
-    * `--logfile syslog:/dev/log` -- log to syslog (rsyslog) using the `/dev/log` socket, suitable for most systems.
-    * `--logfile syslog` -- same as above, the shortcut for `/dev/log`.
-    * `--logfile syslog:/var/run/syslog` -- log to syslog (rsyslog) using the `/var/run/syslog` socket. Use this on MacOS.
-    * `--logfile syslog:localhost:514` -- log to local syslog using UDP socket, if it listens on port 514.
-    * `--logfile syslog:<ip>:514` -- log to remote syslog at IP address and port 514. This may be used on Windows for remote logging to an external syslog server.
+### journaldへのログ記録
 
-### Logging to journald
-
-This needs the `cysystemd` python package installed as dependency (`pip install cysystemd`), which is not available on Windows. Hence, the whole journald logging functionality is not available for a bot running on Windows.
-
-To send Freqtrade log messages to `journald` system service, add the following configuration snippet to your configuration.
-
+これには、依存関係として`cysystemd` pythonパッケージがインストールされている必要があります（`pip install cysystemd`）。Windowsでは利用できません。したがって、journaldログ機能全体は、Windowsで実行されているボットでは利用できません。
+Freqtradeのログメッセージを`journald`システムサービスに送信するには、次の設定スニペットを設定に追加します。
 ``` json
 {
   // ...
@@ -352,7 +325,7 @@ To send Freqtrade log messages to `journald` system service, add the following c
       }
     },
     "handlers": {
-      // Other handlers? 
+      // Other handlers?
       "journald": {
          "class": "cysystemd.journal.JournaldLogHandler",
           "formatter": "journald_fmt",
@@ -360,40 +333,38 @@ To send Freqtrade log messages to `journald` system service, add the following c
     },
     "root": {
       "handlers": [
-        // .. 
+        // ..
         "journald",
-        
+
       ]
     }
 
   }
 }
 ```
+たとえばコンソールにもログ出力を持つために、[追加のログハンドラー](#advanced-logging)を設定する必要がある場合があります。
 
-[Additional log-handlers](#advanced-logging) may need to be configured to for example also have log output in the console.
+ログメッセージは`user`ファシリティで`journald`に送信されます。したがって、次のコマンドで表示できます：
 
-Log messages are send to `journald` with the `user` facility. So you can see them with the following commands:
+* `journalctl -f` -- `journald`によって取得された他のログメッセージとともに、`journald`に送信されたFreqtradeログメッセージを表示します。
+* `journalctl -f -u freqtrade.service` -- ボットが`systemd`サービスとして実行されている場合、このコマンドを使用できます。
 
-* `journalctl -f` -- shows Freqtrade log messages sent to `journald` along with other log messages fetched by `journald`.
-* `journalctl -f -u freqtrade.service` -- this command can be used when the bot is run as a `systemd` service.
+メッセージをフィルタリングするための`journalctl`ユーティリティには他にも多くのオプションがあります。詳細については、このユーティリティのマニュアルページを参照してください。
 
-There are many other options in the `journalctl` utility to filter the messages, see manual pages for this utility.
+多くのシステムでは、`syslog`（`rsyslog`）は`journald`からデータを取得します（逆も同様）。したがって、`--logfile syslog`または`--logfile journald`のどちらも使用でき、メッセージは`journalctl`とsyslogビューアユーティリティの両方で表示できます。あなたにとってより良い方法で、これらを任意の方法で組み合わせることができます。
 
-On many systems `syslog` (`rsyslog`) fetches data from `journald` (and vice versa), so both `--logfile syslog` or `--logfile journald` can be used and the messages be viewed with both `journalctl` and a syslog viewer utility. You can combine this in any way which suites you better.
+??? Info "非推奨 - コマンドライン経由でjournaldを設定"
+    Freqtradeのログメッセージを`journald`システムサービスに送信するには、次の形式の値で`--logfile`コマンドラインオプションを使用します：
 
-??? Info "Deprecated - configure journald via command line"
-    To send Freqtrade log messages to `journald` system service use the `--logfile` command line option with the value in the following format:
+    `--logfile journald` -- `journald`にログメッセージを送信します。
 
-    `--logfile journald` -- send log messages to `journald`.
+### JSON形式のログ
 
-### Log format as JSON
+デフォルトの出力ストリームをJSON形式を使用するように設定することもできます。
+「fmt_dict」属性は、json出力のキーと[python logging LogRecord属性](https://docs.python.org/3/library/logging.html#logrecord-attributes)を定義します。
 
-You can also configure the default output stream to use JSON format instead.
-The "fmt_dict" attribute defines the keys for the json output - as well as the [python logging LogRecord attributes](https://docs.python.org/3/library/logging.html#logrecord-attributes).
-
-The below configuration will change the default output to JSON. The same formatter could however also be used in combination with the `RotatingFileHandler`.
-We recommend to keep one format in human readable form.
-
+以下の設定は、デフォルト出力をJSONに変更します。ただし、同じフォーマッターを`RotatingFileHandler`と組み合わせて使用することもできます。
+1つの形式を人間が読める形式で保持することをお勧めします。
 ``` json
 {
   // ...
@@ -411,7 +382,7 @@ We recommend to keep one format in human readable form.
       }
     },
     "handlers": {
-      // Other handlers? 
+      // Other handlers?
       "jsonStream": {
           "class": "logging.StreamHandler",
           "formatter": "json"
@@ -419,9 +390,9 @@ We recommend to keep one format in human readable form.
     },
     "root": {
       "handlers": [
-        // .. 
+        // ..
         "jsonStream",
-        
+
       ]
     }
 

@@ -1,137 +1,136 @@
-# Contributing
+# 貢献
 
-## Contribute to freqtrade
+## freqtradeへの貢献
 
-Feel like our bot is missing a feature? We welcome your pull requests! 
+ボットに機能が欠けていると感じますか？プルリクエストを歓迎します！
 
-Issues labeled [good first issue](https://github.com/freqtrade/freqtrade/labels/good%20first%20issue) can be good first contributions, and will help get you familiar with the codebase.
+[good first issue](https://github.com/freqtrade/freqtrade/labels/good%20first%20issue)とラベル付けされたissueは、良い最初の貢献になり、コードベースに慣れるのに役立ちます。
 
-Few pointers for contributions:
+貢献のためのいくつかのポイント:
 
-- Create your PR against the `develop` branch, not `stable`.
-- Stick to english in both commit messages, PR descriptions and code comments and variable names.
-- New features need to contain unit tests, must pass CI (run pre-commit and pytest to get an early feedback) and should be documented with the introduction PR.
-- PR's can be declared as draft - signaling Work in Progress for Pull Requests (which are not finished). We'll still aim to provide feedback on draft PR's in a timely manner.
-- If you're using AI for your PR, please both mention it in the PR description and do a thorough review of the generated code. The final responsibility for the code with the PR author, not with the AI.
+- `stable`ではなく、`develop`ブランチに対してPRを作成してください。
+- コミットメッセージ、PR説明、コードコメント、変数名はすべて英語で統一してください。
+- 新機能にはユニットテストが必要で、CIに合格し（早期フィードバックを得るためにpre-commitとpytestを実行）、導入PRでドキュメント化する必要があります。
+- PRはドラフトとして宣言できます - プルリクエスト（完成していない）の作業中を示します。ドラフトPRに対してもタイムリーにフィードバックを提供することを目指します。
+- PRにAIを使用している場合は、PR説明で言及し、生成されたコードを徹底的にレビューしてください。コードの最終責任はAIではなくPR作成者にあります。
 
-If you are unsure, discuss the feature on our [discord server](https://discord.gg/p7nuUNVfP7) or in a [issue](https://github.com/freqtrade/freqtrade/issues) before a Pull Request.
+不確かな場合は、プルリクエストの前に[discordサーバー](https://discord.gg/p7nuUNVfP7)または[issue](https://github.com/freqtrade/freqtrade/issues)で機能について議論してください。
 
-## Getting started
+## はじめに
 
-Best start by reading the [documentation](https://www.freqtrade.io/) to get a feel for what is possible with the bot, or head straight to the [Developer-documentation](https://www.freqtrade.io/en/latest/developer/) (WIP) which should help you getting started.
+まず[ドキュメント](https://www.freqtrade.io/)を読んで、ボットで何ができるかを感じ取るか、開始に役立つ[開発者向けドキュメント](https://www.freqtrade.io/en/latest/developer/)（WIP）に直接向かってください。
 
-## Before sending the PR
+## PRを送信する前に
 
-### 1. Run unit tests
+### 1. ユニットテストを実行
 
-All unit tests must pass. If a unit test is broken, change your code to 
-make it pass. It means you have introduced a regression.
+すべてのユニットテストに合格する必要があります。ユニットテストが壊れている場合は、合格するようにコードを変更してください。これは回帰を導入したことを意味します。
 
-#### Test the whole project
+#### プロジェクト全体をテスト
 
 ```bash
 pytest
 ```
 
-#### Test only one file
+#### 1つのファイルのみをテスト
 
 ```bash
 pytest tests/test_<file_name>.py
 ```
 
-#### Test only one method from one file
+#### 1つのファイルから1つのメソッドのみをテスト
 
 ```bash
 pytest tests/test_<file_name>.py::test_<method_name>
 ```
 
-### 2. Test if your code corresponds to our style guide
+### 2. コードがスタイルガイドに対応しているかテスト
 
-We receive a lot of code that fails preliminary CI checks.  
-To help with that, we encourage contributors to install the git pre-commit hook that will let you know immediately when you try to commit code that fails these checks.
+予備的なCIチェックに失敗する多くのコードを受け取ります。
+これを支援するために、貢献者にgit pre-commitフックをインストールすることを推奨します。これにより、これらのチェックに失敗するコードをコミットしようとするとすぐに通知されます。
 
-You can manually run pre-commit with `pre-commit run -a` - or install the git hook with `pre-commit install` to have it run automatically on each commit.
+`pre-commit run -a`を使用して手動でpre-commitを実行できます - または`pre-commit install`でgitフックをインストールして、各コミットで自動的に実行されるようにできます。
 
-Running `pre-commit run -a` will run all checks, including `ruff`, `mypy` and `codespell` (among others).
+`pre-commit run -a`を実行すると、`ruff`、`mypy`、`codespell`（その他）を含むすべてのチェックが実行されます。
 
-#### Additional styles applied
+#### 適用される追加スタイル
 
-- Have docstrings on all public methods
-- Use double-quotes for docstrings
-- Multiline docstrings should be indented to the level of the first quote
-- Doc-strings should follow the reST format (`:param xxx: ...`, `:return: ...`, `:raises KeyError: ...`)
+- すべてのパブリックメソッドにdocstringを付ける
+- docstringには二重引用符を使用
+- 複数行のdocstringは最初の引用符のレベルにインデントする
+- Doc-stringsはreST形式に従う（`:param xxx: ...`、`:return: ...`、`:raises KeyError: ...`）
 
-#### Manually run the individual checks
+#### 個別のチェックを手動で実行
 
-The following sections describe how to run the individual checks that are running  as part of the pre-commit hook.
+以下のセクションでは、pre-commitフックの一部として実行される個別のチェックの実行方法を説明します。
 
-##### Run ruff
+##### ruffを実行
 
-Check your code with ruff to ensure that it follows the style guide.
+ruffでコードをチェックして、スタイルガイドに従っていることを確認します。
 
 ```bash
 ruff check .
 ruff format .
 ```
 
-##### Run mypy
+##### mypyを実行
 
-Check your code with mypy to ensure that it follows the type-hinting rules.
+mypyでコードをチェックして、型ヒントルールに従っていることを確認します。
 
 ``` bash
 mypy freqtrade
 ```
 
-## (Core)-Committer Guide
+## （コア）コミッターガイド
 
-### Process: Pull Requests
+### プロセス: プルリクエスト
 
-How to prioritize pull requests, from most to least important:
+プルリクエストの優先順位付け方法、最も重要なものから順に:
 
-1. Fixes for broken tests. Broken means broken on any supported platform or Python version.
-1. Extra tests to cover corner cases.
-1. Minor edits to docs.
-1. Bug fixes.
-1. Major edits to docs.
-1. Features.
+1. 壊れたテストの修正。壊れたとは、サポートされているプラットフォームまたはPythonバージョンで壊れていることを意味します。
+1. コーナーケースをカバーする追加のテスト。
+1. ドキュメントの軽微な編集。
+1. バグ修正。
+1. ドキュメントの主要な編集。
+1. 機能。
 
-Ensure that each pull request meets all requirements in the Contributing document.
+各プルリクエストが貢献ドキュメントのすべての要件を満たしていることを確認してください。
 
-### Process: Issues
+### プロセス: Issue
 
-If an issue is a bug that needs an urgent fix, mark it for the next patch release.
-Then either fix it or mark as please-help.
+issueが緊急の修正が必要なバグである場合は、次のパッチリリースのためにマークを付けます。
+その後、修正するか、please-helpとしてマークします。
 
-For other issues: encourage friendly discussion, moderate debate, offer your thoughts.
+その他のissueについて: フレンドリーな議論を奨励し、議論を調整し、あなたの考えを提供します。
 
-### Process: Your own code changes
+### プロセス: 自分のコード変更
 
-All code changes, regardless of who does them, need to be reviewed and merged by someone else.
-This rule applies to all the core committers.
+すべてのコード変更は、誰が行ったかに関係なく、他の誰かによってレビューおよびマージされる必要があります。
+このルールは、すべてのコアコミッターに適用されます。
 
-Exceptions:
+例外:
 
-- Minor corrections and fixes to pull requests submitted by others.
-- While making a formal release, the release manager can make necessary, appropriate changes.
-- Small documentation changes that reinforce existing subject matter. Most commonly being, but not limited to spelling and grammar corrections.
+- 他の人が提出したプルリクエストに対する軽微な修正と修正。
+- 正式なリリースを行う際、リリースマネージャーは必要で適切な変更を行うことができます。
+- 既存の主題を強化する小さなドキュメントの変更。最も一般的なのは、スペルと文法の修正ですが、これらに限定されません。
 
-### Responsibilities
+### 責任
 
-- Ensure cross-platform compatibility for every change that's accepted. Windows, Mac & Linux.
-- Ensure no malicious code is introduced into the core code.
-- Create issues for any major changes and enhancements that you wish to make. Discuss things transparently and get community feedback.
-- Keep feature PR's as small as possible, preferably one new feature per PR.
-- Be welcoming to newcomers and encourage diverse new contributors from all backgrounds. See the Python Community Code of Conduct (https://www.python.org/psf/codeofconduct/).
+- 受け入れられるすべての変更のクロスプラットフォーム互換性を確保します。Windows、Mac、Linux。
+- 悪意のあるコードがコアコードに導入されないようにします。
+- 行いたい主要な変更や機能強化のためにissueを作成します。物事を透明に議論し、コミュニティのフィードバックを得ます。
+- 機能PRをできるだけ小さく保ち、できればPRごとに1つの新機能にします。
+- 新参者を歓迎し、あらゆる背景から多様な新しい貢献者を奨励します。Pythonコミュニティ行動規範（https://www.python.org/psf/codeofconduct/）を参照してください。
 
-### Becoming a Committer
+### コミッターになる
 
-Contributors may be given commit privileges. Preference will be given to those with:
+貢献者にコミット権限が与えられる場合があります。優先されるのは以下を持つ人です:
 
-1. Past contributions to Freqtrade and other related open source projects. Contributions to Freqtrade include both code (both accepted and pending) and friendly participation in the issue tracker and Pull request reviews. Both quantity and quality are considered.
-1. A coding style that the other core committers find simple, minimal, and clean.
-1. Access to resources for cross-platform development and testing.
-1. Time to devote to the project regularly.
+1. Freqtradeおよびその他の関連オープンソースプロジェクトへの過去の貢献。Freqtradeへの貢献には、コード（受け入れられたものと保留中の両方）とissueトラッカーおよびプルリクエストレビューでのフレンドリーな参加の両方が含まれます。量と質の両方が考慮されます。
+1. 他のコアコミッターがシンプル、最小限、クリーンだと思うコーディングスタイル。
+1. クロスプラットフォーム開発とテストのためのリソースへのアクセス。
+1. プロジェクトに定期的に費やす時間。
 
-Being a Committer does not automatically grant write permission on `develop` or `stable` for security reasons (Users trust Freqtrade with their Exchange API keys).
+コミッターであることは、セキュリティ上の理由から（ユーザーはFreqtradeに取引所APIキーを信頼しています）、`develop`または`stable`への書き込み権限を自動的に付与するものではありません。
 
-After being Committer for some time, a Committer may be named Core Committer and given full repository access.
+しばらくコミッターを務めた後、コミッターはコアコミッターに指名され、完全なリポジトリアクセスが与えられる場合があります。
