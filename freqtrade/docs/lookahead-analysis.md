@@ -1,108 +1,107 @@
-# Lookahead analysis
+# 先読み分析
 
-This page explains how to validate your strategy in terms of lookahead bias.
+このページでは、先読みバイアスの観点から戦略を検証する方法を説明します。
 
-Lookahead bias is the bane of any strategy since it is sometimes very easy to introduce this bias, but can be very hard to detect.
+先読みバイアスは、場合によっては非常に簡単に導入されることもありますが、検出するのが非常に難しいため、あらゆる戦略の悩みの種です。
 
-Backtesting initializes all timestamps (loads the whole dataframe into memory) and calculates all indicators at once.
-This means that if your indicators or entry/exit signals look into future candles, this will falsify your backtest.
+バックテストでは、すべてのタイムスタンプが初期化され (データフレーム全体がメモリにロードされ)、すべてのインジケーターが一度に計算されます。
+これは、インジケーターやエントリー/エグジットシグナルが将来のローソク足を検討している場合、バックテストが改ざんされることを意味します。
 
-The `lookahead-analysis` command requires historic data to be available.
-To learn how to get data for the pairs and exchange you're interested in,
-head over to the [Data Downloading](data-download.md) section of the documentation.
-`lookahead-analysis` also supports freqai strategies.
+「lookhead-analysis」コマンドでは、履歴データが利用可能であることが必要です。
+興味のあるペアと交換のデータを取得する方法を学ぶには、
+ドキュメントの [データのダウンロード](data-download.md) セクションに進んでください。
+「lookhead-analysis」は頻度戦略もサポートします。
 
-This command internally chains backtests and pokes at the strategy to provoke it to show lookahead bias.
-This is done by not looking at the strategy code itself, but at changed indicator values and moved entries/exits compared to the full backtest.
+このコマンドは内部でバックテストを連鎖させ、戦略を突いて先読みバイアスを表示させます。
+これは、戦略コード自体を調べるのではなく、完全なバックテストと比較して変更されたインジケーター値と移動したエントリー/エグジットを調べることによって行われます。
 
-`lookahead-analysis` can use the typical options of [Backtesting](backtesting.md), but forces the following options:
+`lookhead-analysis` は [バックテスト](backtesting.md) の一般的なオプションを使用できますが、次のオプションを強制します。
 
-- `--cache` is forced to "none".
-- `--max-open-trades` is forced to be at least equal to the number of pairs.
-- `--dry-run-wallet` is forced to be basically infinite (1 billion).
-- `--stake-amount` is forced to be a static 10000 (10k).
-- `--enable-protections` is forced to be off.
-- `order_types` are forced to be "market" (late entries) unless `--lookahead-allow-limit-orders` is set.
+- `--cache` は強制的に "none" に設定されます。
+- `--max-open-trades` は、少なくともペアの数と等しくなるように強制されます。
+- 「--dry-run-wallet」は基本的に無限 (10 億) に強制されます。
+- 「--stake-amount」は強制的に静的な 10000 (10k) になります。
+- `--enable-protections` は強制的にオフになります。
+- `--lookhead-allow-limit-orders` が設定されていない限り、`order_types` は強制的に「市場」(遅延エントリー) になります。
 
-These are set to avoid users accidentally generating false positives.
+これらは、ユーザーが誤って誤検知を生成することを避けるために設定されています。
 
-## Lookahead-analysis command reference
+## 先読み分析コマンドリファレンス
 
---8<-- "commands/lookahead-analysis.md"
+--8<-- "commands/lookhead-analysis.md"
 
 !!! Note
-    The above output was reduced to options that `lookahead-analysis` adds on top of regular backtesting commands.
+    上記の出力は、通常のバックテスト コマンドに加えて「lookhead-analysis」が追加するオプションに縮小されました。
 
-### Introduction
+### はじめに
 
-Many strategies, without the programmer knowing, have fallen prey to lookahead bias.
-This typically makes the strategy backtest look profitable, sometimes to extremes,  but this is not realistic as the strategy is "cheating" by looking at data it would not have in dry or live modes.
+多くの戦略は、プログラマが知らないうちに、先読みバイアスの餌食になっています。
+これにより通常、戦略のバックテストが利益を上げているように見えますが、場合によっては極端になりますが、戦略はドライ モードやライブ モードでは存在しないデータを参照して「不正」を行っているため、これは現実的ではありません。
 
-The reason why strategies can "cheat" is because the freqtrade backtesting process populates the full dataframe including all candle timestamps at the outset.
-If the programmer is not careful or oblivious how things work internally
-(which sometimes can be really hard to find out) then the strategy will look into the future.
+戦略が「不正」できる理由は、freqtrade バックテスト プロセスが最初にすべてのローソク足のタイムスタンプを含む完全なデータフレームを設定するためです。
+プログラマが内部でどのように動作するかに注意を払っていなかったり、気づかなかったりした場合
+（それを見つけるのが非常に難しい場合もあります）その場合、戦略は将来を見据えたものになります。
 
-This command is made to try to verify the validity in the form of the aforementioned lookahead bias.
+このコマンドは、前述の先読みバイアスの形式で妥当性を検証するために作成されます。
 
-### How does the command work?
+### コマンドはどのように機能しますか?
 
-It will start with a backtest of all pairs to generate a baseline for indicators and entries/exits.
-After this initial backtest runs, it will look if the `minimum-trade-amount` is met and if not cancel the lookahead-analysis for this strategy.  
-If this happens, use a wider timerange to get more trades for the analysis, or use a timerange where more trades occur.
+すべてのペアのバックテストから始まり、インジケーターとエントリー/エグジットのベースラインを生成します。
+この最初のバックテストの実行後、「最小取引額」が満たされているかどうかが確認され、満たされていない場合は、この戦略の先読み分析がキャンセルされます。
+このような場合は、より広い時間範囲を使用して分析により多くの取引を取得するか、より多くの取引が発生する時間範囲を使用してください。
 
-After setting the baseline it will then do additional backtest runs for every entry and exit separately.  
-When these verification backtests complete, it will compare both dataframes (baseline and sliced) for any difference in columns' value and report the bias.
-After all signals have been verified or falsified a result table will be generated for the user to see.
+ベースラインを設定した後、すべてのエントリーとエグジットに対して追加のバックテストが個別に実行されます。  
+これらの検証バックテストが完了すると、両方のデータフレーム (ベースラインとスライス) を比較して列の値の違いがないか調べ、バイアスを報告します。
+すべての信号が検証または改ざんされた後、ユーザーが確認できる結果テーブルが生成されます。
 
-### How to find and remove bias? How can I salvage a biased strategy?
+### 偏見を見つけて取り除くにはどうすればよいでしょうか?偏った戦略をどうすれば解決できるでしょうか?
 
-If you found a biased strategy online and want to have the same results, just without bias,
-then you will be out of luck most of the time.
-Usually the bias in the strategy is THE driving factor for "too good to be true" profits.
-Removing conditions or indicators that push the profits up from bias will usually make the strategy significantly worse.
-You might be able to salvage it partially if the biased indicators or conditions are not the core of the strategy, or there
-are other entry and exit signals that are not biased.
+オンラインで偏った戦略を見つけて、偏りなく同じ結果を得たい場合は、
+そうなると、ほとんどの場合運が悪くなるでしょう。
+通常、戦略の偏りは、「うますぎる」利益の原動力となります。
+バイアスによって利益を押し上げる条件や指標を削除すると、通常、戦略が大幅に悪化します。
+偏った指標や条件が戦略の中核ではない場合、または戦略の核心ではない場合には、部分的に救済できる可能性があります。
+バイアスされていない他のエントリ信号とエグジット信号です。
 
-### Examples of lookahead-bias
+### 先読みバイアスの例
 
-- `shift(-10)` looks 10 candles into the future.
-- Using `iloc[]` in populate_* functions to access a specific row in the dataframe.
-- For-loops are prone to introduce lookahead bias if you don't tightly control which numbers are looped through.
-- Aggregation functions like `.mean()`, `.min()` and `.max()`, without a rolling window,
-  will calculate the value over the **whole** dataframe, so the signal candle will "see" a value including future candles.
-  A non-biased example would be to look back candles using `rolling()` instead:
-  e.g. `dataframe['volume_mean_12'] = dataframe['volume'].rolling(12).mean()`
-- `ta.MACD(dataframe, 12, 26, 1)` will introduce bias with a signalperiod of 1.
+- `shift(-10)` は 10 キャンドル先の未来を調べます。
+- データフレーム内の特定の行にアクセスするには、populate_* 関数で `iloc[]` を使用します。
+- どの数値をループするかを厳密に制御しないと、for ループで先読みバイアスが発生する傾向があります。
+- ローリング ウィンドウを使用しない `.mean()`、`.min()`、`.max()` などの集計関数、
+  **データフレーム全体**にわたって値を計算するため、シグナルキャンドルは将来のキャンドルを含む値を「参照」します。
+  バイアスのない例は、代わりに `rolling()` を使用してローソク足を振り返ることです。
+  例: `dataframe['volume_mean_12'] = dataframe['volume'].rolling(12).mean()`
+- `ta.MACD(dataframe, 12, 26, 1)` は、信号周期 1 のバイアスを導入します。
 
-### What do the columns in the results table mean?
+### 結果テーブルの列は何を意味しますか?
 
-- `filename`: name of the checked strategy file
-- `strategy`: checked strategy class name
-- `has_bias`: result of the lookahead-analysis. `No` would be good, `Yes` would be bad.
-- `total_signals`: number of checked signals (default is 20)
-- `biased_entry_signals`: found bias in that many entries
-- `biased_exit_signals`: found bias in that many exits
-- `biased_indicators`: shows you the indicators themselves that are defined in populate_indicators
+- `filename`: チェックされた戦略ファイルの名前
+- `strategy`: チェックされた戦略クラス名
+- `has_bias`: 先読み分析の結果。 「いいえ」は良いですが、「はい」は悪いです。
+- `total_signals`: チェックされたシグナルの数 (デフォルトは 20)
+- `biased_entry_signals`: 多数のエントリでバイアスが見つかりました
+- `biased_exit_signals`: 多数の exit でバイアスが見つかりました
+- `biased_indicators`: Populate_indicators で定義されているインジケーター自体を表示します
 
-You might get false positives in the `biased_exit_signals` if you have biased entry signals paired with those exits.
-However, a biased entry will usually result in a biased exit too,
-even if the exit itself does not produce the bias -
-especially if your entry and exit conditions use the same biased indicator.
+バイアスされたエントリーシグナルと出口の組み合わせがある場合、「biased_exit_signals」で誤検知が発生する可能性があります。
+ただし、偏った参入は通常、偏った退出にもつながります。
+たとえ出口自体がバイアスを生成しないとしても -
+特にエントリー条件とエグジット条件で同じ偏ったインジケーターが使用されている場合はそうです。
 
-**Address the bias in the entries first, then address the exits.**
+**最初にエントリのバイアスに対処し、次に出口に対処します。**
 
-### Caveats
-
-- `lookahead-analysis` can only verify / falsify the trades it calculated and verified.
-If the strategy has many different signals / signal types, it's up to you to select appropriate parameters to ensure that all signals have triggered at least once. Signals that are not triggered will not have been verified.  
-This would lead to a false-negative, i.e. the strategy will be reported as non-biased.
-- `lookahead-analysis` has access to the same backtesting options and this can introduce problems.
-Please don't use any options like enabling position stacking as this will distort the number of checked signals.
-If you decide to do so, then make doubly sure that you won't ever run out of `max_open_trades` slots,
-and that you have enough capital in the backtest wallet configuration.
-- limit orders in combination with `custom_entry_price()` and `custom_exit_price()` callbacks can cause late / delayed entries and exists, causing false positives.
-To avoid this - market orders are forced for this command. This implicitly means that `custom_entry_price()` and `custom_exit_price()` callbacks are not called.
-Using `--lookahead-allow-limit-orders` will skip the override and use your configured order types - however has shown to eventually produce false positives.
-- In the results table, the `biased_indicators` column
-will falsely flag FreqAI target indicators defined in `set_freqai_targets()` as biased.  
-**These are not biased and can safely be ignored.**
+### 注意事項
+- 「先読み分析」は、計算して検証した取引のみを検証/改ざんできます。
+戦略に多数の異なるシグナル/シグナル タイプがある場合、すべてのシグナルが少なくとも 1 回トリガーされるように適切なパラメーターを選択するのはユーザーの責任です。トリガーされない信号は検証されません。  
+これは偽陰性を引き起こす可能性があります。つまり、戦略は偏っていないと報告されます。
+- 「lookhead-analysis」は同じバックテスト オプションにアクセスできるため、問題が発生する可能性があります。
+チェックされたシグナルの数が歪むため、ポジションスタッキングを有効にするなどのオプションは使用しないでください。
+そうすることに決めた場合は、「max_open_trades」スロットが決して不足しないようにしてください。
+バックテストウォレット構成に十分な資本があることを確認してください。
+- `custom_entry_price()` および `custom_exit_price()` コールバックと組み合わせた指値注文は、エントリーの遅れや存在を引き起こし、誤検知を引き起こす可能性があります。
+これを回避するには、このコマンドに対して成行注文が強制されます。これは暗黙的に、`custom_entry_price()` および `custom_exit_price()` コールバックが呼び出されないことを意味します。
+「--lookhead-allow-limit-orders」を使用すると、オーバーライドがスキップされ、設定された注文タイプが使用されますが、最終的には誤検知が発生することが示されています。
+- 結果テーブルの「biased_indicators」列
+`set_freqai_targets()` で定義された FreqAI ターゲット指標にバイアスがかかっていると誤ってフラグを立てます。  
+**これらは偏見ではないため、無視しても問題ありません。**

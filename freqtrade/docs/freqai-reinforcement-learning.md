@@ -1,41 +1,37 @@
-# Reinforcement Learning
+# 強化学習
 
-!!! Note "Installation size"
-    Reinforcement learning dependencies include large packages such as `torch`, which should be explicitly requested during `./setup.sh -i` by answering "y" to the question "Do you also want dependencies for freqai-rl (~700mb additional space required) [y/N]?".
-    Users who prefer docker should ensure they use the docker image appended with `_freqairl`.
+!!! Note "設置サイズ"
+    強化学習の依存関係には、「torch」などの大きなパッケージが含まれます。これは、「freqai-rl の依存関係も必要ですか (~700mb の追加スペースが必要です) [y/N]?」という質問に「y」と答えることで、「./setup.sh -i」中に明示的に要求する必要があります。
+    docker を好むユーザーは、`_freqairl` が追加された docker イメージを使用する必要があります。
 
-## Background and terminology
+## 背景と用語
 
-### What is RL and why does FreqAI need it?
+### RL とは何ですか? FreqAI に RL が必要な理由は何ですか?
 
-Reinforcement learning involves two important components, the *agent* and the training *environment*. During agent training, the agent moves through historical data candle by candle, always making 1 of a set of actions: Long entry, long exit, short entry, short exit, neutral). During this training process, the environment tracks the performance of these actions and rewards the agent according to a custom user made `calculate_reward()` (here we offer a default reward for users to build on if they wish [details here](#creating-a-custom-reward-function)). The reward is used to train weights in a neural network.
+強化学習には、*エージェント* とトレーニング *環境* という 2 つの重要なコンポーネントが含まれます。エージェントのトレーニング中、エージェントは履歴データをキャンドルごとに移動し、常に一連のアクション (ロング エントリー、ロング イグジット、ショート エントリー、ショート イグジット、ニュートラル) の 1 つを実行します。このトレーニング プロセス中、環境はこれらのアクションのパフォーマンスを追跡し、ユーザーが作成したカスタム `calculate_reward()` に従ってエージェントに報酬を与えます (ここでは、ユーザーが希望する場合に構築できるデフォルトの報酬を提供します [詳細はこちら](#creating-a-custom-reward-function))。報酬は、ニューラル ネットワークで重みをトレーニングするために使用されます。
 
-A second important component of the FreqAI RL implementation is the use of *state* information. State information is fed into the network at each step, including current profit, current position, and current trade duration. These are used to train the agent in the training environment, and to reinforce the agent in dry/live (this functionality is not available in backtesting). *FreqAI + Freqtrade is a perfect match for this reinforcing mechanism since this information is readily available in live deployments.*
+FreqAI RL 実装の 2 番目に重要なコンポーネントは、*状態* 情報の使用です。現在の利益、現在のポジション、現在の取引期間などの状態情報が各ステップでネットワークに供給されます。これらは、トレーニング環境でエージェントをトレーニングし、ドライ/ライブでエージェントを強化するために使用されます (この機能はバックテストでは使用できません)。 *この情報はライブ展開ですぐに利用できるため、FreqAI + Freqtrade はこの強化メカニズムに完全に一致します。*
 
-Reinforcement learning is a natural progression for FreqAI, since it adds a new layer of adaptivity and market reactivity that Classifiers and Regressors cannot match. However, Classifiers and Regressors have strengths that RL does not have such as robust predictions. Improperly trained RL agents may find "cheats" and "tricks" to maximize reward without actually winning any trades. For this reason, RL is more complex and demands a higher level of understanding than typical Classifiers and Regressors.
+強化学習は、分類子やリグレッサーでは対応できない適応性と市場反応性の新しい層を追加するため、FreqAI にとって自然な進歩です。ただし、Classifier と Regressor には、堅牢な予測など、RL にはない強みがあります。不適切にトレーニングされた RL エージェントは、実際には取引に勝つことなく報酬を最大化するための「チート」や「トリック」を見つける可能性があります。このため、RL はより複雑であり、一般的な分類器やリグレッサーよりも高いレベルの理解が必要です。
 
-### The RL interface
+### RL インターフェイス
 
-With the current framework, we aim to expose the training environment via the common "prediction model" file, which is a user inherited `BaseReinforcementLearner` object (e.g. `freqai/prediction_models/ReinforcementLearner`). Inside this user class, the RL environment is available and customized via `MyRLEnv` as [shown below](#creating-a-custom-reward-function).
+現在のフレームワークでは、ユーザーが継承した `BaseReinforcementLearner` オブジェクト (例: `freqai/prediction_models/ReinforcementLearner`) である共通の「予測モデル」ファイルを介してトレーニング環境を公開することを目指しています。このユーザー クラス内では、RL 環境が利用可能であり、[以下に示す](#creating-a-custom-reward-function) のように `MyRLEnv` 経由でカスタマイズできます。
+私たちは、大多数のユーザーが「calculate_reward()」関数 [詳細はこちら](#creating-a-custom-reward-function) の創造的なデザインに労力を集中し、残りの環境には手を加えないことを想定しています。他のユーザーは環境にまったく触れず、FreqAI にすでに存在する構成設定と強力な機能エンジニアリングだけを操作する可能性があります。一方、上級ユーザーが独自のモデル クラスを完全に作成できるようにします。
 
-We envision the majority of users focusing their effort on creative design of the `calculate_reward()` function [details here](#creating-a-custom-reward-function), while leaving the rest of the environment untouched. Other users may not touch the environment at all, and they will only play with the configuration settings and the powerful feature engineering that already exists in FreqAI. Meanwhile, we enable advanced users to create their own model classes entirely.
+このフレームワークは、stable_baselines3 (torch) と基本環境クラスの OpenAI Gym に基づいて構築されています。しかし、一般的に言えば、モデル クラスは十分に分離されています。したがって、競合するライブラリの追加を既存のフレームワークに簡単に統合できます。環境については、`gym.Env` から継承しています。これは、別のライブラリに切り替えるには、まったく新しい環境を作成する必要があることを意味します。
 
-The framework is built on stable_baselines3 (torch) and OpenAI gym for the base environment class. But generally speaking, the model class is well isolated. Thus, the addition of competing libraries can be easily integrated into the existing framework. For the environment, it is inheriting from `gym.Env` which means that it is necessary to write an entirely new environment in order to switch to a different library.
+### 重要な考慮事項
 
-### Important considerations
+上で説明したように、エージェントは人工的な取引「環境」で「訓練」されます。私たちの場合、その環境は実際の Freqtrade バックテスト環境に非常に似ているように見えるかもしれませんが、それは *違います*。実際、RL トレーニング環境ははるかに簡素化されています。これには、`custom_exit`、`custom_stoploss` などのコールバック、レバレッジ制御などの複雑な戦略ロジックは組み込まれていません。RL 環境は、代わりに真の市場を非常に「生」で表現したものであり、エージェントは `calculate_reward()` によって強制されるポリシー (ストップロス、テイクプロフィットなど) を自由意志で学習できます。したがって、エージェントのトレーニング環境は現実世界と同一ではないことを考慮することが重要です。
 
-As explained above, the agent is "trained" in an artificial trading "environment". In our case, that environment may seem quite similar to a real Freqtrade backtesting environment, but it is *NOT*. In fact, the RL training environment is much more simplified. It does not incorporate any of the complicated strategy logic, such as callbacks like `custom_exit`, `custom_stoploss`, leverage controls, etc. The RL environment is instead a very "raw" representation of the true market, where the agent has free will to learn the policy (read: stoploss, take profit, etc.) which is enforced by the `calculate_reward()`. Thus, it is important to consider that the agent training environment is not identical to the real world.
+## 強化学習の実行
 
-## Running Reinforcement Learning
-
-Setting up and running a Reinforcement Learning model is the same as running a Regressor or Classifier. The same two flags, `--freqaimodel` and `--strategy`, must be defined on the command line:
-
+強化学習モデルのセットアップと実行は、リグレッサーまたは分類器の実行と同じです。同じ 2 つのフラグ、`--freqaimodel` と `--strategy` をコマンド ラインで定義する必要があります。
 ```bash
 freqtrade trade --freqaimodel ReinforcementLearner --strategy MyRLStrategy --config config.json
 ```
-
-where `ReinforcementLearner` will use the templated `ReinforcementLearner` from `freqai/prediction_models/ReinforcementLearner` (or a custom user defined one located in `user_data/freqaimodels`). The strategy, on the other hand, follows the same base [feature engineering](freqai-feature-engineering.md) with `feature_engineering_*` as a typical Regressor. The difference lies in the creation of the targets, Reinforcement Learning doesn't require them. However, FreqAI requires a default (neutral) value to be set in the action column:
-
+ここで、`ReinforcementLearner` は、`freqai/prediction_models/ReinforcementLearner` のテンプレート化された `ReinforcementLearner` (または、`user_data/freqaimodels` にあるカスタム ユーザー定義のもの) を使用します。一方、この戦略は、典型的なリグレッサーと同じ基本 [特徴エンジニアリング](freqai-feature-engineering.md) と `feature_engineering_*` に従います。違いはターゲットの作成にあり、強化学習ではターゲットの作成は必要ありません。ただし、FreqAI では、アクション列にデフォルト (中立) 値を設定する必要があります。
 ```python
     def set_freqai_targets(self, dataframe, **kwargs) -> DataFrame:
         """
@@ -55,9 +51,7 @@ where `ReinforcementLearner` will use the templated `ReinforcementLearner` from 
         dataframe["&-action"] = 0
         return dataframe
 ```
-
-Most of the function remains the same as for typical Regressors, however, the function below shows how the strategy must pass the raw price data to the agent so that it has access to raw OHLCV in the training environment:
-
+関数の大部分は通常のリグレッサーと同じですが、以下の関数は、トレーニング環境で生の OHLCV にアクセスできるように、ストラテジーが生の価格データをエージェントに渡す方法を示しています。
 ```python
     def feature_engineering_standard(self, dataframe: DataFrame, **kwargs) -> DataFrame:
         # The following features are necessary for RL models
@@ -67,11 +61,9 @@ Most of the function remains the same as for typical Regressors, however, the fu
         dataframe[f"%-raw_low"] = dataframe["low"]
     return dataframe
 ```
+最後に、作成する明示的な「ラベル」はありません。代わりに、`populate_entry/exit_trends()` でアクセスされたときにエージェントのアクションを含む `&-action` 列を割り当てる必要があります。この例では、ニュートラル アクションを 0 に設定します。この値は、使用される環境に合わせて調整する必要があります。 FreqAI は 2 つの環境を提供し、どちらもニュートラル アクションとして 0 を使用します。
 
-Finally, there is no explicit "label" to make - instead it is necessary to assign the `&-action` column which will contain the agent's actions when accessed in `populate_entry/exit_trends()`. In the present example, the neutral action to 0. This value should align with the environment used. FreqAI provides two environments, both use 0 as the neutral action.
-
-After users realize there are no labels to set, they will soon understand that the agent is making its "own" entry and exit decisions. This makes strategy construction rather simple. The entry and exit signals come from the agent in the form of an integer - which are used directly to decide entries and exits in the strategy:
-
+ユーザーは、設定するラベルがないことに気づくと、エージェントが「独自の」入場と退出の決定を行っていることをすぐに理解するでしょう。これにより、戦略の構築がかなり簡単になります。エントリ信号とエグジット信号は整数の形式でエージェントから送信されます。これらは、戦略のエントリとエグジットを決定するために直接使用されます。
 ```python
     def populate_entry_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
 
@@ -102,13 +94,11 @@ After users realize there are no labels to set, they will soon understand that t
 
         return df
 ```
+「&-action」は、使用することを選択した環境に依存することを考慮することが重要です。上の例は 5 つのアクションを示しています。0 はニュートラル、1 はロングのエントリー、2 はロングのエグジット、3 はショートのエンター、4 はショートのエグジットです。
 
-It is important to consider that `&-action` depends on which environment they choose to use. The example above shows 5 actions, where 0 is neutral, 1 is enter long, 2 is exit long, 3 is enter short and 4 is exit short.
+## 強化学習器の構成
 
-## Configuring the Reinforcement Learner
-
-In order to configure the `Reinforcement Learner` the following dictionary must exist in the `freqai` config:
-
+「強化学習器」を設定するには、次の辞書が「freqai」設定に存在する必要があります。
 ```json
         "rl_config": {
             "train_cycles": 25,
@@ -124,26 +114,24 @@ In order to configure the `Reinforcement Learner` the following dictionary must 
             }
         }
 ```
-
-Parameter details can be found [here](freqai-parameter-table.md), but in general the `train_cycles` decides how many times the agent should cycle through the candle data in its artificial environment to train weights in the model. `model_type` is a string which selects one of the available models in [stable_baselines](https://stable-baselines3.readthedocs.io/en/master/)(external link).
-
-!!! Note
-    If you would like to experiment with `continual_learning`, then you should set that value to `true` in the main `freqai` configuration dictionary. This will tell the Reinforcement Learning library to continue training new models from the final state of previous models, instead of retraining new models from scratch each time a retrain is initiated.
+パラメーターの詳細は [ここ](freqai-parameter-table.md) で見つけることができますが、一般に、`train_cycles` は、エージェントがモデルの重みをトレーニングするために人工環境内のろうそくデータを何回循環するかを決定します。 `model_type` は、[stable_baselines](https://stable-baselines3.readthedocs.io/en/master/)(外部リンク) で利用可能なモデルの 1 つを選択する文字列です。
 
 !!! Note
-    Remember that the general `model_training_parameters` dictionary should contain all the model hyperparameter customizations for the particular `model_type`. For example, `PPO` parameters can be found [here](https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html).
+    「continual_learning」を試したい場合は、メインの「freqai」設定辞書でその値を「true」に設定する必要があります。これにより、再トレーニングが開始されるたびに新しいモデルを最初から再トレーニングするのではなく、以前のモデルの最終状態から新しいモデルのトレーニングを継続するように強化学習ライブラリに指示されます。
 
-## Creating a custom reward function
+!!! Note
+    一般的な `model_training_parameters` ディクショナリには、特定の `model_type` のモデル ハイパーパラメータのカスタマイズがすべて含まれている必要があることに注意してください。たとえば、「PPO」パラメータは[ここ](https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html)で見つけることができます。
 
-!!! danger "Not for production"
-    Warning!
-    The reward function provided with the Freqtrade source code is a showcase of functionality designed to show/test as many possible environment control features as possible. It is also designed to run quickly on small computers. This is a benchmark, it is *not* for live production. Please beware that you will need to create your own custom_reward() function or use a template built by other users outside of the Freqtrade source code.
+## カスタム報酬関数の作成
 
-As you begin to modify the strategy and the prediction model, you will quickly realize some important differences between the Reinforcement Learner and the Regressors/Classifiers. Firstly, the strategy does not set a target value (no labels!). Instead, you set the `calculate_reward()` function inside the `MyRLEnv` class (see below). A default `calculate_reward()` is provided inside `prediction_models/ReinforcementLearner.py` to demonstrate the necessary building blocks for creating rewards, but this is *not* designed for production. Users *must* create their own custom reinforcement learning model class or use a pre-built one from outside the Freqtrade source code and save it to `user_data/freqaimodels`. It is inside the `calculate_reward()` where creative theories about the market can be expressed. For example, you can reward your agent when it makes a winning trade, and penalize the agent when it makes a losing trade. Or perhaps, you wish to reward the agent for entering trades, and penalize the agent for sitting in trades too long. Below we show examples of how these rewards are all calculated:
+!!! danger "生産用ではありません"
+    警告！
+    Freqtrade ソース コードで提供される報酬関数は、可能な限り多くの環境制御機能を表示/テストするように設計された機能のショーケースです。また、小型コンピュータでも高速に実行できるように設計されています。これはベンチマークであり、ライブプロダクション用ではありません。独自のcustom_reward()関数を作成するか、Freqtradeソースコードの外で他のユーザーが作成したテンプレートを使用する必要があることに注意してください。
 
-!!! note "Hint"
-    The best reward functions are ones that are continuously differentiable, and well scaled. In other words, adding a single large negative penalty to a rare event is not a good idea, and the neural net will not be able to learn that function. Instead, it is better to add a small negative penalty to a common event. This will help the agent learn faster. Not only this, but you can help improve the continuity of your rewards/penalties by having them scale with severity according to some linear/exponential functions. In other words, you'd slowly scale the penalty as the duration of the trade increases. This is better than a single large penalty occurring at a single point in time.
+戦略と予測モデルの変更を始めると、強化学習器とリグレッサー/分類器のいくつかの重要な違いにすぐに気づくでしょう。まず、この戦略には目標値が設定されていません (ラベルはありません!)。代わりに、`MyRLEnv` クラス内に `calculate_reward()` 関数を設定します (以下を参照)。デフォルトの `calculate_reward()` は、報酬を作成するために必要な構成要素を示すために `prediction_models/ReinforcementLearner.py` 内に提供されていますが、これは本番用に設計されたものではありません。ユーザーは独自のカスタム強化学習モデル クラスを作成するか、Freqtrade ソース コードの外部から事前に構築されたモデル クラスを使用して「user_data/freqaimodels」に保存する必要があります。これは `calculate_reward()` の内部にあり、市場に関する創造的な理論を表現できます。たとえば、エージェントが勝った取引をした場合には報酬を与え、エージェントが負けた取引をした場合にはペナルティを与えることができます。あるいは、取引に参加したエージェントに報酬を与え、取引に長時間座りすぎたエージェントにペナルティを与えたい場合もあります。以下に、これらの報酬がすべてどのように計算されるかの例を示します。
 
+!!! note "ヒント"
+最良の報酬関数は、連続微分可能で適切にスケーリングできる関数です。言い換えれば、まれなイベントに単一の大きな負のペナルティを追加することは良い考えではなく、ニューラル ネットワークはその関数を学習できません。代わりに、コモンイベントに小さなマイナスのペナルティを追加する方が良いでしょう。これにより、エージェントはより早く学習できるようになります。これだけでなく、いくつかの線形/指数関数に従って重大度に応じて報酬/ペナルティを調整することで、報酬/ペナルティの継続性を向上させることもできます。言い換えれば、取引期間が長くなるにつれてペナルティをゆっくりと調整することになります。これは、単一の時点で単一の大きなペナルティが発生するよりも優れています。
 ```python
 from freqtrade.freqai.prediction_models.ReinforcementLearner import ReinforcementLearner
 from freqtrade.freqai.RL.Base5ActionRLEnv import Actions, Base5ActionRLEnv, Positions
@@ -231,25 +219,21 @@ class MyCoolRLModel(ReinforcementLearner):
                 return float(pnl * factor)
             return 0.
 ```
+## Tensorboard の使用
 
-## Using Tensorboard
-
-Reinforcement Learning models benefit from tracking training metrics. FreqAI has integrated Tensorboard to allow users to track training and evaluation performance across all coins and across all retrainings. Tensorboard is activated via the following command:
-
+強化学習モデルは、トレーニング指標を追跡することで恩恵を受けます。 FreqAI は Tensorboard を統合し、ユーザーがすべてのコインおよびすべての再トレーニングにわたってトレーニングと評価のパフォーマンスを追跡できるようにします。 Tensorboard は次のコマンドでアクティブ化されます。
 ```bash
 tensorboard --logdir user_data/models/unique-id
 ```
+ここで、`unique-id` は、`freqai` 設定ファイルに設定された `identifier` です。ブラウザの 127.0.0.1:6006 (6006 は Tensorboard で使用されるデフォルトのポート) で出力を表示するには、このコマンドを別のシェルで実行する必要があります。
 
-where `unique-id` is the `identifier` set in the `freqai` configuration file. This command must be run in a separate shell to view the output in the browser at 127.0.0.1:6006 (6006 is the default port used by Tensorboard).
+![テンソルボード](assets/tensorboard.jpg)
 
-![tensorboard](assets/tensorboard.jpg)
+## カスタムログ
 
-## Custom logging
+FreqAI は、Tensorboard ログにカスタム情報を追加するための、`self.tensorboard_log` と呼ばれる組み込みのエピソード概要ロガーも提供します。デフォルトでは、この関数は環境内のステップごとに 1 回呼び出され、エージェントのアクションを記録します。 1 つのエピソードのすべてのステップで累積されたすべての値が各エピソードの終了時に報告され、その後、次のエピソードに備えてすべてのメトリクスが 0 に完全にリセットされます。
 
-FreqAI also provides a built in episodic summary logger called `self.tensorboard_log` for adding custom information to the Tensorboard log. By default, this function is already called once per step inside the environment to record the agent actions. All values accumulated for all steps in a single episode are reported at the conclusion of each episode, followed by a full reset of all metrics to 0 in preparation for the subsequent episode.
-
-`self.tensorboard_log` can also be used anywhere inside the environment, for example, it can be added to the `calculate_reward` function to collect more detailed information about how often various parts of the reward were called:
-
+`self.tensorboard_log` は環境内のどこでも使用できます。たとえば、これを `calculate_reward` 関数に追加して、報酬のさまざまな部分が呼び出された頻度に関するより詳細な情報を収集できます。
 ```python
     class MyRLEnv(Base5ActionRLEnv):
         """
@@ -263,18 +247,17 @@ FreqAI also provides a built in episodic summary logger called `self.tensorboard
                 return -2
 
 ```
+!!! Note
+    `self.tensorboard_log()` 関数は、インクリメントされたオブジェクトのみ、つまりトレーニング環境内のイベントやアクションを追跡するように設計されています。対象のイベントが浮動小数点の場合、その浮動小数点を 2 番目の引数として渡すことができます。 `self.tensorboard_log("float_metric1", 0.23)`。この場合、メトリック値は増加しません。
+
+## 基本環境の選択
+
+FreqAI は、「Base3ActionRLEnvironment」、「Base4ActionEnvironment」、「Base5ActionEnvironment」という 3 つの基本環境を提供します。名前が示すように、環境はエージェント向けにカスタマイズされており、3、4、または 5 つのアクションから選択できます。 「Base3ActionEnvironment」は最も単純で、エージェントはホールド、ロング、ショートから選択できます。この環境は、long のみのボットにも使用できます (戦略の `can_short` フラグに自動的に従います)。long は開始条件、short は終了条件です。一方、「Base4ActionEnvironment」では、エージェントはロングに入る、ショートに入る、ニュートラルを維持する、またはポジションを終了することができます。最後に、`Base5ActionEnvironment` では、エージェントは Base4 と同じアクションを持ちますが、単一の終了アクションの代わりに、ロング終了とショート終了が分離されています。環境の選択に起因する主な変更は次のとおりです。
+
+* `calculate_reward` で利用可能なアクション
+* ユーザー戦略によって消費されるアクション
+
+FreqAI が提供するすべての環境は、すべての共有ロジックを含む「BaseEnvironment」と呼ばれるアクション/位置に依存しない環境オブジェクトを継承します。アーキテクチャは簡単にカスタマイズできるように設計されています。最も単純なカスタマイズは `calculate_reward()` です (詳細は [こちら](#creating-a-custom-reward-function) を参照してください)。ただし、カスタマイズは環境内の任意の機能にさらに拡張できます。これは、予測モデル ファイルの `MyRLEnv` 内でこれらの関数をオーバーライドするだけで実行できます。または、より高度なカスタマイズの場合は、「BaseEnvironment」から継承したまったく新しい環境を作成することをお勧めします。
 
 !!! Note
-    The `self.tensorboard_log()` function is designed for tracking incremented objects only i.e. events, actions inside the training environment. If the event of interest is a float, the float can be passed as the second argument e.g. `self.tensorboard_log("float_metric1", 0.23)`. In this case the metric values are not incremented.
-
-## Choosing a base environment
-
-FreqAI provides three base environments, `Base3ActionRLEnvironment`, `Base4ActionEnvironment` and `Base5ActionEnvironment`. As the names imply, the environments are customized for agents that can select from 3, 4 or 5 actions. The `Base3ActionEnvironment` is the simplest, the agent can select from hold, long, or short. This environment can also be used for long-only bots (it automatically follows the `can_short` flag from the strategy), where long is the enter condition and short is the exit condition. Meanwhile, in the `Base4ActionEnvironment`, the agent can enter long, enter short, hold neutral, or exit position. Finally, in the `Base5ActionEnvironment`, the agent has the same actions as Base4, but instead of a single exit action, it separates exit long and exit short. The main changes stemming from the environment selection include:
-
-* the actions available in the `calculate_reward`
-* the actions consumed by the user strategy
-
-All of the FreqAI provided environments inherit from an action/position agnostic environment object called the `BaseEnvironment`, which contains all shared logic. The architecture is designed to be easily customized. The simplest customization is the `calculate_reward()` (see details [here](#creating-a-custom-reward-function)). However, the customizations can be further extended into any of the functions inside the environment. You can do this by simply overriding those functions inside your `MyRLEnv` in the prediction model file. Or for more advanced customizations, it is encouraged to create an entirely new environment inherited from `BaseEnvironment`.
-
-!!! Note
-    Only the `Base3ActionRLEnv` can do long-only training/trading (set the user strategy attribute `can_short = False`).
+    `Base3ActionRLEnv` のみがロングのみのトレーニング/トレードを行うことができます (ユーザー戦略属性 `can_short = False` を設定します)。

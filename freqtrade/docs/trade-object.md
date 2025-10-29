@@ -93,7 +93,6 @@ freqtradeが入力するポジションは、データベースに永続化さ�
 戦略が既存の（オープンまたはクローズ）取引に関する情報を必要とする場合は、`Trade.get_trades_proxy()`を使用するのが最善です。
 
 使用法：
-
 ``` python
 from freqtrade.persistence import Trade
 from datetime import timedelta
@@ -102,7 +101,6 @@ from datetime import timedelta
 trade_hist = Trade.get_trades_proxy(pair='ETH/USDT', is_open=False, open_date=current_date - timedelta(days=2))
 
 ```
-
 `get_trades_proxy()`は、次のキーワード引数をサポートしています。すべての引数はオプションです。引数なしで`get_trades_proxy()`を呼び出すと、データベース内のすべての取引のリストが返されます。
 
 * `pair` 例：`pair='ETH/USDT'`
@@ -113,36 +111,30 @@ trade_hist = Trade.get_trades_proxy(pair='ETH/USDT', is_open=False, open_date=cu
 ### get_open_trade_count
 
 現在オープンしている取引の数を取得します
-
 ``` python
 from freqtrade.persistence import Trade
 # ...
 open_trades = Trade.get_open_trade_count()
 ```
-
 ### get_total_closed_profit
 
 ボットがこれまでに生成した合計利益を取得します。
 すべての決済済み取引の`close_profit_abs`を集計します。
-
 ``` python
 from freqtrade.persistence import Trade
 
 # ...
 profit = Trade.get_total_closed_profit()
 ```
-
 ### total_open_trades_stakes
 
 現在取引中の合計賭け金額を取得します。
-
 ``` python
 from freqtrade.persistence import Trade
 
 # ...
 profit = Trade.total_open_trades_stakes()
 ```
-
 ## バックテスト/ハイパーオプトでサポートされていないクラスメソッド
 
 以下のクラスメソッドは、バックテスト/ハイパーオプトモードではサポートされていません。
@@ -150,7 +142,6 @@ profit = Trade.total_open_trades_stakes()
 ### get_overall_performance
 
 `/performance`テレグラムコマンドと同様に、全体的なパフォーマンスを取得します。
-
 ``` python
 from freqtrade.persistence import Trade
 
@@ -158,24 +149,19 @@ from freqtrade.persistence import Trade
 if self.config['runmode'].value in ('live', 'dry_run'):
     performance = Trade.get_overall_performance()
 ```
-
 サンプル戻り値：ETH/BTCには5つの取引があり、合計利益は1.5％（比率0.015）でした。
-
 ``` json
 {"pair": "ETH/BTC", "profit": 0.015, "count": 5}
 ```
-
 ### get_trading_volume
 
 注文に基づいて合計取引量を取得します。
-
 ``` python
 from freqtrade.persistence import Trade
 
 # ...
 volume = Trade.get_trading_volume()
 ```
-
 ## 注文オブジェクト
 
 `Order`オブジェクトは、取引所での注文（またはドライランモードでのシミュレートされた注文）を表します。

@@ -11,6 +11,7 @@ dependencies = [
     "onnxruntime==1.17.0",
     "numpy<2",
     "yfinance>=0.2.54",
+    "pandas-datareader>=0.10.0",
     "pandas-market-calendars>=4.6.1",
     "nixtla>=0.6.6",
     "matplotlib>=3.10.1",

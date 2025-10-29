@@ -10,11 +10,9 @@ Windowsユーザーは、[Docker](docker_quickstart.md)を使用することを*
 ## gitリポジトリのクローン
 
 まず、次を実行してリポジトリをクローンします。
-
 ```powershell
 git clone https://github.com/freqtrade/freqtrade.git
 ```
-
 次に、スクリプトによる自動インストール（推奨）または対応する手動の手順に従って、インストール方法を選択します。
 
 ## freqtradeを自動的にインストールする
@@ -22,13 +20,11 @@ git clone https://github.com/freqtrade/freqtrade.git
 ### インストールスクリプトの実行
 
 スクリプトは、インストールする部分を決定するためにいくつかの質問をします。
-
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy Bypass
 cd freqtrade
 . .\setup.ps1
 ```
-
 ## freqtradeを手動でインストールする
 
 !!! Note "64ビットPythonバージョン"
@@ -40,11 +36,9 @@ cd freqtrade
 
 
 ### Windowsでのインストール中のエラー
-
 ```bash
 error: Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools": http://landinghub.visualstudio.com/visual-cpp-build-tools
 ```
-
 残念ながら、コンパイルを必要とする多くのパッケージは、事前にビルドされたホイールを提供していません。したがって、Python環境で使用するためにC/C++コンパイラをインストールして利用できるようにすることが必須です。
 
 Visual C++ビルドツールは[ここ](https://visualstudio.microsoft.com/visual-cpp-build-tools/)からダウンロードし、デフォルト構成で「C++によるデスクトップ開発」をインストールできます。残念ながら、これは重いダウンロード/依存関係であるため、WSL2または[docker compose](docker_quickstart.md)を最初に検討することをお勧めします。

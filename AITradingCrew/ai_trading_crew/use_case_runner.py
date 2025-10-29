@@ -4,6 +4,8 @@ from datetime import datetime
 import yaml
 from ai_trading_crew.use_cases import get_use_case_class, get_use_case_config_model
 import ai_trading_crew.use_cases.precious_metals_spread  # noqa: F401
+import ai_trading_crew.use_cases.credit_spread  # noqa: F401
+import ai_trading_crew.use_cases.yield_spread  # noqa: F401
 from ai_trading_crew.use_cases.base import UseCasePaths
 
 

@@ -210,7 +210,7 @@ class MyAwesomeStrategy(IStrategy):
 ``` python
 from freqtrade.optimize.space import Categorical, Dimension, Integer, SKDecimal, Real  # noqa
 ```
-!!! Hint "SKDecimal vs. Real"
+!!! Hint "SKDecimal と実数"
     ほとんどすべてのケースで、`Real`スペースの代わりに`SKDecimal`を使用することをお勧めします。Realスペースは完全な精度（最大約16桁）を提供しますが、この精度はほとんど必要なく、不必要に長いhyperopt時間につながります。
 
     かなり小さいスペースの定義を仮定（`SKDecimal(0.10, 0.15, decimals=2, name='xxx')`） - SKDecimalは5つの可能性（`[0.10, 0.11, 0.12, 0.13, 0.14, 0.15]`）を持ちます。

@@ -30,7 +30,7 @@ FreqAI は、一般的な [Freqtrade 構成ファイル](configuration.md) と�
 ```
 完全な設定例は「config_examples/config_freqai.example.json」で入手できます。
 
-!!!注記
+!!! 注記
     「識別子」は初心者に見落とされがちですが、この値は構成において重要な役割を果たします。この値は、実行の 1 つを説明するために選択した一意の ID です。これを同じに保つことで、クラッシュ耐性を維持できるだけでなく、バ​​ックテストを高速化することができます。新しい実行 (新しい機能、新しいモデルなど) を試したい場合は、すぐにこの値を変更する必要があります (または、`user_data/models/unique-id` フォルダーを削除する必要があります。詳細については、[パラメーター テーブル](freqai-parameter-table.md#feature-parameters) を参照してください。
 
 ## FreqAI 戦略の構築
@@ -143,10 +143,10 @@ FreqAI 戦略では、標準 [Freqtrade 戦略](strategy-customization.md) に�
 ```
 `feature_engineering_*()` で [features](freqai-feature-engineering.md#feature-engineering) が追加される様子に注目してください。一方、`set_freqai_targets()` はラベル/ターゲットを追加します。戦略の完全な例は「templates/FreqaiExampleStrategy.py」で入手できます。
 
-!!!注記
+!!! 注記
     `self.freqai.start()` 関数は `populate_indicators()` の外部から呼び出すことはできません。
 
-!!!注記
+!!! 注記
     機能は「feature_engineering_*()」で定義する必要があります**。 `populate_indicators()` で FreqAI 機能を定義する
     アルゴリズムがライブ/ドライ モードで失敗する原因となります。特定のペアまたはタイムフレームに関連付けられていない一般化された機能を追加するには、「feature_engineering_standard()」を使用する必要があります。
     (「freqtrade/templates/FreqaiExampleStrategy.py」に例示されているように)。
@@ -168,7 +168,7 @@ FreqAI 戦略では、標準 [Freqtrade 戦略](strategy-customization.md) に�
 
 FreqAI 戦略の「startup_candle_count」は、標準の Freqtrade 戦略と同じ方法で設定する必要があります (詳細は [こちら](strategy-customization.md#strategy-startup-period) を参照してください)。この値は、最初のトレーニングの開始時に NaN が発生しないように、「dataprovider」を呼び出すときに十分な量のデータが提供されることを保証するために Freqtrade によって使用されます。この値は、インジケーター作成関数 (TA-Lib 関数など) に渡される最長期間 (ローソク足単位) を特定することで簡単に設定できます。提示された例では、「startup_candle_count」は 20 です。これは、「indicators_periods_candles」の最大値であるためです。
 
-!!!注記
+!!! 注記
 TA-Lib 関数が実際には、渡された「期間」よりも多くのデータを必要とする場合、そうでない場合はフィーチャ データセットに NaN が設定される場合があります。余談ですが、「startup_candle_count」を 2 で乗算すると、常に完全に NaN フリーのトレーニング データセットが得られます。したがって、通常は、予想される「startup_candle_count」を 2 倍するのが最も安全です。データがクリーンであることを確認するには、次のログ メッセージを確認してください。
     ```
     2022-08-31 15:14:04 - freqtrade.freqai.data_kitchen - INFO - dropped 0 training points due to NaNs in populated dataset 4319.

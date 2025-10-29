@@ -1,119 +1,114 @@
-# Strategy Customization
+# 戦略のカスタマイズ
 
-This page explains how to customize your strategies, add new indicators and set up trading rules.
+このページでは、戦略をカスタマイズする方法、新しいインジケーターを追加する方法、取引ルールを設定する方法について説明します。
 
-If you haven't already, please familiarize yourself with:
+まだ理解していない場合は、以下についてよく理解してください。
 
-- the [Freqtrade strategy 101](strategy-101.md), which provides a quick start to strategy development
-- the [Freqtrade bot basics](bot-basics.md), which provides overall info on how the bot operates
+- [Freqtrade Strategy 101](strategy-101.md)。戦略開発を簡単に開始できます。
+- [Freqtrade ボットの基本](bot-basics.md)。ボットの動作方法に関する全体的な情報が提供されます。
 
-## Develop your own strategy
+## 独自の戦略を立てる
 
-The bot includes a default strategy file.
+ボットにはデフォルトの戦略ファイルが含まれています。
 
-Also, several other strategies are available in the [strategy repository](https://github.com/freqtrade/freqtrade-strategies).
+また、他のいくつかの戦略は [戦略リポジトリ](https://github.com/freqtrade/freqtrade-strategies) で入手できます。
 
-You will however most likely have your own idea for a strategy.
+ただし、おそらくあなたは独自の戦略のアイデアを持っているでしょう。
 
-This document intends to help you convert your ideas into a working strategy.
+この文書は、あなたのアイデアを実用的な戦略に変換するのに役立つことを目的としています。
 
-### Generating a strategy template
+### 戦略テンプレートの生成
 
-To get started, you can use the command:
-
+開始するには、次のコマンドを使用できます。
 ```bash
 freqtrade new-strategy --strategy AwesomeStrategy
 ```
-
-This will create a new strategy called `AwesomeStrategy` from a template, which will be located using the filename `user_data/strategies/AwesomeStrategy.py`.
-
-!!! Note
-    There is a difference between the *name* of the strategy and the filename. In most commands, Freqtrade uses the *name* of the strategy, *not the filename*.
+これにより、テンプレートから「AwesomeStrategy」という新しい戦略が作成されます。この戦略は、ファイル名「user_data/strategies/AwesomeStrategy.py」を使用して配置されます。
 
 !!! Note
-    The `new-strategy` command generates starting examples which will not be profitable out of the box.
+    ストラテジの *name* とファイル名には違いがあります。ほとんどのコマンドでは、Freqtrade は *ファイル名* ではなく、ストラテジーの *名前* を使用します。
 
-??? Hint "Different template levels"
-    `freqtrade new-strategy` has an additional parameter, `--template`, which controls the amount of pre-build information you get in the created strategy. Use `--template minimal` to get an empty strategy without any indicator examples, or `--template advanced` to get a template with more complicated features defined.
+!!! Note
+    「new-strategy」コマンドは、そのままでは利益を生まない開始例を生成します。
 
-### Anatomy of a strategy
+???ヒント「異なるテンプレートレベル」
+    `freqtrade new-strategy` には追加パラメータ `--template` があり、作成された戦略で取得する事前構築情報の量を制御します。インジケーターの例のない空の戦略を取得するには「--template minimum」を使用し、より複雑な機能が定義されたテンプレートを取得するには「--template Advanced」を使用します。
 
-A strategy file contains all the information needed to build the strategy logic:
+### 戦略の構造
 
-- Candle data in OHLCV format
-- Indicators
-- Entry logic
-  - Signals
-- Exit logic
-  - Signals
-  - Minimal ROI
-  - Callbacks ("custom functions")
-- Stoploss
-  - Fixed/absolute
-  - Trailing
-  - Callbacks ("custom functions")
-- Pricing [optional]
-- Position adjustment [optional]
+戦略ファイルには、戦略ロジックの構築に必要なすべての情報が含まれています。
 
-The bot includes a sample strategy called `SampleStrategy` that you can use as a basis: `user_data/strategies/sample_strategy.py`.
-You can test it with the parameter: `--strategy SampleStrategy`. Remember that you use the strategy class name, not the filename.
+- OHLCV形式のキャンドルデータ
+- インジケーター
+- エントリーロジック
+  - 信号
+- 終了ロジック
+  - 信号
+  - 最小限のROI
+  - コールバック (「カスタム関数」)
+- ストップロス
+  - 固定/絶対
+  - トレーリング
+  - コールバック (「カスタム関数」)
+- 価格設定 [オプション]
+- 位置調整[オプション]
 
-Additionally, there is an attribute called `INTERFACE_VERSION`, which defines the version of the strategy interface the bot should use.
-The current version is 3 - which is also the default when it's not set explicitly in the strategy.
+ボットには、ベースとして使用できる「SampleStrategy」というサンプル戦略が含まれています:「user_data/strategies/sample_strategy.py」。
+パラメータ「--strategy SampleStrategy」を使用してテストできます。ファイル名ではなく、ストラテジー クラス名を使用することに注意してください。
 
-You may see older strategies set to interface version 2, and these will need to be updated to v3 terminology as future versions will require this to be set.
+さらに、ボットが使用する戦略インターフェイスのバージョンを定義する「INTERFACE_VERSION」という属性があります。
+現在のバージョンは 3 です。これは、戦略で明示的に設定されていない場合のデフォルトでもあります。
 
-Starting the bot in dry or live mode is accomplished using the `trade` command:
+古い戦略がインターフェイス バージョン 2 に設定されている場合がありますが、将来のバージョンではこれを設定する必要があるため、これらを v3 用語に更新する必要があります。
 
+ボットをドライ モードまたはライブ モードで起動するには、「trade」コマンドを使用します。
 ```bash
 freqtrade trade --strategy AwesomeStrategy
 ```
+### ボットモード
 
-### Bot modes
+Freqtrade 戦略は、Freqtrade ボットによって 5 つの主要なモードで処理できます。
 
-Freqtrade strategies can be processed by the Freqtrade bot in 5 main modes:
+- バックテスト
+- ハイパーオプティング
+- ドライ (「フォワードテスト」)
+- ライブ
+- FreqAI (ここでは取り上げません)
 
-- backtesting
-- hyperopting
-- dry ("forward testing")
-- live
-- FreqAI (not covered here)
+ボットをドライ モードまたはライブ モードに設定する方法については、[構成ドキュメント](configuration.md) を確認してください。
 
-Check the [configuration documentation](configuration.md) about how to set the bot to dry or live mode.
+**テストするときは常にドライ モードを使用してください。これにより、資本を危険にさらさずに戦略が実際にどのように機能するかを把握できるようになります。**
 
-**Always use dry mode when testing as this gives you an idea of how your strategy will work in reality without risking capital.**
+## さらに深く掘り下げる
 
-## Diving in deeper
+**次のセクションでは、[user_data/strategies/sample_strategy.py](https://github.com/freqtrade/freqtrade/blob/develop/freqtrade/templates/sample_strategy.py) を使用します。
+参照用ファイル。**
 
-**For the following section we will use the [user_data/strategies/sample_strategy.py](https://github.com/freqtrade/freqtrade/blob/develop/freqtrade/templates/sample_strategy.py)
-file as reference.**
+!!! Note "戦略とバックテスト"
+    バックテストとドライ/ライブ モード間の問題や予期せぬ違いを避けるために、次の点に注意してください。
+    バックテスト中に、全時間範囲が一度に `populate_*()` メソッドに渡されるということです。
+    したがって、ベクトル化された操作 (ループではなくデータフレーム全体にわたって) を使用するのが最善です。
+    インデックス参照 (`df.iloc[-1]`) を避け、代わりに `df.shift()` を使用して前のローソク足にアクセスします。
 
-!!! Note "Strategies and Backtesting"
-    To avoid problems and unexpected differences between backtesting and dry/live modes, please be aware
-    that during backtesting the full time range is passed to the `populate_*()` methods at once.
-    It is therefore best to use vectorized operations (across the whole dataframe, not loops) and
-    avoid index referencing (`df.iloc[-1]`), but instead use `df.shift()` to get to the previous candle.
+!!! Warning "警告: 将来のデータの使用"
+    バックテストでは全時間範囲が `populate_*()` メソッドに渡されるため、戦略作成者は
+    将来のデータを戦略に利用しないように注意する必要があります。
+    この一般的なパターンのいくつかは、このドキュメントの [よくある間違い](#common-missing-when-developing-strategies) セクションにリストされています。
 
-!!! Warning "Warning: Using future data"
-    Since backtesting passes the full time range to the `populate_*()` methods, the strategy author
-    needs to take care to avoid having the strategy utilize data from the future.
-    Some common patterns for this are listed in the [Common Mistakes](#common-mistakes-when-developing-strategies) section of this document.
+???ヒント「先読みと再帰分析」
+    Freqtrade には、一般的な先読み (将来のデータを使用) を評価するのに役立つ 2 つの便利なコマンドが含まれています。
+    再帰的バイアス (指標値の分散) の問題。ドライやライブモアで戦略を実行する前に、
+    常にこれらのコマンドを最初に使用する必要があります。関連ドキュメントを確認してください。
+    [先読み](lookahead-analysis.md) および [再帰](recursive-analysis.md) 分析。
 
-??? Hint "Lookahead and recursive analysis"
-    Freqtrade includes two helpful commands to help assess common lookahead (using future data) and
-    recursive bias (variance in indicator values) issues. Before running a strategy in dry or live more,
-    you should always use these commands first. Please check the relevant documentation for
-    [lookahead](lookahead-analysis.md) and [recursive](recursive-analysis.md) analysis.
+### データフレーム
 
-### Dataframe
+Freqtrade は [pandas](https://pandas.pydata.org/) を使用してローソク足 (OHLCV) データを保存/提供します。
+Pandas は、表形式で大量のデータを処理するために開発された優れたライブラリです。
 
-Freqtrade uses [pandas](https://pandas.pydata.org/) to store/provide the candlestick (OHLCV) data.
-Pandas is a great library developed for processing large amounts of data in tabular format.
+データフレームの各行はチャート上の 1 つのローソク足に対応し、最新の完全なローソク足が常にデータフレームの最後になります (日付順にソート)。
 
-Each row in a dataframe corresponds to one candle on a chart, with the latest complete candle always being the last in the dataframe (sorted by date).
-
-If we were to look at the first few rows of the main dataframe using the pandas `head()` function, we would see:
-
+pandas `head()` 関数を使用してメイン データフレームの最初の数行を見ると、次のようになります。
 ```output
 > dataframe.head()
                        date      open      high       low     close     volume
@@ -123,61 +118,55 @@ If we were to look at the first few rows of the main dataframe using the pandas 
 3 2021-11-09 23:40:00+00:00  67123.80  67222.40  67080.33  67160.48   78.96008
 4 2021-11-09 23:45:00+00:00  67160.48  67160.48  66901.26  66943.37  111.39292
 ```
-
-A dataframe is a table where columns are not single values, but a series of data values. As such, simple python comparisons like the following will not work:
-
+データフレームは、列が単一の値ではなく、一連のデータ値であるテーブルです。そのため、次のような単純な Python 比較は機能しません。
 ``` python
     if dataframe['rsi'] > 30:
         dataframe['enter_long'] = 1
 ```
+上記のセクションは、「系列の真理値があいまいです [...]」 というエラーで失敗します。
 
-The above section will fail with `The truth value of a Series is ambiguous [...]`.
-
-This must instead be written in a pandas-compatible way, so the operation is performed across the whole dataframe, i.e. `vectorisation`.
-
+これは、パンダと互換性のある方法で記述する必要があるため、操作はデータフレーム全体にわたって実行されます (つまり、「ベクトル化」)。
 ``` python
     dataframe.loc[
         (dataframe['rsi'] > 30)
     , 'enter_long'] = 1
 ```
+このセクションでは、データフレームに新しい列があり、RSI が 30 を超えるたびに「1」が割り当てられます。
 
-With this section, you have a new column in your dataframe, which has `1` assigned whenever RSI is above 30.
+Freqtrade は、この新しい列をエントリーシグナルとして使用し、その後、次のオープンローソク足で取引が開始されると想定します。
 
-Freqtrade uses this new column as an entry signal, where it is assumed that a trade will subsequently open on the next open candle.
+Pandas は、メトリクスを高速に計算する方法、つまり「ベクトル化」を提供します。この速度を活用するには、ループを使用せず、代わりにベクトル化されたメソッドを使用することをお勧めします。
 
-Pandas provides fast ways to calculate metrics, i.e. "vectorisation". To benefit from this speed, it is advised to not use loops, but use vectorized methods instead.
+ベクトル化された操作は、データの全範囲にわたって計算を実行するため、各行をループする場合と比較して、インジケーターを計算する際にはるかに高速になります。
 
-Vectorized operations perform calculations across the whole range of data and are therefore, compared to looping through each row, a lot faster when calculating indicators.
+???ヒント「シグナル vs トレード」
+    - シグナルはローソク足の終値でインジケーターから生成され、取引に参加する意図を示します。
+    - 取引は、(ライブ モードの取引所で) 実行される注文であり、次のローソク足のオープンにできるだけ近いところで取引が開始されます。
 
-??? Hint "Signals vs Trades"
-    - Signals are generated from indicators at candle close, and are intentions to enter a trade.
-    - Trades are orders that are executed (on the exchange in live mode) where a trade will then open as close to next candle open as possible.
+!!! Warning "取引注文の前提条件"
+    バックテストでは、ローソク足の終値でシグナルが生成されます。その後、次のローソク足が開くとすぐに取引が開始されます。
 
-!!! Warning "Trade order assumptions"
-    In backtesting, signals are generated on candle close. Trades are then initiated immeditely on next candle open.
+    ドライおよびライブでは、すべてのペアのデータフレームを最初に分析してから取引処理を行う必要があるため、遅延する可能性があります。 
+    それらのペアごとに発生します。これは、ドライ/ライブでは、計算量をできるだけ低くすることに注意する必要があることを意味します。 
+    通常は少数のペアを実行し、適切なクロック速度の CPU を使用することで、可能な限り遅延を抑えます。
 
-    In dry and live, this may be delayed due to all pair dataframes needing to be analysed first, then trade processing 
-    for each of those pairs happens. This means that in dry/live you need to be mindful of having as low a computation 
-    delay as possible, usually by running a low number of pairs and having a CPU with a good clock speed.
+#### 「リアルタイム」ローソク足データを表示できないのはなぜですか?
 
-#### Why can't I see "real time" candle data?
+Freqtrade は、不完全/未完成のローソク足をデータフレームに保存しません。
 
-Freqtrade does not store incomplete/unfinished candles in the dataframe.
+戦略決定を行うために不完全なデータを使用することは「再描画」と呼ばれ、他のプラットフォームでもこれが許可されている場合があります。
 
-The use of incomplete data for making strategy decisions is called "repainting" and you might see other platforms allow this.
+Freqtrade はそうではありません。データフレームでは、完全/完成したローソク足データのみが利用可能です。
 
-Freqtrade does not. Only complete/finished candle data is available in the dataframe.
+### インジケーターをカスタマイズする
 
-### Customize Indicators
+入口信号と出口信号にはインジケーターが必要です。戦略ファイルのメソッド `populate_indicators()` に含まれるリストを拡張することで、さらにインジケーターを追加できます。
 
-Entry and exit signals need indicators. You can add more indicators by extending the list contained in the method `populate_indicators()` from your strategy file.
+`populate_entry_trend()` または `populate_exit_trend()` で使用されるインジケーターのみを追加するか、別のインジケーターを設定するために追加する必要があります。そうしないと、パフォーマンスが低下する可能性があります。
 
-You should only add the indicators used in either `populate_entry_trend()`, `populate_exit_trend()`, or to populate another indicator, otherwise performance may suffer.
+列 `"open"、"high"、"low"、"close"、"volume"` を削除/変更せずに、常にこれら 3 つの関数からデータフレームを返すことが重要です。そうしないと、これらのフィールドに予期しないものが含まれることになります。
 
-It's important to always return the dataframe from these three functions without removing/modifying the columns `"open", "high", "low", "close", "volume"`, otherwise these fields would contain something unexpected.
-
-Sample:
-
+サンプル：
 ```python
 def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     """
@@ -220,75 +209,69 @@ def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame
     # remember to always return the dataframe
     return dataframe
 ```
+!!! Note "もっとインジケーターの例が必要ですか?"
+    [user_data/strategies/sample_strategy.py](https://github.com/freqtrade/freqtrade/blob/develop/freqtrade/templates/sample_strategy.py) を調べてください。
+    次に、必要なインジケーターのコメントを解除します。
 
-!!! Note "Want more indicator examples?"
-    Look into the [user_data/strategies/sample_strategy.py](https://github.com/freqtrade/freqtrade/blob/develop/freqtrade/templates/sample_strategy.py).
-    Then uncomment indicators you need.
+#### インジケーター ライブラリ
 
-#### Indicator libraries
-
-Out of the box, freqtrade installs the following technical libraries:
+freqtrade は、すぐに使用できる次の技術ライブラリをインストールします。
 
 - [ta-lib](https://ta-lib.github.io/ta-lib-python/)
-- [pandas-ta](https://twopirllc.github.io/pandas-ta/)
-- [technical](https://technical.freqtrade.io)
+- [パンダスタ](https://twopirllc.github.io/pandas-ta/)
+- [テクニカル](https://technical.freqtrade.io)
 
-Additional technical libraries can be installed as necessary, or custom indicators may be written / invented by the strategy author.
+必要に応じて追加のテクニカル ライブラリをインストールしたり、戦略作成者がカスタム インジケーターを作成/発明したりすることができます。
 
-### Strategy startup period
+### 戦略立ち上げ期間
 
-Some indicators have an unstable startup period in which there isn't enough candle data to calculate any values (NaN), or the calculation is incorrect. This can lead to inconsistencies, since Freqtrade does not know how long this unstable period is and uses whatever indicator values are in the dataframe.
+一部のインジケーターには、値を計算するのに十分なローソク足データがない (NaN) か、計算が正しくないため、不安定な起動期間があります。 Freqtrade はこの不安定な期間の長さを知らず、データフレーム内のインジケーター値を使用するため、不一致が発生する可能性があります。
 
-To account for this, the strategy can be assigned the `startup_candle_count` attribute.
+これを考慮して、戦略に「startup_candle_count」属性を割り当てることができます。
 
-This should be set to the maximum number of candles that the strategy requires to calculate stable indicators. In the case where a user includes higher timeframes with informative pairs, the `startup_candle_count` does not necessarily change. The value is the maximum period (in candles) that any of the informatives timeframes need to compute stable indicators.
+これは、戦略が安定したインジケーターを計算するために必要なローソクの最大数に設定する必要があります。ユーザーが情報ペアを含むより高いタイムフレームを含む場合、「startup_candle_count」は必ずしも変化するわけではありません。この値は、インフォマティブ タイムフレームのいずれかが安定したインジケーターを計算するために必要な最大期間 (ローソク足) です。
 
-You can use [recursive-analysis](recursive-analysis.md) to check and find the correct `startup_candle_count` to be used. When recursive analysis shows a variance of 0%, then you can be sure that you have enough startup candle data.
+使用する正しい `startup_candle_count` を確認して見つけるには、[recursive-analysis](recursive-analysis.md) を使用できます。再帰分析で分散が 0% であることが示された場合は、十分な開始ローソク足データがあると確信できます。
 
-In this example strategy, this should be set to 400 (`startup_candle_count = 400`), since the minimum needed history for ema100 calculation to make sure the value is correct is 400 candles.
-
+この戦略例では、値が正しいことを確認するために ema100 の計算に必要な最小履歴は 400 キャンドルであるため、これを 400 (「startup_candle_count = 400」) に設定する必要があります。
 ``` python
     dataframe['ema100'] = ta.EMA(dataframe, timeperiod=100)
 ```
+どれだけの履歴が必要かをボットに知らせることで、バックテストとハイパーオプト中に指定された時間範囲でバックテスト取引を開始できます。
 
-By letting the bot know how much history is needed, backtest trades can start at the specified timerange during backtesting and hyperopt.
-
-!!! Warning "Using x calls to get OHLCV"
-    If you receive a warning like `WARNING - Using 3 calls to get OHLCV. This can result in slower operations for the bot. Please check if you really need 1500 candles for your strategy` - you should consider if you really need this much historic data for your signals.
-    Having this will cause Freqtrade to make multiple calls for the same pair, which will obviously be slower than one network request.
-    As a consequence, Freqtrade will take longer to refresh candles - and should therefore be avoided if possible.
-    This is capped to 5 total calls to avoid overloading the exchange, or make freqtrade too slow.
+!!! Warning "x 呼び出しを使用して OHLCV を取得する"
+    「警告 - OHLCV を取得するために 3 回の呼び出しを使用しています」のような警告が表示された場合。これにより、ボットの動作が遅くなる可能性があります。戦略に本当に 1500 本のローソクが必要かどうかを確認してください。シグナルにこれだけの履歴データが本当に必要かどうかを検討する必要があります。
+    これを行うと、Freqtrade が同じペアに対して複数の呼び出しを行うことになり、明らかに 1 回のネットワーク リクエストよりも遅くなります。
+    結果として、Freqtrade はキャンドルを更新するのに時間がかかるため、可能であれば避けるべきです。
+    取引所の過負荷やfreqtradeの速度低下を避けるため、コール数は合計5回に制限されています。
 
 !!! Warning
-    `startup_candle_count` should be below `ohlcv_candle_limit * 5` (which is 500 * 5 for most exchanges) - since only this amount of candles will be available during Dry-Run/Live Trade operations.
+    `startup_candle_count` は、`ohlcv_candle_limit * 5` (ほとんどの取引所では 500 * 5) 未満である必要があります。これは、ドライラン/ライブトレード操作中にこの量のキャンドルしか利用できないためです。
 
-#### Example
+#### 例
 
-Let's try to backtest 1 month (January 2019) of 5m candles using an example strategy with EMA100, as above.
-
+上記のように、EMA100 を使用した戦略例を使用して、500 万ローソク足の 1 か月 (2019 年 1 月) のバックテストを試してみましょう。
 ``` bash
 freqtrade backtesting --timerange 20190101-20190201 --timeframe 5m
 ```
+「startup_candle_count」が 400 に設定されていると仮定すると、有効なエントリーシグナルを生成するには 400 個のキャンドルが必要であることがバックテストでわかります。 「20190101 - (400 * 5m)」、つまり ~2018-12-30 11:40:00 からデータがロードされます。
 
-Assuming `startup_candle_count` is set to 400, backtesting knows it needs 400 candles to generate valid entry signals. It will load data from `20190101 - (400 * 5m)` - which is ~2018-12-30 11:40:00.
+このデータが利用可能な場合、インジケーターはこの拡張された時間範囲で計算されます。その後、バックテストが実行される前に、不安定な起動期間 (2019-01-01 00:00:00 まで) が削除されます。
 
-If this data is available, indicators will be calculated with this extended timerange. The unstable startup period (up to 2019-01-01 00:00:00) will then be removed before backtesting is carried out.
+!!! Note "利用できない起動キャンドル データ"
+    起動期間のデータが利用できない場合は、この起動期間を考慮して時間範囲が調整されます。この例では、バックテストは 2019-01-02 09:20:00 から開始されます。
 
-!!! Note "Unavailable startup candle data"
-    If data for the startup period is not available, then the timerange will be adjusted to account for this startup period. In our example, backtesting would then start from 2019-01-02 09:20:00.
+### エントリーシグナルルール
 
-### Entry signal rules
+戦略ファイル内のメソッド `populate_entry_trend()` を編集して、エントリー戦略を更新します。
 
-Edit the method `populate_entry_trend()` in your strategy file to update your entry strategy.
+列 `"open"、"high"、"low"、"close"、"volume"` を削除/変更せずに常にデータフレームを返すことが重要です。そうしないと、これらのフィールドに予期しないものが含まれることになります。その後、戦略が無効な値を生成したり、完全に機能しなくなる可能性があります。
 
-It's important to always return the dataframe without removing/modifying the columns `"open", "high", "low", "close", "volume"`, otherwise these fields would contain something unexpected. The strategy may then produce invalid values, or cease to work entirely.
+このメソッドは、新しい列 `"enter_long"` (short の場合は `"enter_short"`) も定義します。これには、エントリの場合は `1`、「アクションなし」の場合は `0` を含める必要があります。 `enter_long` は、ストラテジーがショートのみの場合でも設定する必要がある必須の列です。
 
-This method will also define a new column, `"enter_long"` (`"enter_short"` for shorts), which needs to contain `1` for entries, and `0` for "no action". `enter_long` is a mandatory column that must be set even if the strategy is shorting only.
+「enter_tag」列を使用してエントリ シグナルに名前を付けることができます。これは、後で戦略をデバッグおよび評価するのに役立ちます。
 
-You can name your entry signals by using the `"enter_tag"` column, which can help debug and assess your strategy later.
-
-Sample from `user_data/strategies/sample_strategy.py`:
-
+「user_data/strategies/sample_strategy.py」のサンプル:
 ```python
 def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     """
@@ -308,13 +291,11 @@ def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFram
 
     return dataframe
 ```
-
-??? Note "Enter short trades"
-    Short entries can be created by setting `enter_short` (corresponds to `enter_long` for long trades).
-    The `enter_tag` column remains identical.
-    Shorting needs to be supported by your exchange and market configuration!
-    Also, make sure you set [`can_short`](#can-short) appropriately on your strategy if you intend to short.
-
+??? 「ショートトレードを入力する」ことに注意してください
+    ショートエントリーは `enter_short` を設定することで作成できます (ロングトレードの `enter_long` に対応します)。
+    「enter_tag」列は同じままです。
+    空売りは取引所と市場の構成によってサポートされる必要があります。
+    また、ショートする場合は、[`can_short`](#can-short) を戦略に適切に設定してください。
     ```python
     # allow both long and short trades
     can_short = True
@@ -340,26 +321,24 @@ def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFram
 
         return dataframe
     ```
-
 !!! Note
-    Buying requires sellers to buy from. Therefore volume needs to be > 0 (`dataframe['volume'] > 0`) to make sure that the bot does not buy/sell in no-activity periods.
+    購入するには、販売者が購入する必要があります。したがって、ボットがアクティビティのない期間に売買を行わないようにするには、ボリュームを > 0 (`dataframe['volume'] > 0`) にする必要があります。
 
-### Exit signal rules
+### 出口信号ルール
 
-Edit the method `populate_exit_trend()` into your strategy file to update your exit strategy.
+メソッド `populate_exit_trend()` を戦略ファイルに編集して、出口戦略を更新します。
 
-The exit-signal can be suppressed by setting `use_exit_signal` to false in the configuration or strategy.
+exit-signal は、設定または戦略で `use_exit_signal` を false に設定することで抑制できます。
 
-`use_exit_signal` will not influence [signal collision rules](#colliding-signals) - which will still apply and can prevent entries.
+`use_exit_signal` は [シグナル衝突ルール](#colliding-signals) には影響しません。これは引き続き適用され、エントリを防ぐことができます。
 
-It's important to always return the dataframe without removing/modifying the columns `"open", "high", "low", "close", "volume"`, otherwise these fields would contain something unexpected. The strategy may then produce invalid values, or cease to work entirely.
+列 `"open"、"high"、"low"、"close"、"volume"` を削除/変更せずに常にデータフレームを返すことが重要です。そうしないと、これらのフィールドに予期しないものが含まれることになります。その後、戦略が無効な値を生成したり、完全に機能しなくなる可能性があります。
 
-This method will also define a new column, `"exit_long"` (`"exit_short"` for shorts), which needs to contain `1` for exits, and `0` for "no action".
+このメソッドは、新しい列 `"exit_long"` (short の場合は `"exit_short"`) も定義します。これには、終了の場合は 1 を、「アクションなし」の場合は 0 を含める必要があります。
 
-You can name your exit signals by using the `"exit_tag"` column, which can help debug and assess your strategy later.
+「exit_tag」列を使用して終了シグナルに名前を付けることができます。これは、後で戦略をデバッグおよび評価するのに役立ちます。
 
-Sample from `user_data/strategies/sample_strategy.py`:
-
+「user_data/strategies/sample_strategy.py」のサンプル:
 ```python
 def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     """
@@ -378,13 +357,11 @@ def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame
         ['exit_long', 'exit_tag']] = (1, 'rsi_too_high')
     return dataframe
 ```
-
-??? Note "Exit short trades"
-    Short exits can be created by setting `exit_short` (corresponds to `exit_long`).
-    The `exit_tag` column remains identical.
-    Shorting needs to be supported by your exchange and market configuration!
-    Also, make sure you set [`can_short`](#can-short) appropriately on your strategy if you intend to short.
-
+??? 「ショートトレードを終了する」ことに注意してください
+    短い出口は、`exit_short` (`exit_long` に対応) を設定することで作成できます。
+    「exit_tag」列は同じままです。
+    空売りは取引所と市場の構成によってサポートされる必要があります。
+    また、ショートする場合は、[`can_short`](#can-short) を戦略に適切に設定してください。
     ```python
     # allow both long and short trades
     can_short = True
@@ -408,13 +385,11 @@ def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame
             ['exit_short', 'exit_tag']] = (1, 'rsi_too_low')
         return dataframe
     ```
+### 最小限の ROI
 
-### Minimal ROI
+「minimal_roi」戦略変数は、エグジットシグナルとは別に、取引がエグジットする前に到達すべき最小投資収益率 (ROI) を定義します。
 
-The `minimal_roi` strategy variable defines the minimal Return On Investment (ROI) a trade should reach before exiting, independent from the exit signal.
-
-It is of the following format, i.e. a python `dict`, with the dict key (left side of the colon) being the minutes passed since the trade opened, and the value (right side of the colon) being the percentage.
-
+これは次の形式、つまり Python の「dict」で、dict キー (コロンの左側) は取引が開始されてからの経過分、値 (コロンの右側) はパーセンテージです。
 ```python
 minimal_roi = {
     "40": 0.0,
@@ -423,30 +398,26 @@ minimal_roi = {
     "0": 0.04
 }
 ```
+したがって、上記の構成は次のことを意味します。
 
-The above configuration would therefore mean:
+- 利益が 4% に達するたびに終了
+- 利益が 2% に達したら終了 (20 分後に有効)
+- 利益が 1% に達したら終了 (30 分後に有効)
+- 取引に損失がなくなった場合に終了 (40 分後に有効)
 
-- Exit whenever 4% profit was reached
-- Exit when 2% profit was reached (in effect after 20 minutes)
-- Exit when 1% profit was reached (in effect after 30 minutes)
-- Exit when trade is non-loosing (in effect after 40 minutes)
+計算には手数料も含まれます。
 
-The calculation does include fees.
+#### 最小限の ROI を無効にする
 
-#### Disabling minimal ROI
-
-To disable ROI completely, set it to an empty dictionary:
-
+ROI を完全に無効にするには、ROI を空の辞書に設定します。
 ```python
 minimal_roi = {}
 ```
+#### 最小限の ROI で計算を使用する
 
-#### Using calculations in minimal ROI
+ローソク足の期間 (タイムフレーム) に基づいて時間を使用するには、次のスニペットが便利です。
 
-To use times based on candle duration (timeframe), the following snippet can be handy.
-
-This will allow you to change the timeframe for the strategy, but the minimal ROI times will still be set as candles, e.g. after 3 candles.
-
+これにより、戦略の時間枠を変更できますが、最小 ROI 時間は引き続きローソク足として設定されます。 3本のキャンドルの後。
 ``` python
 from freqtrade.exchange import timeframe_to_minutes
 
@@ -460,106 +431,98 @@ class AwesomeStrategy(IStrategy):
         str(timeframe_mins * 6): 0.01,  # 1% After 6 candles
     }
 ```
+??? info「すぐに満たされない注文」
+    `minimal_roi` は、取引が初期化された時間、つまりこの取引の最初の注文が行われた時間である `trade.open_date` を参照として受け取ります。
+    これは、すぐには約定しない指値注文 (通常、`custom_entry_price()` を介して「オフスポット」価格と組み合わせて) や、最初の注文価格が `adjust_entry_price()` を介して置き換えられる場合にも当てはまります。
+    使用される時間は、新規発注または調整された注文の日付ではなく、最初の `trade.open_date` (最初の注文が最初に発注されたとき) からのものになります。
 
-??? info "Orders that don't fill immediately"
-    `minimal_roi` will take the `trade.open_date` as reference, which is the time the trade was initialized, i.e. when the first order for this trade was placed.
-    This will also hold true for limit orders that don't fill immediately (usually in combination with "off-spot" prices through `custom_entry_price()`), as well as for cases where the initial order price is replaced through `adjust_entry_price()`.
-    The time used will still be from the initial `trade.open_date` (when the initial order was first placed), not from the newly placed or adjusted order date.
+### ストップロス
 
-### Stoploss
+あなたに対する強い動きから資本を保護するために、ストップロスを設定することを強くお勧めします。
 
-Setting a stoploss is highly recommended to protect your capital from strong moves against you.
-
-Sample of setting a 10% stoploss:
-
+10% ストップロスの設定例:
 ``` python
 stoploss = -0.10
 ```
+ストップロス機能に関する完全なドキュメントについては、専用の [ストップロス ページ](stoploss.md) をご覧ください。
 
-For the full documentation on stoploss features, look at the dedicated [stoploss page](stoploss.md).
+### 期間
 
-### Timeframe
+これは、ボットが戦略で使用するキャンドルの周期性です。
 
-This is the periodicity of candles the bot should use in the strategy.
+一般的な値は `"1m"`、`"5m"`、`"15m"`、`"1h"` ですが、取引所でサポートされているすべての値が機能するはずです。
 
-Common values are `"1m"`, `"5m"`, `"15m"`, `"1h"`, however all values supported by your exchange should work.
+同じエントリー/エグジットシグナルは、ある時間枠ではうまく機能する可能性がありますが、他の時間枠では機能しない場合があることに注意してください。
 
-Please note that the same entry/exit signals may work well with one timeframe, but not with others.
+この設定は、戦略メソッド内で `self.timeframe` 属性としてアクセスできます。
 
-This setting is accessible within the strategy methods as the `self.timeframe` attribute.
+### ショートできる
 
-### Can short
+先物市場でショートシグナルを使用するには、「can_short = True」を設定する必要があります。
 
-To use short signals in futures markets, you will have to set `can_short = True`.
+これを可能にする戦略はスポット市場では機能しません。
 
-Strategies which enable this will fail to load on spot markets.
+ショートシグナルを生成するために「enter_short」列に「1」の値がある場合、「can_short = False」(デフォルト) を設定すると、設定で先物市場を指定していても、これらのショートシグナルは無視されます。
 
-If you have `1` values in the `enter_short` column to raise short signals, setting `can_short = False` (which is the default) will mean that these short signals are ignored, even if you have specified futures markets in your configuration.
+### メタデータ辞書
 
-### Metadata dict
+`metadata` dict (`populate_entry_trend`、`populate_exit_trend`、`populate_indicators` で利用可能) には追加情報が含まれています。
+現在、これは「pair」で、「metadata['pair']」を使用してアクセスでき、「XRP/BTC」（先物市場の場合は「XRP/BTC:BTC」）形式でペアを返します。
 
-The `metadata` dict (available for `populate_entry_trend`, `populate_exit_trend`, `populate_indicators`) contains additional information.
-Currently this is `pair`, which can be accessed using `metadata['pair']`, and will return a pair in the format `XRP/BTC` (or `XRP/BTC:BTC` for futures markets).
+メタデータ辞書は変更しないでください。また、戦略内の複数の機能にわたって情報を保持しません。
 
-The metadata dict should not be modified and does not persist information across multiple functions in your strategy.
-
-Instead, please check the [Storing information](strategy-advanced.md#storing-information-persistent) section.
+代わりに、[情報の保存](strategy-advanced.md#storing-information-persistent) セクションを確認してください。
 
 --8<-- "includes/strategy-imports.md"
 
-## Strategy file loading
+## 戦略ファイルの読み込み
 
-By default, freqtrade will attempt to load strategies from all `.py` files within the `userdir` (default `user_data/strategies`).
+デフォルトでは、freqtrade は `userdir` 内のすべての `.py` ファイル (デフォルトは `user_data/strategies`) からストラテジーをロードしようとします。
 
-Assuming your strategy is called `AwesomeStrategy`, stored in the file `user_data/strategies/AwesomeStrategy.py`, then you can start freqtrade in dry (or live, depending on your configuration) mode with:
-
+あなたの戦略が `AwesomeStrategy` という名前で、ファイル `user_data/strategies/AwesomeStrategy.py` に保存されていると仮定すると、次のようにして freqtrade をドライ (または設定に応じてライブ) モードで開始できます。
 ```bash
 freqtrade trade --strategy AwesomeStrategy
 ```
+ファイル名ではなくクラス名を使用していることに注意してください。
 
-Note that we're using the class name, not the file name.
+「freqtrade list-strategies」を使用すると、Freqtrade がロードできるすべての戦略 (正しいフォルダー内のすべての戦略) のリストを表示できます。
+また、潜在的な問題を強調する「ステータス」フィールドも含まれます。
 
-You can use `freqtrade list-strategies` to see a list of all strategies Freqtrade is able to load (all strategies in the correct folder).
-It will also include a "status" field, highlighting potential problems.
+???ヒント「戦略ディレクトリをカスタマイズする」
+    「--strategy-path user_data/otherPath」を使用すると、別のディレクトリを使用できます。このパラメータは、戦略を必要とするすべてのコマンドで使用できます。
 
-??? Hint "Customize strategy directory"
-    You can use a different directory by using `--strategy-path user_data/otherPath`. This parameter is available to all commands that require a strategy.
+## 有益なペア
 
-## Informative Pairs
+### 取引不可能なペアのデータを取得する
 
-### Get data for non-tradeable pairs
+追加の有益なペア (参照ペア) のデータは、より広い時間枠でデータを確認するための一部の戦略にとって有益です。
 
-Data for additional, informative pairs (reference pairs) can be beneficial for some strategies to see data on a wider timeframe.
+これらのペアの OHLCV データは、通常のホワイトリスト更新プロセスの一部としてダウンロードされ、他のペアと同様に「DataProvider」経由で利用できます (以下を参照)。
 
-OHLCV data for these pairs will be downloaded as part of the regular whitelist refresh process and is available via `DataProvider` just as other pairs (see below).
+これらのペアは、ペアのホワイトリストでも指定されているか、動的ホワイトリストによって選択されていない限り、**取引されません**。 「ボリュームペアリスト」。
 
-These pairs will **not** be traded unless they are also specified in the pair whitelist, or have been selected by Dynamic Whitelisting, e.g. `VolumePairlist`.
+ペアは、最初の引数としてペア、2 番目の引数としてタイムフレームを使用して、`("pair", "timeframe")` 形式のタプルとして指定する必要があります。
 
-The pairs need to be specified as tuples in the format `("pair", "timeframe")`, with pair as the first and timeframe as the second argument.
-
-Sample:
-
+サンプル：
 ``` python
 def informative_pairs(self):
     return [("ETH/USDT", "5m"),
             ("BTC/TUSD", "15m"),
             ]
 ```
-
-A full sample can be found [in the DataProvider section](#complete-dataprovider-sample).
+完全なサンプルは [DataProvider セクション](#complete-dataprovider-sample) にあります。
 
 !!! Warning
-    As these pairs will be refreshed as part of the regular whitelist refresh, it's best to keep this list short.
-    All timeframes and all pairs can be specified as long as they are available (and active) on the used exchange.
-    It is however better to use resampling to longer timeframes whenever possible
-    to avoid hammering the exchange with too many requests and risk being blocked.
+    これらのペアは定期的なホワイトリスト更新の一部として更新されるため、このリストは短くしておくことをお勧めします。
+    使用されている取引所で利用可能 (かつアクティブ) である限り、すべてのタイムフレームとすべてのペアを指定できます。
+    ただし、可能な限り長い時間枠でリサンプリングを使用することをお勧めします。
+    リクエストが多すぎて取引所が混乱し、ブロックされるリスクを避けるためです。
 
-??? Note "Alternative candle types"
-    Informative_pairs can also provide a 3rd tuple element defining the candle type explicitly.
-    Availability of alternative candle-types will depend on the trading-mode and the exchange.
-    In general, spot pairs cannot be used in futures markets, and futures candles can't be used as informative pairs for spot bots.
-    Details about this may vary, if they do, this can be found in the exchange documentation.
-
+??? 「代替キャンドルの種類」に注意してください。
+    Informative_pairs は、ローソク足のタイプを明示的に定義する 3 番目のタプル要素を提供することもできます。
+    代替のローソク式が利用できるかどうかは、取引モードと取引所によって異なります。
+    一般に、スポット ペアは先物市場では使用できません。また、先物ローソク足はスポット ボットの情報ペアとして使用できません。
+    これに関する詳細は変更される可能性がありますが、変更される場合は交換ドキュメントに記載されています。
     ``` python
     def informative_pairs(self):
         return [
@@ -571,17 +534,17 @@ A full sample can be found [in the DataProvider section](#complete-dataprovider-
     ```
 ***
 
-### Informative pairs decorator (`@informative()`)
+### 情報ペアのデコレータ (`@informative()`)
 
-To easily define informative pairs, use the `@informative` decorator. All decorated `populate_indicators_*` methods run in isolation,
-and do not have access to data from other informative pairs. However, all informative dataframes for each pair are merged and passed to main `populate_indicators()` method.
+情報ペアを簡単に定義するには、「@informative」デコレータを使用します。修飾されたすべての `populate_indicators_*` メソッドは個別に実行されます。
+また、他の情報ペアからのデータにはアクセスできません。ただし、各ペアのすべての情報データフレームはマージされ、メインの `populate_indicators()` メソッドに渡されます。
 
 !!! Note
-    Do not use the `@informative` decorator if you need to use data from one informative pair when generating another informative pair. Instead, define informative pairs manually as described [in the DataProvider section](#complete-dataprovider-sample).
+    別の情報ペアを生成するときに、ある情報ペアのデータを使用する必要がある場合は、`@informative` デコレータを使用しないでください。代わりに、[DataProvider セクション](#complete-dataprovider-sample) の説明に従って、情報ペアを手動で定義します。
 
-When hyperopting, use of the hyperoptable parameter `.value` attribute is not supported. Please use the `.range` attribute. See [optimizing an indicator parameter](hyperopt.md#optimizing-an-indicator-parameter) for more information.
+ハイパーオプト化する場合、ハイパーオプタブル パラメーター `.value` 属性の使用はサポートされません。 `.range` 属性を使用してください。詳細については、[インジケーター パラメーターの最適化](hyperopt.md#optimizing-an-indicator-parameter) を参照してください。
 
-??? info "Full documentation"
+??? info「完全なドキュメント」
     ``` python
     def informative(
         timeframe: str,
@@ -622,11 +585,9 @@ When hyperopting, use of the hyperoptable parameter `.value` attribute is not su
         :param candle_type: '', mark, index, premiumIndex, or funding_rate
         """
     ```
+???例「有益なペアを定義する迅速かつ簡単な方法」
 
-??? Example "Fast and easy way to define informative pairs"
-
-    Most of the time we do not need power and flexibility offered by `merge_informative_pair()`, therefore we can use a decorator to quickly define informative pairs.
-
+    ほとんどの場合、`merge_informative_pair()` によって提供される機能と柔軟性は必要ないため、デコレータを使用して情報ペアをすばやく定義できます。
     ``` python
 
     from datetime import datetime
@@ -678,10 +639,8 @@ When hyperopting, use of the hyperoptable parameter `.value` attribute is not su
             return dataframe
 
     ```
-
 !!! Note
-    Use string formatting when accessing informative dataframes of other pairs. This will allow easily changing stake currency in config without having to adjust strategy code.
-
+    他のペアの有益なデータフレームにアクセスする場合は、文字列フォーマットを使用します。これにより、戦略コードを調整することなく、構成内のステーク通貨を簡単に変更できるようになります。
     ``` python
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         stake = self.config['stake_currency']
@@ -695,45 +654,39 @@ When hyperopting, use of the hyperoptable parameter `.value` attribute is not su
     
         return dataframe
     ```
+あるいは、列の名前変更を使用して列名からステーク通貨を削除することもできます: `@informative('1h', 'BTC/{stake}', fmt='{base}_{column}_{timeframe}')`。
 
-    Alternatively column renaming may be used to remove stake currency from column names: `@informative('1h', 'BTC/{stake}', fmt='{base}_{column}_{timeframe}')`.
-
-!!! Warning "Duplicate method names"
-    Methods tagged with the `@informative()` decorator must always have unique names! Reusing the same name (for example when copy-pasting already defined informative methods) will overwrite previously defined methods and not produce any errors due to limitations of Python programming language. In such cases you will find that indicators created in methods higher up in the strategy file are not available in the dataframe. Carefully review method names and make sure they are unique!
+!!! Warning "メソッド名が重複しています"
+    `@informative()` デコレータでタグ付けされたメソッドは、常に一意の名前を持つ必要があります。同じ名前を再利用すると (たとえば、すでに定義されている情報メソッドをコピーして貼り付ける場合)、以前に定義されたメソッドは上書きされ、Python プログラミング言語の制限によりエラーは発生しません。このような場合、ストラテジー ファイルの上位のメソッドで作成されたインジケーターがデータフレームでは使用できないことがわかります。メソッド名を注意深く確認し、一意であることを確認してください。
 
 ### *merge_informative_pair()*
 
-This method helps you merge an informative pair to the regular main dataframe safely and consistently, without lookahead bias.
+この方法は、先読みバイアスなしで、情報ペアを通常のメイン データフレームに安全かつ一貫してマージするのに役立ちます。
 
-Options:
+オプション:
 
-- Rename the columns to create unique columns
-- Merge the dataframe without lookahead bias
-- Forward-fill (optional)
+- 列の名前を変更して一意の列を作成します
+- 先読みバイアスなしでデータフレームをマージします
+- フォワードフィル（オプション）
 
-For a full sample, please refer to the [complete data provider example](#complete-dataprovider-sample) below.
+完全なサンプルについては、以下の [完全なデータ プロバイダーの例](#complete-dataprovider-sample) を参照してください。
 
-All columns of the informative dataframe will be available on the returning dataframe in a renamed fashion:
+有益なデータフレームのすべての列は、名前が変更された方法で返されるデータフレームで利用できるようになります。
 
-!!! Example "Column renaming"
-    Assuming `inf_tf = '1d'` the resulting columns will be:
-
+!!! Example "列の名前変更"
+    `inf_tf = '1d'` と仮定すると、結果の列は次のようになります。
     ``` python
     'date', 'open', 'high', 'low', 'close', 'rsi'                     # from the original dataframe
     'date_1d', 'open_1d', 'high_1d', 'low_1d', 'close_1d', 'rsi_1d'   # from the informative dataframe
     ```
-
-??? Example "Column renaming - 1h"
-    Assuming `inf_tf = '1h'` the resulting columns will be:
-
+???例「列の名前変更 - 1h」
+    `inf_tf = '1h'` と仮定すると、結果の列は次のようになります。
     ``` python
     'date', 'open', 'high', 'low', 'close', 'rsi'                     # from the original dataframe
     'date_1h', 'open_1h', 'high_1h', 'low_1h', 'close_1h', 'rsi_1h'   # from the informative dataframe
     ```
-
-??? Example "Custom implementation"
-    A custom implementation for this is possible, and can be done as follows:
-
+???例「カスタム実装」
+    このためのカスタム実装が可能であり、次のように実行できます。
     ``` python
 
     # Shift date by 1 candle
@@ -756,61 +709,57 @@ All columns of the informative dataframe will be available on the returning data
     dataframe = dataframe.ffill()
 
     ```
+!!! Warning "有益な時間枠 < 時間枠"
+    この方法では、提供される追加情報が使用されないため、メイン データフレームのタイムフレームよりも小さい情報タイムフレームを使用することはお勧めできません。
+    より詳細な情報を適切に使用するには、より高度な方法を適用する必要があります (このドキュメントの範囲外です)。
 
-!!! Warning "Informative timeframe < timeframe"
-    Using informative timeframes smaller than the main dataframe timeframe is not recommended with this method, as it will not use any of the additional information this would provide.
-    To use the more detailed information properly, more advanced methods should be applied (which are out of scope for this documentation).
+## 追加データ (DataProvider)
 
-## Additional data (DataProvider)
+この戦略により、「DataProvider」へのアクセスが提供されます。これにより、戦略で使用する追加のデータを取得できるようになります。
 
-The strategy provides access to the `DataProvider`. This allows you to get additional data to use in your strategy.
+失敗した場合、すべてのメソッドは「None」を返します。つまり、失敗しても例外は発生しません。
 
-All methods return `None` in case of failure, i.e. failures do not raise an exception.
+常に動作モードを確認して、データを取得するための正しい方法を選択してください (例については以下を参照)。
 
-Please always check the mode of operation to select the correct method to get data (see below for examples).
+!!! Warning "Hyperopt の制限事項"
+    DataProvider は hyperopt 中に使用できますが、**ストラテジ**内の `populate_indicators()` でのみ使用でき、hyperopt クラス ファイル内では使用できません。
+    また、`populate_entry_trend()` および `populate_exit_trend()` メソッドでも使用できません。
 
-!!! Warning "Hyperopt Limitations"
-    The DataProvider is available during hyperopt, however it can only be used in `populate_indicators()` **within a strategy**, not within a hyperopt class file.
-    It is also not available in `populate_entry_trend()` and `populate_exit_trend()` methods.
+### データプロバイダーの可能なオプション
 
-### Possible options for DataProvider
+- [`available_pairs`](#available_pairs) - キャッシュされたペアとそのタイムフレーム (ペア、タイムフレーム) をリストするタプルを含むプロパティ。
+- [`current_whitelist()`](#current_whitelist) - ホワイトリストに登録されたペアの現在のリストを返します。動的ホワイトリスト (つまり、 VolumePairlist) にアクセスするのに役立ちます。
+- [`get_pair_dataframe(pair, timeframe)`](#get_pair_dataframepair-timeframe) - これは汎用メソッドであり、履歴データ (バックテスト用) またはキャッシュされたライブ データ (ドライラン モードおよびライブラン モード用) を返します。
+- [`get_analyzed_dataframe(pair, timeframe)`](#get_analyzed_dataframepair-timeframe) - 分析されたデータフレーム (`populate_indicators()`、`populate_buy()`、`populate_sell()` の呼び出し後) と最新の分析の時間を返します。
+- `history_ohlcv(pair, timeframe)` - ディスクに保存されている履歴データを返します。
+- `market(pair)` - ペアの市場データを返します: 手数料、限度額、精度、アクティビティ フラグなど。市場データ構造の詳細については、[ccxt ドキュメント](https://github.com/ccxt/ccxt/wiki/Manual#markets) を参照してください。
+- `ohlcv(pair, timeframe)` - ペアの現在キャッシュされているローソク足 (OHLCV) データ。DataFrame または空の DataFrame を返します。
+- [`orderbook(pair, minimum)`](#orderbookpair-maximum) - ペアの最新のオーダーブック データ、合計 `maximum` エントリを持つ買い/売りの辞書を返します。
+- [`ticker(pair)`](#tickerpair) - ペアの現在のティッカー データを返します。 Ticker データ構造の詳細については、[ccxt ドキュメント](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers) を参照してください。
+- [`check_delisting(pair)`](#check_delistingpair) - ペア上場廃止スケジュールがあればその日時を返し、それ以外の場合は None を返します
+- [`funding_rate(pair)`](#funding_ratepair) - ペアの現在の資金調達率データを返します。
+- `runmode` - 現在の実行モードを含むプロパティ。
 
-- [`available_pairs`](#available_pairs) - Property with tuples listing cached pairs with their timeframe (pair, timeframe).
-- [`current_whitelist()`](#current_whitelist) - Returns a current list of whitelisted pairs. Useful for accessing dynamic whitelists (i.e. VolumePairlist)
-- [`get_pair_dataframe(pair, timeframe)`](#get_pair_dataframepair-timeframe) - This is a universal method, which returns either historical data (for backtesting) or cached live data (for the Dry-Run and Live-Run modes).
-- [`get_analyzed_dataframe(pair, timeframe)`](#get_analyzed_dataframepair-timeframe) - Returns the analyzed dataframe (after calling `populate_indicators()`, `populate_buy()`, `populate_sell()`) and the time of the latest analysis.
-- `historic_ohlcv(pair, timeframe)` - Returns historical data stored on disk.
-- `market(pair)` - Returns market data for the pair: fees, limits, precisions, activity flag, etc. See [ccxt documentation](https://github.com/ccxt/ccxt/wiki/Manual#markets) for more details on the Market data structure.
-- `ohlcv(pair, timeframe)` - Currently cached candle (OHLCV) data for the pair, returns DataFrame or empty DataFrame.
-- [`orderbook(pair, maximum)`](#orderbookpair-maximum) - Returns latest orderbook data for the pair, a dict with bids/asks with a total of `maximum` entries.
-- [`ticker(pair)`](#tickerpair) - Returns current ticker data for the pair. See [ccxt documentation](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers) for more details on the Ticker data structure.
-- [`check_delisting(pair)`](#check_delistingpair) - Return Datetime of the pair delisting schedule if any, otherwise return None
-- [`funding_rate(pair)`](#funding_ratepair) - Returns current funding rate data for the pair.
-- `runmode` - Property containing the current runmode.
+### 使用例
 
-### Example Usages
-
-### *available_pairs*
-
+### *利用可能なペア*
 ``` python
 for pair, timeframe in self.dp.available_pairs:
     print(f"available {pair}, {timeframe}")
 ```
-
 ### *current_whitelist()*
 
-Imagine you've developed a strategy that trades the `5m` timeframe using signals generated from a `1d` timeframe on the top 10 exchange pairs by volume.
+出来高上位 10 の取引ペアの「1d」タイムフレームから生成されたシグナルを使用して「5m」タイムフレームを取引する戦略を開発したと想像してください。
 
-The strategy logic might look something like this:
+戦略ロジックは次のようになります。
 
-*Scan through the top 10 pairs by volume using the `VolumePairList` every 5 minutes and use a 14 day RSI to enter and exit.*
+*「ボリュームペアリスト」を使用して 5 分ごとにボリュームの上位 10 ペアをスキャンし、14 日間の RSI を使用して出入りします。*
 
-Due to the limited available data, it's very difficult to resample `5m` candles into daily candles for use in a 14 day RSI. Most exchanges limit users to just 500-1000 candles which effectively gives us around 1.74 daily candles. We need 14 days at least!
+利用可能なデータが限られているため、「5m」ローソク足を 14 日 RSI で使用する日足ローソク足にリサンプリングすることは非常に困難です。ほとんどの取引所はユーザーをわずか 500 ～ 1000 キャンドルに制限しており、実質的に 1 日あたり約 1.74 キャンドルが得られます。少なくとも14日は必要です！
 
-Since we can't resample the data we will have to use an informative pair, and since the whitelist will be dynamic we don't know which pair(s) to use! We have a problem!
+データをリサンプリングできないため、情報のペアを使用する必要がありますが、ホワイトリストは動的であるため、どのペアを使用すればよいかわかりません。問題があります!
 
-This is where calling `self.dp.current_whitelist()` comes in handy to retrieve only those pairs in the whitelist.
-
+ここで、`self.dp.current_whitelist()` を呼び出して、ホワイトリスト内のペアのみを取得すると便利です。
 ```python
     def informative_pairs(self):
 
@@ -820,54 +769,46 @@ This is where calling `self.dp.current_whitelist()` comes in handy to retrieve o
         informative_pairs = [(pair, '1d') for pair in pairs]
         return informative_pairs
 ```
+??? 「current_whitelist を使用したプロット」に注意してください
+    現在のホワイトリストは「plot-dataframe」ではサポートされていません。このコマンドは通常、明示的なペアリストを提供することによって使用されるため、このメソッドの戻り値が誤解を招く可能性があるためです。
+    また、Web サーバー モードの構成ではペアリストを設定する必要がないため、[Web サーバー モード](utils.md#webserver-mode) での FreqUI 視覚化でもサポートされていません。
 
-??? Note "Plotting with current_whitelist"
-    Current whitelist is not supported for `plot-dataframe`, as this command is usually used by providing an explicit pairlist and would therefore make the return values of this method misleading.
-    It's also not supported for FreqUI visualization in [webserver mode](utils.md#webserver-mode), as the configuration for webserver mode doesn't require a pairlist to be set.
-
-### *get_pair_dataframe(pair, timeframe)*
-
+### *get_pair_dataframe(ペア, タイムフレーム)*
 ``` python
 # fetch live / historical candle (OHLCV) data for the first informative pair
 inf_pair, inf_timeframe = self.informative_pairs()[0]
 informative = self.dp.get_pair_dataframe(pair=inf_pair,
                                          timeframe=inf_timeframe)
 ```
+!!! Warning "バックテストに関する警告"
+    バックテストでは、`dp.get_pair_dataframe()` の動作は呼び出される場所によって異なります。
+    `populate_*()` メソッド内で、`dp.get_pair_dataframe()` は完全な時間範囲を返します。ドライ/ライブ モードで実行するときに予期せぬ事態を避けるために、「将来を見据える」ことはしないようにしてください。
+    [callbacks](strategy-callbacks.md) 内で、現在の (シミュレートされた) ローソク足までの全時間範囲を取得します。
 
-!!! Warning "Warning about backtesting"
-    In backtesting, `dp.get_pair_dataframe()` behavior differs depending on where it's called.
-    Within `populate_*()` methods, `dp.get_pair_dataframe()` returns the full timerange. Please make sure to not "look into the future" to avoid surprises when running in dry/live mode.
-    Within [callbacks](strategy-callbacks.md), you'll get the full timerange up to the current (simulated) candle.
+### *get_analyzed_dataframe(ペア, タイムフレーム)*
 
-### *get_analyzed_dataframe(pair, timeframe)*
-
-This method is used by freqtrade internally to determine the last signal.
-It can also be used in specific callbacks to get the signal that caused the action (see [Advanced Strategy Documentation](strategy-advanced.md) for more details on available callbacks).
-
+このメソッドは、freqtrade が内部的に最後のシグナルを決定するために使用します。
+また、特定のコールバックで使用して、アクションを引き起こしたシグナルを取得することもできます (利用可能なコールバックの詳細については、[高度な戦略ドキュメント](strategy-advanced.md) を参照してください)。
 ``` python
 # fetch current dataframe
 dataframe, last_updated = self.dp.get_analyzed_dataframe(pair=metadata['pair'],
                                                          timeframe=self.timeframe)
 ```
+!!! Note "利用可能なデータがありません"
+    要求されたペアがキャッシュされていない場合は、空のデータフレームを返します。
+    「if dataframe.empty:」を使用してこれを確認し、それに応じてこのケースを処理できます。
+    ホワイトリストに登録されたペアを使用する場合、これは発生しないはずです。
 
-!!! Note "No data available"
-    Returns an empty dataframe if the requested pair was not cached.
-    You can check for this with `if dataframe.empty:` and handle this case accordingly.
-    This should not happen when using whitelisted pairs.
+### *オーダーブック(ペア、最大)*
 
-### *orderbook(pair, maximum)*
-
-Retrieve the current order book for a pair.
-
+ペアの現在のオーダーブックを取得します。
 ``` python
 if self.dp.runmode.value in ('live', 'dry_run'):
     ob = self.dp.orderbook(metadata['pair'], 1)
     dataframe['best_bid'] = ob['bids'][0][0]
     dataframe['best_ask'] = ob['asks'][0][0]
 ```
-
-The orderbook structure is aligned with the order structure from [ccxt](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure), so the result will be formatted as follows:
-
+オーダーブックの構造は、[ccxt](https://github.com/ccxt/ccxt/wiki/Manual#order-book- Structure) のオーダー構造と一致しているため、結果は次のような形式になります。
 ``` js
 {
     'bids': [
@@ -883,14 +824,12 @@ The orderbook structure is aligned with the order structure from [ccxt](https://
     //...
 }
 ```
+したがって、上で示したように `ob['bids'][0][0]` を使用すると、最良の入札価格が使用されます。 `ob['bids'][0][1]` は、このオーダーブックのポジションの金額を調べます。
 
-Therefore, using `ob['bids'][0][0]` as demonstrated above will use the best bid price. `ob['bids'][0][1]` would look at the amount at this orderbook position.
+!!! Warning "バックテストに関する警告"
+    オーダーブックは履歴データの一部ではないため、このメソッドを使用すると最新の値が返されるため、バックテストと hyperopt が正しく機能しません。
 
-!!! Warning "Warning about backtesting"
-    The order book is not part of the historic data which means backtesting and hyperopt will not work correctly if this method is used, as the method will return up-to-date values.
-
-### *ticker(pair)*
-
+### *ティッカー(ペア)*
 ``` python
 if self.dp.runmode.value in ('live', 'dry_run'):
     ticker = self.dp.ticker(metadata['pair'])
@@ -898,18 +837,16 @@ if self.dp.runmode.value in ('live', 'dry_run'):
     dataframe['volume24h'] = ticker['quoteVolume']
     dataframe['vwap'] = ticker['vwap']
 ```
-
 !!! Warning
-    Although the ticker data structure is a part of the ccxt Unified Interface, the values returned by this method can
-    vary for different exchanges. For instance, many exchanges do not return `vwap` values, and some exchanges
-    do not always fill in the `last` field (so it can be None), etc. So you need to carefully verify the ticker
-    data returned from the exchange and add appropriate error handling / defaults.
+    ティッカー データ構造は ccxt 統一インターフェイスの一部ですが、このメソッドによって返される値は次のとおりです。
+    取引所ごとに異なります。たとえば、多くの取引所は「vwap」値を返しません。
+    「last」フィールドは常に入力するとは限りません（None になる可能性もあります）。そのため、ティッカーを注意深く確認する必要があります。
+    交換から返されたデータを収集し、適切なエラー処理/デフォルトを追加します。
 
-!!! Warning "Warning about backtesting"
-    This method will always return up-to-date / real-time values. As such, usage during backtesting / hyperopt without runmode checks will lead to wrong results, e.g. your whole dataframe will contain the same single value in all rows.
+!!! Warning "バックテストに関する警告"
+    このメソッドは常に最新のリアルタイム値を返します。そのため、ランモードチェックを行わずにバックテスト/ハイパーオプト中に使用すると、誤った結果が生じます。データフレーム全体には、すべての行に同じ単一の値が含まれます。
 
-### *check_delisting(pair)*
-
+### *check_delisting(ペア)*
 ```python
 def custom_exit(self, pair: str, trade: Trade, current_time: datetime, current_rate: float, current_profit: float, **kwargs):
     if self.dp.runmode.value in ('live', 'dry_run'):
@@ -917,17 +854,15 @@ def custom_exit(self, pair: str, trade: Trade, current_time: datetime, current_r
         if delisting_dt is not None:
             return "delist"
 ```
+!!! Note "上場廃止情報の入手可能性"
+    このメソッドは特定の取引所でのみ使用でき、これが使用できない場合、またはペアの上場廃止が予定されていない場合は「None」を返します。
 
-!!! Note "Availabiity of delisting information"
-    This method is only available for certain exchanges and will return `None` in cases this is not available or if the pair is not scheduled for delisting.
+!!! Warning "バックテストに関する警告"
+    このメソッドは常に最新のリアルタイム値を返します。そのため、ランモードチェックを行わずにバックテスト/ハイパーオプト中に使用すると、誤った結果が生じます。データフレーム全体には、すべての行に同じ単一の値が含まれます。
 
-!!! Warning "Warning about backtesting"
-    This method will always return up-to-date / real-time values. As such, usage during backtesting / hyperopt without runmode checks will lead to wrong results, e.g. your whole dataframe will contain the same single value in all rows.
+### *資金レート(ペア)*
 
-### *funding_rate(pair)*
-
-Retrieves the current funding rate for the pair and only works for futures pairs in the format of `base/quote:settle` (e.g. `ETH/USDT:USDT`).
-
+ペアの現在の資金調達レートを取得します。「base/quote:settle」形式の先物ペアに対してのみ機能します (例: 「ETH/USDT:USDT」)。
 ``` python
 if self.dp.runmode.value in ('live', 'dry_run'):
     funding_rate = self.dp.funding_rate(metadata['pair'])
@@ -935,9 +870,7 @@ if self.dp.runmode.value in ('live', 'dry_run'):
     dataframe['next_funding_timestamp'] = funding_rate['fundingTimestamp']
     dataframe['next_funding_datetime'] = funding_rate['fundingDatetime']
 ```
-
-The funding rate structure is aligned with the funding rate structure from [ccxt](https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure), so the result will be formatted as follows:
-
+資金調達レート構造は、[ccxt](https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structural) の資金調達レート構造と一致しているため、結果は次のような形式になります。
 ``` python
 {
     "info": {
@@ -962,34 +895,30 @@ The funding rate structure is aligned with the funding rate structure from [ccxt
     "interval": None,
 }
 ```
+したがって、上で示したように `funding_rate['fundingRate']` を使用すると、現在の資金調達率が使用されます。
+実際に利用可能なデータは取引所によって異なるため、このコードは取引所間では期待どおりに機能しない可能性があります。
 
-Therefore, using `funding_rate['fundingRate']` as demonstrated above will use the current funding rate.
-Actually available data will vary between exchanges, so this code may not work as expected across exchanges.
+!!! Warning "バックテストに関する警告"
+    現在の資金調達率は履歴データの一部ではないため、このメソッドを使用すると最新の値が返されるため、バックテストと hyperopt が正しく機能しません。
+    バックテストには過去に利用可能な資金調達レートを使用することをお勧めします (これは自動的にダウンロードされ、取引所が提供する頻度、通常は 4 時間または 8 時間です)。
+    `self.dp.get_pair_dataframe(pair=metadata['pair']、timeframe='8h'、candle_type="funding_rate")`
 
-!!! Warning "Warning about backtesting"
-    Current funding-rate is not part of the historic data which means backtesting and hyperopt will not work correctly if this method is used, as the method will return up-to-date values.
-    We recommend to use the historically available funding rate for backtesting (which is automatically downloaded, and is at the frequency of what the exchange provides, usually 4h or 8h).
-    `self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='8h', candle_type="funding_rate")`
+### 通知を送信
 
-### Send Notification
-
-The dataprovider `.send_msg()` function allows you to send custom notifications from your strategy.
-Identical notifications will only be sent once per candle, unless the 2nd argument (`always_send`) is set to True.
-
+データプロバイダーの `.send_msg()` 関数を使用すると、戦略からカスタム通知を送信できます。
+2 番目の引数 (`always_send`) が True に設定されていない限り、同じ通知はキャンドルごとに 1 回だけ送信されます。
 ``` python
     self.dp.send_msg(f"{metadata['pair']} just got hot!")
 
     # Force send this notification, avoid caching (Please read warning below!)
     self.dp.send_msg(f"{metadata['pair']} just got hot!", always_send=True)
 ```
+通知は取引モード (ライブ/ドライラン) でのみ送信されるため、このメソッドはバックテストの条件なしで呼び出すことができます。
 
-Notifications will only be sent in trading modes (Live/Dry-run) - so this method can be called without conditions for backtesting.
+!!! Warning "スパム行為"
+    このメソッドで `always_send=True` を設定すると、かなりうまくスパムを送信できます。 5 秒ごとのメッセージを避けるために、これは細心の注意を払って使用し、キャンドルが点灯している間は起こらないとわかっている条件でのみ使用してください。
 
-!!! Warning "Spamming"
-    You can spam yourself pretty good by setting `always_send=True` in this method. Use this with great care and only in conditions you know will not happen throughout a candle to avoid a message every 5 seconds.
-
-### Complete DataProvider sample
-
+### 完全なデータプロバイダーのサンプル
 ```python
 from freqtrade.strategy import IStrategy, merge_informative_pair
 from pandas import DataFrame
@@ -1050,47 +979,41 @@ class SampleStrategy(IStrategy):
             ['enter_long', 'enter_tag']] = (1, 'rsi_cross')
 
 ```
-
 ***
 
-## Additional data (Wallets)
+## 追加データ (ウォレット)
 
-The strategy provides access to the `wallets` object. This contains the current balances of your wallets/accounts on the exchange.
+この戦略により、「wallets」オブジェクトへのアクセスが提供されます。これには、取引所のウォレット/アカウントの現在の残高が含まれます。
 
-!!! Note "Backtesting / Hyperopt"
-    Wallets behaves differently depending on the function from which it is called.
-    Within `populate_*()` methods, it'll return the full wallet as configured.
-    Within [callbacks](strategy-callbacks.md), you'll get the wallet state corresponding to the actual simulated wallet at that point in the simulation process.
+!!! Note "バックテスト / Hyperopt"
+    ウォレットの動作は、呼び出された関数に応じて異なります。
+    `populate_*()` メソッド内では、設定された完全なウォレットが返されます。
+    [callbacks](strategy-callbacks.md) 内で、シミュレーション プロセスのその時点で実際にシミュレートされたウォレットに対応するウォレットの状態を取得します。
 
-Always check if `wallets` is available to avoid failures during backtesting.
-
+バックテスト中の失敗を避けるために、「ウォレット」が利用可能かどうかを常に確認してください。
 ``` python
 if self.wallets:
     free_eth = self.wallets.get_free('ETH')
     used_eth = self.wallets.get_used('ETH')
     total_eth = self.wallets.get_total('ETH')
 ```
+### ウォレットの可能なオプション
 
-### Possible options for Wallets
-
-- `get_free(asset)` - currently available balance to trade
-- `get_used(asset)` - currently tied up balance (open orders)
-- `get_total(asset)` - total available balance - sum of the 2 above
+- `get_free(asset)` - 現在取引可能な残高
+- `get_used(asset)` - 現在拘束されている残高 (オープンオーダー)
+- `get_total(asset)` - 利用可能残高の合計 - 上記 2 つの合計
 
 ***
 
-## Additional data (Trades)
+## 追加データ (取引)
 
-A history of trades can be retrieved in the strategy by querying the database.
+取引履歴は、データベースにクエリを実行することで戦略内で取得できます。
 
-At the top of the file, import the required object:
-
+ファイルの先頭で、必要なオブジェクトをインポートします。
 ```python
 from freqtrade.persistence import Trade
 ```
-
-The following example queries trades from today for the current pair (`metadata['pair']`). Other filters can easily be added.
-
+次の例では、現在のペア (`metadata['pair']`) について今日からの取引をクエリします。他のフィルターも簡単に追加できます。
 ``` python
 trades = Trade.get_trades_proxy(pair=metadata['pair'],
                                 open_date=datetime.now(timezone.utc) - timedelta(days=1),
@@ -1099,40 +1022,38 @@ trades = Trade.get_trades_proxy(pair=metadata['pair'],
 # Summarize profit for this pair.
 curdayprofit = sum(trade.close_profit for trade in trades)
 ```
-
-For a full list of available methods, please consult the [Trade object](trade-object.md) documentation.
+利用可能なメソッドの完全なリストについては、[Trade object](trade-object.md) ドキュメントを参照してください。
 
 !!! Warning
-    Trade history is not available in `populate_*` methods during backtesting or hyperopt, and will result in empty results.
+    バックテストまたはハイパーオプト中は `populate_*` メソッドでは取引履歴を利用できず、結果は空になります。
 
-## Prevent trades from happening for a specific pair
+## 特定のペアの取引が行われないようにする
 
-Freqtrade locks pairs automatically for the current candle (until that candle is over) when a pair exits, preventing an immediate re-entry of that pair.
+Freqtrade は、ペアが終了すると、現在のローソク足のペアを (そのローソク足が終了するまで) 自動的にロックし、そのペアの即時の再エントリーを防ぎます。
 
-This is to prevent "waterfalls" of many and frequent trades within a single candle.
+これは、1 つのローソク内で多数の頻繁な取引の「ウォーターフォール」を防ぐためです。
 
-Locked pairs will show the message `Pair <pair> is currently locked.`.
+ロックされたペアには、「ペア <ペア> は現在ロックされています。」というメッセージが表示されます。
 
-### Locking pairs from within the strategy
+### 戦略内からペアをロックする
 
-Sometimes it may be desired to lock a pair after certain events happen (e.g. multiple losing trades in a row).
+場合によっては、特定のイベントが発生した後にペアをロックすることが望ましい場合があります (例: 連続して複数の取引で負けた場合など)。
 
-Freqtrade has an easy method to do this from within the strategy, by calling `self.lock_pair(pair, until, [reason])`.
-`until` must be a datetime object in the future, after which trading will be re-enabled for that pair, while `reason` is an optional string detailing why the pair was locked.
+Freqtrade には、`self.lock_pair(pair, until, [reason])` を呼び出すことで、戦略内からこれを行う簡単な方法があります。
+「until」は将来の日時オブジェクトでなければならず、その後、そのペアの取引は再び有効になります。「reason」はペアがロックされた理由を詳細に示すオプションの文字列です。
 
-Locks can also be lifted manually, by calling `self.unlock_pair(pair)` or `self.unlock_reason(<reason>)`, providing the reason the pair was unlocked.
-`self.unlock_reason(<reason>)` will unlock all pairs currently locked with the provided reason.
+ロックは、ペアがロック解除された理由を指定して `self.unlock_pair(pair)` または `self.unlock_reason(<reason>)` を呼び出して手動で解除することもできます。
+`self.unlock_reason(<reason>)` は、指定された理由で現在ロックされているすべてのペアのロックを解除します。
 
-To verify if a pair is currently locked, use `self.is_pair_locked(pair)`.
+ペアが現在ロックされているかどうかを確認するには、`self.is_pair_locked(pair)` を使用します。
 
 !!! Note
-    Locked pairs will always be rounded up to the next candle. So assuming a `5m` timeframe, a lock with `until` set to 10:18 will lock the pair until the candle from 10:15-10:20 will be finished.
+    ロックされたペアは常に次のローソク足に切り上げられます。したがって、「5m」の時間枠を仮定すると、「until」を 10:18 に設定したロックは、10:15 から 10:20 までのローソク足が終了するまでペアをロックします。
 
 !!! Warning
-    Manually locking pairs is not available during backtesting. Only locks via Protections are allowed.
+    バックテスト中はペアを手動でロックすることはできません。保護によるロックのみが許可されます。
 
-#### Pair locking example
-
+#### ペアロックの例
 ``` python
 from freqtrade.persistence import Trade
 from datetime import timedelta, datetime, timezone
@@ -1151,12 +1072,10 @@ if self.config['runmode'].value in ('live', 'dry_run'):
         # Lock pair for 12 hours
         self.lock_pair(metadata['pair'], until=datetime.now(timezone.utc) + timedelta(hours=12))
 ```
+## メインのデータフレームを出力します
 
-## Print the main dataframe
-
-To inspect the current main dataframe, you can issue a print-statement in either `populate_entry_trend()` or `populate_exit_trend()`.
-You may also want to print the pair so it's clear what data is currently shown.
-
+現在のメイン データフレームを検査するには、`populate_entry_trend()` または `populate_exit_trend()` のいずれかで print ステートメントを発行できます。
+現在どのデータが表示されているかを明確にするために、ペアを印刷することもできます。
 ``` python
 def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     dataframe.loc[
@@ -1173,45 +1092,43 @@ def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFram
 
     return dataframe
 ```
+`print(dataframe.tail())` の代わりに `print(dataframe)` を使用すると、数行以上を印刷することもできます。ただし、これは大量の出力 (5 秒ごとに 1 ペアあたり約 500 行) が発生する可能性があるため、お勧めできません。
 
-Printing more than a few rows is also possible by using `print(dataframe)` instead of `print(dataframe.tail())`. However this is not recommended, as can results in a lot of output (~500 lines per pair every 5 seconds).
+## 戦略を立てるときによくある間違い
 
-## Common mistakes when developing strategies
+### バックテストをしながら将来を見据える
 
-### Looking into the future while backtesting
+バックテストでは、パフォーマンス上の理由から、データフレームの時間範囲全体を一度に分析します。このため、戦略作成者は、戦略が将来を先読みしていないこと、つまりドライ モードやライブ モードでは利用できないデータを使用していないことを確認する必要があります。
 
-Backtesting analyzes the whole dataframe timerange at once for performance reasons. Because of this, strategy authors need to make sure that strategies do not lookahead into the future, i.e. using data that would not be available in dry or live mode.
+これは一般的な問題点であり、バックテストとドライ/ライブラン方法の間に大きな違いを引き起こす可能性があります。将来を見据えた戦略は、バックテストでは優れたパフォーマンスを示し、多くの場合、信じられないほどの利益や勝率をもたらしますが、実際の状況では失敗するか、パフォーマンスが低下します。
 
-This is a common pain-point, which can cause huge differences between backtesting and dry/live run methods. Strategies that look into the future will perform well during backtesting, often with incredible profits or winrates, but will fail or perform badly in real conditions.
+次のリストには、フラストレーションを防ぐために避けるべき一般的なパターンがいくつか含まれています。
 
-The following list contains some common patterns which should be avoided to prevent frustration:
+- `shift(-1)` やその他の負の値を使用しないでください。これはバックテストで将来のデータを使用しますが、ドライ モードやライブ モードでは利用できません。
+- `.iloc[-1]` やデータフレーム内の他の絶対位置を `populate_` 関数内で使用しないでください。これはドライランとバックテストでは異なるためです。ただし、絶対 `iloc` インデックスはコールバックで安全に使用できます。[Strategy Callbacks](strategy-callbacks.md) を参照してください。
+- すべてのデータフレームまたは列の値を使用する関数は使用しないでください。 `dataframe['mean_volume'] = dataframe['volume'].mean()`。バックテストでは完全なデータフレームが使用されるため、データフレーム内のどの時点でも、「mean_volume」シリーズには将来のデータが含まれることになります。代わりに、rolling() 計算を使用してください。 `dataframe['volume'].rolling(<window>).mean()`。
+- `.resample('1h')` は使用しないでください。これは期間間隔の左側の境界を使用するため、データを時間の境界から時間の先頭に移動します。代わりに `.resample('1h', label='right')` を使用してください。
+- 長いタイムフレームを短いタイムフレームに結合するために `.merge()` を使用しないでください。代わりに、[情報ペア](#informative-pairs) ヘルパーを使用してください。 (日付は終了日ではなく開始日を参照するため、単純なマージでは暗黙的に先読みバイアスが発生する可能性があります)。
 
-- don't use `shift(-1)` or other negative values. This uses data from the future in backtesting, which is not available in dry or live modes.
-- don't use `.iloc[-1]` or any other absolute position in the dataframe within `populate_` functions, as this will be different between dry-run and backtesting. Absolute `iloc` indexing is safe to use in callbacks however - see [Strategy Callbacks](strategy-callbacks.md).
-- don't use functions that use all dataframe or column values, e.g. `dataframe['mean_volume'] = dataframe['volume'].mean()`. As backtesting uses the full dataframe, at any point in the dataframe, the `'mean_volume'` series would include data from the future. Use rolling() calculations instead, e.g. `dataframe['volume'].rolling(<window>).mean()`.
-- don't use `.resample('1h')`. This uses the left border of the period interval, so moves data from an hour boundary to the start of the hour. Use `.resample('1h', label='right')` instead.
-- don't use `.merge()` to combine longer timeframes onto shorter ones. Instead, use the [informative pair](#informative-pairs) helpers. (A plain merge can implicitly cause a lookahead bias as date refers to open date, not close date).
+!!! Tip "問題の特定"
+    常に 2 つのヘルパー コマンド [lookhead-analysis](lookahead-analysis.md) と [recursive-analysis](recursive-analysis.md) を使用する必要があります。これらはそれぞれ、さまざまな方法で戦略の問題を解決するのに役立ちます。
+    それらをありのまま、つまり最も一般的な問題を特定するためのヘルパーとして扱ってください。それぞれの結果が否定的であっても、上記のエラーがまったく含まれていないことは保証されません。
 
-!!! Tip "Identifying problems"
-    You should always use the two helper commands [lookahead-analysis](lookahead-analysis.md) and [recursive-analysis](recursive-analysis.md), which can each help you figure out problems with your strategy in different ways.
-    Please treat them as what they are - helpers to identify most common problems. A negative result of each does not guarantee that there are none of the above errors included.
+### 信号の衝突
+矛盾するシグナルが衝突する場合 (例: 「enter_long」 と 「exit_long」 の両方が「1」 に設定されている場合)、 freqtrade は何もせず、エントリーシグナルを無視します。これにより、エントリーしてすぐに終了する取引が回避されます。明らかに、これによりエントリが失われる可能性があります。
 
-### Colliding signals
+次のルールが適用され、3 つのシグナルのうち複数が設定されている場合、エントリーシグナルは無視されます。
 
-When conflicting signals collide (e.g. both `'enter_long'` and `'exit_long'` are set to `1`), freqtrade will do nothing and ignore the entry signal. This will avoid trades that enter, and exit immediately. Obviously, this can potentially lead to missed entries.
+- `enter_long` -> `exit_long`、`enter_short`
+- `enter_short` -> `exit_short`、`enter_long`
 
-The following rules apply, and entry signals will be ignored if more than one of the 3 signals is set:
+## さらなる戦略のアイデア
 
-- `enter_long` -> `exit_long`, `enter_short`
-- `enter_short` -> `exit_short`, `enter_long`
+戦略に関する追加のアイデアを入手するには、[戦略リポジトリ](https://github.com/freqtrade/freqtrade-strategies) にアクセスしてください。例として自由に使用できますが、結果は現在の市場状況、使用するペアなどによって異なります。したがって、これらの戦略は学習目的のみに考慮されるべきであり、現実世界の取引ではありません。まず交換/希望のペアの戦略をバックテストし、次に予行演習を行って慎重に評価し、ご自身の責任で使用してください。
 
-## Further strategy ideas
+独自の戦略のインスピレーションとして自由に使用してください。リポジトリへの新しい戦略を含むプル リクエストを喜んで受け入れます。
 
-To get additional ideas for strategies, head over to the [strategy repository](https://github.com/freqtrade/freqtrade-strategies). Feel free to use them as examples, but results will depend on the current market situation, pairs used, etc. Therefore, these strategies should be considered only for learning purposes, not real world trading. Please backtest the strategy for your exchange/desired pairs first, then dry run to evaluate carefully, and use at your own risk.
+## 次のステップ
 
-Feel free to use any of them as inspiration for your own strategies. We're happy to accept Pull Requests containing new strategies to the repository.
-
-## Next steps
-
-Now you have a perfect strategy you probably want to backtest it.
-Your next step is to learn [how to use backtesting](backtesting.md).
+これで完璧な戦略が完成したので、それをバックテストしてみましょう。
+次のステップは、[バックテストの使用方法](backtesting.md) を学習することです。

@@ -1,123 +1,108 @@
-# Plotting
+# プロット
 
-This page explains how to plot prices, indicators and profits.
+このページでは、価格、指標、利益をプロットする方法を説明します。
 
-!!! Warning "Deprecated"
-    The commands described in this page (`plot-dataframe`, `plot-profit`) should be considered deprecated and are in maintenance mode.
-    This is mostly for the performance problems even medium sized plots can cause, but also because "store a file and open it in a browser" isn't very intuitive from a UI perspective.
+!!! Warning "廃止されました"
+    このページで説明されているコマンド (`plot-dataframe`、`plot-profit`) は廃止されたものとみなされ、メンテナンス モードになっています。
+    これは主に、中規模のプロットでも発生する可能性があるパフォーマンスの問題のためですが、「ファイルを保存してブラウザで開く」という操作が UI の観点から見てあまり直感的ではないためでもあります。
 
-    While there are no immediate plans to remove them, they are not actively maintained - and may be removed short-term should major changes be required to keep them working.
+    これらを削除する当面の計画はありませんが、積極的には保守されておらず、機能を維持するために大きな変更が必要な場合は短期的に削除される可能性があります。
     
-    Please use [FreqUI](freq-ui.md) for plotting needs, which doesn't struggle with the same performance problems.
+    プロットのニーズには、同じパフォーマンスの問題に悩まされない [FreqUI](freq-ui.md) を使用してください。
 
-## Installation / Setup
+## インストール/セットアップ
 
-Plotting modules use the Plotly library. You can install / upgrade this by running the following command:
-
+プロット モジュールは Plotly ライブラリを使用します。次のコマンドを実行して、これをインストール/アップグレードできます。
 ``` bash
 pip install -U -r requirements-plot.txt
 ```
+## 価格とインジケーターをプロットする
 
-## Plot price and indicators
+`freqtrade put-dataframe` サブコマンドは、3 つのサブプロットを含む対話型グラフを表示します。
 
-The `freqtrade plot-dataframe` subcommand shows an interactive graph with three subplots:
+*価格に続くローソク足とインジケーターを含むメインプロット (sma/ema)
+* 音量バー
+* `--indicators2` で指定された追加のインジケーター
 
-* Main plot with candlesticks and indicators following price (sma/ema)
-* Volume bars
-* Additional indicators as specified by `--indicators2`
+![プロットデータフレーム](assets/plot-dataframe.png)
 
-![plot-dataframe](assets/plot-dataframe.png)
-
-Possible arguments:
+考えられる引数:
 
 --8<-- "commands/plot-dataframe.md"
 
-Example:
-
+例:
 ``` bash
 freqtrade plot-dataframe -p BTC/ETH --strategy AwesomeStrategy
 ```
-
-The `-p/--pairs` argument can be used to specify pairs you would like to plot.
+`-p/--pairs` 引数を使用して、プロットしたいペアを指定できます。
 
 !!! Note
-    The `freqtrade plot-dataframe` subcommand generates one plot-file per pair.
+    `freqtrade put-dataframe` サブコマンドは、ペアごとに 1 つのプロット ファイルを生成します。
 
-Specify custom indicators.
-Use `--indicators1` for the main plot and `--indicators2` for the subplot below (if values are in a different range than prices).
-
+カスタムインジケーターを指定します。
+メインプロットには「--indicators1」を使用し、以下のサブプロットには「--indicators2」を使用します（値が価格とは異なる範囲にある場合）。
 ``` bash
 freqtrade plot-dataframe --strategy AwesomeStrategy -p BTC/ETH --indicators1 sma ema --indicators2 macd
 ```
+### さらなる使用例
 
-### Further usage examples
-
-To plot multiple pairs, separate them with a space:
-
+複数のペアをプロットするには、スペースで区切ります。
 ``` bash
 freqtrade plot-dataframe --strategy AwesomeStrategy -p BTC/ETH XRP/ETH
 ```
-
-To plot a timerange (to zoom in)
-
+時間範囲をプロットするには (ズームインするには)
 ``` bash
 freqtrade plot-dataframe --strategy AwesomeStrategy -p BTC/ETH --timerange=20180801-20180805
 ```
-
-To plot trades stored in a database use `--db-url` in combination with `--trade-source DB`:
-
+データベースに保存されている取引をプロットするには、「--db-url」を「--trade-source DB」と組み合わせて使用​​します。
 ``` bash
 freqtrade plot-dataframe --strategy AwesomeStrategy --db-url sqlite:///tradesv3.dry_run.sqlite -p BTC/ETH --trade-source DB
 ```
-
-To plot trades from a backtesting result, use `--export-filename <filename>`
-
+バックテスト結果から取引をプロットするには、`--export-filename <filename>` を使用します。
 ``` bash
 freqtrade plot-dataframe --strategy AwesomeStrategy --export-filename user_data/backtest_results/backtest-result.json -p BTC/ETH
 ```
+### プロット データフレームの基本
 
-### Plot dataframe basics
+![プロットデータフレーム2](assets/plot-dataframe2.png)
 
-![plot-dataframe2](assets/plot-dataframe2.png)
+`plot-dataframe` サブコマンドには、バックテスト データ、戦略、および戦略に対応する取引を含むバックテスト結果ファイルまたはデータベースが必要です。
 
-The `plot-dataframe` subcommand requires backtesting data, a strategy and either a backtesting-results file or a database, containing trades corresponding to the strategy.
+結果のプロットには次の要素が含まれます。
 
-The resulting plot will have the following elements:
+* 緑色の三角形: 戦略からの買いシグナル。 (注: シアンの円と比較すると、すべての買いシグナルが取引を生成するわけではありません。)
+* 赤い三角: 戦略からの売りシグナル。 (また、赤と緑の四角と比べて、すべての売りシグナルが取引を終了するわけではありません。)
+* シアンの円: 取引エントリーポイント。
+* 赤い四角: 損失または 0% の利益がある取引の取引終了ポイント。
+* 緑色の四角: 収益性の高い取引の取引出口ポイント。
+* `--indicators1` で指定された、ローソク足スケールに対応する値を持つインジケーター (SMA/EMA など)。
+* 出来高 (メイン チャートの下部にある棒グラフ)。
+* `--indicators2` で指定されたように、出来高バーの下に異なるスケールの値を持つインジケーター (MACD、RSI など)。
 
-* Green triangles: Buy signals from the strategy. (Note: not every buy signal generates a trade, compare to cyan circles.)
-* Red triangles: Sell signals from the strategy. (Also, not every sell signal terminates a trade, compare to red and green squares.)
-* Cyan circles: Trade entry points.
-* Red squares: Trade exit points for trades with loss or 0% profit.
-* Green squares: Trade exit points for profitable trades.
-* Indicators with values corresponding to the candle scale (e.g. SMA/EMA), as specified with `--indicators1`.
-* Volume (bar chart at the bottom of the main chart).
-* Indicators with values in different scales (e.g. MACD, RSI) below the volume bars, as specified with `--indicators2`.
+!!! Note "ボリンジャーバンド"
+    ボリンジャー バンドは、列 `bb_ lowerband` と `bb_upperband` が存在する場合にプロットに自動的に追加され、下のバンドから上のバンドにまたがる水色の領域として描画されます。
 
-!!! Note "Bollinger Bands"
-    Bollinger bands are automatically added to the plot if the columns `bb_lowerband` and `bb_upperband` exist, and are painted as a light blue area spanning from the lower band to the upper band.
+#### 高度なプロット構成
 
-#### Advanced plot configuration
+高度なプロット構成は、`plot_config` パラメーターのストラテジで指定できます。
 
-An advanced plot configuration can be specified in the strategy in the `plot_config` parameter.
+「plot_config」を使用する場合の追加機能は次のとおりです。
 
-Additional features when using `plot_config` include:
+* インジケーターごとに色を指定します
+* 追加のサブプロットを指定する
+* 間の領域を埋めるインジケーターペアを指定します
 
-* Specify colors per indicator
-* Specify additional subplots
-* Specify indicator pairs to fill area in between
+以下のサンプル プロット構成では、インジケーターの固定色を指定しています。そうしないと、連続したプロットで毎回異なる配色が生成され、比較が困難になる可能性があります。
+また、複数のサブプロットで MACD と RSI の両方を同時に表示することもできます。
 
-The sample plot configuration below specifies fixed colors for the indicators. Otherwise, consecutive plots may produce different color schemes each time, making comparisons difficult.
-It also allows multiple subplots to display both MACD and RSI at the same time.
+プロットタイプは「type」キーを使用して設定できます。考えられるタイプは次のとおりです。
 
-Plot type can be configured using `type` key. Possible types are:
+* `scatter` は `plotly.graph_objects.Scatter` クラス (デフォルト) に対応します。
+* `bar` は `plotly.graph_objects.Bar` クラスに対応します。
 
-* `scatter` corresponding to `plotly.graph_objects.Scatter` class (default).
-* `bar` corresponding to `plotly.graph_objects.Bar` class.
+`plotly.graph_objects.*` コンストラクターへの追加パラメーターは、`plotly` dict で指定できます。
 
-Extra parameters to `plotly.graph_objects.*` constructor can be specified in `plotly` dict.
-
-Sample configuration with inline comments explaining the process:
-
+プロセスを説明するインライン コメントを含むサンプル構成:
 ``` python
 @property
 def plot_config(self):
@@ -161,11 +146,9 @@ def plot_config(self):
 
     return plot_config
 ```
-
-??? Note "As attribute (former method)"
-    Assigning plot_config is also possible as Attribute (this used to be the default way).
-    This has the disadvantage that strategy parameters are not available, preventing certain configurations from working.
-
+??? 「属性として（以前のメソッド）」に注意してください
+    また、plot_config を属性として割り当てることもできます (これがデフォルトの方法でした)。
+    これには、戦略パラメーターが利用できないため、特定の構成が機能しなくなるという欠点があります。
     ``` python
         plot_config = {
             'main_plot': {
@@ -200,57 +183,52 @@ def plot_config(self):
         }
 
     ```
-
-
 !!! Note
-    The above configuration assumes that `ema10`, `ema50`, `senkou_a`, `senkou_b`,
-    `macd`, `macdsignal`, `macdhist` and `rsi` are columns in the DataFrame created by the strategy.
+    上記の設定は、`ema10`、`ema50`、`senkou_a`、`senkou_b`、
+    `macd`、`macdsignal`、`macdhist`、および `rsi` は、ストラテジによって作成された DataFrame 内の列です。
 
 !!! Warning
-    `plotly` arguments are only supported with plotly library and will not work with freq-ui.
+    `plotly` 引数は、plotly ライブラリでのみサポートされており、freq-ui では機能しません。
 
-!!! Note "Trade position adjustments"
-    If `position_adjustment_enable` / `adjust_trade_position()` is used, the trade initial buy price is averaged over multiple orders and the trade start price will most likely appear outside the candle range.
+!!! Note "トレードポジションの調整"
+    `position_adjustment_enable` / `adjust_trade_position()` が使用される場合、取引の最初の購入価格は複数の注文にわたって平均され、取引開始価格はローソク足の範囲外に表示される可能性が高くなります。
 
-## Plot profit
+## 利益をプロットする
 
-![plot-profit](assets/plot-profit.png)
+![プロット-利益](assets/plot-profit.png)
 
-The `plot-profit` subcommand shows an interactive graph with three plots:
+`plot-profit` サブコマンドは、3 つのプロットを含む対話型グラフを表示します。
 
-* Average closing price for all pairs.
-* The summarized profit made by backtesting.
-Note that this is not the real-world profit, but more of an estimate.
-* Profit for each individual pair.
-* Parallelism of trades.
-* Underwater (Periods of drawdown).
+* すべてのペアの平均終値。
+※バックテストによる利益を集計したものです。
+これは実際の利益ではなく、推定値であることに注意してください。
+※各ペアごとの利益となります。
+* 取引の並行性。
+* 水中 (ドローダウン期間)。
 
-The first graph is good to get a grip of how the overall market progresses.
+最初のグラフは、市場全体の推移を把握するのに適しています。
 
-The second graph will show if your algorithm works or doesn't.
-Perhaps you want an algorithm that steadily makes small profits, or one that acts less often, but makes big swings.
-This graph will also highlight the start (and end) of the Max drawdown period.
+2 番目のグラフは、アルゴリズムが機能するかどうかを示します。
+おそらく、安定して小さな利益を生み出すアルゴリズム、または動作頻度は低いが大​​きな変動を起こすアルゴリズムが必要な場合があります。
+このグラフでは、最大ドローダウン期間の開始 (および終了) も強調表示されます。
 
-The third graph can be useful to spot outliers, events in pairs that cause profit spikes.
+3 番目のグラフは、利益の急増を引き起こす異常値、つまりペアのイベントを特定するのに役立ちます。
 
-The forth graph can help you analyze trade parallelism, showing how often max_open_trades have been maxed out.
+4 番目のグラフは、max_open_trades が最大に達する頻度を示し、取引の並行性を分析するのに役立ちます。
 
-Possible options for the `freqtrade plot-profit` subcommand:
+`freqtrade Lot-profit` サブコマンドで可能なオプション:
 
 --8<-- "commands/plot-profit.md"
 
-The `-p/--pairs`  argument, can be used to limit the pairs that are considered for this calculation.
+`-p/--pairs` 引数は、この計算で考慮されるペアを制限するために使用できます。
 
-Examples:
+例:
 
-Use custom backtest-export file
-
+カスタム バックテスト エクスポート ファイルを使用する
 ``` bash
 freqtrade plot-profit  -p LTC/BTC --export-filename user_data/backtest_results/backtest-result.json
 ```
-
-Use custom database
-
+カスタムデータベースを使用する
 ``` bash
 freqtrade plot-profit  -p LTC/BTC --db-url sqlite:///tradesv3.sqlite --trade-source DB
 ```

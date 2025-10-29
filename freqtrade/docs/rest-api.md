@@ -1,15 +1,14 @@
 # REST API
 
-## FreqUI
+## 頻度UI
 
-FreqUI now has it's own dedicated [documentation section](freq-ui.md) - please refer to that section for all information regarding the FreqUI.
+FreqUI には専用の [ドキュメント セクション](freq-ui.md) が追加されました。FreqUI に関するすべての情報については、そのセクションを参照してください。
 
-## Configuration
+## 構成
 
-Enable the rest API by adding the api_server section to your configuration and setting `api_server.enabled` to `true`.
+api_server セクションを構成に追加し、「api_server.enabled」を「true」に設定して、REST API を有効にします。
 
-Sample configuration:
-
+サンプル構成:
 ``` json
     "api_server": {
         "enabled": true,
@@ -24,44 +23,38 @@ Sample configuration:
         "ws_token": "sercet_Ws_t0ken"
     },
 ```
+!!! Danger "セキュリティ警告"
+    デフォルトでは、構成はローカルホストのみをリッスンします (そのため、他のシステムからはアクセスできません)。他の人がボットを制御できる可能性があるため、この API をインターネットに公開せず、強力で一意のパスワードを選択することを強くお勧めします。
 
-!!! Danger "Security warning"
-    By default, the configuration listens on localhost only (so it's not reachable from other systems). We strongly recommend to not expose this API to the internet and choose a strong, unique password, since others will potentially be able to control your bot.
+??? 「リモートサーバー上のAPI/UIアクセス」に注意してください。
+    VPS 上で実行している場合は、ボットに接続するために ssh トンネルを使用するか、VPN (openVPN、ワイヤーガード) をセットアップすることを検討する必要があります。
+    これにより、freqUI がインターネットに直接公開されなくなりますが、これはセキュリティ上の理由から推奨されません (freqUI はそのままでは https をサポートしません)。
+    これらのツールのセットアップはこのチュートリアルの一部ではありませんが、インターネット上で多くの優れたチュートリアルが見つかります。
 
-??? Note "API/UI Access on a remote servers"
-    If you're running on a VPS, you should consider using either a ssh tunnel, or setup a VPN (openVPN, wireguard) to connect to your bot.
-    This will ensure that freqUI is not directly exposed to the internet, which is not recommended for security reasons (freqUI does not support https out of the box).
-    Setup of these tools is not part of this tutorial, however many good tutorials can be found on the internet.
-
-You can then access the API by going to `http://127.0.0.1:8080/api/v1/ping` in a browser to check if the API is running correctly.
-This should return the response:
-
+その後、ブラウザで「http://127.0.0.1:8080/api/v1/ping」にアクセスして API にアクセスし、API が正しく実行されているかどうかを確認します。
+これにより、次の応答が返されるはずです。
 ``` output
 {"status":"pong"}
 ```
+他のすべてのエンドポイントは機密情報を返し、認証が必要なため、Web ブラウザーからは利用できません。
 
-All other endpoints return sensitive info and require authentication and are therefore not available through a web browser.
+### セキュリティ
 
-### Security
-
-To generate a secure password, best use a password manager, or use the below code.
-
+安全なパスワードを生成するには、パスワード マネージャーを使用するか、以下のコードを使用するのが最適です。
 ``` python
 import secrets
 secrets.token_hex()
 ```
+!!! Hint "JWTトークン"
+    同じメソッドを使用して、JWT 秘密鍵 (`jwt_secret_key`) も生成します。
 
-!!! Hint "JWT token"
-    Use the same method to also generate a JWT secret key (`jwt_secret_key`).
+!!! Danger "パスワードの選択"
+    ボットを不正アクセスから保護するために、非常に強力で固有のパスワードを選択してください。
+    また、`jwt_secret_key` をランダムなものに変更します (これを覚えておく必要はありませんが、セッションを暗号化するために使用されるため、一意のものにしたほうがよいでしょう)。
 
-!!! Danger "Password selection"
-    Please make sure to select a very strong, unique password to protect your bot from unauthorized access.
-    Also change `jwt_secret_key` to something random (no need to remember this, but it'll be used to encrypt your session, so it better be something unique!).
+### docker を使用した構成
 
-### Configuration with docker
-
-If you run your bot using docker, you'll need to have the bot listen to incoming connections. The security is then handled by docker.
-
+Docker を使用してボットを実行する場合は、ボットに受信接続をリッスンさせる必要があります。その後、セキュリティは docker によって処理されます。
 ``` json
     "api_server": {
         "enabled": true,
@@ -72,36 +65,30 @@ If you run your bot using docker, you'll need to have the bot listen to incoming
         //...
     },
 ```
-
-Make sure that the following 2 lines are available in your docker-compose file:
-
+docker-compose ファイル内で次の 2 行が利用可能であることを確認してください。
 ```yml
     ports:
       - "127.0.0.1:8080:8080"
 ```
+!!! Danger "セキュリティ警告"
+    Docker ポート マッピングで `"8080:8080"` (または `"0.0.0.0:8080:8080"`) を使用すると、正しいポートでサーバーに接続しているすべてのユーザーが API を利用できるようになり、他のユーザーがボットを制御できる可能性があります。
+    これは、安全な環境 (ホーム ネットワークなど) でボットを実行している場合には安全である可能性がありますが、API をインターネットに公開することはお勧めできません。
 
-!!! Danger "Security warning"
-    By using `"8080:8080"` (or `"0.0.0.0:8080:8080"`) in the docker port mapping, the API will be available to everyone connecting to the server under the correct port, so others may be able to control your bot.
-    This **may** be safe if you're running the bot in a secure environment (like your home network), but it's not recommended to expose the API to the internet.
+## 残りの API
 
-## Rest API
+### API の使用
 
-### Consuming the API
+サポートされている `freqtrade-client` パッケージ (`scripts/rest_client.py` としても入手可能) を使用して API を使用することをお勧めします。
 
-We advise consuming the API by using the supported `freqtrade-client` package (also available as `scripts/rest_client.py`).
+このコマンドは、`pip install freqtrade-client` を使用して、実行中の freqtrade ボットとは独立してインストールできます。
 
-This command can be installed independent of any running freqtrade bot by using `pip install freqtrade-client`.
-
-This module is designed to be lightweight, and only depends on the `requests` and `python-rapidjson` modules, skipping all heavy dependencies freqtrade otherwise needs.
-
+このモジュールは軽量になるように設計されており、「requests」モジュールと「python-rapidjson」モジュールのみに依存し、freqtrade が必要とする重い依存関係はすべてスキップします。
 ``` bash
 freqtrade-client <command> [optional parameters]
 ```
+デフォルトでは、スクリプトは `127.0.0.1` (localhost) およびポート `8080` が使用されることを想定していますが、設定ファイルを指定してこの動作をオーバーライドすることができます。
 
-By default, the script assumes `127.0.0.1` (localhost) and port `8080` to be used, however you can specify a configuration file to override this behaviour.
-
-#### Minimalistic client config
-
+#### 最小限のクライアント構成
 ``` json
 {
     "api_server": {
@@ -118,19 +105,15 @@ By default, the script assumes `127.0.0.1` (localhost) and port `8080` to be use
 ``` bash
 freqtrade-client --config rest_config.json <command> [optional parameters]
 ```
-
-Commands with many arguments may require keyword arguments (for clarity) - which can be provided as follows:
-
+多くの引数を持つコマンドには、(わかりやすくするために) キーワード引数が必要になる場合があります。キーワード引数は次のように指定できます。
 ``` bash
 freqtrade-client --config rest_config.json forceenter BTC/USDT long enter_tag=GutFeeling
 ```
+このメソッドはすべての引数に対して機能します。使用可能なパラメータのリストについては、「show」コマンドを確認してください。
 
-This method will work for all arguments - check the "show" command for a list of available parameters.
-
-??? Note "Programmatic use"
-    The `freqtrade-client` package (installable independent of freqtrade) can be used in your own scripts to interact with the freqtrade API.
-    to do so, please use the following:
-
+??? 「プログラムによる使用」に関する注意
+    `freqtrade-client` パッケージ (freqtrade とは独立してインストール可能) を独自のスクリプトで使用して、freqtrade API と対話できます。
+    これを行うには、以下を使用してください。
     ``` python
     from freqtrade_client import FtRestClient
     
@@ -147,11 +130,9 @@ This method will work for all arguments - check the "show" command for a list of
     client.blacklist(*listPairs)
     # ... 
     ```
+使用可能なコマンドの完全なリストについては、以下のリストを参照してください。
 
-    For a full list of available commands, please refer to the list below.
-
-Possible commands can be listed from the rest-client script using the `help` command.
-
+`help` コマンドを使用すると、Rest-client スクリプトから使用可能なコマンドをリストできます。
 ``` bash
 freqtrade-client help
 ```
@@ -328,84 +309,80 @@ whitelist
 
 
 ```
+### 利用可能なエンドポイント
 
-### Available endpoints
+別のルート経由で REST API を手動で呼び出したい場合は、 「curl」を介して直接実行する場合、以下の表に、関連する URL エンドポイントとパラメータを示します。
+以下の表のすべてのエンドポイントには、API のベース URL をプレフィックスとして付ける必要があります。 `http://127.0.0.1:8080/api/v1/` - したがって、コマンドは `http://127.0.0.1:8080/api/v1/<command>` になります。
 
-If you wish to call the REST API manually via another route, e.g. directly via `curl`, the table below shows the relevant URL endpoints and parameters.
-All endpoints in the below table need to be prefixed with the base URL of the API, e.g. `http://127.0.0.1:8080/api/v1/` - so the command becomes `http://127.0.0.1:8080/api/v1/<command>`.
+|  エンドポイント |方法 |説明/パラメータ |
+|----------|----------|---------------|
+| `/ping` |入手 | API Readiness をテストする単純なコマンド - 認証は必要ありません。
+| `/スタート` |投稿 |トレーダーを開始します。
+| `/一時停止` |投稿 |トレーダーを一時停止します。ルールに従って公開取引を適切に処理します。新しいポジションには入らないでください。
+| `/停止` |投稿 |トレーダーを止めます。
+| `/ストップバイ` |投稿 |トレーダーが新しい取引を開始するのを阻止します。ルールに従ってオープンな取引を正常に終了します。
+| `/reload_config` |投稿 |設定ファイルをリロードします。
+| `/トレード` |入手 |最後の取引をリストします。コールあたりの取引は 500 件に制限されています。
+| `/trade/<tradeid>` |入手 |特定の取引を取得します。<br/>*Params:*<br/>- `tradeid` (`int`)
+| `/trades/<tradeid>` |削除 |データベースから取引を削除します。オープン注文をクローズしようとします。取引所でこの取引を手動で処理する必要があります。<br/>*Params:*<br/>- `tradeid` (`int`)
+| `/trades/<tradeid>/open-order` |削除 |この取引のオープン注文をキャンセルします。<br/>*Params:*<br/>- `tradeid` (`int`)
+| `/trades/<tradeid>/reload` |投稿 |取引所から取引をリロードします。ライブでのみ機能し、取引所で手動で売却された取引の回収に役立つ可能性があります。<br/>*Params:*<br/>- `tradeid` (`int`)
+| `/show_config` |入手 |現在の構成の一部と、動作に関連する設定を表示します。
+| `/ログ` |入手 |最新のログメッセージを表示します。
+| `/ステータス` |入手 |オープンな取引をすべてリストします。
+| `/カウント` |入手 |使用された取引と利用可能な取引の数を表示します。
+| `/エントリ` |入手 |指定されたペア (ペアが指定されていない場合はすべてのペア) の各入力タグの利益統計を表示します。ペアはオプションです。<br/>*Params:*<br/>- `pair` (`str`)
+| `/終了` |入手 |指定されたペア (ペアが指定されていない場合はすべてのペア) の各終了理由の利益統計を表示します。ペアはオプションです。<br/>*Params:*<br/>- `pair` (`str`)
+| `/mix_tags` |入手 |指定されたペア (ペアが指定されていない場合はすべてのペア) の入力タグ + 終了理由の各組み合わせの収益統計を表示します。ペアはオプションです。<br/>*Params:*<br/>- `pair` (`str`)
+| `/ロック` |入手 |現在ロックされているペアを表示します。
+| `/ロック` |投稿 | 「まで」までペアをロックします。 (期限は最も近い時間枠に切り上げられます)。サイドはオプションで、「ロング」または「ショート」のいずれかです（デフォルトは「ロング」です）。理由はオプションです。<br/>*Params:*<br/>- `<pair>` (`str`)<br/>- `<until>` (`datetime`)<br/>- `[side]` (`str`)<br/>- `[reason]` (`str`)
+| `/locks/<ロックID>` |削除 | ID によってロックを削除 (無効化) します。<br/>*Params:*<br/>- `lockid` (`int`)
+| `/利益` |入手 |クローズ取引からの利益/損失の概要とパフォーマンスに関するいくつかの統計を表示します。
+| `/強制終了` |投稿 |指定された注文タイプ (「マーケット」または「リミット」、指定されていない場合は構成設定を使用)、および選択された金額 (指定されていない場合は全額売り) を使用して、指定された取引 (「minimum_roi」を無視) を即座に終了します。 `all` を `tradeid` として指定すると、現在開いているすべての取引が強制終了されます。<br/>*Params:*<br/>- `<tradeid>` (`int` または `str`)<br/>- `<ordertype>` (`str`)<br/>- `[amount]` (`float`)
+| `/forceenter` |投稿 |指定されたペアを即座に入力します。サイドはオプションで、「ロング」または「ショート」のいずれかです（デフォルトは「ロング」です）。料金はオプションです。 (`force_entry_enable` は True に設定する必要があります)<br/>*Params:*<br/>- `<pair>` (`str`)<br/>- `<side>` (`str`)<br/>- `[rate]` (`float`)
+| `/パフォーマンス` |入手 |完了した各取引のパフォーマンスをペアごとにグループ化して表示します。
+| `/バランス` |入手 |通貨ごとの口座残高を表示します。
+| `/毎日` |入手 |過去 n 日間の 1 日あたりの損益を表示します (n のデフォルトは 7)。<br/>*Params:*<br/>- `timescale` (`int`)
+| `/毎週` |入手 |過去 n 日間の週ごとの損益を表示します (n のデフォルトは 4)。<br/>*Params:*<br/>- `timescale` (`int`)
+| `/毎月` |入手 |過去 n 日間の月ごとの損益を表示します (n のデフォルトは 3)。<br/>*Params:*<br/>- `timescale` (`int`)
+| `/統計` |入手 |利益/損失の理由と平均保有時間の概要を表示します。
+| `/ホワイトリスト` |入手 |現在のホワイトリストを表示します。
+| `/ブラックリスト` |入手 |現在のブラックリストを表示します。
+| `/ブラックリスト` |投稿 |指定されたペアをブラックリストに追加します。<br/>*Params:*<br/>- `blacklist` (`str`)
+| `/ブラックリスト` |削除 |指定されたペアのリストをブラックリストから削除します。<br/>*Params:*<br/>- `[pair,pair]` (`list[str]`)
+| `/ペアキャンドル` |入手 |ボットの実行中に、ペアとタイムフレームの組み合わせのデータフレームを返します。 **アルファ**
+| `/ペアキャンドル` |投稿 |ボットの実行中に、指定された列のリストでフィルター処理された、ペアとタイムフレームの組み合わせのデータフレームを返します。 **アルファ**<br/>*Params:*<br/>- `<column_list>` (`list[str]`)
+| `/pair_history` |入手 |指定された戦略によって分析された、指定された時間範囲の分析されたデータフレームを返します。 **アルファ**
+| `/pair_history` |投稿 |指定された戦略によって分析され、返される列の指定されたリストによってフィルター処理された、指定された時間範囲の分析されたデータフレームを返します。 **アルファ**<br/>*Params:*<br/>- `<column_list>` (`list[str]`)
+| `/plot_config` |入手 |戦略からプロット構成を取得します (構成されていない場合は何も取得しません)。 **アルファ**
+| `/戦略` |入手 |戦略ディレクトリ内の戦略をリストします。 **アルファ**
+| `/strategy/<strategy>` |入手 |戦略クラス名によって特定の戦略コンテンツを取得します。 **アルファ**<br/>*Params:*<br/>- `<戦略>` (`str`)
+| `/available_pairs` |入手 |利用可能なバックテスト データをリストします。 **アルファ**
+| `/バージョン` |入手 |バージョンを表示します。
+| `/sysinfo` |入手 |システム負荷に関する情報を表示します。
+| `/健康` |入手 |ボットの健全性 (最後のボット ループ) を表示します。
 
-|  Endpoint | Method | Description / Parameters |
-|-----------|--------|--------------------------|
-| `/ping` | GET | Simple command testing the API Readiness - requires no authentication.
-| `/start` | POST | Starts the trader.
-| `/pause` | POST | Pause the trader. Gracefully handle open trades according to their rules. Do not enter new positions.
-| `/stop` | POST | Stops the trader.
-| `/stopbuy` | POST | Stops the trader from opening new trades. Gracefully closes open trades according to their rules.
-| `/reload_config` | POST | Reloads the configuration file.
-| `/trades` | GET | List last trades. Limited to 500 trades per call.
-| `/trade/<tradeid>` | GET | Get specific trade.<br/>*Params:*<br/>- `tradeid` (`int`)
-| `/trades/<tradeid>` | DELETE | Remove trade from the database. Tries to close open orders. Requires manual handling of this trade on the exchange.<br/>*Params:*<br/>- `tradeid` (`int`)
-| `/trades/<tradeid>/open-order` | DELETE | Cancel open order for this trade.<br/>*Params:*<br/>- `tradeid` (`int`)
-| `/trades/<tradeid>/reload` | POST | Reload a trade from the Exchange. Only works in live, and can potentially help recover a trade that was manually sold on the exchange.<br/>*Params:*<br/>- `tradeid` (`int`)
-| `/show_config` | GET | Shows part of the current configuration with relevant settings to operation.
-| `/logs` | GET | Shows last log messages.
-| `/status` | GET | Lists all open trades.
-| `/count` | GET | Displays number of trades used and available.
-| `/entries` | GET | Shows profit statistics for each enter tags for given pair (or all pairs if pair isn't given). Pair is optional.<br/>*Params:*<br/>- `pair` (`str`)
-| `/exits` | GET | Shows profit statistics for each exit reasons for given pair (or all pairs if pair isn't given). Pair is optional.<br/>*Params:*<br/>- `pair` (`str`)
-| `/mix_tags` | GET | Shows profit statistics for each combinations of enter tag + exit reasons for given pair (or all pairs if pair isn't given). Pair is optional.<br/>*Params:*<br/>- `pair` (`str`)
-| `/locks` | GET | Displays currently locked pairs.
-| `/locks` | POST | Locks a pair until "until". (Until will be rounded up to the nearest timeframe). Side is optional and is either `long` or `short` (default is `long`). Reason is optional.<br/>*Params:*<br/>- `<pair>` (`str`)<br/>- `<until>` (`datetime`)<br/>- `[side]` (`str`)<br/>- `[reason]` (`str`)
-| `/locks/<lockid>` | DELETE | Deletes (disables) the lock by id.<br/>*Params:*<br/>- `lockid` (`int`)
-| `/profit` | GET | Display a summary of your profit/loss from close trades and some stats about your performance.
-| `/forceexit` | POST | Instantly exits the given trade (ignoring `minimum_roi`), using the given order type ("market" or "limit", uses your config setting if not specified), and the chosen amount (full sell if not specified). If `all` is supplied as the `tradeid`, then all currently open trades will be forced to exit.<br/>*Params:*<br/>- `<tradeid>` (`int` or `str`)<br/>- `<ordertype>` (`str`)<br/>- `[amount]` (`float`)
-| `/forceenter` | POST | Instantly enters the given pair. Side is optional and is either `long` or `short` (default is `long`). Rate is optional. (`force_entry_enable` must be set to True)<br/>*Params:*<br/>- `<pair>` (`str`)<br/>- `<side>` (`str`)<br/>- `[rate]` (`float`)
-| `/performance` | GET | Show performance of each finished trade grouped by pair.
-| `/balance` | GET | Show account balance per currency.
-| `/daily` | GET | Shows profit or loss per day, over the last n days (n defaults to 7).<br/>*Params:*<br/>- `timescale` (`int`)
-| `/weekly` | GET | Shows profit or loss per week, over the last n days (n defaults to 4).<br/>*Params:*<br/>- `timescale` (`int`)
-| `/monthly` | GET | Shows profit or loss per month, over the last n days (n defaults to 3).<br/>*Params:*<br/>- `timescale` (`int`)
-| `/stats` | GET | Display a summary of profit / loss reasons as well as average holding times.
-| `/whitelist` | GET | Show the current whitelist.
-| `/blacklist` | GET | Show the current blacklist.
-| `/blacklist` | POST | Adds the specified pair to the blacklist.<br/>*Params:*<br/>- `blacklist` (`str`)
-| `/blacklist` | DELETE | Deletes the specified list of pairs from the blacklist.<br/>*Params:*<br/>- `[pair,pair]` (`list[str]`)
-| `/pair_candles` | GET | Returns dataframe for a pair / timeframe combination while the bot is running. **Alpha**
-| `/pair_candles` | POST | Returns dataframe for a pair / timeframe combination while the bot is running, filtered by a provided list of columns to return. **Alpha**<br/>*Params:*<br/>- `<column_list>` (`list[str]`)
-| `/pair_history` | GET | Returns an analyzed dataframe for a given timerange, analyzed by a given strategy. **Alpha**
-| `/pair_history` | POST | Returns an analyzed dataframe for a given timerange, analyzed by a given strategy, filtered by a provided list of columns to return. **Alpha**<br/>*Params:*<br/>- `<column_list>` (`list[str]`)
-| `/plot_config` | GET | Get plot config from the strategy (or nothing if not configured). **Alpha**
-| `/strategies` | GET | List strategies in strategy directory. **Alpha**
-| `/strategy/<strategy>` | GET | Get specific Strategy content by strategy class name. **Alpha**<br/>*Params:*<br/>- `<strategy>` (`str`)
-| `/available_pairs` | GET | List available backtest data. **Alpha**
-| `/version` | GET | Show version.
-| `/sysinfo` | GET | Show information about the system load.
-| `/health` | GET | Show bot health (last bot loop).
+!!! Warning "アルファステータス"
+    上記の *アルファ ステータス* のラベルが付いたエンドポイントは、予告なくいつでも変更される可能性があります。
 
-!!! Warning "Alpha status"
-    Endpoints labeled with *Alpha status* above may change at any time without notice.
+### メッセージ WebSocket
 
-### Message WebSocket
+API サーバーには、freqtrade ボットからの RPC メッセージをサブスクライブするための WebSocket エンドポイントが含まれています。
+これを使用して、エントリ/イグジットフィルメッセージ、ホワイトリストの変更、ペアの入力されたインジケーターなど、ボットからのリアルタイムデータを消費できます。
 
-The API Server includes a websocket endpoint for subscribing to RPC messages from the freqtrade Bot.
-This can be used to consume real-time data from your bot, such as entry/exit fill messages, whitelist changes, populated indicators for pairs, and more.
+これは、Freqtrade で [Producer/Consumer モード](Producer-consumer.md) を設定するためにも使用されます。
 
-This is also used to setup [Producer/Consumer mode](producer-consumer.md) in Freqtrade.
+REST API がポート `8080` の `127.0.0.1` に設定されていると仮定すると、エンドポイントは `http://localhost:8080/api/v1/message/ws` で利用できます。
 
-Assuming your rest API is set to `127.0.0.1` on port `8080`, the endpoint is available at `http://localhost:8080/api/v1/message/ws`.
+WebSocket エンドポイントにアクセスするには、エンドポイント URL のクエリ パラメーターとして「ws_token」が必要です。
 
-To access the websocket endpoint, the `ws_token` is required as a query parameter in the endpoint URL.
-
-To generate a safe `ws_token` you can run the following code:
-
+安全な「ws_token」を生成するには、次のコードを実行できます。
 ``` python
 >>> import secrets
 >>> secrets.token_urlsafe(25)
 'hZ-y58LXyX_HZ8O1cJzVyN6ePWrLpNQv4Q'
 ```
-
-You would then add that token under `ws_token` in your `api_server` config. Like so:
-
+次に、そのトークンを「api_server」設定の「ws_token」の下に追加します。同様に:
 ``` json
 "api_server": {
     "enabled": true,
@@ -420,27 +397,23 @@ You would then add that token under `ws_token` in your `api_server` config. Like
     "ws_token": "hZ-y58LXyX_HZ8O1cJzVyN6ePWrLpNQv4Q" // <-----
 },
 ```
+これで、`http://localhost:8080/api/v1/message/ws?token=hZ-y58LXyX_HZ8O1cJzVyN6ePWrLpNQv4Q` のエンドポイントに接続できるようになります。
 
-You can now connect to the endpoint at `http://localhost:8080/api/v1/message/ws?token=hZ-y58LXyX_HZ8O1cJzVyN6ePWrLpNQv4Q`.
+!!! Danger "サンプルトークンの再利用"
+    上記のサンプル トークンは使用しないでください。安全を確保するには、完全に新しいトークンを生成します。
 
-!!! Danger "Reuse of example tokens"
-    Please do not use the above example token. To make sure you are secure, generate a completely new token.
+#### WebSocket の使用
 
-#### Using the WebSocket
-
-Once connected to the WebSocket, the bot will broadcast RPC messages to anyone who is subscribed to them. To subscribe to a list of messages, you must send a JSON request through the WebSocket like the one below. The `data` key must be a list of message type strings.
-
+WebSocket に接続すると、ボットは RPC メッセージを購読しているすべての人に RPC メッセージをブロードキャストします。メッセージのリストを購読するには、以下のような JSON リクエストを WebSocket 経由で送信する必要があります。 `data` キーはメッセージ タイプ文字列のリストでなければなりません。
 ``` json
 {
   "type": "subscribe",
   "data": ["whitelist", "analyzed_df"] // A list of string message types
 }
 ```
+メッセージ タイプのリストについては、「freqtrade/enums/rpcmessagetype.py」の RPCMessageType enum を参照してください。
 
-For a list of message types, please refer to the RPCMessageType enum in `freqtrade/enums/rpcmessagetype.py`
-
-Now anytime those types of RPC messages are sent in the bot, you will receive them through the WebSocket as long as the connection is active. They typically take the same form as the request:
-
+これで、これらのタイプの RPC メッセージがボットで送信されるたびに、接続がアクティブである限り、WebSocket 経由でメッセージを受信できるようになります。通常、リクエストはリクエストと同じ形式を取ります。
 ``` json
 {
   "type": "analyzed_df",
@@ -451,13 +424,11 @@ Now anytime those types of RPC messages are sent in the bot, you will receive th
   }
 }
 ```
+#### リバース プロキシのセットアップ
 
-#### Reverse Proxy setup
+[Nginx](https://nginx.org/en/docs/) を使用する場合、WebSocket が機能するには次の構成が必要です (この構成は不完全で、一部の情報が欠落しているため、そのままでは使用できないことに注意してください)。
 
-When using [Nginx](https://nginx.org/en/docs/), the following configuration is required for WebSockets to work (Note this configuration is incomplete, it's missing some information and can not be used as is):
-
-Please make sure to replace `<freqtrade_listen_ip>` (and the subsequent port) with the IP and Port matching your configuration/setup.
-
+`<freqtrade_listen_ip>` (および後続のポート) を、構成/セットアップに一致する IP とポートに置き換えてください。
 ```
 http {
     map $http_upgrade $connection_upgrade {
@@ -480,29 +451,27 @@ http {
     }
 }
 ```
+リバース プロキシを適切に (安全に) 構成するには、WebSocket のプロキシに関するドキュメントを参照してください。
 
-To properly configure your reverse proxy (securely), please consult it's documentation for proxying websockets.
+- **Traefik**: Traefik はすぐに WebSocket をサポートします。[ドキュメント](https://doc.traefik.io/traefik/) を参照してください。
+- **Caddy**: Caddy v2 はすぐに WebSocket をサポートします。[ドキュメント](https://caddyserver.com/docs/v2-upgrade#proxy) を参照してください。
 
-- **Traefik**: Traefik supports websockets out of the box, see the [documentation](https://doc.traefik.io/traefik/)
-- **Caddy**: Caddy v2 supports websockets out of the box, see the [documentation](https://caddyserver.com/docs/v2-upgrade#proxy)
+!!! Tip "SSL証明書"
+    certbot などのツールを使用して SSL 証明書をセットアップし、上記のリバース プロキシのいずれかを使用して暗号化された接続を通じてボットの UI にアクセスできます。
+    これにより転送中のデータは保護されますが、プライベート ネットワーク (VPN、SSH トンネル) の外部で freqtrade API を実行することはお勧めしません。
 
-!!! Tip "SSL certificates"
-    You can use tools like certbot to setup ssl certificates to access your bot's UI through encrypted connection by using any of the above reverse proxies.
-    While this will protect your data in transit, we do not recommend to run the freqtrade API outside of your private network (VPN, SSH tunnel).
+### OpenAPI インターフェース
 
-### OpenAPI interface
+組み込みの openAPI インターフェイス (Swagger UI) を有効にするには、api_server 設定で `"enable_openapi": true` を指定します。
+これにより、「/docs」エンドポイントで Swagger UI が有効になります。デフォルトでは、<http://localhost:8080/docs> で実行されますが、設定によって異なります。
 
-To enable the builtin openAPI interface (Swagger UI), specify `"enable_openapi": true` in the api_server configuration.
-This will enable the Swagger UI at the `/docs` endpoint. By default, that's running at <http://localhost:8080/docs> - but it'll depend on your settings.
-
-### Advanced API usage using JWT tokens
+### JWT トークンを使用した高度な API の使用法
 
 !!! Note
-    The below should be done in an application (a Freqtrade REST API client, which fetches info via API), and is not intended to be used on a regular basis.
+    以下はアプリケーション (API 経由で情報を取得する Freqtrade REST API クライアント) で実行する必要があり、定期的に使用することを目的としていません。
 
-Freqtrade's REST API also offers JWT (JSON Web Tokens).
-You can login using the following command, and subsequently use the resulting access_token.
-
+Freqtrade の REST API は、JWT (JSON Web Token) も提供します。
+次のコマンドを使用してログインし、結果として得られる access_token を使用できます。
 ``` bash
 > curl -X POST --user Freqtrader http://localhost:8080/api/v1/token/login
 {"access_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1ODkxMTk2ODEsIm5iZiI6MTU4OTExOTY4MSwianRpIjoiMmEwYmY0NWUtMjhmOS00YTUzLTlmNzItMmM5ZWVlYThkNzc2IiwiZXhwIjoxNTg5MTIwNTgxLCJpZGVudGl0eSI6eyJ1IjoiRnJlcXRyYWRlciJ9LCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.qt6MAXYIa-l556OM7arBvYJ0SDI9J8bIk3_glDujF5g","refresh_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1ODkxMTk2ODEsIm5iZiI6MTU4OTExOTY4MSwianRpIjoiZWQ1ZWI3YjAtYjMwMy00YzAyLTg2N2MtNWViMjIxNWQ2YTMxIiwiZXhwIjoxNTkxNzExNjgxLCJpZGVudGl0eSI6eyJ1IjoiRnJlcXRyYWRlciJ9LCJ0eXBlIjoicmVmcmVzaCJ9.d1AT_jYICyTAjD0fiQAr52rkRqtxCjUGEMwlNuuzgNQ"}
@@ -512,12 +481,9 @@ You can login using the following command, and subsequently use the resulting ac
 > curl -X GET --header "Authorization: Bearer ${access_token}" http://localhost:8080/api/v1/count
 
 ```
-
-Since the access token has a short timeout (15 min) - the `token/refresh` request should be used periodically to get a fresh access token:
-
+アクセス トークンには短いタイムアウト (15 分) があるため、「token/refresh」リクエストを定期的に使用して新しいアクセス トークンを取得する必要があります。
 ``` bash
 > curl -X POST --header "Authorization: Bearer ${refresh_token}"http://localhost:8080/api/v1/token/refresh
 {"access_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1ODkxMTk5NzQsIm5iZiI6MTU4OTExOTk3NCwianRpIjoiMDBjNTlhMWUtMjBmYS00ZTk0LTliZjAtNWQwNTg2MTdiZDIyIiwiZXhwIjoxNTg5MTIwODc0LCJpZGVudGl0eSI6eyJ1IjoiRnJlcXRyYWRlciJ9LCJmcmVzaCI6ZmFsc2UsInR5cGUiOiJhY2Nlc3MifQ.1seHlII3WprjjclY6DpRhen0rqdF4j6jbvxIhUFaSbs"}
 ```
-
 --8<-- "includes/cors.md"

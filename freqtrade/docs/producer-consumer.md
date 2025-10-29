@@ -1,16 +1,15 @@
-# Producer / Consumer mode
+# プロデューサー / コンシューマーモード
 
-freqtrade provides a mechanism whereby an instance (also called `consumer`) may listen to messages from an upstream freqtrade instance (also called `producer`) using the message websocket. Mainly, `analyzed_df` and `whitelist` messages. This allows the reuse of computed indicators (and signals) for pairs in multiple bots without needing to compute them multiple times.
+freqtrade は、インスタンス (「コンシューマー」とも呼ばれます) が、メッセージ Web ソケットを使用して上流の freqtrade インスタンス (「プロデューサー」とも呼ばれます) からのメッセージをリッスンできるメカニズムを提供します。主に、「analyzed_df」メッセージと「whitelist」メッセージです。これにより、計算されたインジケーター (およびシグナル) を複数回計算することなく、複数のボットのペアで再利用できるようになります。
 
-See [Message Websocket](rest-api.md#message-websocket) in the Rest API docs for setting up the `api_server` configuration for your message websocket (this will be your producer).
+メッセージ Web ソケット (これがプロデューサーになります) の「api_server」構成のセットアップについては、Rest API ドキュメントの [メッセージ Web ソケット](rest-api.md#message-websocket) を参照してください。
 
 !!! Note
-    We strongly recommend to set `ws_token` to something random and known only to yourself to avoid unauthorized access to your bot.
+    ボットへの不正アクセスを避けるために、`ws_token` をランダムで自分だけが知っているものに設定することを強くお勧めします。
 
-## Configuration
+## 構成
 
-Enable subscribing to an instance by adding the `external_message_consumer` section to the consumer's config file.
-
+コンシューマーの構成ファイルに「external_message_consumer」セクションを追加して、インスタンスへのサブスクライブを有効にします。
 ```json
 {
     //...
@@ -35,34 +34,32 @@ Enable subscribing to an instance by adding the `external_message_consumer` sect
     //...
 }
 ```
+|  パラメータ |説明 |
+|-----------|---------------|
+| `有効` | **必須。** コンシューマー モードを有効にします。 false に設定すると、このセクションの他の設定はすべて無視されます。<br>*デフォルトは `false` です。*<br> **Datatype:** boolean 。
+| `プロデューサー` | **必須。** プロデューサのリスト <br> **データ型:** 配列。
+| `プロデューサー名` | **必須。** このプロデューサーの名前。複数のプロデューサーが使用されている場合、この名前は `get_Producer_pairs()` および `get_Producer_df()` の呼び出しで使用する必要があります。<br> **データ型:** 文字列
+| `プロデューサー.ホスト` | **必須。** プロデューサからのホスト名または IP アドレス。<br> **データ型:** 文字列
+| `プロデューサーズポート` | **必須。** 上記のホストに一致するポート。<br>*デフォルトは `8080`。*<br> **データ型:** 整数
+| `プロデューサー.セキュア` | **オプション。** WebSocket 接続で ssl を使用します。デフォルトは False。<br> **データ型:** 文字列
+| `プロデューサーズ.ws_token` | **必須。** プロデューサで構成された `ws_token`。<br> **データ型:** 文字列
+| | **オプションの設定**
+| `wait_timeout` |メッセージが受信されない場合は、再度 ping を実行するまでタイムアウトします。 <br>*デフォルトは「300」です。*<br> **データ型:** 整数 - 秒単位。
+| `ping_timeout` | Ping タイムアウト <br>*デフォルトは「10」です。*<br> **データ型:** 整数 - 秒単位。
+| `睡眠時間` |接続を再試行するまでのスリープ時間。<br>*デフォルトは「10」です。*<br> **データ型:** 整数 - 秒単位。
+| `remove_entry_exit_signals` |データフレーム受信時にデータフレームから信号列を削除します (0 に設定します)。<br>*デフォルトは「false」です。*<br> **データ型:** ブール値。
+| `initial_candle_limit` |プロデューサーから期待される初期キャンドル。<br>*デフォルトは `1500`。*<br> **データ型:** 整数 - キャンドルの数。
+| `メッセージサイズ制限` |メッセージごとのサイズ制限<br>*デフォルトは「8」です。*<br> **データ型:** 整数 - メガバイト。
 
-|  Parameter | Description |
-|------------|-------------|
-| `enabled` | **Required.** Enable consumer mode. If set to false, all other settings in this section are ignored.<br>*Defaults to `false`.*<br> **Datatype:** boolean .
-| `producers` | **Required.** List of producers <br> **Datatype:** Array.
-| `producers.name` | **Required.** Name of this producer. This name must be used in calls to `get_producer_pairs()` and `get_producer_df()` if more than one producer is used.<br> **Datatype:** string
-| `producers.host` | **Required.** The hostname or IP address from your producer.<br> **Datatype:** string
-| `producers.port` | **Required.** The port matching the above host.<br>*Defaults to `8080`.*<br> **Datatype:** Integer
-| `producers.secure` | **Optional.**  Use ssl in websockets connection. Default False.<br> **Datatype:** string
-| `producers.ws_token` | **Required.**  `ws_token` as configured on the producer.<br> **Datatype:** string
-| | **Optional settings**
-| `wait_timeout` | Timeout until we ping again if no message is received. <br>*Defaults to `300`.*<br> **Datatype:** Integer - in seconds.
-| `ping_timeout` | Ping timeout <br>*Defaults to `10`.*<br> **Datatype:** Integer - in seconds.
-| `sleep_time` | Sleep time before retrying to connect.<br>*Defaults to `10`.*<br> **Datatype:** Integer - in seconds.
-| `remove_entry_exit_signals` | Remove signal columns from the dataframe (set them to 0) on dataframe receipt.<br>*Defaults to `false`.*<br> **Datatype:** Boolean.
-| `initial_candle_limit` | Initial candles to expect from the Producer.<br>*Defaults to `1500`.*<br> **Datatype:** Integer - Number of candles.
-| `message_size_limit` | Size limit per message<br>*Defaults to `8`.*<br> **Datatype:** Integer - Megabytes.
+「populate_indicators()」でインジケーターを計算する代わりに (または計算するだけでなく)、フォロワー インスタンスはプロデューサー インスタンスのメッセージ (または高度な構成では複数のプロデューサー インスタンス) への接続をリッスンし、アクティブなホワイトリスト内の各ペアについて、プロデューサーの最も最近分析されたデータフレームをリクエストします。
 
-Instead of (or as well as) calculating indicators in `populate_indicators()` the follower instance listens on the connection to a producer instance's messages (or multiple producer instances in advanced configurations) and requests the producer's most recently analyzed dataframes for each pair in the active whitelist.
+コンシューマ インスタンスには、分析されたデータフレームの完全なコピーがあり、データフレーム自体を計算する必要はありません。
 
-A consumer instance will then have a full copy of the analyzed dataframes without the need to calculate them itself.
+## 例
 
-## Examples
+### 例 - プロデューサー戦略
 
-### Example - Producer Strategy
-
-A simple strategy with multiple indicators. No special considerations are required in the strategy itself.
-
+複数のインジケーターを備えたシンプルな戦略。戦略自体には特別な考慮事項は必要ありません。
 ```py
 class ProducerStrategy(IStrategy):
     #...
@@ -94,15 +91,13 @@ class ProducerStrategy(IStrategy):
 
         return dataframe
 ```
+!!! Tip "周波数AI"
+    これを使用すると、強力なマシン上で [FreqAI](freqai.md) をセットアップすることができ、一方、ラズベリーのような単純なマシン上でコンシューマを実行し、プロデューサから生成された信号をさまざまな方法で解釈できます。
 
-!!! Tip "FreqAI"
-    You can use this to setup [FreqAI](freqai.md) on a powerful machine, while you run consumers on simple machines like raspberries, which can interpret the signals generated from the producer in different ways.
 
+### 例 - 消費者戦略
 
-### Example - Consumer Strategy
-
-A logically equivalent strategy which calculates no indicators itself, but will have the same analyzed dataframes available to make trading decisions based on the indicators calculated in the producer. In this example the consumer has the same entry criteria, however this is not necessary. The consumer may use different logic to enter/exit trades, and only use the indicators as specified.
-
+論理的に同等の戦略で、それ自体はインジケーターを計算しませんが、プロデューサーで計算されたインジケーターに基づいて取引の決定を行うために利用できる、同じ分析済みのデータフレームが使用されます。この例では、消費者は同じエントリ基準を持っていますが、これは必須ではありません。消費者は、異なるロジックを使用して取引を開始/終了し、指定されたインジケーターのみを使用する場合があります。
 ```py
 class ConsumerStrategy(IStrategy):
     #...
@@ -161,6 +156,5 @@ class ConsumerStrategy(IStrategy):
 
         return dataframe
 ```
-
-!!! Tip "Using upstream signals"
-    By setting `remove_entry_exit_signals=false`, you can also use the producer's signals directly. They should be available as `enter_long_default` (assuming `suffix="default"` was used) - and can be used as either signal directly, or as additional indicator.
+!!! Tip "アップストリーム信号の使用"
+    `remove_entry_exit_signals=false` を設定すると、プロデューサーのシグナルを直接使用することもできます。これらは (`suffix="default"` が使用されたと仮定して) `enter_long_default` として利用可能である必要があり、シグナルとして直接使用することも、追加のインジケーターとして使用することもできます。

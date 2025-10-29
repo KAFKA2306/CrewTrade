@@ -106,6 +106,7 @@ OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 TWELVE_API_KEY=your_twelvedata_api_key_here
 TIMEGPT_API_KEY=your_nixtla_api_key_here
 RAPID_API_KEY=your_rapidapi_key_here
+FRED_API_KEY=your_fred_api_key_here
 ```
 
 ### 🔑 APIキーの取得方法（すべて無料プランあり）:
@@ -114,6 +115,7 @@ RAPID_API_KEY=your_rapidapi_key_here
 2. **TwelveData** (金融データ): [twelvedata.com](https://twelvedata.com) - 無料プランあり
 3. **Nixtla TimeGPT** (予測): [nixtla.io](https://nixtla.io) - AI予測API
 4. **RapidAPI** (ソーシャルデータ): [rapidapi.com](https://rapidapi.com) - StockTwitsセンチメントデータ用
+5. **FRED** (金利/マクロデータ): [fred.stlouisfed.org](https://fred.stlouisfed.org) - APIキーで金利指標を取得
 
 ### 4. 🎯 システムの実行
 
@@ -153,6 +155,24 @@ python -m ai_trading_crew.main
 **リターン/リスク評価**: $150–$153への上昇余地（5.3–6.6%の利益）が下落リスクを上回る...
 
 **トレード根拠**: 市場開始時にロングポジションを開始し、$145.16を超えるブレイクアウトを目標に...
+```
+
+---
+
+## 📦 利用可能なユースケース
+
+| 名前 | 概要 | デフォルト設定 |
+| --- | --- | --- |
+| `precious_metals_spread` | 東京市場の貴金属ETFと先物価格の乖離を検出し、統計的な異常シグナルを抽出します。 | `config/use_cases/precious_metals_spread.yaml` |
+| `credit_spread` | ジャンク社債ETFと米国債ETFの価格比率をモニタリングし、クレジットスプレッドの拡大/縮小を検知します。 | `config/use_cases/credit_spread.yaml` |
+| `yield_spread` | ジャンク社債利回りと国債利回りのイールドスプレッドを追跡し、zスコアによる拡大/縮小シグナルを抽出します。 | `config/use_cases/yield_spread.yaml` |
+
+いずれのユースケースも以下のように実行できます:
+
+```bash
+python -m ai_trading_crew.use_case_runner credit_spread --config config/use_cases/credit_spread.yaml
+# イールドスプレッドトラッカー
+python -m ai_trading_crew.use_case_runner yield_spread --config config/use_cases/yield_spread.yaml
 ```
 
 ---

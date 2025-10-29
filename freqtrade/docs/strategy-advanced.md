@@ -1,25 +1,24 @@
-# Advanced Strategies
+# 高度な戦略
 
-This page explains some advanced concepts available for strategies.
-If you're just getting started, please familiarize yourself with the [Freqtrade basics](bot-basics.md) and methods described in [Strategy Customization](strategy-customization.md) first.
+このページでは、戦略に使用できるいくつかの高度な概念について説明します。
+始めたばかりの場合は、まず [Freqtrade の基本](bot-basics.md) と [戦略のカスタマイズ](strategy-customization.md) で説明されている方法に慣れてください。
 
-The call sequence of the methods described here is covered under [bot execution logic](bot-basics.md#bot-execution-logic). Those docs are also helpful in deciding which method is most suitable for your customisation needs.
+ここで説明するメソッドの呼び出しシーケンスは、[ボット実行ロジック](bot-basics.md#bot-execution-logic) で説明されています。これらのドキュメントは、カスタマイズのニーズにどの方法が最適かを判断するのにも役立ちます。
 
 !!! Note
-    Callback methods should *only* be implemented if a strategy uses them.
+    コールバック メソッドは、戦略で使用される場合にのみ実装する必要があります。
 
 !!! Tip
-    Start off with a strategy template containing all available callback methods by running `freqtrade new-strategy --strategy MyAwesomeStrategy --template advanced`
+    「freqtrade new-strategy --strategy MyAwesomeStrategy --template Advanced」を実行して、利用可能なすべてのコールバック メソッドを含む戦略テンプレートから始めます。
 
-## Storing information (Persistent)
+## 情報の保存 (永続的)
 
-Freqtrade allows storing/retrieving user custom information associated with a specific trade in the database.
+Freqtrade を使用すると、特定の取引に関連付けられたユーザーのカスタム情報をデータベースに保存/取得できます。
 
-Using a trade object, information can be stored using `trade.set_custom_data(key='my_key', value=my_value)` and retrieved using `trade.get_custom_data(key='my_key')`. Each data entry is associated with a trade and a user supplied key (of type `string`). This means that this can only be used in callbacks that also provide a trade object.
+取引オブジェクトを使用すると、`trade.set_custom_data(key='my_key', value=my_value)` を使用して情報を保存し、`trade.get_custom_data(key='my_key')` を使用して取得できます。各データエントリは、取引およびユーザーが指定したキー (「文字列」タイプ) に関連付けられます。これは、トレード オブジェクトも提供するコールバックでのみ使用できることを意味します。
 
-For the data to be able to be stored within the database, freqtrade must serialized the data. This is done by converting the data to a JSON formatted string.
-Freqtrade will attempt to reverse this action on retrieval, so from a strategy perspective, this should not be relevant.
-
+データをデータベース内に保存できるようにするには、freqtrade がデータをシリアル化する必要があります。これは、データを JSON 形式の文字列に変換することによって行われます。
+Freqtrade は取得時にこのアクションを元に戻そうとするため、戦略の観点からはこれは関係ありません。
 ```python
 from freqtrade.persistence import Trade
 from datetime import timedelta
@@ -80,38 +79,36 @@ class AwesomeStrategy(IStrategy):
 
         return False, None
 ```
-
-The above is a simple example - there are simpler ways to retrieve trade data like entry-adjustments.
+上記は単純な例です。エントリー調整などの取引データを取得するより簡単な方法があります。
 
 !!! Note
-    It is recommended that simple data types are used `[bool, int, float, str]` to ensure no issues when serializing the data that needs to be stored.
-    Storing big junks of data may lead to unintended side-effects, like a database becoming big (and as a consequence, also slow).
+    保存する必要があるデータをシリアル化するときに問題が発生しないように、単純なデータ型「[bool, int, float, str]」を使用することをお勧めします。
+    大量のデータを保存すると、データベースが大きくなる (その結果、速度も低下する) など、予期しない副作用が発生する可能性があります。
 
-!!! Warning "Non-serializable data"
-    If supplied data cannot be serialized a warning is logged and the entry for the specified `key` will contain `None` as data.
+!!! Warning "シリアル化できないデータ"
+    提供されたデータをシリアル化できない場合は、警告がログに記録され、指定された `key` のエントリにはデータとして `None` が含まれます。
 
-??? Note "All attributes"
-    custom-data has the following accessors through the Trade object (assumed as `trade` below):
+??? 「すべての属性」に注意してください
+    custom-data には、Trade オブジェクト (以下では「trade」とします) を介した次のアクセサーがあります。
 
-    * `trade.get_custom_data(key='something', default=0)` - Returns the actual value given in the type provided.
-    * `trade.get_custom_data_entry(key='something')` - Returns the entry - including metadata. The value is accessible via `.value` property.
-    * `trade.set_custom_data(key='something', value={'some': 'value'})` - set or update the corresponding key for this trade. Value must be serializable - and we recommend to keep the stored data relatively small.
+    * `trade.get_custom_data(key='something',default=0)` - 指定された型で指定された実際の値を返します。
+    * `trade.get_custom_data_entry(key='something')` - メタデータを含むエントリを返します。値には `.value` プロパティ経由でアクセスできます。
+    * `trade.set_custom_data(key='something', value={'some': 'value'})` - この取引に対応するキーを設定または更新します。値はシリアル化可能である必要があり、保存されるデータは比較的小さくしておくことをお勧めします。
 
-    "value" can be any type (both in setting and receiving) - but must be json serializable.
+    「値」は任意のタイプ (設定時と受信時の両方) にすることができますが、json シリアル化可能である必要があります。
 
-## Storing information (Non-Persistent)
+## 情報の保存 (非永続)
 
-!!! Warning "Deprecated"
-    This method of storing information is deprecated and we do advise against using non-persistent storage.  
-    Please use [Persistent Storage](#storing-information-persistent) instead.
+!!! Warning "廃止されました"
+    この情報保存方法は非推奨であるため、非永続ストレージを使用しないことをお勧めします。  
+    代わりに [永続ストレージ](#storing-information-persistent) を使用してください。
 
-    It's content has therefore been collapsed.
+    したがって、その内容は折りたたまれています。
 
-??? Abstract "Storing information"
-    Storing information can be accomplished by creating a new dictionary within the strategy class.
+???要約「情報の保存」
+    情報の保存は、戦略クラス内に新しい辞書を作成することで実現できます。
 
-    The name of the variable can be chosen at will, but should be prefixed with `custom_` to avoid naming collisions with predefined strategy variables.
-
+    変数の名前は自由に選択できますが、事前定義された戦略変数との名前の衝突を避けるために「custom_」を接頭辞として付ける必要があります。
     ```python
     class AwesomeStrategy(IStrategy):
         # Create custom dictionary
@@ -128,17 +125,15 @@ The above is a simple example - there are simpler ways to retrieve trade data li
             else:
                 self.custom_info[metadata["pair"]]["crosstime"] = 1
     ```
-
     !!! Warning
-        The data is not persisted after a bot-restart (or config-reload). Also, the amount of data should be kept smallish (no DataFrames and such), otherwise the bot will start to consume a lot of memory and eventually run out of memory and crash.
+        データは、ボットの再起動 (または構成の再ロード) 後は保持されません。また、データ量は少なく保つ必要があります (DataFrame などは使用しない)。そうしないと、ボットが大量のメモリを消費し始め、最終的にはメモリが不足してクラッシュします。
 
     !!! Note
-        If the data is pair-specific, make sure to use pair as one of the keys in the dictionary.
+        データがペア固有である場合は、必ずペアをディクショナリ内のキーの 1 つとして使用してください。
 
-## Dataframe access
+## データフレームへのアクセス
 
-You may access dataframe in various strategy functions by querying it from dataprovider.
-
+データプロバイダーからクエリを実行することで、さまざまな戦略関数のデータフレームにアクセスできます。
 ``` python
 from freqtrade.exchange import timeframe_to_prev_date
 
@@ -164,19 +159,17 @@ class AwesomeStrategy(IStrategy):
             trade_candle = trade_candle.squeeze()
             # <...>
 ```
-
-!!! Warning "Using .iloc[-1]"
-    You can use `.iloc[-1]` here because `get_analyzed_dataframe()` only returns candles that backtesting is allowed to see.
-    This will not work in `populate_*` methods, so make sure to not use `.iloc[]` in that area.
-    Also, this will only work starting with version 2021.5.
+!!! Warning ".iloc[-1]の使用"
+    `get_analyzed_dataframe()` はバックテストで確認できるキャンドルのみを返すため、ここで `.iloc[-1]` を使用できます。
+    これは `populate_*` メソッドでは機能しないため、その領域では `.iloc[]` を使用しないようにしてください。
+    また、これはバージョン 2021.5 以降でのみ機能します。
 
 ***
 
-## Enter Tag
+## タグを入力してください
 
-When your strategy has multiple entry signals, you can name the signal that triggered.
-Then you can access your entry signal on `custom_exit`
-
+戦略に複数のエントリーシグナルがある場合、トリガーしたシグナルに名前を付けることができます。
+その後、`custom_exit` でエントリーシグナルにアクセスできます。
 ```python
 def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     dataframe["enter_tag"] = ""
@@ -210,20 +203,18 @@ def custom_exit(self, pair: str, trade: Trade, current_time: datetime, current_r
     return None
 
 ```
-
 !!! Note
-    `enter_tag` is limited to 255 characters, remaining data will be truncated.
+    「enter_tag」は 255 文字に制限されており、残りのデータは切り捨てられます。
 
 !!! Warning
-    There is only one `enter_tag` column, which is used for both long and short trades.
-    As a consequence, this column must be treated as "last write wins" (it's just a dataframe column after all).
-    In fancy situations, where multiple signals collide (or if signals are deactivated again based on different conditions), this can lead to odd results with the wrong tag applied to an entry signal.
-    These results are a consequence of the strategy overwriting prior tags - where the last tag will "stick" and will be the one freqtrade will use.
+    `enter_tag` 列は 1 つだけあり、ロングトレードとショートトレードの両方に使用されます。
+    結果として、この列は「最後の書き込みが優先」として扱われる必要があります (結局のところ、これは単なるデータフレーム列です)。
+    複数の信号が衝突するような複雑な状況では (または、異なる条件に基づいて信号が再び非アクティブ化された場合)、エントリ信号に間違ったタグが適用され、奇妙な結果が生じる可能性があります。
+    これらの結果は、前のタグを上書きする戦略の結果であり、最後のタグが「固定」され、freqtrade が使用するタグになります。
 
-## Exit tag
+## 終了タグ
 
-Similar to [Entry Tagging](#enter-tag), you can also specify an exit tag.
-
+[エントリのタグ付け](#enter-tag)と同様に、終了タグも指定できます。
 ``` python
 def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     dataframe["exit_tag"] = ""
@@ -245,16 +236,14 @@ def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame
 
     return dataframe
 ```
-
-The provided exit-tag is then used as exit-reason - and shown as such in backtest results.
+提供された exit-tag は exit-reason として使用され、バックテスト結果にそのように表示されます。
 
 !!! Note
-    `exit_reason` is limited to 100 characters, remaining data will be truncated.
+    「exit_reason」は 100 文字に制限されており、残りのデータは切り捨てられます。
 
-## Strategy version
+## 戦略バージョン
 
-You can implement custom strategy versioning by using the "version" method, and returning the version you would like this strategy to have.
-
+「version」メソッドを使用し、この戦略に必要なバージョンを返すことで、カスタム戦略のバージョン管理を実装できます。
 ``` python
 def version(self) -> str:
     """
@@ -262,14 +251,12 @@ def version(self) -> str:
     """
     return "1.1"
 ```
-
 !!! Note
-    You should make sure to implement proper version control (like a git repository) alongside this, as freqtrade will not keep historic versions of your strategy, so it's up to the user to be able to eventually roll back to a prior version of the strategy.
+    これに加えて、適切なバージョン管理 (git リポジトリなど) を必ず実装する必要があります。freqtrade は戦略の履歴バージョンを保持しないため、最終的に戦略を以前のバージョンにロールバックできるかどうかはユーザー次第です。
 
-## Derived strategies
+## 派生戦略
 
-The strategies can be derived from other strategies. This avoids duplication of your custom strategy code. You can use this technique to override small parts of your main strategy, leaving the rest untouched:
-
+戦略は他の戦略から派生させることができます。これにより、カスタム戦略コードの重複が回避されます。このテクニックを使用すると、メイン戦略の小さな部分をオーバーライドし、残りの部分はそのままにすることができます。
 ``` python title="user_data/strategies/myawesomestrategy.py"
 class MyAwesomeStrategy(IStrategy):
     ...
@@ -288,21 +275,19 @@ class MyAwesomeStrategy2(MyAwesomeStrategy):
     stoploss = 0.08
     trailing_stop = True
 ```
+属性とメソッドの両方をオーバーライドして、必要な方法で元のストラテジの動作を変更することができます。
 
-Both attributes and methods may be overridden, altering behavior of the original strategy in a way you need.
+サブクラスを同じファイル内に保持することは技術的には可能ですが、hyperopt パラメーター ファイルでいくつかの問題が発生する可能性があるため、別のストラテジー ファイルを使用し、上記のように親ストラテジーをインポートすることをお勧めします。
 
-While keeping the subclass in the same file is technically possible, it can lead to some problems with hyperopt parameter files, we therefore recommend to use separate strategy files, and import the parent strategy as shown above.
+## 埋め込み戦略
 
-## Embedding Strategies
+Freqtrade は、設定ファイルに戦略を埋め込む簡単な方法を提供します。
+これは、BASE64 エンコーディングを利用し、この文字列を戦略構成フィールドに指定することによって行われます。
+選択した構成ファイル内にあります。
 
-Freqtrade provides you with an easy way to embed the strategy into your configuration file.
-This is done by utilizing BASE64 encoding and providing this string at the strategy configuration field,
-in your chosen config file.
+### 文字列を BASE64 としてエンコードする
 
-### Encoding a string as BASE64
-
-This is a quick example, how to generate the BASE64 string in python
-
+これは、Python で BASE64 文字列を生成する方法の簡単な例です。
 ```python
 from base64 import urlsafe_b64encode
 
@@ -310,34 +295,28 @@ with open(file, 'r') as f:
     content = f.read()
 content = urlsafe_b64encode(content.encode('utf-8'))
 ```
-
-The variable 'content', will contain the strategy file in a BASE64 encoded form. Which can now be set in your configurations file as following
-
+変数「content」には、BASE64 でエンコードされた形式の戦略ファイルが含まれます。これを構成ファイルで次のように設定できるようになりました
 ```json
 "strategy": "NameOfStrategy:BASE64String"
 ```
+「NameOfStrategy」が戦略名と同じであることを確認してください。
 
-Please ensure that 'NameOfStrategy' is identical to the strategy name!
+## パフォーマンスに関する警告
 
-## Performance warning
+戦略を実行すると、ログに次のようなメッセージが表示されることがあります。
 
-When executing a strategy, one can sometimes be greeted by the following in the logs
+> パフォーマンス警告: データフレームは非常に断片化されています。
 
-> PerformanceWarning: DataFrame is highly fragmented.
+これは [`pandas`](https://github.com/pandas-dev/pandas) からの警告であり、警告には次のように続きます。
+`pd.concat(axis=1)`を使用します。
+これはパフォーマンスにわずかな影響を与える可能性がありますが、通常は hyperopt 時 (インジケーターの最適化時) にのみ表示されます。
 
-This is a warning from [`pandas`](https://github.com/pandas-dev/pandas) and as the warning continues to say:
-use `pd.concat(axis=1)`.
-This can have slight performance implications, which are usually only visible during hyperopt (when optimizing an indicator).
-
-For example:
-
+例えば：
 ```python
 for val in self.buy_ema_short.range:
     dataframe[f'ema_short_{val}'] = ta.EMA(dataframe, timeperiod=val)
 ```
-
-should be rewritten to
-
+に書き換える必要があります
 ```python
 frames = [dataframe]
 for val in self.buy_ema_short.range:
@@ -348,5 +327,4 @@ for val in self.buy_ema_short.range:
 # Combine all dataframes, and reassign the original dataframe column
 dataframe = pd.concat(frames, axis=1)
 ```
-
-Freqtrade does however also counter this by running `dataframe.copy()` on the dataframe right after the `populate_indicators()` method - so performance implications of this should be low to non-existent.
+ただし、Freqtrade は、`populate_indicators()` メソッドの直後にデータフレームに対して `dataframe.copy()` を実行することでこれに対抗します。そのため、これによるパフォーマンスへの影響は低いか、まったくないはずです。

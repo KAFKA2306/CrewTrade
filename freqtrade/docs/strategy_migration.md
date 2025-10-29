@@ -1,87 +1,86 @@
-# Strategy Migration between V2 and V3
+# V2 と V3 間の戦略の移行
 
-To support new markets and trade-types (namely short trades / trades with leverage), some things had to change in the interface.
-If you intend on using markets other than spot markets, please migrate your strategy to the new format.
+新しい市場と取引タイプ (つまりショート取引/レバレッジを利用した取引) をサポートするには、インターフェイスでいくつかの変更が必要でした。
+スポット市場以外の市場を使用する場合は、戦略を新しいフォーマットに移行してください。
 
-We have put a great effort into keeping compatibility with existing strategies, so if you just want to continue using freqtrade in __spot markets__, there should be no changes necessary for now.
+私たちは既存の戦略との互換性を維持することに多大な努力を払ってきたため、__スポット市場__で freqtrade を使い続けたいだけであれば、今のところ変更は必要ありません。
 
-You can use the quick summary as checklist. Please refer to the detailed sections below for full migration details.
+簡単な概要をチェックリストとして使用できます。完全な移行の詳細については、以下の詳細セクションを参照してください。
 
-## Quick summary / migration checklist
+## 簡単な概要/移行チェックリスト
 
-Note : `forcesell`, `forcebuy`, `emergencysell` are changed to `force_exit`, `force_enter`, `emergency_exit` respectively.
+注: `forcesell`、`forcebuy`、`emergencysell` は、それぞれ `force_exit`、`force_enter`、`emergency_exit` に変更されます。
 
-* Strategy methods:
+* 戦略方法:
   * [`populate_buy_trend()` -> `populate_entry_trend()`](#populate_buy_trend)
   * [`populate_sell_trend()` -> `populate_exit_trend()`](#populate_sell_trend)
   * [`custom_sell()` -> `custom_exit()`](#custom_sell)
   * [`check_buy_timeout()` -> `check_entry_timeout()`](#custom_entry_timeout)
   * [`check_sell_timeout()` -> `check_exit_timeout()`](#custom_entry_timeout)
-  * New `side` argument to callbacks without trade object
-    * [`custom_stake_amount`](#custom_stake_amount)
+  * 取引オブジェクトのないコールバックへの新しい `side` 引数
+    * [`カスタムステーク額`](#カスタムステーク額)
     * [`confirm_trade_entry`](#confirm_trade_entry)
     * [`custom_entry_price`](#custom_entry_price)
-  * [Changed argument name in `confirm_trade_exit`](#confirm_trade_exit)
-* Dataframe columns:
-  * [`buy` -> `enter_long`](#populate_buy_trend)
+  * [`confirm_trade_exit`の引数名を変更](#confirm_trade_exit)
+* データフレーム列:
+  * [`購入` -> `enter_long`](#populate_buy_trend)
   * [`sell` -> `exit_long`](#populate_sell_trend)
-  * [`buy_tag` -> `enter_tag` (used for both long and short trades)](#populate_buy_trend)
-  * [New column `enter_short` and corresponding new column `exit_short`](#populate_sell_trend)
-* trade-object now has the following new properties:
+  * [`buy_tag` -> `enter_tag` (ロングトレードとショートトレードの両方に使用)](#populate_buy_trend)
+  * [新しい列 `enter_short` と対応する新しい列 `exit_short`](#populate_sell_trend)
+* trade-object には次の新しいプロパティが追加されました。
   * `is_short`
   * `entry_side`
-  * `exit_side`
-  * `trade_direction`
-  * renamed: `sell_reason` -> `exit_reason`
-* [Renamed `trade.nr_of_successful_buys` to `trade.nr_of_successful_entries` (mostly relevant for `adjust_trade_position()`)](#adjust-trade-position-changes)
-* Introduced new [`leverage` callback](strategy-callbacks.md#leverage-callback).
-* Informative pairs can now pass a 3rd element in the Tuple, defining the candle type.
-* `@informative` decorator now takes an optional `candle_type` argument.
-* [helper methods](#helper-methods) `stoploss_from_open` and `stoploss_from_absolute` now take `is_short` as additional argument.
-* `INTERFACE_VERSION` should be set to 3.
-* [Strategy/Configuration settings](#strategyconfiguration-settings).
-  * `order_time_in_force` buy -> entry, sell -> exit.
-  * `order_types` buy -> entry, sell -> exit.
-  * `unfilledtimeout` buy -> entry, sell -> exit.
-  * `ignore_buying_expired_candle_after` -> moved to root level instead of "ask_strategy/exit_pricing"
-* Terminology changes
-  * Sell reasons changed to reflect the new naming of "exit" instead of sells. Be careful in your strategy if you're using `exit_reason` checks and eventually update your strategy.
+  * `出口側`
+  * `貿易方向`
+  * 名前変更: `sell_reason` -> `exit_reason`
+* [`trade.nr_of_successive_buys` を `trade.nr_of_successive_entries` に名前変更しました (主に `adjust_trade_position()` に関連します)](#adjust-trade-position-changes)
+* 新しい [`leverage` コールバック](strategy-callbacks.md#leverage-callback) を導入しました。
+* 情報ペアはタプルの 3 番目の要素を渡して、ローソクのタイプを定義できるようになりました。
+* `@informative` デコレーターはオプションの `candle_type` 引数を受け取るようになりました。
+* [ヘルパー メソッド](#helper-methods) `stoploss_from_open` と `stoploss_from_absolute` は追加の引数として `is_short` を取るようになりました。
+* `INTERFACE_VERSION` は 3 に設定する必要があります。
+* [戦略/構成設定](#strategyconfiguration-settings)。
+  * `order_time_in_force` は買い -> エントリー、売り -> エグジットです。
+  * `order_types` は買い -> エントリー、売り -> エグジットです。
+  * `unfilledtimeout` 買い -> エントリー、売り -> エグジット。
+  * `ignore_buying_expired_candle_after` -> 「ask_strategy/exit_pricing」の代わりにルートレベルに移動
+※用語の変更
+  * 売りの理由は、売りではなく「出口」という新しい名前を反映するように変更されました。 「exit_reason」チェックを使用している場合は戦略に注意し、最終的には戦略を更新してください。
     * `sell_signal` -> `exit_signal`
     * `custom_sell` -> `custom_exit`
     * `force_sell` -> `force_exit`
     * `emergency_sell` -> `emergency_exit`
-  * Order pricing
+  * 注文価格
     * `bid_strategy` -> `entry_pricing`
     * `ask_strategy` -> `exit_pricing`
     * `ask_last_balance` -> `price_last_balance`
     * `bid_last_balance` -> `price_last_balance`
-  * Webhook terminology changed from "sell" to "exit", and from "buy" to entry
+  * Webhook の用語が「売り」から「エグジット」に、「買い」から「エントリー」に変更されました
     * `webhookbuy` -> `entry`
     * `webhookbuyfill` -> `entry_fill`
     * `webhookbuycancel` -> `entry_cancel`
     * `webhooksell` -> `exit`
     * `webhooksellfill` -> `exit_fill`
     * `webhooksellcancel` -> `exit_cancel`
-  * Telegram notification settings
-    * `buy` -> `entry`
+  * 電報通知設定
+    * `購入` -> `エントリー`
     * `buy_fill` -> `entry_fill`
-    * `buy_cancel` -> `entry_cancel`
-    * `sell` -> `exit`
+    * `購入_キャンセル` -> `エントリー_キャンセル`
+    * `売り` -> `撤退`
     * `sell_fill` -> `exit_fill`
     * `sell_cancel` -> `exit_cancel`
-  * Strategy/config settings:
+  * 戦略/構成設定:
     * `use_sell_signal` -> `use_exit_signal`
     * `sell_profit_only` -> `exit_profit_only`
     * `sell_profit_offset` -> `exit_profit_offset`
     * `ignore_roi_if_buy_signal` -> `ignore_roi_if_entry_signal`
     * `forcebuy_enable` -> `force_entry_enable`
 
-## Extensive explanation
+## 詳しい説明
 
 ### `populate_buy_trend`
 
-In `populate_buy_trend()` - you will want to change the columns you assign from `'buy`' to `'enter_long'`, as well as the method name from `populate_buy_trend` to `populate_entry_trend`.
-
+`populate_buy_trend()` では、割り当てる列を `'buy`' から 'enter_long'` に変更し、メソッド名を `populate_buy_trend` から `populate_entry_trend` に変更します。
 ```python hl_lines="1 9"
 def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     dataframe.loc[
@@ -95,9 +94,7 @@ def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
 
     return dataframe
 ```
-
-After:
-
+後：
 ```python hl_lines="1 9"
 def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     dataframe.loc[
@@ -111,14 +108,12 @@ def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFram
 
     return dataframe
 ```
-
-Please refer to the [Strategy documentation](strategy-customization.md#entry-signal-rules) on how to enter and exit short trades.
+ショートトレードのエントリーおよびエグジット方法については、[Strategy ドキュメント](strategy-customization.md#entry-signal-rules) を参照してください。
 
 ### `populate_sell_trend`
 
-Similar to `populate_buy_trend`, `populate_sell_trend()` will be renamed to `populate_exit_trend()`.
-We'll also change the column from `'sell'` to `'exit_long'`.
-
+`populate_buy_trend` と同様に、`populate_sell_trend()` は `populate_exit_trend()` に名前が変更されます。
+また、列を「sell」から「exit_long」に変更します。
 ``` python hl_lines="1 9"
 def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     dataframe.loc[
@@ -131,9 +126,7 @@ def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame
         ['sell', 'exit_tag']] = (1, 'some_exit_tag')
     return dataframe
 ```
-
-After
-
+後
 ``` python hl_lines="1 9"
 def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
     dataframe.loc[
@@ -146,14 +139,12 @@ def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame
         ['exit_long', 'exit_tag']] = (1, 'some_exit_tag')
     return dataframe
 ```
+ショートトレードのエントリーおよびエグジット方法については、[Strategy ドキュメント](strategy-customization.md#exit-signal-rules) を参照してください。
 
-Please refer to the [Strategy documentation](strategy-customization.md#exit-signal-rules) on how to enter and exit short trades.
+### `カスタム販売`
 
-### `custom_sell`
-
-`custom_sell` has been renamed to `custom_exit`.
-It's now also being called for every iteration, independent of current profit and `exit_profit_only` settings.
-
+「custom_sell」は「custom_exit」に名前が変更されました。
+また、現在の利益や「exit_profit_only」設定とは関係なく、反復ごとに呼び出されるようになりました。
 ``` python hl_lines="2"
 class AwesomeStrategy(IStrategy):
     def custom_sell(self, pair: str, trade: 'Trade', current_time: 'datetime', current_rate: float,
@@ -171,11 +162,9 @@ class AwesomeStrategy(IStrategy):
         last_candle = dataframe.iloc[-1].squeeze()
         # ...
 ```
-
 ### `custom_entry_timeout`
 
-`check_buy_timeout()` has been renamed to `check_entry_timeout()`, and `check_sell_timeout()` has been renamed to `check_exit_timeout()`.
-
+`check_buy_timeout()` は `check_entry_timeout()` に名前が変更され、`check_sell_timeout()` は `check_exit_timeout()` に名前が変更されました。
 ``` python hl_lines="2 6"
 class AwesomeStrategy(IStrategy):
     def check_buy_timeout(self, pair: str, trade: 'Trade', order: dict, 
@@ -197,11 +186,9 @@ class AwesomeStrategy(IStrategy):
                             current_time: datetime, **kwargs) -> bool:
         return False 
 ```
-
 ### `custom_stake_amount`
 
-New string argument `side` - which can be either `"long"` or `"short"`.
-
+新しい文字列引数 `side` - `"long"` または `"short"` のいずれかになります。
 ``` python hl_lines="4"
 class AwesomeStrategy(IStrategy):
     def custom_stake_amount(self, pair: str, current_time: datetime, current_rate: float,
@@ -219,11 +206,9 @@ class AwesomeStrategy(IStrategy):
         # ... 
         return proposed_stake
 ```
-
 ### `confirm_trade_entry`
 
-New string argument `side` - which can be either `"long"` or `"short"`.
-
+新しい文字列引数 `side` - `"long"` または `"short"` のいずれかになります。
 ``` python hl_lines="4"
 class AwesomeStrategy(IStrategy):
     def confirm_trade_entry(self, pair: str, order_type: str, amount: float, rate: float,
@@ -231,9 +216,7 @@ class AwesomeStrategy(IStrategy):
                             **kwargs) -> bool:
       return True
 ```
-
-After: 
-
+後：
 ``` python hl_lines="4"
 class AwesomeStrategy(IStrategy):
     def confirm_trade_entry(self, pair: str, order_type: str, amount: float, rate: float,
@@ -241,12 +224,10 @@ class AwesomeStrategy(IStrategy):
                             side: str, **kwargs) -> bool:
       return True
 ```
-
 ### `confirm_trade_exit`
 
-Changed argument `sell_reason` to `exit_reason`.
-For compatibility, `sell_reason` will still be provided for a limited time.
-
+引数「sell_reason」を「exit_reason」に変更しました。
+互換性のため、`sell_reason` は引き続き期間限定で提供されます。
 ``` python hl_lines="3"
 class AwesomeStrategy(IStrategy):
     def confirm_trade_exit(self, pair: str, trade: Trade, order_type: str, amount: float,
@@ -254,9 +235,7 @@ class AwesomeStrategy(IStrategy):
                            current_time: datetime, **kwargs) -> bool:
     return True
 ```
-
-After:
-
+後：
 ``` python hl_lines="3"
 class AwesomeStrategy(IStrategy):
     def confirm_trade_exit(self, pair: str, trade: Trade, order_type: str, amount: float,
@@ -264,36 +243,30 @@ class AwesomeStrategy(IStrategy):
                            current_time: datetime, **kwargs) -> bool:
     return True
 ```
-
 ### `custom_entry_price`
 
-New string argument `side` - which can be either `"long"` or `"short"`.
-
+新しい文字列引数 `side` - `"long"` または `"short"` のいずれかになります。
 ``` python hl_lines="3"
 class AwesomeStrategy(IStrategy):
     def custom_entry_price(self, pair: str, current_time: datetime, proposed_rate: float,
                            entry_tag: Optional[str], **kwargs) -> float:
       return proposed_rate
 ```
-
-After:
-
+後：
 ``` python hl_lines="3"
 class AwesomeStrategy(IStrategy):
     def custom_entry_price(self, pair: str, trade: Trade | None, current_time: datetime, proposed_rate: float,
                            entry_tag: str | None, side: str, **kwargs) -> float:
       return proposed_rate
 ```
+### トレードポジションの変更を調整する
 
-### Adjust trade position changes
+Adjust-trade-position自体は変更されませんでしたが、`trade.nr_of_successful_buys`を使用するのではなく、代わりにショートエントリーも含まれる`trade.nr_of_successful_entries`を使用する必要があります。
 
-While adjust-trade-position itself did not change, you should no longer use `trade.nr_of_successful_buys` - and instead use `trade.nr_of_successful_entries`, which will also include short entries.
+### ヘルパー メソッド
 
-### Helper methods
-
-Added argument "is_short" to `stoploss_from_open` and `stoploss_from_absolute`.
-This should be given the value of `trade.is_short`.
-
+引数「is_short」を「stoploss_from_open」と「stoploss_from_absolute」に追加しました。
+これには「trade.is_short」の値を指定する必要があります。
 ``` python hl_lines="5 7"
     def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
                         current_rate: float, current_profit: float, **kwargs) -> float:
@@ -306,9 +279,7 @@ This should be given the value of `trade.is_short`.
         return 1
 
 ```
-
-After:
-
+後：
 ``` python hl_lines="5 7"
     def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
                         current_rate: float, current_profit: float, after_fill: bool, 
@@ -321,34 +292,28 @@ After:
 
 
 ```
-
-### Strategy/Configuration settings
+### 戦略/構成設定
 
 #### `order_time_in_force`
 
-`order_time_in_force` attributes changed from `"buy"` to `"entry"` and `"sell"` to `"exit"`.
-
+`order_time_in_force` 属性が `"buy"` から `"entry"` に、および `"sell"` から `"exit"` に変更されました。
 ``` python
     order_time_in_force: dict = {
         "buy": "gtc",
         "sell": "gtc",
     }
 ```
-
-After:
-
+後：
 ``` python hl_lines="2 3"
     order_time_in_force: dict = {
         "entry": "GTC",
         "exit": "GTC",
     }
 ```
-
 #### `order_types`
 
-`order_types` have changed all wordings from `buy` to `entry` - and `sell` to `exit`.
-And two words are joined with `_`. 
-
+`order_types` はすべての文言を `buy` から `entry` に、そして `sell` から `exit` に変更しました。
+そして2つの単語は「_」で結ばれます。
 ``` python hl_lines="2-6"
     order_types = {
         "buy": "limit",
@@ -361,9 +326,7 @@ And two words are joined with `_`.
         "stoploss_on_exchange_interval": 60
     }
 ```
-
-After:
-
+後：
 ``` python hl_lines="2-6"
     order_types = {
         "entry": "limit",
@@ -376,14 +339,12 @@ After:
         "stoploss_on_exchange_interval": 60
     }
 ```
-
-#### Strategy level settings
+#### 戦略レベルの設定
 
 * `use_sell_signal` -> `use_exit_signal`
 * `sell_profit_only` -> `exit_profit_only`
 * `sell_profit_offset` -> `exit_profit_offset`
 * `ignore_roi_if_buy_signal` -> `ignore_roi_if_entry_signal`
-
 ``` python hl_lines="2-5"
     # These values can be overridden in the config.
     use_sell_signal = True
@@ -391,9 +352,7 @@ After:
     sell_profit_offset: 0.01
     ignore_roi_if_buy_signal = False
 ```
-
-After:
-
+後：
 ``` python hl_lines="2-5"
     # These values can be overridden in the config.
     use_exit_signal = True
@@ -401,11 +360,9 @@ After:
     exit_profit_offset: 0.01
     ignore_roi_if_entry_signal = False
 ```
-
 #### `unfilledtimeout`
 
-`unfilledtimeout` have changed all wordings from `buy` to `entry` - and `sell` to `exit`.
-
+「unfilledtimeout」はすべての文言を「買い」から「エントリー」に、「売り」から「退出」に変更しました。
 ``` python hl_lines="2-3"
 unfilledtimeout = {
         "buy": 10,
@@ -414,9 +371,7 @@ unfilledtimeout = {
         "unit": "minutes"
     }
 ```
-
-After:
-
+後：
 ``` python hl_lines="2-3"
 unfilledtimeout = {
         "entry": 10,
@@ -425,14 +380,12 @@ unfilledtimeout = {
         "unit": "minutes"
     }
 ```
+#### 「注文価格」
 
-#### `order pricing`
-
-Order pricing changed in 2 ways. `bid_strategy` was renamed to `entry_pricing` and `ask_strategy` was renamed to `exit_pricing`.
-The attributes `ask_last_balance` -> `price_last_balance` and `bid_last_balance` -> `price_last_balance` were renamed as well.
-Also, price-side can now be defined as `ask`, `bid`, `same` or `other`.
-Please refer to the [pricing documentation](configuration.md#prices-used-for-orders) for more information.
-
+注文価格は 2 つの方法で変更されました。 「bid_strategy」は「entry_pricing」に、「ask_strategy」は「exit_pricing」に名前が変更されました。
+属性 `ask_last_balance` -> `price_last_balance` および `bid_last_balance` -> `price_last_balance` も同様に名前変更されました。
+また、価格側を「ask」、「bid」、「same」、または「other」として定義できるようになりました。
+詳細については、[価格設定ドキュメント](configuration.md#prices-used-for-orders) を参照してください。
 ``` json hl_lines="2-3 6 12-13 16"
 {
     "bid_strategy": {
@@ -454,9 +407,7 @@ Please refer to the [pricing documentation](configuration.md#prices-used-for-ord
     }
 }
 ```
-
-after:
-
+後：
 ``` json  hl_lines="2-3 6 12-13 16"
 {
     "entry_pricing": {
@@ -478,16 +429,14 @@ after:
     "ignore_buying_expired_candle_after": 120
 }
 ```
+## FreqAI 戦略
 
-## FreqAI strategy
+`populate_any_indicators()` メソッドは、`feature_engineering_expand_all()`、`feature_engineering_expand_basic()`、`feature_engineering_standard()`、`set_freqai_targets()` に分割されました。
 
-The `populate_any_indicators()` method has been split into `feature_engineering_expand_all()`, `feature_engineering_expand_basic()`, `feature_engineering_standard()` and`set_freqai_targets()`.
+新しい関数ごとに、ペア (および必要に応じて時間枠) が列に自動的に追加されます。
+そのため、新しいロジックを使用すると、機能の定義がはるかに簡単になります。
 
-For each new function, the pair (and timeframe where necessary) will be automatically added to the column.
-As such, the definition of features becomes much simpler with the new logic.
-
-For a full explanation of each method, please go to the corresponding [freqAI documentation page](freqai-feature-engineering.md#defining-the-features)
-
+各メソッドの完全な説明については、対応する [freqAI ドキュメント ページ](freqai-feature-engineering.md#defining-the-features) にアクセスしてください。
 ``` python linenums="1" hl_lines="12-37 39-42 63-65 67-75"
 
 def populate_any_indicators(
@@ -568,16 +517,14 @@ def populate_any_indicators(
 
         return df
 ```
+1. 機能 - `feature_engineering_expand_all` に移動します
+2. 基本機能。「indicator_periods_candles」全体では拡張されていません - 「feature_engineering_expand_basic()」に移動します。
+3. 拡張すべきではない標準機能 - `feature_engineering_standard()` に移動します。
+4. ターゲット - この部分を `set_freqai_targets()` に移動します。
 
-1. Features - Move to `feature_engineering_expand_all`
-2. Basic features, not expanded across `indicator_periods_candles` - move to`feature_engineering_expand_basic()`.
-3. Standard features which should not be expanded - move to `feature_engineering_standard()`.
-4. Targets - Move this part to `set_freqai_targets()`.
+### freqai - 特徴エンジニアリング すべて展開
 
-### freqai - feature engineering expand all
-
-Features will now expand automatically. As such, the expansion loops, as well as the `{pair}` / `{timeframe}` parts will need to be removed.
-
+機能は自動的に拡張されるようになりました。そのため、拡張ループと `{pair}` / `{timeframe}` 部分を削除する必要があります。
 ``` python linenums="1"
     def feature_engineering_expand_all(self, dataframe, period, **kwargs) -> DataFrame::
         """
@@ -633,11 +580,9 @@ Features will now expand automatically. As such, the expansion loops, as well as
         return dataframe
 
 ```
+### Freqai - 特徴量エンジニアリングの基礎
 
-### Freqai - feature engineering basic
-
-Basic features. Make sure to remove the `{pair}` part from your features.
-
+基本的な機能。機能から `{pair}` 部分を必ず削除してください。
 ``` python linenums="1"
     def feature_engineering_expand_basic(self, dataframe: DataFrame, **kwargs) -> DataFrame::
         """
@@ -670,9 +615,7 @@ Basic features. Make sure to remove the `{pair}` part from your features.
         dataframe["%-raw_price"] = dataframe["close"]
         return dataframe
 ```
-
-### FreqAI - feature engineering standard
-
+### FreqAI - 特徴エンジニアリング標準
 ``` python linenums="1"
     def feature_engineering_standard(self, dataframe: DataFrame, **kwargs) -> DataFrame:
         """
@@ -699,11 +642,9 @@ Basic features. Make sure to remove the `{pair}` part from your features.
         dataframe["%-hour_of_day"] = dataframe["date"].dt.hour
         return dataframe
 ```
+### FreqAI - ターゲットの設定
 
-### FreqAI - set Targets
-
-Targets now get their own, dedicated method.
-
+ターゲットは独自の専用メソッドを取得できるようになりました。
 ``` python linenums="1"
     def set_freqai_targets(self, dataframe: DataFrame, **kwargs) -> DataFrame:
         """
@@ -729,14 +670,11 @@ Targets now get their own, dedicated method.
 
         return dataframe
 ```
+### FreqAI - 新しいデータ パイプライン
 
+カスタム `train()`/`predict()` 関数を使用して独自のカスタム `IFreqaiModel` を作成し、*かつ* まだ `data_cleaning_train/predict()` に依存している場合は、新しいパイプラインに移行する必要があります。モデルが `data_cleaning_train/predict()` に依存していない場合は、この移行について心配する必要はありません。つまり、この移行ガイドが関係するのはごく一部のパワー ユーザーです。誤ってこのガイドに遭遇した場合は、Freqtrade discord サーバーで問題について詳しく問い合わせてください。
 
-### FreqAI - New data Pipeline
-
-If you have created your own custom `IFreqaiModel` with a custom `train()`/`predict()` function, *and* you still rely on `data_cleaning_train/predict()`, then you will need to migrate to the new pipeline. If your model does *not* rely on `data_cleaning_train/predict()`, then you do not need to worry about this migration. That means that this migration guide is relevant for a very small percentage of power-users. If you stumbled upon this guide by mistake, feel free to inquire in depth about your problem in the Freqtrade discord server.
-
-The conversion involves first removing `data_cleaning_train/predict()` and replacing them with a `define_data_pipeline()` and `define_label_pipeline()` function to your `IFreqaiModel` class:
-
+変換では、まず「data_cleaning_train/predict()」を削除し、「IFreqaiModel」クラスの「define_data_pipeline()」および「define_label_pipeline()」関数に置き換えます。
 ```python  linenums="1" hl_lines="11-14 47-49 55-57"
 class MyCoolFreqaiModel(BaseRegressionModel):
     """
@@ -807,8 +745,6 @@ class MyCoolFreqaiModel(BaseRegressionModel):
         # ... your custom code
         return (pred_df, dk.do_predict)
 ```
-
-
-1. Data normalization and cleaning is now homogenized with the new pipeline definition. This is created in the new `define_data_pipeline()` and `define_label_pipeline()` functions. The `data_cleaning_train()` and `data_cleaning_predict()` functions are no longer used. You can override `define_data_pipeline()` to create your own custom pipeline if you wish.
-2. Data normalization and cleaning is now homogenized with the new pipeline definition. This is created in the new `define_data_pipeline()` and `define_label_pipeline()` functions. The `data_cleaning_train()` and `data_cleaning_predict()` functions are no longer used. You can override `define_data_pipeline()` to create your own custom pipeline if you wish.
-3. Data denormalization is done with the new pipeline. Replace this with the lines below.
+1. データの正規化とクリーニングが新しいパイプライン定義で均一化されました。これは、新しい `define_data_pipeline()` 関数と `define_label_pipeline()` 関数で作成されます。 `data_cleaning_train()` 関数と `data_cleaning_predict()` 関数は使用されなくなりました。必要に応じて、「define_data_pipeline()」をオーバーライドして独自のカスタム パイプラインを作成できます。
+2. データの正規化とクリーニングが新しいパイプライン定義で均一化されました。これは、新しい `define_data_pipeline()` 関数と `define_label_pipeline()` 関数で作成されます。 `data_cleaning_train()` 関数と `data_cleaning_predict()` 関数は使用されなくなりました。必要に応じて、「define_data_pipeline()」をオーバーライドして独自のカスタム パイプラインを作成できます。
+3. データの非正規化は新しいパイプラインで行われます。これを以下の行に置き換えます。

@@ -33,10 +33,10 @@ ipython kernel install --user --name=freqtrade
 # Restart jupyter (lab / notebook)
 # select kernel "freqtrade" in the notebook
 ```
-!!!注記
+!!! 注記
     このセクションは完全を期すために提供されており、Freqtrade チームはこのセットアップに関する問題に対して完全なサポートを提供しません。また、Jupyter ノートブックを起動して実行する最も簡単な方法である仮想環境に Jupyter を直接インストールすることをお勧めします。この設定に関するヘルプについては、[Project Jupyter](https://jupyter.org/) [ドキュメント](https://jupyter.org/documentation) または [ヘルプ チャネル](https://jupyter.org/community) を参照してください。
 
-!!!警告
+!!! 警告
     一部のタスクはノートブックでは特にうまく機能しません。たとえば、非同期実行を使用するものはすべて、Jupyter にとって問題になります。また、freqtrade の主なエントリ ポイントはシェル cli であるため、ノートブックで純粋な Python を使用すると、ヘルパー関数に必要なオブジェクトとパラメーターを提供する引数がバイパスされます。これらの値を設定するか、必要なオブジェクトを手動で作成する必要がある場合があります。
 
 ## 推奨されるワークフロー

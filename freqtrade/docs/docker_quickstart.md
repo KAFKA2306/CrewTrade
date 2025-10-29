@@ -10,7 +10,7 @@
 * [Windows](https://docs.docker.com/docker-for-windows/install/)
 * [Linux](https://docs.docker.com/install/)
 
-!!!情報「Docker Compose インストール」
+!!! 情報「Docker Compose インストール」
     Freqtrade のドキュメントでは、Docker デスクトップ (または docker compose プラグイン) の使用を前提としています。  
     docker-compose スタンドアロン インストールはまだ機能しますが、機能するにはすべての `docker compose` コマンドを `docker compose` から `docker-compose` に変更する必要があります (たとえば、`docker compose up -d` は `docker-compose up -d` になります)。
 
@@ -21,7 +21,7 @@
 
 Freqtrade は、[Dockerhub](https://hub.docker.com/r/freqtradeorg/freqtrade/) で公式の Docker イメージを提供しており、すぐに使用できる [docker compose ファイル](https://github.com/freqtrade/freqtrade/blob/stable/docker-compose.yml) も提供しています。
 
-!!!注記
+!!! 注記
     - 次のセクションでは、「docker」がインストールされており、ログインしたユーザーが使用できることを前提としています。
     - 以下のすべてのコマンドは相対ディレクトリを使用するため、`docker-compose.yml` ファイルを含むディレクトリから実行する必要があります。
 
@@ -46,7 +46,7 @@ docker compose run --rm freqtrade new-config --config user_data/config.json
 上記のスニペットは、「ft_userdata」という新しいディレクトリを作成し、最新の構成ファイルをダウンロードして、freqtrade イメージをプルします。
 スニペットの最後の 2 つのステップでは、`user_data` を含むディレクトリと、選択に基づいたデフォルト設定を (対話的に) 作成します。
 
-!!!質問「ボットの設定を編集するにはどうすればよいですか?」
+!!! 質問「ボットの設定を編集するにはどうすればよいですか?」
     構成はいつでも編集できます。上記の構成を使用する場合、この構成は `user_data/config.json` (ディレクトリ `ft_userdata` 内) として利用できます。
 
     `docker-compose.yml` ファイルのコマンド セクションを編集して、ストラテジーとコマンドの両方を変更することもできます。
@@ -59,7 +59,7 @@ docker compose run --rm freqtrade new-config --config user_data/config.json
 
 「SampleStrategy」はデフォルトで実行されます。
 
-!!!危険「『SampleStrategy』は単なるデモです!」
+!!! 危険「『SampleStrategy』は単なるデモです!」
     「SampleStrategy」は参照用にあり、独自の戦略のアイデアを提供します。
     リアルマネーを危険にさらす前に、常に戦略をバックテストし、しばらく予行演習を行ってください。
     戦略開発の詳細については、[戦略ドキュメント](strategy-customization.md) を参照してください。
@@ -68,7 +68,7 @@ docker compose run --rm freqtrade new-config --config user_data/config.json
 ``` bash
 docker compose up -d
 ```
-!!!警告「デフォルト設定」
+!!! 警告「デフォルト設定」
     生成された構成はほとんど機能しますが、ボットを開始する前に、すべてのオプションが希望するもの (価格設定、ペアリストなど) に対応していることを確認する必要があります。
 
 #### UI へのアクセス
@@ -108,7 +108,7 @@ docker compose up -d
 ```
 これにより、最初に最新のイメージがプルされ、次にプルされたばかりのバージョンでコンテナーが再起動されます。
 
-!!!警告「変更ログを確認してください」
+!!! 警告「変更ログを確認してください」
     重大な変更や必要な手動介入がないか常に変更ログを確認し、更新後にボットが正しく起動することを確認する必要があります。
 
 ### docker-compose ファイルの編集
@@ -117,7 +117,7 @@ docker compose up -d
 
 すべての freqtrade 引数は、「docker compose run --rm freqtrade <command> <optional argument>」を実行することで利用可能になります。
 
-!!!警告「取引コマンドの「docker compose」」
+!!! 警告「取引コマンドの「docker compose」」
     取引コマンド (`freqtrade trade <...>`) は、`docker compose run` を介して実行されるべきではなく、代わりに `docker compose up -d` を使用する必要があります。
     これにより、コンテナーが適切に開始されていること (ポート転送を含む) が確認され、システムの再起動後にコンテナーが確実に再起動されます。
     freqUI を使用する場合は、[それに応じて設定](rest-api.md#configuration-with-docker) も必ず調整してください。そうしないと、UI が使用できなくなります。
@@ -201,6 +201,6 @@ docker compose -f docker/docker-compose-jupyter.yml build --no-cache
   Windows を使用していて、Docker (デスクトップ) をインストールしたばかりの場合は、必ずシステムを再起動してください。 Docker を再起動しないと、ネットワーク接続に問題が発生する可能性があります。
   当然、[設定](#accessing-the-ui) もそれに応じて設定する必要があります。
 
-!!!警告
+!!! 警告
     上記の理由により、本番環境のセットアップでは Windows で Docker を使用することはお勧めしません。実験、データダウンロード、バックテストの場合にのみ使用してください。
     freqtrade を確実に実行するには、linux-VPS を使用するのが最適です。

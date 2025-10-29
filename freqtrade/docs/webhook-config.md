@@ -5,7 +5,6 @@
 設定ファイルにwebhookセクションを追加し、`webhook.enabled`を`true`に設定してwebhookを有効にします。
 
 サンプル設定（IFTTTを使用してテスト済み）。
-
 ```json
   "webhook": {
         "enabled": true,
@@ -47,11 +46,9 @@
         }
     },
 ```
-
 `webhook.url`のURLは、webhookの正しいURLを指している必要があります。[IFTTT](https://ifttt.com)を使用している場合（上記のサンプルで示されているように）、イベントとキーをURLに挿入してください。
 
 POSTボディの形式をフォームエンコード（デフォルト）、JSONエンコード、または生データに設定できます。それぞれ`"format": "form"`、`"format": "json"`、または`"format": "raw"`を使用します。Mattermost Cloud統合のサンプル設定：
-
 ```json
   "webhook": {
         "enabled": true,
@@ -62,11 +59,9 @@ POSTボディの形式をフォームエンコード（デフォルト）、JSON
         }
     },
 ```
-
 結果は、たとえば`{"text":"ステータス：実行中"}`ボディと`Content-Type: application/json`ヘッダーを持つPOSTリクエストになり、Mattermostチャネルに`ステータス：実行中`メッセージが表示されます。
 
 フォームエンコードまたはJSONエンコード設定を使用する場合、任意の数のペイロード値を設定でき、キーと値の両方がPOSTリクエストに出力されます。ただし、生データ形式を使用する場合、1つの値しか設定できず、**必ず**`"data"`という名前を付ける必要があります。この場合、データキーはPOSTリクエストに出力されず、値のみが出力されます。例：
-
 ```json
   "webhook": {
         "enabled": true,
@@ -77,7 +72,6 @@ POSTボディの形式をフォームエンコード（デフォルト）、JSON
         }
     },
 ```
-
 結果は、たとえば`ステータス：実行中`ボディと`Content-Type: text/plain`ヘッダーを持つPOSTリクエストになります。
 
 ### ネストされたWebhook設定
@@ -86,7 +80,6 @@ POSTボディの形式をフォームエンコード（デフォルト）、JSON
 これは、コンテンツをテキストとして直接ではなく、辞書またはリストとして設定することで実現できます。
 
 これはJSON形式でのみサポートされています。
-
 ```json
 "webhook": {
     "enabled": true,
@@ -100,7 +93,6 @@ POSTボディの形式をフォームエンコード（デフォルト）、JSON
     }
 }
 ```
-
 結果は、たとえば`{"msgtype":"text","text":{"content":"ステータス更新：実行中"}}`ボディと`Content-Type: application/json`ヘッダーを持つPOSTリクエストになります。
 
 ## 追加設定
@@ -109,7 +101,6 @@ POSTボディの形式をフォームエンコード（デフォルト）、JSON
 `webhook.timeout`を指定することもできます。これは、ボットが他のホストを応答しないと見なすまで待機する時間を定義します（デフォルトは10秒）。
 
 再試行のサンプル設定：
-
 ```json
   "webhook": {
         "enabled": true,
@@ -122,9 +113,7 @@ POSTボディの形式をフォームエンコード（デフォルト）、JSON
         }
     },
 ```
-
 カスタムメッセージは、戦略内から`self.dp.send_msg()`関数を介してWebhookエンドポイントに送信できます。これを有効にするには、`allow_custom_messages`オプションを`true`に設定します。
-
 ```json
   "webhook": {
         "enabled": true,
@@ -135,7 +124,6 @@ POSTボディの形式をフォームエンコード（デフォルト）、JSON
         }
     },
 ```
-
 さまざまなイベントに対してさまざまなペイロードを設定できます。すべてのフィールドが必要なわけではありませんが、少なくとも1つの辞書を設定する必要があります。そうしないと、webhookは呼び出されません。
 
 ## Webhookメッセージタイプ
@@ -251,7 +239,6 @@ POSTボディの形式をフォームエンコード（デフォルト）、JSON
 
 Discordでは特別な形式のWebhookが利用できます。
 これは次のように設定できます。
-
 ```json
 "discord": {
     "enabled": true,
@@ -286,7 +273,6 @@ Discordでは特別な形式のWebhookが利用できます。
     ]
 }
 ```
-
 上記はデフォルトを表します（`exit_fill`および`entry_fill`はオプションであり、上記の設定にデフォルト設定されます）。もちろん変更も可能です。
 2つのデフォルト値（`entry_fill` / `exit_fill`）のいずれかを無効にするには、空の配列を割り当てることができます（`exit_fill: []`）。
 
@@ -297,7 +283,6 @@ Discordでは特別な形式のWebhookが利用できます。
 ![discord-notification](assets/discord_notification.png)
 
 カスタムメッセージは、dataprovider.send_msg()関数を介して戦略からDiscordエンドポイントに送信できます。これを有効にするには、`allow_custom_messages`オプションを`true`に設定します。
-
 ```json
   "discord": {
         "enabled": true,

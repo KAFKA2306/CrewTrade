@@ -218,7 +218,7 @@ $$ W_i = \exp(\frac{-i}{\alpha*n}) $$
 
 デフォルトでは、FreqAI はユーザー構成設定に基づいて動的パイプラインを構築します。デフォルト設定は堅牢で、さまざまな方法で動作するように設計されています。これら 2 つのステップは、`MinMaxScaler(-1,1)` と、分散が 0 の列を削除する `VarianceThreshold` です。ユーザーは、より多くの構成パラメータを使用して他のステップをアクティブ化できます。たとえば、ユーザーが「use_SVM_to_remove_outliers: true」を「freqai」設定に追加すると、FreqAI は自動的に [`SVMOutlierExtractor`](#identifying-outliers-using-a-support-vector-machine-svm) をパイプラインに追加します。同様に、ユーザーは「principal_component_analysis: true」を「freqai」設定に追加して PCA をアクティブ化できます。 [DissimilarityIndex](#identifying-outliers-with-the-dissimilarity-index-di) は、「DI_threshold: 1」でアクティブになります。最後に、「noise_standard_deviation: 0.1」を使用してデータにノイズを追加することもできます。最後に、ユーザーは「use_DBSCAN_to_remove_outliers: true」を使用して [DBSCAN](#identifying-outliers-with-dbscan) 外れ値の除去を追加できます。
 
-!!!注「さらに詳しい情報が利用可能です」
+!!! 注「さらに詳しい情報が利用可能です」
     これらのパラメータの詳細については、[パラメータ テーブル](freqai-parameter-table.md)を参照してください。
 
 
@@ -226,7 +226,7 @@ $$ W_i = \exp(\frac{-i}{\alpha*n}) $$
 
 ユーザーは、独自のデータ パイプラインを構築して、ニーズに合わせてデータ パイプラインをカスタマイズすることをお勧めします。これは、`IFreqaiModel` の `train()` 関数内の目的の `Pipeline` オブジェクトに `dk.feature_pipeline` を設定するだけで実行できます。または、`train()` 関数に触れたくない場合は、`IFreqaiModel` の `define_data_pipeline`/`define_label_pipeline` 関数をオーバーライドすることもできます。
 
-!!!注「さらに詳しい情報が利用可能です」
+!!! 注「さらに詳しい情報が利用可能です」
     FreqAI は [`DataSieve`](https://github.com/emergentmethods/datasieve) パイプラインを使用します。これは SKlearn パイプライン API に従いますが、他の機能の中でも、X、y、sample_weight ベクトル点の削除、特徴の削除、特徴名の後の一貫性が追加されています。
 ```python
 from datasieve.transforms import SKLearnWrapper, DissimilarityIndex

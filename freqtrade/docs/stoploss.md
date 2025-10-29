@@ -1,90 +1,87 @@
-# Stop Loss
+# ストップロス
 
-The `stoploss` configuration parameter is loss as ratio that should trigger a sale.
-For example, value `-0.10` will cause immediate sell if the profit dips below -10% for a given trade. This parameter is optional.
-Stoploss calculations do include fees, so a stoploss of -10% is placed exactly 10% below the entry point.
+「stoploss」設定パラメータは、販売をトリガーする損失率です。
+たとえば、特定の取引で利益が -10% を下回った場合、値「-0.10」では即時売却が行われます。このパラメータはオプションです。
+ストップロスの計算には手数料が含まれるため、-10% のストップロスはエントリー ポイントのちょうど 10% 下に配置されます。
 
-Most of the strategy files already include the optimal `stoploss` value.
+ほとんどの戦略ファイルには、最適な「ストップロス」値がすでに含まれています。
 
 !!! Info
-    All stoploss properties mentioned in this file can be set in the Strategy, or in the configuration.  
-    <ins>Configuration values will override the strategy values.</ins>
+    このファイルに記載されているすべてのストップロス プロパティは、ストラテジーまたは構成で設定できます。  
+    <ins>構成値は戦略値をオーバーライドします。</ins>
 
-## Stop Loss On-Exchange/Freqtrade
+## 取引所/Freqtrade でのストップロス
 
-Those stoploss modes can be *on exchange* or *off exchange*.
+これらのストップロス モードは *取引所* または *取引所外* にすることができます。
 
-These modes can be configured with these values:
-
+これらのモードは次の値で構成できます。
 ``` python
     'emergency_exit': 'market',
     'stoploss_on_exchange': False
     'stoploss_on_exchange_interval': 60,
     'stoploss_on_exchange_limit_ratio': 0.99
 ```
+取引所のストップロスは次の取引所でのみサポートされており、すべての取引所がストップリミットとストップマーケットの両方をサポートしているわけではありません。
+使用可能なモードが 1 つだけの場合、Order-type は無視されます。
 
-Stoploss on exchange is only supported for the following exchanges, and not all exchanges support both stop-limit and stop-market.
-The Order-type will be ignored if only one mode is available.
-
-??? info "Supported exchanges and stoploss types"
+??? info「サポートされている取引所とストップロスのタイプ」
     
     --8<-- "includes/exchange-features.md"
 
-!!! Note "Tight stoploss"
-    <ins>Do not set too low/tight stoploss value when using stop loss on exchange!</ins>  
-    If set to low/tight you will have greater risk of missing fill on the order and stoploss will not work.
+!!! Note "タイトなストップロス"
+    <ins>取引所でストップロスを使用する場合は、ストップロス値を低すぎたり、きつすぎたりしないでください。</ins>  
+    低く/タイトに設定すると、注文で約定を逃すリスクが大きくなり、ストップロスが機能しなくなります。
 
-### stoploss_on_exchange and stoploss_on_exchange_limit_ratio
+### stoploss_on_exchange と stoploss_on_exchange_limit_ratio
 
-Enable or Disable stop loss on exchange.
-If the stoploss is *on exchange* it means a stoploss limit order is placed on the exchange immediately after buy order fills. This will protect you against sudden crashes in market, as the order execution happens purely within the exchange, and has no potential network overhead.
+為替のストップロスを有効または無効にします。
+ストップロスが *取引所上* にある場合、買い注文が約定した直後にストップロスの指値注文が取引所に発注されることを意味します。これにより、注文の実行は純粋に取引所内で行われ、ネットワークのオーバーヘッドが発生する可能性がないため、市場の突然の暴落から保護されます。
 
-If `stoploss_on_exchange` uses limit orders, the exchange needs 2 prices, the stoploss_price and the Limit price.  
-`stoploss` defines the stop-price where the limit order is placed - and limit should be slightly below this.  
-If an exchange supports both limit and market stoploss orders, then the value of `stoploss` will be used to determine the stoploss type.  
+「stoploss_on_exchange」が指値注文を使用する場合、取引所には stoploss_price と Limit 価格の 2 つの価格が必要です。  
+「ストップロス」は、指値注文が行われるストップ価格を定義します。指値はこれをわずかに下回る必要があります。  
+取引所が指値注文と市場ストップロス注文の両方をサポートしている場合、「ストップロス」の値を使用してストップロスのタイプが決定されます。  
 
-Calculation example: we bought the asset at 100\$.  
-Stop-price is 95\$, then limit would be `95 * 0.99 = 94.05$` - so the limit order fill can happen between 95$ and 94.05$.  
+計算例: 資産を 100\$ で購入しました。  
+ストップ価格が 95\$ の場合、指値は `95 * 0.99 = 94.05$` になります。したがって、指値注文約定は 95$ と 94.05$ の間で発生する可能性があります。  
 
-For example, assuming the stoploss is on exchange, and trailing stoploss is enabled, and the market is going up, then the bot automatically cancels the previous stoploss order and puts a new one with a stop value higher than the previous stoploss order.
+たとえば、ストップロスが取引所にあり、トレーリング ストップロスが有効で、市場が上昇していると仮定すると、ボットは自動的に前のストップロス注文をキャンセルし、前のストップロス注文よりも高いストップ値で新しい注文を発注します。
 
 !!! Note
-    If `stoploss_on_exchange` is enabled and the stoploss is cancelled manually on the exchange, then the bot will create a new stoploss order.
+    「stoploss_on_exchange」が有効で、ストップロスが取引所で手動でキャンセルされた場合、ボットは新しいストップロス注文を作成します。
 
 ### stoploss_on_exchange_interval
 
-In case of stoploss on exchange there is another parameter called `stoploss_on_exchange_interval`. This configures the interval in seconds at which the bot will check the stoploss and update it if necessary.  
-The bot cannot do these every 5 seconds (at each iteration), otherwise it would get banned by the exchange.
-So this parameter will tell the bot how often it should update the stoploss order. The default value is 60 (1 minute).
-This same logic will reapply a stoploss order on the exchange should you cancel it accidentally.
+取引所でのストップロスの場合は、「stoploss_on_exchange_interval」と呼ばれる別のパラメーターがあります。これは、ボットがストップロスをチェックし、必要に応じて更新する間隔を秒単位で構成します。  
+ボットはこれらを 5 秒ごと (反復ごと) に行うことはできません。そうしないと、取引所によって禁止されてしまいます。
+したがって、このパラメーターはボットにストップロス注文を更新する頻度を指示します。デフォルト値は 60 (1 分) です。
+誤ってキャンセルした場合、これと同じロジックで取引所にストップロス注文が再適用されます。
 
 ### stoploss_price_type
 
-!!! Warning "Only applies to futures"
-    `stoploss_price_type` only applies to futures markets (on exchanges where it's available).
-    Freqtrade will perform a validation of this setting on startup, failing to start if an invalid setting for your exchange has been selected.
-    Supported price types are gonna differs between each exchanges. Please check with your exchange on which price types it supports.
+!!! Warning "先物のみに適用されます"
+    「stoploss_price_type」は、先物市場 (利用可能な取引所) にのみ適用されます。
+    Freqtrade は起動時にこの設定の検証を実行します。取引所に対して無効な設定が選択されている場合は起動に失敗します。
+サポートされる価格タイプは取引所ごとに異なります。どの価格タイプがサポートされているかについては、取引所に確認してください。
 
-Stoploss on exchange on futures markets can trigger on different price types.
-The naming for these prices in exchange terminology often varies, but is usually something around "last" (or "contract price" ), "mark" and "index".
+先物市場の取引所でのストップロスは、さまざまな価格タイプでトリガーされる可能性があります。
+為替用語でのこれらの価格の名前はさまざまですが、通常は「最終」（または「契約価格」）、「マーク」、「インデックス」のようなものです。
 
-Acceptable values for this setting are `"last"`, `"mark"` and `"index"` - which freqtrade will transfer automatically to the corresponding API type, and place the [stoploss on exchange](#stoploss_on_exchange-and-stoploss_on_exchange_limit_ratio) order correspondingly.
+この設定で許容される値は `"last"`、`"mark"`、および `"index"` です。freqtrade はこれらを対応する API タイプに自動的に転送し、それに応じて [取引所のストップロス](#stoploss_on_exchange-and-stoploss_on_exchange_limit_ratio) 注文を配置します。
 
-### force_exit
+### 強制終了
 
-`force_exit` is an optional value, which defaults to the same value as `exit` and is used when sending a `/forceexit` command from Telegram or from the Rest API.
+`force_exit` はオプションの値で、デフォルトは `exit` と同じ値で、Telegram または Rest API から `/forceexit` コマンドを送信するときに使用されます。
 
-### force_entry
+### 強制入力
 
-`force_entry` is an optional value, which defaults to the same value as `entry` and is used when sending a `/forceentry` command from Telegram or from the Rest API.
+`force_entry` はオプションの値で、デフォルトは `entry` と同じ値で、Telegram または Rest API から `/forceentry` コマンドを送信するときに使用されます。
 
-### emergency_exit
+### 緊急出口
 
-`emergency_exit` is an optional value, which defaults to `market` and is used when creating stop loss on exchange orders fails.
-The below is the default which is used if not changed in strategy or configuration file.
+「emergency_exit」はオプションの値で、デフォルトは「market」で、為替注文のストップロスの作成が失敗した場合に使用されます。
+以下は、戦略または構成ファイルで変更されない場合に使用されるデフォルトです。
 
-Example from strategy file:
-
+戦略ファイルの例:
 ``` python
 order_types = {
     "entry": "limit",
@@ -96,66 +93,60 @@ order_types = {
     "stoploss_on_exchange_limit_ratio": 0.99
 }
 ```
+## ストップロスのタイプ
 
-## Stop Loss Types
+この段階では、ボットには次のストップロス サポート モードが含まれています。
 
-At this stage the bot contains the following stoploss support modes:
+1. 静的ストップロス。
+2. トレーリングストップロス。
+3. トレーリングストップロス、カスタムプラス損失。
+4. トレーリングストップロスは、取引が特定のオフセットに達した場合にのみ適用されます。
+5. [カスタムストップロス関数](strategy-callbacks.md#custom-stoploss)
 
-1. Static stop loss.
-2. Trailing stop loss.
-3. Trailing stop loss, custom positive loss.
-4. Trailing stop loss only once the trade has reached a certain offset.
-5. [Custom stoploss function](strategy-callbacks.md#custom-stoploss)
+### 静的ストップロス
 
-### Static Stop Loss
+これは非常に簡単で、x のストップロスを (価格の比率、つまり x * 価格の 100%) と定義します。これは、損失が定義された損失を超えると資産を売却しようとします。
 
-This is very simple, you define a stop loss of x (as a ratio of price, i.e. x * 100% of price). This will try to sell the asset once the loss exceeds the defined loss.
-
-Example of stop loss:
-
+ストップロスの例:
 ``` python
     stoploss = -0.10
 ```
+たとえば、単純化した数学は次のようになります。
 
-For example, simplified math:
+* ボットは 100 ドルの価格で資産を購入します
+* ストップロスは -10% で定義されます
+*資産が90ドルを下回るとストップロスがトリガーされます
 
-* the bot buys an asset at a price of 100$
-* the stop loss is defined at -10%
-* the stop loss would get triggered once the asset drops below 90$
+### トレーリングストップロス
 
-### Trailing Stop Loss
-
-The initial value for this is `stoploss`, just as you would define your static Stop loss.
-To enable trailing stoploss:
-
+この初期値は、静的なストップロスを定義する場合と同様に、「stoploss」です。
+トレーリングストップロスを有効にするには:
 ``` python
     stoploss = -0.10
     trailing_stop = True
 ```
+これにより、資産の価格が上昇するたびに自動的にストップロスを引き上げるアルゴリズムが有効になります。
 
-This will now activate an algorithm, which automatically moves the stop loss up every time the price of your asset increases.
+たとえば、単純化した数学は次のようになります。
 
-For example, simplified math:
+* ボットは 100 ドルの価格で資産を購入します
+* ストップロスは -10% で定義されます
+*資産が90ドルを下回るとストップロスがトリガーされます
+* 資産が 102 ドルに増加したと仮定します
+* ストップロスは 102$ の -10% = 91.8$ になります。
+* 現在、資産の価値は 101\$ に下がりますが、ストップロスは 91.8$ のままで、91.8$ でトリガーされます。
 
-* the bot buys an asset at a price of 100$
-* the stop loss is defined at -10%
-* the stop loss would get triggered once the asset drops below 90$
-* assuming the asset now increases to 102$
-* the stop loss will now be -10% of 102$ = 91.8$
-* now the asset drops in value to 101\$, the stop loss will still be 91.8$ and would trigger at 91.8$.
+要約すると、ストップロスは常に観測された最高価格の -10% になるように調整されます。
 
-In summary: The stoploss will be adjusted to be always be -10% of the highest observed price.
+### トレーリングストップロス、異なるプラスの損失
 
-### Trailing stop loss, different positive loss
-
-You could also have a default stop loss when you are in the red with your buy (buy - fee), but once you hit a positive result (or an offset you define) the system will utilize a new stop loss, with a different value.
-For example, your default stop loss is -10%, but once you have reached profitability (example 0.1%) a different trailing stoploss will be used.
+買いで赤字の場合（買い - 手数料）にデフォルトのストップロスを設定することもできますが、プラスの結果（または定義したオフセット）に達すると、システムは異なる値の新しいストップロスを利用します。
+たとえば、デフォルトのストップロスは -10% ですが、収益性 (0.1% など) に達すると、別のトレーリングストップロスが使用されます。
 
 !!! Note
-    If you want the stoploss to only be changed when you break even of making a profit (what most users want) please refer to next section with [offset enabled](#trailing-stop-loss-only-once-the-trade-has-reached-a-certain-offset).
+    損益分岐点で利益が得られた場合にのみストップロスを変更したい場合 (ほとんどのユーザーが望んでいること)、[オフセットを有効](#trailing-stop-loss-only-once-the-trade-has-reached-a-certain-offset) にして次のセクションを参照してください。
 
-Both values require `trailing_stop` to be set to true and `trailing_stop_positive` with a value.
-
+どちらの値も、`trailing_stop` を true に設定し、`trailing_stop_positive` に値を設定する必要があります。
 ``` python
     stoploss = -0.10
     trailing_stop = True
@@ -163,50 +154,46 @@ Both values require `trailing_stop` to be set to true and `trailing_stop_positiv
     trailing_stop_positive_offset = 0.0
     trailing_only_offset_is_reached = False  # Default - not necessary for this example
 ```
+たとえば、単純化した数学は次のようになります。
 
-For example, simplified math:
+* ボットは 100 ドルの価格で資産を購入します
+* ストップロスは -10% で定義されます
+*資産が90ドルを下回るとストップロスがトリガーされます
+* 資産が 102 ドルに増加したと仮定します
+* ストップロスは 102$ = 99.96 ドルの -2% になります (99.96$ ストップロスは固定され、資産価格の増加に -2% で追従します)
+* 現在、資産の価値は 101\$ に下がりますが、ストップロスは 99.96$ のままで、99.96$ でトリガーされます。
 
-* the bot buys an asset at a price of 100$
-* the stop loss is defined at -10%
-* the stop loss would get triggered once the asset drops below 90$
-* assuming the asset now increases to 102$
-* the stop loss will now be -2% of 102$ = 99.96$ (99.96$ stop loss will be locked in and will follow asset price increments with -2%)
-* now the asset drops in value to 101\$, the stop loss will still be 99.96$ and would trigger at 99.96$
+0.02 は -2% のストップロスに相当します。
+これより前は、「stoploss」がトレーリングのストップロスに使用されます。
 
-The 0.02 would translate to a -2% stop loss.
-Before this, `stoploss` is used for the trailing stoploss.
+!!! Tip "オフセットを使用してストップロスを変更する"
+    `trailing_stop_positive_offset` を使用して、`trailing_stop_positive_offset` を `trailing_stop_positive` よりも高く設定することで、新しいトレーリング ストップロスが確実に利益を生むようにします。最初の新しいストップロス値はすでに利益を確定させています。
 
-!!! Tip "Use an offset to change your stoploss"
-    Use `trailing_stop_positive_offset` to ensure that your new trailing stoploss will be in profit by setting `trailing_stop_positive_offset` higher than `trailing_stop_positive`. Your first new stoploss value will then already have locked in profits.
-
-    Example with simplified math:
-
+    単純化した計算の例:
     ``` python
         stoploss = -0.10
         trailing_stop = True
         trailing_stop_positive = 0.02
         trailing_stop_positive_offset = 0.03
     ```
+* ボットは 100 ドルの価格で資産を購入します
+    * ストップロスは -10% で定義されているため、資産が 90$ を下回るとストップロスがトリガーされます。
+    * 資産が 102 ドルに増加したと仮定します
+    * ストップロスは 91.8$ になります - 観察された最高レートより 10% 低いです
+    * 資産が 103.5 ドルに増加すると仮定します (設定されたオフセットを上回ります)
+    * ストップロスは 103.5$ の -2% = 101.43$ になります。
+    * 現在、資産の価値は 102\$ に低下していますが、ストップロスは依然として 101.43$ であり、価格が 101.43$ を下回るとトリガーされます。
 
-    * the bot buys an asset at a price of 100$
-    * the stop loss is defined at -10%, so the stop loss would get triggered once the asset drops below 90$
-    * assuming the asset now increases to 102$
-    * the stoploss will now be at 91.8$ - 10% below the highest observed rate
-    * assuming the asset now increases to 103.5$ (above the offset configured)
-    * the stop loss will now be -2% of 103.5$ = 101.43$
-    * now the asset drops in value to 102\$, the stop loss will still be 101.43$ and would trigger once price breaks below 101.43$
+### トレーリングストップロスは取引が特定のオフセットに達した場合のみ
 
-### Trailing stop loss only once the trade has reached a certain offset
+オフセットに達するまで静的なストップロスを維持し、市場が反転したら取引を追跡して利益を確定することもできます。
 
-You can also keep a static stoploss until the offset is reached, and then trail the trade to take profits once the market turns.
+「trailing_only_offset_is_reached = True」の場合、トレーリング ストップロスはオフセットに達した場合にのみ有効になります。それまでは、ストップロスは設定された「ストップロス」のままであり、後続しません。
+この値を「trailing_only_offset_is_reached=False」のままにすると、資産価格が初期エントリー価格を超えて上昇するとすぐに、トレーリングストップロスがトレーリングを開始できるようになります。
 
-If `trailing_only_offset_is_reached = True` then the trailing stoploss is only activated once the offset is reached. Until then, the stoploss remains at the configured `stoploss` and is not trailing.
-Leaving this value as `trailing_only_offset_is_reached=False` will allow the trailing stoploss to start trailing as soon as the asset price increases above the initial entry price.
+このオプションは `trailing_stop_positive` の有無に関係なく使用できますが、オフセットとして `trailing_stop_positive_offset` を使用します。
 
-This option can be used with or without `trailing_stop_positive`, but uses `trailing_stop_positive_offset` as offset.
-
-Configuration (offset is buy-price + 3%):
-
+構成 (オフセットは購入価格 + 3%):
 ``` python
     stoploss = -0.10
     trailing_stop = True
@@ -214,38 +201,37 @@ Configuration (offset is buy-price + 3%):
     trailing_stop_positive_offset = 0.03
     trailing_only_offset_is_reached = True
 ```
+たとえば、単純化した数学は次のようになります。
 
-For example, simplified math:
-
-* the bot buys an asset at a price of 100$
-* the stop loss is defined at -10%
-* the stop loss would get triggered once the asset drops below 90$
-* stoploss will remain at 90$ unless asset increases to or above the configured offset
-* assuming the asset now increases to 103$ (where we have the offset configured)
-* the stop loss will now be -2% of 103$ = 100.94$
-* now the asset drops in value to 101\$, the stop loss will still be 100.94$ and would trigger at 100.94$
+* ボットは 100 ドルの価格で資産を購入します
+* ストップロスは -10% で定義されます
+*資産が90ドルを下回るとストップロスがトリガーされます
+*資産が設定されたオフセット以上に増加しない限り、ストップロスは90ドルのままになります
+* 資産が 103$ に増加したと仮定します (オフセットが設定されている場合)
+* ストップロスは 103$ の -2% = 100.94$ になります。
+* 現在、資産の価値は 101\$ に下落していますが、ストップロスは依然として 100.94$ であり、100.94$ でトリガーされます。
 
 !!! Tip
-    Make sure to have this value (`trailing_stop_positive_offset`) lower than minimal ROI, otherwise minimal ROI will apply first and sell the trade.
+    この値 (`trailing_stop_positive_offset`) を最小 ROI よりも低くするようにしてください。そうでない場合は、最小 ROI が最初に適用され、取引が売却されます。
 
-## Stoploss and Leverage
+## ストップロスとレバレッジ
 
-Stoploss should be thought of as "risk on this trade" - so a stoploss of 10% on a 100$ trade means you are willing to lose 10$ (10%) on this trade - which would trigger if the price moves 10% to the downside.
+ストップロスは「この取引のリスク」と考える必要があります。つまり、100 ドルの取引で 10% のストップロスは、この取引で 10 ドル (10%) 損失することを覚悟していることを意味します。これは、価格が 10% 下側に動いた場合にトリガーされます。
 
-When using leverage, the same principle is applied - with stoploss defining the risk on the trade (the amount you are willing to lose).
+レバレッジを使用する場合も、同じ原則が適用されます。ストップロスは取引のリスク (損失を許容できる金額) を定義します。
 
-Therefore, a stoploss of 10% on a 10x trade would trigger on a 1% price move.
-If your stake amount (own capital) was 100$ - this trade would be 1000$ at 10x (after leverage).
-If price moves 1% - you've lost 10$ of your own capital - therefore stoploss will trigger in this case.
+したがって、10 倍の取引では 10% のストップロスが 1% の価格変動でトリガーされます。
+あなたのステーク額 (自己資金) が 100 ドルの場合、この取引は 10 倍 (レバレッジ後) で 1000 ドルになります。
+価格が 1% 変動した場合、つまり自己資本の 10 ドルを失ったことになります。したがって、この場合はストップロスがトリガーされます。
 
-Make sure to be aware of this, and avoid using too tight stoploss (at 10x leverage, 10% risk may be too little to allow the trade to "breath" a little).
+この点に必ず注意し、きつすぎるストップロスを使用しないようにしてください（10倍のレバレッジでは、10％のリスクは小さすぎて取引が少し「呼吸」できる可能性があります）。
 
-## Changing stoploss on open trades
+## オープントレードでのストップロスの変更
 
-A stoploss on an open trade can be changed by changing the value in the configuration or strategy and use the `/reload_config` command (alternatively, completely stopping and restarting the bot also works).
+オープントレードのストップロスは、設定または戦略の値を変更し、`/reload_config` コマンドを使用することで変更できます (または、ボットを完全に停止して再起動することもできます)。
 
-The new stoploss value will be applied to open trades (and corresponding log-messages will be generated).
+新しいストップロス値はオープン取引に適用されます (そして、対応するログメッセージが生成されます)。
 
-### Limitations
+### 制限事項
 
-Stoploss values cannot be changed if `trailing_stop` is enabled and the stoploss has already been adjusted.
+「trailing_stop」が有効で、ストップロスがすでに調整されている場合、ストップロス値は変更できません。

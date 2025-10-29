@@ -1,40 +1,39 @@
-# Strategy Callbacks
+# 戦略コールバック
 
-While the main strategy functions (`populate_indicators()`, `populate_entry_trend()`, `populate_exit_trend()`) should be used in a vectorized way, and are only called [once during backtesting](bot-basics.md#backtesting-hyperopt-execution-logic), callbacks are called "whenever needed".
+メインの戦略関数 (`populate_indicators()`、`populate_entry_trend()`、`populate_exit_trend()`) はベクトル化された方法で使用する必要があり、[バックテスト中に 1 回] (bot-basics.md#backtesting-hyperopt-execution-logic) のみ呼び出されますが、コールバックは「必要なときはいつでも」呼び出されます。
 
-As such, you should avoid doing heavy calculations in callbacks to avoid delays during operations.
-Depending on the callback used, they may be called when entering / exiting a trade, or throughout the duration of a trade.
+したがって、操作中の遅延を避けるために、コールバックで大量の計算を実行することは避けてください。
+使用されるコールバックに応じて、取引の開始時または終了時、または取引期間中に呼び出される場合があります。
 
-Currently available callbacks:
+現在利用可能なコールバック:
 
 * [`bot_start()`](#bot-start)
-* [`bot_loop_start()`](#bot-loop-start)
-* [`custom_stake_amount()`](#stake-size-management)
-* [`custom_exit()`](#custom-exit-signal)
-* [`custom_stoploss()`](#custom-stoploss)
-* [`custom_roi()`](#custom-roi)
-* [`custom_entry_price()` and `custom_exit_price()`](#custom-order-price-rules)
-* [`check_entry_timeout()` and `check_exit_timeout()`](#custom-order-timeout-rules)
-* [`confirm_trade_entry()`](#trade-entry-buy-order-confirmation)
-* [`confirm_trade_exit()`](#trade-exit-sell-order-confirmation)
+* [`bot_loop_start()`](#ボットループスタート)
+* [`custom_stake_amount()`](#ステークサイズ管理)
+* [`custom_exit()`](#カスタム終了信号)
+* [`custom_stoploss()`](#カスタムストップロス)
+* [`custom_roi()`](#カスタムロイ)
+* [`custom_entry_price()` および `custom_exit_price()`](#custom-order-price-rules)
+* [`check_entry_timeout()` および `check_exit_timeout()`](#custom-order-timeout-rules)
+* [`confirm_trade_entry()`](#トレードエントリー-購入注文-確認)
+* [`confirm_trade_exit()`](#トレード出口売り注文確認)
 * [`adjust_trade_position()`](#adjust-trade-position)
 * [`adjust_entry_price()`](#adjust-entry-price)
 * [`leverage()`](#leverage-callback)
 * [`order_filled()`](#order-filled-callback)
 
-!!! Tip "Callback calling sequence"
-    You can find the callback calling sequence in [bot-basics](bot-basics.md#bot-execution-logic)
+!!! Tip "コールバック呼び出しシーケンス"
+    コールバック呼び出しシーケンスは [bot-basics](bot-basics.md#bot-execution-logic) で見つけることができます。
 
 --8<-- "includes/strategy-imports.md"
 
 --8<-- "includes/strategy-exit-comparisons.md"
 
 
-## Bot start
+## ボットの開始
 
-A simple callback which is called once when the strategy is loaded.
-This can be used to perform actions that must only be performed once and runs after dataprovider and wallet are set
-
+ストラテジーがロードされるときに 1 回呼び出される単純なコールバック。
+これは、一度だけ実行する必要があり、データプロバイダーとウォレットが設定された後に実行されるアクションを実行するために使用できます。
 ``` python
 import requests
 
@@ -53,15 +52,13 @@ class AwesomeStrategy(IStrategy):
             self.custom_remote_data = requests.get("https://some_remote_source.example.com")
 
 ```
+hyperopt では、これは起動時に 1 回だけ実行されます。
 
-During hyperopt, this runs only once at startup.
+## ボットループの開始
 
-## Bot loop start
-
-A simple callback which is called once at the start of every bot throttling iteration in dry/live mode (roughly every 5
-seconds, unless configured differently) or once per candle in backtest/hyperopt mode.
-This can be used to perform calculations which are pair independent (apply to all pairs), loading of external data, etc.
-
+ドライ/ライブ モードでの各ボット スロットル反復の開始時に (約 5 回ごとに) 1 回呼び出される単純なコールバック
+別の設定でない限り、秒単位)、またはバックテスト/ハイパーオプト モードではキャンドルごとに 1 回。
+これは、ペアに依存しない計算 (すべてのペアに適用)、外部データのロードなどを実行するために使用できます。
 ``` python
 # Default imports
 import requests
@@ -84,11 +81,9 @@ class AwesomeStrategy(IStrategy):
             self.remote_data = requests.get("https://some_remote_source.example.com")
 
 ```
+## ステークサイズの管理
 
-## Stake size management
-
-Called before entering a trade, makes it possible to manage your position size when placing a new trade.
-
+取引を開始する前に呼び出され、新しい取引を行うときにポジション サイズを管理できるようになります。
 ```python
 # Default imports
 
@@ -112,31 +107,29 @@ class AwesomeStrategy(IStrategy):
         # Use default stake amount.
         return proposed_stake
 ```
-
-Freqtrade will fall back to the `proposed_stake` value should your code raise an exception. The exception itself will be logged.
-
-!!! Tip
-    You do not _have_ to ensure that `min_stake <= returned_value <= max_stake`. Trades will succeed as the returned value will be clamped to supported range and this action will be logged.
+コードで例外が発生した場合、Freqtrade は `proused_stake` 値に戻ります。例外自体がログに記録されます。
 
 !!! Tip
-    Returning `0` or `None` will prevent trades from being placed.
+    「min_stake <= returns_value <= max_stake」であることを保証する必要はありません。戻り値がサポートされている範囲に固定され、このアクションがログに記録されるため、取引は成功します。
 
-## Custom exit signal
+!!! Tip
+    「0」または「None」を返すと、取引が行われなくなります。
 
-Called for open trade every throttling iteration (roughly every 5 seconds) until a trade is closed.
+## カスタム終了信号
 
-Allows to define custom exit signals, indicating that specified position should be closed (full exit). This is very useful when we need to customize exit conditions for each individual trade, or if you need trade data to make an exit decision.
+取引が終了するまで、スロットル反復ごと (約 5 秒ごと) にオープン取引が呼び出されます。
 
-For example you could implement a 1:2 risk-reward ROI with `custom_exit()`.
+指定された位置を閉じる必要があることを示すカスタム終了信号を定義できます (完全終了)。これは、個々の取引ごとに終了条件をカスタマイズする必要がある場合、または終了の決定を行うために取引データが必要な場合に非常に役立ちます。
 
-Using `custom_exit()` signals in place of stoploss though *is not recommended*. It is a inferior method to using `custom_stoploss()` in this regard - which also allows you to keep the stoploss on exchange.
+たとえば、`custom_exit()` を使用して 1:2 のリスク リワード ROI を実装できます。
+
+ストップロスの代わりに `custom_exit()` シグナルを使用することは *推奨されません*。この点では、`custom_stoploss()` を使用するより劣った方法ですが、交換時にストップロスを維持することもできます。
 
 !!! Note
-    Returning a (none-empty) `string` or `True` from this method is equal to setting exit signal on a candle at specified time. This method is not called when exit signal is set already, or if exit signals are disabled (`use_exit_signal=False`). `string` max length is 64 characters. Exceeding this limit will cause the message to be truncated to 64 characters.
-    `custom_exit()` will ignore `exit_profit_only`, and will always be called unless `use_exit_signal=False`, even if there is a new enter signal.
+    このメソッドから (空ではない) `string` または `True` を返すことは、指定された時間にローソク足に終了シグナルを設定することと同じです。終了信号がすでに設定されている場合、または終了信号が無効になっている場合 (`use_exit_signal=False`)、このメソッドは呼び出されません。 「string」の最大長は 64 文字です。この制限を超えると、メッセージは 64 文字に切り詰められます。
+    `custom_exit()` は `exit_profit_only` を無視し、新しい Enter シグナルがある場合でも、`use_exit_signal=False` でない限り常に呼び出されます。
 
-An example of how we can use different indicators depending on the current profit and also exit trades that were open longer than one day:
-
+現在の利益に応じてさまざまなインジケーターを使用し、1 日以上開いた取引を終了する方法の例:
 ``` python
 # Default imports
 
@@ -160,54 +153,51 @@ class AwesomeStrategy(IStrategy):
         if current_profit < 0.0 and (current_time - trade.open_date_utc).days >= 1:
             return "unclog"
 ```
+ストラテジー コールバックでのデータフレームの使用の詳細については、[データフレーム アクセス](strategy-advanced.md#dataframe-access) を参照してください。
 
-See [Dataframe access](strategy-advanced.md#dataframe-access) for more information about dataframe use in strategy callbacks.
+## カスタムストップロス
 
-## Custom stoploss
+取引が終了するまで、反復ごと (約 5 秒ごと) にオープン取引が呼び出されます。
 
-Called for open trade every iteration (roughly every 5 seconds) until a trade is closed.
+カスタム ストップロス メソッドの使用は、ストラテジー オブジェクトで `use_custom_stoploss=True` を設定することによって有効にする必要があります。
 
-The usage of the custom stoploss method must be enabled by setting `use_custom_stoploss=True` on the strategy object.
+ストップロス価格は上方にのみ移動できます。「custom_stoploss」から返されたストップロス値が以前に設定されたストップロス価格よりも低い場合、その値は無視されます。従来の「ストップロス」値は絶対的な下位レベルとして機能し、(取引で初めてこのメソッドが呼び出される前に) 初期ストップロスとして設定され、依然として必須です。  
+カスタム ストップロスは通常の変更ストップロスとして機能するため、「trailing_stop」と同様に動作します。これにより終了する取引には、「trailing_stop_loss」` の exit_reason が設定されます。
 
-The stoploss price can only ever move upwards - if the stoploss value returned from `custom_stoploss` would result in a lower stoploss price than was previously set, it will be ignored. The traditional `stoploss` value serves as an absolute lower level and will be instated as the initial stoploss (before this method is called for the first time for a trade), and is still mandatory.  
-As custom stoploss acts as regular, changing stoploss, it will behave similar to `trailing_stop` - and trades exiting due to this will have the exit_reason of `"trailing_stop_loss"`.
+このメソッドは、ストップロス値 (浮動小数点数 / 数値) を現在の価格のパーセンテージとして返す必要があります。
+例えば。 「current_rate」が 200 USD の場合、「0.02」を返すとストップロス価格が 2% 低い 196 USD に設定されます。
+バックテスト中、「current_rate」（および「current_profit」）はローソク足の高値（または短期取引の場合は安値）に対して提供され、結果として得られるストップロスはローソク足の安値（または短期取引の場合は高値）に対して評価されます。
 
-The method must return a stoploss value (float / number) as a percentage of the current price.
-E.g. If the `current_rate` is 200 USD, then returning `0.02` will set the stoploss price 2% lower, at 196 USD.
-During backtesting, `current_rate` (and `current_profit`) are provided against the candle's high (or low for short trades) - while the resulting stoploss is evaluated against the candle's low (or high for short trades).
+戻り値の絶対値が使用される (符号は無視される) ため、`0.05` または `-0.05` を返すと同じ結果となり、現在の価格の 5% 下のストップロスになります。
+「None」を返すと「変更したくない」と解釈され、ストップロスを変更したくない場合に返す唯一の安全な方法です。
+`NaN` および `inf` 値は無効とみなされ、無視されます (`None` と同じ)。
 
-The absolute value of the return value is used (the sign is ignored), so returning `0.05` or `-0.05` have the same result, a stoploss 5% below the current price.
-Returning `None` will be interpreted as "no desire to change", and is the only safe way to return when you'd like to not modify the stoploss.
-`NaN` and `inf` values are considered invalid and will be ignored (identical to `None`).
+取引所のストップロスは `trailing_stop` と同様に機能し、取引所のストップロスは `stoploss_on_exchange_interval` で設定されたように更新されます ([取引所のストップロスの詳細](stoploss.md#stop-loss-on-exchangefreqtrade))。
 
-Stoploss on exchange works similar to `trailing_stop`, and the stoploss on exchange is updated as configured in `stoploss_on_exchange_interval` ([More details about stoploss on exchange](stoploss.md#stop-loss-on-exchangefreqtrade)).
+先物市場を利用している場合は、[ストップロスとレバレッジ](stoploss.md#stoploss-and-leverage) セクションに注意してください。「custom_stoploss」から返されるストップロス値は、相対的な価格の動きではなく、この取引のリスクであるためです。
 
-If you're on futures markets, please take note of the [stoploss and leverage](stoploss.md#stoploss-and-leverage) section, as the stoploss value returned from `custom_stoploss` is the risk for this trade - not the relative price movement.
+!!! Note "日付の使用"
+    すべての時間ベースの計算は、`current_time` に基づいて実行する必要があります。`datetime.now()` または `datetime.utcnow()` の使用はバックテストのサポートを中断するため、推奨されません。
 
-!!! Note "Use of dates"
-    All time-based calculations should be done based on `current_time` - using `datetime.now()` or `datetime.utcnow()` is discouraged, as this will break backtesting support.
+!!! Tip "トレーリングストップロス"
+    カスタムのストップロス値を使用する場合は、「trailing_stop」を無効にすることをお勧めします。どちらも連携して機能しますが、カスタム関数ではこれを望まないのに、価格を引き上げるためのトレーリング ストップが発生し、競合する動作が発生する可能性があります。
 
-!!! Tip "Trailing stoploss"
-    It's recommended to disable `trailing_stop` when using custom stoploss values. Both can work in tandem, but you might encounter the trailing stop to move the price higher while your custom function would not want this, causing conflicting behavior.
+### ポジション調整後にストップロスを調整する
+戦略によっては、[ポジション調整](#adjust-trade-position) 後に両方向でストップロスを調整する必要が生じる場合があります。
+このため、freqtrade は注文が約定した後に `after_fill=True` を指定して追加の呼び出しを行います。これにより、戦略でストップロスを任意の方向に移動できるようになります (また、ストップロスと現在の価格の間のギャップも拡大しますが、これは通常は禁止されています)。
 
-### Adjust stoploss after position adjustments
+!!! Note "下位互換性"
+    この呼び出しは、「after_fill」パラメータが「custom_stoploss」関数の関数定義の一部である場合にのみ行われます。
+    したがって、これは既存の実行中の戦略に影響を与えることはありません（そして、驚くべきことに）。
 
-Depending on your strategy, you may encounter the need to adjust the stoploss in both directions after a [position adjustment](#adjust-trade-position).
-For this, freqtrade will make an additional call with `after_fill=True` after an order fills, which will allow the strategy to move the stoploss in any direction (also widening the gap between stoploss and current price, which is otherwise forbidden).
+### カスタムストップロスの例
 
-!!! Note "backwards compatibility"
-    This call will only be made if the `after_fill` parameter is part of the function definition of your `custom_stoploss` function.
-    As such, this will not impact (and with that, surprise) existing, running strategies.
+次のセクションでは、カスタム ストップロス関数で何ができるかについての例をいくつか示します。
+もちろん、さらに多くのことが可能であり、すべての例を自由に組み合わせることができます。
 
-### Custom stoploss examples
+#### カスタム ストップロスによるトレーリング ストップ
 
-The next section will show some examples on what's possible with the custom stoploss function.
-Of course, many more things are possible, and all examples can be combined at will.
-
-#### Trailing stop via custom stoploss
-
-To simulate a regular trailing stoploss of 4% (trailing 4% behind the maximum reached price) you would use the following very simple method:
-
+通常の 4% のトレーリング ストップロス (最大到達価格から 4% 遅れたトレーリング) をシミュレートするには、次の非常に簡単な方法を使用します。
 ``` python
 # Default imports
 
@@ -241,11 +231,9 @@ class AwesomeStrategy(IStrategy):
         """
         return -0.04 * trade.leverage
 ```
+#### 時間ベースのトレーリングストップ
 
-#### Time based trailing stop
-
-Use the initial stoploss for the first 60 minutes, after this change to 10% trailing stoploss, and after 2 hours (120 minutes) we use a 5% trailing stoploss.
-
+最初の 60 分間は最初のストップロスを使用し、その後 10% のトレーリング ストップロスに変更し、2 時間 (120 分) 後に 5% のトレーリング ストップロスを使用します。
 ``` python
 # Default imports
 
@@ -266,12 +254,10 @@ class AwesomeStrategy(IStrategy):
             return -0.10 * trade.leverage
         return None
 ```
+#### アフターフィル調整を備えた時間ベースのトレーリングストップ
 
-#### Time based trailing stop with after-fill adjustments
-
-Use the initial stoploss for the first 60 minutes, after this change to 10% trailing stoploss, and after 2 hours (120 minutes) we use a 5% trailing stoploss.
-If an additional order fills, set stoploss to -10% below the new `open_rate` ([Averaged across all entries](#position-adjust-calculations)).
-
+最初の 60 分間は最初のストップロスを使用し、その後 10% のトレーリング ストップロスに変更し、2 時間 (120 分) 後に 5% のトレーリング ストップロスを使用します。
+追加の注文が約定した場合は、ストップロスを新しい `open_rate` ([すべてのエントリの平均](#position-adjust-calculations)) よりも -10% 低く設定します。
 ``` python
 # Default imports
 
@@ -295,12 +281,10 @@ class AwesomeStrategy(IStrategy):
             return -0.10 * trade.leverage
         return None
 ```
+#### ペアごとに異なるストップロス
 
-#### Different stoploss per pair
-
-Use a different stoploss depending on the pair.
-In this example, we'll trail the highest price with 10% trailing stoploss for `ETH/BTC` and `XRP/BTC`, with 5% trailing stoploss for `LTC/BTC` and with 15% for all other pairs.
-
+ペアに応じて異なるストップロスを使用します。
+この例では、「ETH/BTC」と「XRP/BTC」のトレーリングストップロスを10％、「LTC/BTC」のトレーリングストップロスを5％、その他すべてのペアのトレーリングストップロスを15％として最高価格を追跡します。
 ``` python
 # Default imports
 
@@ -320,13 +304,11 @@ class AwesomeStrategy(IStrategy):
             return -0.05 * trade.leverage
         return -0.15 * trade.leverage
 ```
+#### 正のオフセットを持つトレーリング ストップロス
 
-#### Trailing stoploss with positive offset
+利益が 4% を超えるまでは最初のストップロスを使用し、その後は現在の利益の 50% (最小 2.5%、最大 5%) のトレーリング ストップロスを使用します。
 
-Use the initial stoploss until the profit is above 4%, then use a trailing stoploss of 50% of the current profit with a minimum of 2.5% and a maximum of 5%.
-
-Please note that the stoploss can only increase, values lower than the current stoploss are ignored.
-
+ストップロスは増加のみ可能であり、現在のストップロスよりも低い値は無視されることに注意してください。
 ``` python
 # Default imports
 
@@ -349,16 +331,14 @@ class AwesomeStrategy(IStrategy):
         # Use a minimum of 2.5% and a maximum of 5%
         return max(min(desired_stoploss, 0.05), 0.025) * trade.leverage
 ```
+#### ステップストップロス
 
-#### Stepped stoploss
+この例では、現在の価格を継続的に追跡するのではなく、現在の利益に基づいて固定のストップロス価格レベルを設定します。
 
-Instead of continuously trailing behind the current price, this example sets fixed stoploss price levels based on the current profit.
-
-* Use the regular stoploss until 20% profit is reached
-* Once profit is > 20% - set stoploss to 7% above open price.
-* Once profit is > 25% - set stoploss to 15% above open price.
-* Once profit is > 40% - set stoploss to 25% above open price.
-
+* 利益が 20% に達するまでは通常のストップロスを使用します
+* 利益が 20% を超えたら、ストップロスを始値の 7% に設定します。
+* 利益が 25% を超えたら、ストップロスを始値より 15% 上に設定します。
+* 利益が 40% を超えたら、ストップロスを始値より 25% 上に設定します。
 ``` python
 # Default imports
 
@@ -383,11 +363,9 @@ class AwesomeStrategy(IStrategy):
         # return maximum stoploss value, keeping current stoploss price unchanged
         return None
 ```
+#### データフレームの例のインジケーターを使用したカスタム ストップロス
 
-#### Custom stoploss using an indicator from dataframe example
-
-Absolute stoploss value may be derived from indicators stored in dataframe. Example uses parabolic SAR below the price as stoploss.
-
+ストップロスの絶対値は、データフレームに保存されているインジケーターから取得できます。例では、価格を下回る放物線状の SAR をストップロスとして使用します。
 ``` python
 # Default imports
 
@@ -416,25 +394,22 @@ class AwesomeStrategy(IStrategy):
         # return maximum stoploss value, keeping current stoploss price unchanged
         return None
 ```
+ストラテジー コールバックでのデータフレームの使用の詳細については、[データフレーム アクセス](strategy-advanced.md#dataframe-access) を参照してください。
 
-See [Dataframe access](strategy-advanced.md#dataframe-access) for more information about dataframe use in strategy callbacks.
+### ストップロス計算の一般的なヘルパー
 
-### Common helpers for stoploss calculations
+#### 始値に対するストップロス
 
-#### Stoploss relative to open price
+`custom_stoploss()` から返されるストップロス値は、`current_rate` に相対的なパーセンテージを指定する必要がありますが、代わりに _entry_ 価格に相対的なストップロスを指定したい場合もあります。
+`stoploss_from_open()` は、`custom_stoploss` から返されるストップロス値を計算するヘルパー関数です。このストップロス値は、エントリー ポイントを超える望ましい取引利益に相当します。
 
-Stoploss values returned from `custom_stoploss()` must specify a percentage relative to `current_rate`, but sometimes you may want to specify a stoploss relative to the _entry_ price instead.
-`stoploss_from_open()` is a helper function to calculate a stoploss value that can be returned from `custom_stoploss` which will be equivalent to the desired trade profit above the entry point.
+???例「カスタムストップロス関数から始値を基準としたストップロスを返す」
 
-??? Example "Returning a stoploss relative to the open price from the custom stoploss function"
+    始値が 100 ドルで、`current_price` が 121 ドルであるとします (`current_profit` は `0.21` になります)。  
 
-    Say the open price was $100, and `current_price` is $121 (`current_profit` will be `0.21`).  
+    始値の 7% 上のストップ価格が必要な場合は、`stoploss_from_open(0.07, current_profit, False)` を呼び出すと、`0.1157024793` が返されます。  121ドル以下の11.57%は107ドルで、これは100ドル以上の7%と同じです。
 
-    If we want a stop price at 7% above the open price we can call `stoploss_from_open(0.07, current_profit, False)` which will return `0.1157024793`.  11.57% below $121 is $107, which is the same as 7% above $100.
-
-    This function will consider leverage - so at 10x leverage, the actual stoploss would be 0.7% above $100 (0.7% * 10x = 7%).
-
-
+    この関数はレバレッジを考慮します。つまり、10 倍のレバレッジでは、実際のストップロスは 100 ドルを超える 0.7% になります (0.7% * 10x = 7%)。
     ``` python
     # Default imports
 
@@ -455,27 +430,25 @@ Stoploss values returned from `custom_stoploss()` must specify a percentage rela
             return 1
 
     ```
-
-    Full examples can be found in the [Custom stoploss](strategy-callbacks.md#custom-stoploss) section of the Documentation.
+完全な例は、ドキュメントの [カスタム ストップロス](strategy-callbacks.md#custom-stoploss) セクションにあります。
 
 !!! Note
-    Providing invalid input to `stoploss_from_open()` may produce "CustomStoploss function did not return valid stoploss" warnings.
-    This may happen if `current_profit` parameter is below specified `open_relative_stop`. Such situations may arise when closing trade
-    is blocked by `confirm_trade_exit()` method. Warnings can be solved by never blocking stop loss sells by checking `exit_reason` in
-    `confirm_trade_exit()`, or by using `return stoploss_from_open(...) or 1` idiom, which will request to not change stop loss when
-    `current_profit < open_relative_stop`.
+    「stoploss_from_open()」に無効な入力を指定すると、「CustomStoploss 関数が有効なストップロスを返しませんでした」という警告が生成される場合があります。
+    これは、「current_profit」パラメータが指定された「open_relative_stop」を下回っている場合に発生する可能性があります。取引を終了するときにこのような状況が発生する可能性があります
+    `confirm_trade_exit()` メソッドによってブロックされます。警告は、「exit_reason」をチェックしてストップロスの売りを決してブロックしないことで解決できます。
+    「confirm_trade_exit()」、または「return stoploss_from_open(...) または 1」イディオムを使用して、次の場合にストップロスを変更しないように要求します。
+    `current_profit < open_relative_stop`。
 
-#### Stoploss percentage from absolute price
+#### 絶対価格からのストップロス率
 
-Stoploss values returned from `custom_stoploss()` always specify a percentage relative to `current_rate`. In order to set a stoploss at specified absolute price level, we need to use `stop_rate` to calculate what percentage relative to the `current_rate` will give you the same result as if the percentage was specified from the open price.
+`custom_stoploss()` から返されるストップロス値は、常に `current_rate` を基準としたパーセンテージを指定します。指定された絶対価格レベルでストップロスを設定するには、`stop_rate` を使用して、`current_rate` に対して相対的に何パーセントが始値から指定された場合と同じ結果が得られるかを計算する必要があります。
 
-The helper function `stoploss_from_absolute()` can be used to convert from an absolute price, to a current price relative stop which can be returned from `custom_stoploss()`.
+ヘルパー関数 `stoploss_from_absolute()` を使用すると、絶対価格から `custom_stoploss()` から返される現在の価格の相対ストップに変換できます。
 
-??? Example "Returning a stoploss using absolute price from the custom stoploss function"
+???例「カスタムストップロス関数からの絶対価格を使用してストップロスを返す」
 
-    If we want to trail a stop price at 2xATR below current price we can call `stoploss_from_absolute(current_rate + (side * candle["atr"] * 2), current_rate=current_rate, is_short=trade.is_short, leverage=trade.leverage)`.
-    For futures, we need to adjust the direction (up or down), as well as adjust for leverage, since the [`custom_stoploss`](strategy-callbacks.md#custom-stoploss) callback  returns the ["risk for this trade"](stoploss.md#stoploss-and-leverage) - not the relative price movement.
-
+    現在価格より 2xATR 下のストップ価格を追跡したい場合は、`stoploss_from_absolute(current_rate + (side *candle["atr"] * 2), current_rate=current_rate, is_short=trade.is_short, leverage=trade.leverage)` を呼び出すことができます。
+    先物の場合、[`custom_stoploss`](strategy-callbacks.md#custom-stoploss) コールバックは相対的な価格の動きではなく、["risk for this trade"](stoploss.md#stoploss-and-leverage) を返すため、レバレッジを調整するだけでなく、方向 (上または下) を調整する必要があります。
     ``` python
     # Default imports
 
@@ -500,27 +473,25 @@ The helper function `stoploss_from_absolute()` can be used to convert from an ab
                                           leverage=trade.leverage)
 
     ```
-
 ---
 
-## Custom ROI
+## カスタム ROI
 
-Called for open trade every iteration (roughly every 5 seconds) until a trade is closed.
+取引が終了するまで、反復ごと (約 5 秒ごと) にオープン取引が呼び出されます。
 
-The usage of the custom ROI method must be enabled by setting `use_custom_roi=True` on the strategy object.
+カスタム ROI メソッドの使用は、戦略オブジェクトで `use_custom_roi=True` を設定することによって有効にする必要があります。
 
-This method allows you to define a custom minimum ROI threshold for exiting a trade, expressed as a ratio (e.g., `0.05` for 5% profit). If both `minimal_roi` and `custom_roi` are defined, the lower of the two thresholds will trigger an exit. For example, if `minimal_roi` is set to `{"0": 0.10}` (10% at 0 minutes) and `custom_roi` returns `0.05`, the trade will exit when the profit reaches 5%. Also, if `custom_roi` returns `0.10` and `minimal_roi` is set to `{"0": 0.05}` (5% at 0 minutes), the trade will be closed when the profit reaches 5%.
+この方法では、取引を終了するためのカスタムの最小 ROI しきい値を比率で表して定義できます (例: 5% の利益の場合は「0.05」)。 「minimal_roi」と「custom_roi」の両方が定義されている場合、2 つのしきい値のうち低い方が終了をトリガーします。たとえば、`minimal_roi` が `{"0": 0.10}` (0 分で 10%) に設定され、`custom_roi` が `0.05` を返す場合、利益が 5% に達すると取引は終了します。また、`custom_roi` が `0.10` を返し、`minimal_roi` が `{"0": 0.05}` (0 分で 5%) に設定されている場合、利益が 5% に達したときに取引は終了します。
 
-The method must return a float representing the new ROI threshold as a ratio, or `None` to fall back to the `minimal_roi` logic. Returning `NaN` or `inf` values is considered invalid and will be treated as `None`, causing the bot to use the `minimal_roi` configuration.
+このメソッドは、新しい ROI しきい値を比率として表す浮動小数点数を返すか、「minimal_roi」ロジックにフォールバックするには「None」を返す必要があります。 `NaN` または `inf` 値を返すと無効とみなされ、`None` として扱われるため、ボットは `minimal_roi` 構成を使用します。
 
-### Custom ROI examples
+### カスタム ROI の例
 
-The following examples illustrate how to use the `custom_roi` function to implement different ROI logics.
+次の例は、「custom_roi」関数を使用してさまざまな ROI ロジックを実装する方法を示しています。
 
-#### Custom ROI per side
+#### 側面ごとのカスタム ROI
 
-Use different ROI thresholds depending on the `side`. In this example, 5% for long entries and 2% for short entries.
-
+「側」に応じて異なる ROI しきい値を使用します。この例では、長いエントリの場合は 5%、短いエントリの場合は 2% です。
 ```python
 # Default imports
 
@@ -551,11 +522,9 @@ class AwesomeStrategy(IStrategy):
         """
         return 0.05 if side == "long" else 0.02
 ```
+#### ペアごとのカスタム ROI
 
-#### Custom ROI per pair
-
-Use different ROI thresholds depending on the `pair`.
-
+「ペア」に応じて異なる ROI しきい値を使用します。
 ```python
 # Default imports
 
@@ -577,11 +546,9 @@ class AwesomeStrategy(IStrategy):
 
         return roi_map.get(pair, 0.01) # 1% for any other pair
 ```
+#### エントリ タグごとのカスタム ROI
 
-#### Custom ROI per entry tag
-
-Use different ROI thresholds depending on the `entry_tag` provided with the buy signal.
-
+購入シグナルで提供される「entry_tag」に応じて、異なる ROI しきい値を使用します。
 ```python
 # Default imports
 
@@ -602,11 +569,9 @@ class AwesomeStrategy(IStrategy):
 
         return roi_by_tag.get(entry_tag, 0.01)  # 1% if tag is unknown
 ```
+#### ATR に基づくカスタム ROI
 
-#### Custom ROI based on ATR
-
-ROI value may be derived from indicators stored in dataframe. This example uses the ATR ratio as ROI.
-
+ROI 値は、データフレームに格納されているインジケーターから取得できます。この例では、ATR 比を ROI として使用します。
 ``` python
 # Default imports
 # <...>
@@ -629,25 +594,23 @@ class AwesomeStrategy(IStrategy):
 
         return atr_ratio # Returns the ATR value as ratio
 ```
-
 ---
 
-## Custom order price rules
+## カスタムオーダーの価格ルール
 
-By default, freqtrade use the orderbook to automatically set an order price([Relevant documentation](configuration.md#prices-used-for-orders)), you also have the option to create custom order prices based on your strategy.
+デフォルトでは、freqtrade はオーダーブックを使用して注文価格を自動的に設定します ([関連ドキュメント](configuration.md#prices-used-for-orders))。戦略に基づいてカスタム注文価格を作成するオプションもあります。
 
-You can use this feature by creating a `custom_entry_price()` function in your strategy file to customize entry prices and `custom_exit_price()` for exits.
+この機能を使用するには、戦略ファイル内に「custom_entry_price()」関数を作成してエントリー価格をカスタマイズし、エグジットの「custom_exit_price()」関数を作成します。
 
-Each of these methods are called right before placing an order on the exchange.
-
-!!! Note
-    If your custom pricing function return None or an invalid value, price will fall back to `proposed_rate`, which is based on the regular pricing configuration.
+これらの各メソッドは、取引所で注文を行う直前に呼び出されます。
 
 !!! Note
-    Using custom_entry_price, the Trade object will be available as soon as the first entry order associated with the trade is created, for the first entry, `trade` parameter value will be `None`.
+    カスタム価格設定関数が None または無効な値を返した場合、価格は通常の価格設定設定に基づく `proposit_rate` に戻ります。
 
-### Custom order entry and exit price example
+!!! Note
+    Custom_entry_price を使用すると、取引に関連付けられた最初のエントリー注文が作成されるとすぐに取引オブジェクトが利用可能になります。最初のエントリーでは、「trade」パラメーター値は「None」になります。
 
+### カスタム注文のエントリー価格とエグジット価格の例
 ``` python
 # Default imports
 
@@ -675,37 +638,35 @@ class AwesomeStrategy(IStrategy):
         return new_exitprice
 
 ```
-
 !!! Warning
-    Modifying entry and exit prices will only work for limit orders. Depending on the price chosen, this can result in a lot of unfilled orders. By default the maximum allowed distance between the current price and the custom price is 2%, this value can be changed in config with the `custom_price_max_distance_ratio` parameter.
-    **Example**:
-    If the new_entryprice is 97, the proposed_rate is 100 and the `custom_price_max_distance_ratio` is set to 2%, The retained valid custom entry price will be 98, which is 2% below the current (proposed) rate.
+    エントリー価格とエグジット価格の変更は、指値注文の場合にのみ機能します。選択した価格によっては、多数の注文が約定されない可能性があります。デフォルトでは、現在の価格とカスタム価格の間の最大許容距離は 2% ですが、この値は設定で `custom_price_max_ distance_ratio` パラメータを使用して変更できます。
+    **例**:
+    new_entryprice が 97、projected_rate が 100、`custom_price_max_ distance_ratio` が 2% に設定されている場合、保持される有効なカスタム エントリ価格は 98 となり、現在の (提案された) レートより 2% 低くなります。
 
-!!! Warning "Backtesting"
-    Custom prices are supported in backtesting (starting with 2021.12), and orders will fill if the price falls within the candle's low/high range.
-    Orders that don't fill immediately are subject to regular timeout handling, which happens once per (detail) candle.
-    `custom_exit_price()` is only called for sells of type exit_signal, Custom exit and partial exits. All other exit-types will use regular backtesting prices.
+!!! Warning "バックテスト"
+    カスタム価格はバックテスト (2021.12 以降) でサポートされており、価格がローソク足の安値/高値範囲内にある場合、注文は約定します。
+    すぐに約定しない注文は定期的なタイムアウト処理の対象となり、これは (詳細) キャンドルごとに 1 回発生します。
+    `custom_exit_price()` は、タイプ exit_signal、カスタム exit、および部分的 exit の売りの場合にのみ呼び出されます。他のすべてのエグジット タイプでは、通常のバックテスト価格が使用されます。
 
-## Custom order timeout rules
+## カスタムオーダーのタイムアウトルール
 
-Simple, time-based order-timeouts can be configured either via strategy or in the configuration in the `unfilledtimeout` section.
+シンプルな時間ベースのオーダータイムアウトは、戦略を介して、または「unfilledtimeout」セクションの設定で設定できます。
 
-However, freqtrade also offers a custom callback for both order types, which allows you to decide based on custom criteria if an order did time out or not.
+ただし、freqtrade は両方の注文タイプにカスタム コールバックも提供しており、注文がタイムアウトしたかどうかをカスタム基準に基づいて決定できます。
 
 !!! Note
-    Backtesting fills orders if their price falls within the candle's low/high range.
-    The below callbacks will be called once per (detail) candle for orders that don't fill immediately (which use custom pricing).
+    バックテストでは、価格がローソク足の安値/高値範囲内にある場合に注文が約定されます。
+    以下のコールバックは、すぐに約定しない注文 (カスタム価格設定を使用する) の (詳細) キャンドルごとに 1 回呼び出されます。
 
-### Custom order timeout example
+### カスタムオーダーのタイムアウトの例
 
-Called for every open order until that order is either filled or cancelled.
-`check_entry_timeout()` is called for trade entries, while `check_exit_timeout()` is called for trade exit orders.
+注文が約定されるかキャンセルされるまで、開いている注文ごとに呼び出されます。
+「check_entry_timeout()」は取引エントリーの場合に呼び出され、「check_exit_timeout()」は取引終了注文の場合に呼び出されます。
 
-A simple example, which applies different unfilled-timeouts depending on the price of the asset can be seen below.
-It applies a tight timeout for higher priced assets, while allowing more time to fill on cheap coins.
+資産の価格に応じて異なる未フィルタイムアウトを適用する簡単な例を以下に示します。
+高価な資産には厳しいタイムアウトを適用する一方で、安価なコインのフィルにはより多くの時間を与えます。
 
-The function must return either `True` (cancel order) or `False` (keep order alive).
-
+この関数は、`True` (注文をキャンセル) または `False` (注文を維持) を返す必要があります。
 ``` python
     # Default imports
 
@@ -740,12 +701,10 @@ class AwesomeStrategy(IStrategy):
            return True
         return False
 ```
-
 !!! Note
-    For the above example, `unfilledtimeout` must be set to something bigger than 24h, otherwise that type of timeout will apply first.
+    上の例では、「unfilledtimeout」を 24 時間より大きい値に設定する必要があります。それ以外の場合は、そのタイプのタイムアウトが最初に適用されます。
 
-### Custom order timeout example (using additional data)
-
+### カスタムオーダーのタイムアウト例 (追加データを使用)
 ``` python
     # Default imports
 
@@ -778,18 +737,16 @@ class AwesomeStrategy(IStrategy):
             return True
         return False
 ```
-
 ---
 
-## Bot order confirmation
+## ボットの注文確認
 
-Confirm trade entry / exits.
-This are the last methods that will be called before an order is placed.
+トレードのエントリー/エグジットを確認します。
+これは、注文が行われる前に呼び出される最後のメソッドです。
 
-### Trade entry (buy order) confirmation
+### トレードエントリー（買い注文）の確認
 
-`confirm_trade_entry()` can be used to abort a trade entry at the latest second (maybe because the price is not what we expect).
-
+`confirm_trade_entry()` を使用すると、取引エントリーを最新の 1 秒で中止することができます (おそらく価格が期待したものではないため)。
 ``` python
 # Default imports
 
@@ -825,19 +782,17 @@ class AwesomeStrategy(IStrategy):
         return True
 
 ```
+### 取引終了（売り注文）の確認
 
-### Trade exit (sell order) confirmation
+`confirm_trade_exit()` を使用すると、取引終了 (売り) を最新の 1 秒で中止できます (おそらく価格が期待したものではないため)。
 
-`confirm_trade_exit()` can be used to abort a trade exit (sell) at the latest second (maybe because the price is not what we expect).
-
-`confirm_trade_exit()` may be called multiple times within one iteration for the same trade if different exit-reasons apply.
-The exit-reasons (if applicable) will be in the following sequence:
+異なる終了理由が適用される場合、`confirm_trade_exit()` は同じ取引の 1 回の反復内で複数回呼び出される可能性があります。
+終了理由 (該当する場合) は次の順序になります。
 
 * `exit_signal` / `custom_exit`
-* `stop_loss`
-* `roi`
+* `ストップロス`
+*「ロイ」
 * `trailing_stop_loss`
-
 ``` python
 # Default imports
 
@@ -880,77 +835,74 @@ class AwesomeStrategy(IStrategy):
         return True
 
 ```
-
 !!! Warning
-    `confirm_trade_exit()` can prevent stoploss exits, causing significant losses as this would ignore stoploss exits.
-    `confirm_trade_exit()` will not be called for Liquidations - as liquidations are forced by the exchange, and therefore cannot be rejected.
+    `confirm_trade_exit()` はストップロスの出口を防ぐことができ、これはストップロスの出口を無視するため、重大な損失を引き起こします。
+    `confirm_trade_exit()` は清算の場合には呼び出されません。清算は取引所によって強制されるため、拒否することはできません。
 
-## Adjust trade position
+## トレードポジションを調整する
 
-The `position_adjustment_enable` strategy property enables the usage of `adjust_trade_position()` callback in the strategy.
-For performance reasons, it's disabled by default and freqtrade will show a warning message on startup if enabled.
-`adjust_trade_position()` can be used to perform additional orders, for example to manage risk with DCA (Dollar Cost Averaging) or to increase or decrease positions.
+`position_adjustment_enable` 戦略プロパティは、戦略での `adjust_trade_position()` コールバックの使用を有効にします。
+パフォーマンス上の理由から、デフォルトでは無効になっており、有効になっている場合、freqtrade は起動時に警告メッセージを表示します。
+「adjust_trade_position()」を使用すると、DCA (ドルコスト平均法) でリスクを管理したり、ポジションを増減したりするなど、追加の注文を実行できます。
 
-Additional orders also result in additional fees and those orders don't count towards `max_open_trades`.
+追加の注文にも追加料金がかかり、それらの注文は「max_open_trades」にはカウントされません。
 
-This callback is also called when there is an open order (either buy or sell) waiting for execution - and will cancel the existing open order to place a new order if the amount, price or direction is different. Also partially filled orders will be canceled, and will be replaced with the new amount as returned by the callback.
+このコールバックは、約定を待っているオープン注文 (買いまたは売り) がある場合にも呼び出されます。金額、価格、または方向が異なる場合は、既存のオープン注文をキャンセルして新しい注文を出します。また、部分的に約定された注文はキャンセルされ、コールバックによって返された新しい金額に置き換えられます。
 
-`adjust_trade_position()` is called very frequently for the duration of a trade, so you must keep your implementation as performant as possible.
+「adjust_trade_position()」は取引中に非常に頻繁に呼び出されるため、実装のパフォーマンスを可能な限り維持する必要があります。
 
-Position adjustments will always be applied in the direction of the trade, so a positive value will always increase your position (negative values will decrease your position), no matter if it's a long or short trade.
-Adjustment orders can be assigned with a tag by returning a 2 element Tuple, with the first element being the adjustment amount, and the 2nd element the tag (e.g. `return 250, "increase_favorable_conditions"`).
+ポジション調整は常に取引の方向に適用されるため、ロングトレードかショートトレードかに関係なく、正の値は常にポジションを増加させます（負の値はポジションを減少させます）。
+調整オーダーは、2 要素のタプルを返すことによってタグを割り当てることができます。最初の要素は調整額、2 番目の要素はタグです (例: `return 250, "increase_favorable_conditions"`)。
 
-Modifications to leverage are not possible, and the stake-amount returned is assumed to be before applying leverage.
+レバレッジの変更は不可能であり、返される賭け金額はレバレッジを適用する前の額とみなされます。
 
-The combined stake currently allocated to the position is held in `trade.stake_amount`. Therefore `trade.stake_amount` will always be updated on every additional entry and partial exit made through `adjust_trade_position()`.
+現在ポジションに割り当てられている合計ステークは「trade.stake_amount」に保持されます。したがって、`trade.stake_amount` は、`adjust_trade_position()` を通じて行われる追加エントリーおよび部分的なエグジットのたびに常に更新されます。
 
-!!! Danger "Loose Logic"
-    On dry and live run, this function will be called every `throttle_process_secs` (default to 5s). If you have a loose logic, (e.g. increase position if RSI of the last candle is below 30), your bot will do extra re-entry every 5 secs until you either it run out of money, hit the `max_position_adjustment` limit, or a new candle with RSI more than 30 arrived.
+!!! Danger "ルーズなロジック"
+    ドライ実行およびライブ実行では、この関数は「throttle_process_secs」ごとに呼び出されます (デフォルトは 5 秒)。緩いロジックの場合 (例: 最後のローソク足の RSI が 30 未満の場合にポジションを増やす)、ボットは資金がなくなるか、「max_position_adjustment」制限に達するか、RSI が 30 を超える新しいローソク足が到着するまで、5 秒ごとに追加の再エントリーを行います。
 
-    Same thing also can happen with partial exit.  
-    So be sure to have a strict logic and/or check for the last filled order and if an order is already open.
+    部分的な終了でも同じことが発生する可能性があります。  
+    したがって、厳密なロジックを用意し、最後に約定した注文や注文がすでにオープンしているかどうかを確認するようにしてください。
 
-!!! Warning "Performance with many position adjustments"
-    Position adjustments can be a good approach to increase a strategy's output - but it can also have drawbacks if using this feature extensively.  
-    Each of the orders will be attached to the trade object for the duration of the trade - hence increasing memory usage.
-    Trades with long duration and 10s or even 100ds of position adjustments are therefore not recommended, and should be closed at regular intervals to not affect performance.
+!!! Warning "多くの位置調整によるパフォーマンス"
+ポジション調整は戦略の成果を上げるための良いアプローチですが、この機能を広範囲に使用すると欠点が生じる可能性もあります。  
+    各注文は取引期間中取引オブジェクトに添付されるため、メモリ使用量が増加します。
+    したがって、長期間にわたる取引や数十秒、さらには数百秒にわたるポジション調整は推奨されず、パフォーマンスに影響を与えないように定期的に取引を終了する必要があります。
 
-!!! Warning "Backtesting"
-    During backtesting this callback is called for each candle in `timeframe` or `timeframe_detail`, so run-time performance will be affected.
-    This can also cause deviating results between live and backtesting, since backtesting can adjust the trade only once per candle, whereas live could adjust the trade multiple times per candle.
+!!! Warning "バックテスト"
+    バックテスト中、このコールバックは「timeframe」または「timeframe_detail」のキャンドルごとに呼び出されるため、実行時のパフォーマンスに影響します。
+    また、バックテストではローソク当たり 1 回しか取引を調整できないのに対し、ライブではローソク当たり複数回取引を調整できるため、ライブとバックテストの間で結果が異なる可能性もあります。
 
-### Increase position
+### 位置を増やす
 
-The strategy is expected to return a positive **stake_amount** (in stake currency) between `min_stake` and `max_stake` if and when an additional entry order should be made (position is increased -> buy order for long trades, sell order for short trades).
+この戦略は、追加のエントリー注文を作成する必要がある場合 (ポジションが増加する -> ロング取引の場合は買い注文、ショート取引の場合は売り注文)、「min_stake」と「max_stake」の間で正の **stake_amount** (ステーク通貨で) を返すことが期待されます。
 
-If there are not enough funds in the wallet (the return value is above `max_stake`) then the signal will be ignored.
-`max_entry_position_adjustment` property is used to limit the number of additional entries per trade (on top of the first entry order) that the bot can execute. By default, the value is -1 which means the bot have no limit on number of adjustment entries.
+ウォレットに十分な資金がない場合 (戻り値が `max_stake` を超えている場合)、シグナルは無視されます。
+`max_entry_position_adjustment` プロパティは、ボットが実行できる (最初のエントリー注文に加えて) 取引ごとの追加エントリーの数を制限するために使用されます。デフォルトでは、値は -1 で、ボットの調整エントリ数に制限がないことを意味します。
 
-Additional entries are ignored once you have reached the maximum amount of extra entries that you have set on `max_entry_position_adjustment`, but the callback is called anyway looking for partial exits.
+`max_entry_position_adjustment` で設定した追加エントリの最大量に達すると、追加のエントリは無視されますが、それでも部分的な終了を探してコールバックが呼び出されます。
 
-!!! Note "About stake size"
-    Using fixed stake size means it will be the amount used for the first order, just like without position adjustment.
-    If you wish to buy additional orders with DCA, then make sure to leave enough funds in the wallet for that.
-    Using `"unlimited"` stake amount with DCA orders requires you to also implement the `custom_stake_amount()` callback to avoid allocating all funds to the initial order.
+!!! Note "ステークサイズについて"
+    固定ステークサイズを使用すると、ポジション調整なしと同様に、最初の注文に使用される金額になります。
+    DCA で追加の注文を購入したい場合は、そのための十分な資金をウォレットに残してください。
+    DCA 注文で「無制限」のステーク量を使用するには、最初の注文にすべての資金が割り当てられることを避けるために、「custom_stake_amount()」コールバックも実装する必要があります。
 
-### Decrease position
+### 位置を下げる
 
-The strategy is expected to return a negative stake_amount (in stake currency) for a partial exit.
-Returning the full owned stake at that point (`-trade.stake_amount`) results in a full exit.  
-Returning a value more than the above (so remaining stake_amount would become negative) will result in the bot ignoring the signal.
+この戦略は、部分的なエグジットに対して負の stake_amount (ステーク通貨で) を返すと予想されます。
+その時点で完全に所有されている株式を返す (`-trade.stake_amount`) と、完全な終了になります。  
+上記を超える値を返すと (残りの stake_amount が負になるため)、ボットはシグナルを無視します。
+部分的エグジットの場合、部分的エグジット注文のコインの量を計算するために使用される式が「部分的にエグジットされる金額 = negative_stake_amount * trade.amount / trade.stake_amount」であることを知っておくことが重要です。ここで、「negative_stake_amount」は「adjust_trade_position」関数から返される値です。式に見られるように、この式ではポジションの現在の損益は考慮されません。価格変動の影響をまったく受けない「trade.amount」と「trade.stake_amount」のみを考慮します。
 
-For a partial exit, it's important to know that the formula used to calculate the amount of the coin for the partial exit order is `amount to be exited partially = negative_stake_amount * trade.amount / trade.stake_amount`, where `negative_stake_amount` is the value returned from the `adjust_trade_position` function. As seen in the formula, the formula doesn't care about current profit/loss of the position. It only cares about `trade.amount` and `trade.stake_amount` which aren't affected by the price movement at all.
+たとえば、オープンレート 50 で 2 SHITCOIN/USDT を購入するとします。これは、取引の賭け金が 100 USDT であることを意味します。価格が 200 に上がったので、その半分を売りたいとします。その場合、「trade.stake_amount」の -50% (0.5 * 100 USDT) (-50 に相当) を返さなければなりません。ボットは販売に必要な金額を計算します。これは「50 * 2 / 100」で、1 SHITCOIN/USDT に相当します。 -200 (2 * 200 の 50%) を返すと、「trade.stake_amount」は 100 USDT のみですが、200 USDT の販売を要求しているため、ボットはそれを無視します。これは、4 SHITCOIN/USDT の販売を要求していることを意味します。
 
-For example, let's say you buy 2 SHITCOIN/USDT at open rate of 50, which means the trade's stake amount is 100 USDT. Now the price raises to 200 and you want to sell half of it. In that case, you have to return -50% of `trade.stake_amount` (0.5 * 100 USDT) which equals to -50. The bot will calculate the amount it needed to sell, which is `50 * 2 / 100` which equals 1 SHITCOIN/USDT. If you return -200 (50% of 2 * 200), the bot will ignore it since `trade.stake_amount` is only 100 USDT but you asked to sell 200 USDT which means you are asking to sell 4 SHITCOIN/USDT.
+上の例に戻ると、現在のレートが 200 であるため、取引の現在の USDT 値は 400 USDT になります。 100 USDT を部分的に売却して初期投資を取り除き、価格が上昇し続けることを期待して取引での利益を残しておきたいとします。その場合は、別のアプローチを行う必要があります。まず、販売に必要な正確な金額を計算する必要があります。この場合、現在のレートに基づいて 100 USDT 相当を売却したいため、部分的に売却するために必要な正確な金額は「100 * 2 / 400」で、これは 0.5 SHITCOIN/USDT に相当します。売りたい正確な金額 (0.5) がわかったので、`adjust_trade_position` 関数で返す必要がある値は、`-部分的に決済される金額 * trade.stake_amount / trade.amount` となり、-25 に等しくなります。ボットは 0.5 SHITCOIN/USDT を販売し、1.5 を取引に維持します。部分的な出口からは 100 USDT を受け取ります。
 
-Back to the example above, since current rate is 200, the current USDT value of your trade is now 400 USDT. Let's say you want to partially sell 100 USDT to take out the initial investment and leave the profit in the trade hoping that the price keeps rising. In that case, you have to do a different approach. First, you need to calculate the exact amount you needed to sell. In this case, since you want to sell 100 USDT worth based of current rate, the exact amount you need to partially sell is `100 * 2 / 400` which equals 0.5 SHITCOIN/USDT. Since we know now the exact amount we want to sell (0.5), the value you need to return in the `adjust_trade_position` function is `-amount to be exited partially * trade.stake_amount / trade.amount`, which equals -25. The bot will sell 0.5 SHITCOIN/USDT, keeping 1.5 in trade. You will receive 100 USDT from the partial exit.
+!!! Warning "ストップロスの計算"
+    ストップロスは、平均価格ではなく、最初の始値から計算されます。
+    通常のストップロス ルールが引き続き適用されます (下に移動することはできません)。
 
-!!! Warning "Stoploss calculation"
-    Stoploss is still calculated from the initial opening price, not averaged price.
-    Regular stoploss rules still apply (cannot move down).
-
-    While `/stopentry` command stops the bot from entering new trades, the position adjustment feature will continue buying new orders on existing trades.
-
+    「/stopentry」コマンドはボットによる新しい取引の入力を停止しますが、ポジション調整機能は既存の取引で新しい注文を買い続けます。
 ``` python
 # Default imports
 
@@ -1053,46 +1005,44 @@ class DigDeeperStrategy(IStrategy):
         return None
 
 ```
+### 位置調整の計算
 
-### Position adjust calculations
+※エントリー率は加重平均により算出しております。
+※退場は平均入場率には影響しません。
+* 部分エグジット相対利益は、この時点の平均エントリー価格に対する相対的なものです。
+※最終エグジット相対利益は総投下資本に基づいて計算されます。 (以下の例を参照してください)
 
-* Entry rates are calculated using weighted averages.
-* Exits will not influence the average entry rate.
-* Partial exit relative profit is relative to the average entry price at this point.
-* Final exit relative profit is calculated based on the total invested capital. (See example below)
-
-??? example "Calculation example"
-    *This example assumes 0 fees for simplicity, and a long position on an imaginary coin.*  
+???例「計算例」
+    *この例では、簡単にするために手数料が 0 であり、架空のコインのロング ポジションがあると仮定しています。*  
     
-    * Buy 100@8\$ 
-    * Buy 100@9\$ -> Avg price: 8.5\$
-    * Sell 100@10\$ -> Avg price: 8.5\$, realized profit 150\$, 17.65%
-    * Buy 150@11\$ -> Avg price: 10\$, realized profit 150\$, 17.65%
-    * Sell 100@12\$ -> Avg price: 10\$, total realized profit 350\$, 20%
-    * Sell 150@14\$ -> Avg price: 10\$, total realized profit 950\$, 40%  <- *This will be the last "Exit" message*
+    * 100@8\$ を購入 
+    * 100@9\$ を購入 -> 平均価格: 8.5\$
+    * 100@10\$ を販売 -> 平均価格: 8.5\$、実現利益 150\$、17.65%
+    * 150@11\$ を購入 -> 平均価格: 10\$、実現利益 150\$、17.65%
+    * 100@12\$ を販売 -> 平均価格: 10\$、合計実現利益 350\$、20%
+    * 150@14\$ を販売 -> 平均価格: 10\$、合計実現利益 950\$、40% <- *これが最後の「終了」メッセージになります*
 
-    The total profit for this trade was 950$ on a 3350$ investment (`100@8$ + 100@9$ + 150@11$`). As such - the final relative profit is 28.35% (`950 / 3350`).
+    この取引の合計利益は、投資 $3350 に対して $950 (`100@8$ + 100@9$ + 150@11$`) でした。したがって、最終的な相対利益は 28.35% (`950 / 3350`) になります。
 
-## Adjust order Price
+## 注文価格を調整する
 
-The `adjust_order_price()` callback may be used by strategy developer to refresh/replace limit orders upon arrival of new candles.  
-This callback is called once every iteration unless the order has been (re)placed within the current candle - limiting the maximum (re)placement of each order to once per candle.
-This also means that the first call will be at the start of the next candle after the initial order was placed.
+「adjust_order_price()」コールバックは、戦略開発者が新しいローソク足の到着時に指値注文を更新/交換するために使用できます。  
+このコールバックは、注文が現在のローソク内で (再) 配置されていない限り、反復ごとに 1 回呼び出されます。つまり、各注文の最大 (再) 配置はローソクごとに 1 回に制限されます。
+これは、最初の注文が行われた後、最初のコールが次のローソク足の開始時に行われることも意味します。
 
-Be aware that `custom_entry_price()`/`custom_exit_price()` is still the one dictating initial limit order price target at the time of the signal.
+`custom_entry_price()`/`custom_exit_price()` は依然として、シグナル時の最初の指値注文価格目標を決定するものであることに注意してください。
 
-Orders can be cancelled out of this callback by returning `None`.
+「None」を返すことで、このコールバックから注文をキャンセルできます。
 
-Returning `current_order_rate` will keep the order on the exchange "as is".
-Returning any other price will cancel the existing order, and replace it with a new order.
+`current_order_rate` を返すと、取引所の注文は「現状のまま」維持されます。
+他の価格を返品すると、既存の注文がキャンセルされ、新しい注文に置き換えられます。
 
-If the cancellation of the original order fails, then the order will not be replaced - though the order will most likely have been canceled on exchange. Having this happen on initial entries will result in the deletion of the order, while on position adjustment orders, it'll result in the trade size remaining as is.  
-If the order has been partially filled, the order will not be replaced. You can however use [`adjust_trade_position()`](#adjust-trade-position) to adjust the trade size to the expected position size, should this be necessary / desired.
+元の注文のキャンセルが失敗した場合、注文は交換されませんが、注文は交換時にキャンセルされる可能性が高くなります。最初のエントリーでこれが発生すると注文は削除されますが、ポジション調整注文では取引サイズはそのまま残ります。  
+注文が部分的に約定された場合、注文は交換されません。ただし、必要に応じて、[`adjust_trade_position()`](#adjust-trade-position) を使用して、取引サイズを予想されるポジション サイズに調整することができます。
 
-!!! Warning "Regular timeout"
-    Entry `unfilledtimeout` mechanism (as well as `check_entry_timeout()`/`check_exit_timeout()`) takes precedence over this callback.
-    Orders that are cancelled via the above methods will not have this callback called. Be sure to update timeout values to match your expectations.
-
+!!! Warning "通常のタイムアウト"
+    エントリの「unfilledtimeout」メカニズム (および「check_entry_timeout()」/「check_exit_timeout()」) は、このコールバックよりも優先されます。
+    上記のメソッドでキャンセルされた注文では、このコールバックは呼び出されません。期待どおりにタイムアウト値を更新してください。
 ```python
 # Default imports
 
@@ -1156,36 +1106,34 @@ class AwesomeStrategy(IStrategy):
         # default: maintain existing order
         return current_order_rate
 ```
+!!! danger "「adjust_*_price()」との非互換性"
+    `adjust_order_price()` と `adjust_entry_price()`/`adjust_exit_price()` の両方が実装されている場合は、`adjust_order_price()` のみが使用されます。
+    エントリー/エグジット価格を調整する必要がある場合は、`adjust_order_price()` でロジックを実装するか、分割された `adjust_entry_price()` / `adjust_exit_price()` コールバックを使用できますが、両方を使用することはできません。
+    これらの混合はサポートされていないため、ボットの起動時にエラーが発生します。
 
-!!! danger "Incompatibility with `adjust_*_price()`"
-    If you have both `adjust_order_price()` and `adjust_entry_price()`/`adjust_exit_price()` implemented, only `adjust_order_price()` will be used.
-    If you need to adjust entry/exit prices, you can either implement the logic in `adjust_order_price()`, or use the split `adjust_entry_price()` / `adjust_exit_price()` callbacks, but not both.
-    Mixing these is not supported and will raise an error during bot startup.
+### エントリー価格を調整する
 
-### Adjust Entry Price
+「adjust_entry_price()」コールバックは、戦略開発者が到着時にエントリー指値注文を更新/置換するために使用できます。
+これは `adjust_order_price()` のサブセットであり、エントリー注文の場合にのみ呼び出されます。
+残りの動作はすべて「adjust_order_price()」と同じです。
 
-The `adjust_entry_price()` callback may be used by strategy developer to refresh/replace entry limit orders upon arrival.
-It's a sub-set of `adjust_order_price()` and is called only for entry orders.
-All remaining behavior is identical to `adjust_order_price()`.
+取引開始日 (`trade.open_date_utc`) は、最初の注文の時点のままになります。
+これを必ず認識してください。最終的には、これを考慮して他のコールバックのロジックを調整し、代わりに最初に約定した注文の日付を使用してください。
 
-The trade open-date (`trade.open_date_utc`) will remain at the time of the very first order placed.
-Please make sure to be aware of this - and eventually adjust your logic in other callbacks to account for this, and use the date of the first filled order instead.
+### エグジット価格を調整する
 
-### Adjust Exit Price
+「adjust_exit_price()」コールバックは、戦略開発者が到着時に決済指値注文を更新/置換するために使用できます。
+これは `adjust_order_price()` のサブセットであり、決済注文の場合にのみ呼び出されます。
+残りの動作はすべて「adjust_order_price()」と同じです。
 
-The `adjust_exit_price()` callback may be used by strategy developer to refresh/replace exit limit orders upon arrival.
-It's a sub-set of `adjust_order_price()` and is called only for exit orders.
-All remaining behavior is identical to `adjust_order_price()`.
+## コールバックを活用する
 
-## Leverage Callback
+レバレッジが許可されている市場で取引する場合、このメソッドは希望のレバレッジを返す必要があります (デフォルトは 1 -> レバレッジなし)。
 
-When trading in markets that allow leverage, this method must return the desired Leverage (Defaults to 1 -> No leverage).
+資本が 500USDT であると仮定すると、レバレッジ = 3 で取引すると、500 x 3 = 1500 USDT のポジションが得られます。
 
-Assuming a capital of 500USDT, a trade with leverage=3 would result in a position with 500 x 3 = 1500 USDT.
-
-Values that are above `max_leverage` will be adjusted to `max_leverage`.
-For markets / exchanges that don't support leverage, this method is ignored.
-
+「max_leverage」を超える値は「max_leverage」に調整されます。
+レバレッジをサポートしていない市場/取引所の場合、この方法は無視されます。
 ``` python
 # Default imports
 
@@ -1207,17 +1155,15 @@ class AwesomeStrategy(IStrategy):
         """
         return 1.0
 ```
+すべての利益計算にはレバレッジが含まれます。ストップロス/ROI にはレバレッジも計算に含まれます。
+10 倍のレバレッジで 10% のストップロスを定義すると、1% の下落でストップロスがトリガーされます。
 
-All profit calculations include leverage. Stoploss / ROI also include leverage in their calculation.
-Defining a stoploss of 10% at 10x leverage would trigger the stoploss with a 1% move to the downside.
+## 注文完了コールバック
 
-## Order filled Callback
+`order_filled()` コールバックは、注文が約定された後に現在の取引状態に基づいて特定のアクションを実行するために使用できます。
+これは注文タイプ (エントリー、エグジット、ストップロス、ポジション調整) に関係なく呼び出されます。
 
-The `order_filled()` callback may be used to perform specific actions based on the current trade state after an order is filled.
-It will be called independent of the order type (entry, exit, stoploss or position adjustment).
-
-Assuming that your strategy needs to store the high value of the candle at trade entry, this is possible with this callback as the following example show.
-
+戦略が取引エントリー時にローソクの高値を保存する必要があると仮定すると、次の例に示すように、このコールバックを使用してこれが可能です。
 ``` python
 # Default imports
 
@@ -1242,25 +1188,23 @@ class AwesomeStrategy(IStrategy):
         return None
 
 ```
+!!! Tip "データの保存について詳しく見る"
+    データの保存について詳しくは、[カスタム取引データの保存](strategy-advanced.md#storing-information-persistent) セクションをご覧ください。
+    これは高度な使用法とみなされ、慎重に使用する必要があることに注意してください。
 
-!!! Tip "Learn more about storing data"
-    You can learn more about storing data on the [Storing custom trade data](strategy-advanced.md#storing-information-persistent) section.
-    Please keep in mind that this is considered advanced usage, and should be used with care.
+## プロット注釈コールバック
 
-## Plot annotations callback
+プロット注釈コールバックは、freqUI がグラフを表示するデータを要求するたびに呼び出されます。
+このコールバックは取引サイクルのコンテキストでは意味がなく、チャート作成の目的でのみ使用されます。
 
-The plot annotations callback is called whenever freqUI requests data to display a chart.
-This callback has no meaning in the trade cycle context and is only used for charting purposes.
+このストラテジーは、チャートに表示される `AnnotationType` オブジェクトのリストを返すことができます。
+返されたコンテンツに応じて、グラフには水平領域、垂直領域、ボックス、または線を表示できます。
 
-The strategy can then return a list of `AnnotationType` objects to be displayed on the chart.
-Depending on the content returned - the chart can display horizontal areas, vertical areas, boxes or lines.
+### 注釈の種類
 
-### Annotation types
+現在、「area」と「line」の 2 種類の注釈がサポートされています。
 
-Currently two types of annotations are supported, `area` and `line`.
-
-#### Area
-
+＃＃＃＃ エリア
 ``` json
 {
     "type": "area", // Type of the annotation, currently only "area" is supported
@@ -1273,9 +1217,7 @@ Currently two types of annotations are supported, `area` and `line`.
     "label": "some label"
 }
 ```
-
-#### Line
-
+＃＃＃＃ ライン
 ``` json
 {
     "type": "line", // Type of the annotation, currently only "line" is supported
@@ -1291,10 +1233,8 @@ Currently two types of annotations are supported, `area` and `line`.
 
 }
 ```
-
-The below example will mark the chart with areas for the hours 8 and 15, with a grey color, highlighting the market open and close hours.
-This is obviously a very basic example.
-
+以下の例では、チャートの 8 時間目と 15 時間目のエリアを灰色でマークし、市場の開始時間と終了時間を強調表示します。
+これは明らかに非常に基本的な例です。
 ``` python
 # Default imports
 
@@ -1333,21 +1273,19 @@ class AwesomeStrategy(IStrategy):
         return annotations
 
 ```
+エントリは検証され、予期されたスキーマに対応しない場合は UI に渡されず、一致しない場合はエラーがログに記録されます。
 
-Entries will be validated, and won't be passed to the UI if they don't correspond to the expected schema and will log an error if they don't.
+!!! Warning "多くの注釈"
+    注釈を使用しすぎると、特に大量の履歴データをプロットする場合に UI がハングする可能性があります。
+    注釈機能は注意して使用してください。
 
-!!! Warning "Many annotations"
-    Using too many annotations can cause the UI to hang, especially when plotting large amounts of historic data.
-    Use the annotation feature with care.
+### プロット注釈の例
 
-### Plot annotations example
+![FreqUI - プロット注釈](assets/freqUI-chart-annotations-dark.png#only-dark)
+![FreqUI - プロット注釈](assets/freqUI-chart-annotations-light.png#only-light)
 
-![FreqUI - plot Annotations](assets/freqUI-chart-annotations-dark.png#only-dark)
-![FreqUI - plot Annotations](assets/freqUI-chart-annotations-light.png#only-light)
-
-??? Info "Code used for the plot above"
-    This is an example code and should be treated as such.
-
+???情報「上記のプロットに使用されたコード」
+    これはコード例であり、そのように扱う必要があります。
     ``` python
     # Default imports
 

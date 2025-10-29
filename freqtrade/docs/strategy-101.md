@@ -1,77 +1,74 @@
-# Freqtrade Strategies 101: A Quick Start for Strategy Development
+# Freqtrade Strategies 101: 戦略開発のクイック スタート
 
-For the purposes of this quick start, we are assuming you are familiar with the basics of trading, and have read the 
-[Freqtrade basics](bot-basics.md) page.
+このクイック スタートでは、読者が取引の基本に精通しており、以下の文書を読んでいることを前提としています。 
+[Freqtrade の基本](bot-basics.md) ページ。
 
-## Required Knowledge
+## 必要な知識
 
-A strategy in Freqtrade is a Python class that defines the logic for buying and selling cryptocurrency `assets`.
+Freqtrade の戦略は、暗号通貨「資産」を売買するためのロジックを定義する Python クラスです。
 
-Assets are defined as `pairs`, which represent the `coin` and the `stake`. The coin is the asset you are trading using another currency as the stake.
+資産は「コイン」と「ステーク」を表す「ペア」として定義されます。コインは、別の通貨を賭け金として使用して取引している資産です。
 
-Data is supplied by the exchange in the form of `candles`, which are made up of a six values: `date`, `open`, `high`, `low`, `close` and `volume`.
+データは取引所によって「キャンドル」の形式で提供され、「日付」、「始値」、「高値」、「安値」、「終値」、および「ボリューム」の 6 つの値で構成されます。
 
-`Technical analysis` functions analyse the candle data using various computational and statistical formulae, and produce secondary values called `indicators`.
+「テクニカル分析」機能は、さまざまな計算式や統計式を使用してローソク足データを分析し、「インジケーター」と呼ばれる二次的な値を生成します。
 
-Indicators are analysed on the asset pair candles to generate `signals`.
+インジケーターは資産ペアのローソク足で分析され、「シグナル」が生成されます。
 
-Signals are turned into `orders` on a cryptocurrency `exchange`, i.e. `trades`.
+シグナルは、暗号通貨の「取引所」で「注文」、つまり「取引」に変換されます。
 
-We use the terms `entry` and `exit` instead of `buying` and `selling` because Freqtrade supports both `long` and `short` trades.
+Freqtrade は「ロング」取引と「ショート」取引の両方をサポートしているため、「買い」と「売り」の代わりに「エントリー」と「エグジット」という用語を使用します。
 
-- **long**: You buy the coin based on a stake, e.g. buying the coin BTC using USDT as your stake, and you make a profit by selling the coin at a higher rate than you paid for. In long trades, profits are made by the coin value going up versus the stake.
-- **short**: You borrow capital from the exchange in the form of the coin, and you pay back the stake value of the coin later. In short trades profits are made by the coin value going down versus the stake (you pay the loan off at a lower rate).
+- **ロング**: 賭け金に基づいてコインを購入します。 USDT を賭け金として使用してコイン BTC を購入し、支払った金額よりも高いレートでコインを売ることで利益を得ることができます。ロングトレードでは、賭け金に対してコインの価値が上昇することで利益が得られます。
+- **短い**: 取引所からコインの形で資本を借り、後でコインの賭け金を返済します。ショートトレードでは、賭け金に対してコインの価値が下がることで利益が得られます（より低い金利でローンを返済することになります）。
 
-Whilst Freqtrade supports spot and futures markets for certain exchanges, for simplicity we will focus on spot (long) trades only.
+Freqtrade は特定の取引所のスポット市場と先物市場をサポートしていますが、簡単にするためにスポット (ロング) 取引のみに焦点を当てます。
 
-## Structure of a Basic Strategy
+## 基本戦略の構成
 
-### Main dataframe
+### メインデータフレーム
 
-Freqtrade strategies use a tabular data structure with rows and columns known as a `dataframe` to generate signals to enter and exit trades.
+Freqtrade 戦略は、「データフレーム」として知られる行と列を含む表形式のデータ構造を使用して、取引に参加および取引を終了するためのシグナルを生成します。
 
-Each pair in your configured pairlist has its own dataframe. Dataframes are indexed by the `date` column, e.g. `2024-06-31 12:00`.
+構成されたペアリスト内の各ペアには独自のデータフレームがあります。データフレームは「date」列によってインデックス付けされます。 「2024-06-31 12:00」。
 
-The next 5 columns represent the `open`, `high`, `low`, `close` and `volume` (OHLCV) data.
+次の 5 列は、「始値」、「高値」、「安値」、「終値」、および「ボリューム」 (OHLCV) データを表します。
 
-### Populate indicator values
+### インジケーター値を入力する
 
-The `populate_indicators` function adds columns to the dataframe that represent the technical analysis indicator values.
+「populate_indicators」関数は、テクニカル分析インジケーターの値を表す列をデータフレームに追加します。
 
-Examples of common indicators include Relative Strength Index, Bollinger Bands, Money Flow Index, Moving Average, and Average True Range.
+一般的な指標の例には、相対力指数、ボリンジャーバンド、マネーフロー指数、移動平均、平均トゥルーレンジなどがあります。
 
-Columns are added to the dataframe by calling technical analysis functions, e.g. ta-lib's RSI function `ta.RSI()`, and assigning them to a column name, e.g. `rsi`
-
+列は、テクニカル分析関数を呼び出すことによってデータフレームに追加されます。 ta-lib の RSI 関数 `ta.RSI()` を使用し、それらを列名に割り当てます。 「rsi」
 ```python
 dataframe['rsi'] = ta.RSI(dataframe)
 ```
+???ヒント「テクニカル分析ライブラリ」
+    ライブラリーが異なれば、インジケーター値を生成する方法も異なります。理解するには各ライブラリのドキュメントを確認してください。
+    それを戦略に組み込む方法。 [Freqtrade 戦略例](https://github.com/freqtrade/freqtrade-strategies) をチェックしてアイデアを得ることができます。
 
-??? Hint "Technical Analysis libraries"
-    Different libraries work in different ways to generate indicator values. Please check the documentation of each library to understand
-    how to integrate it into your strategy. You can also check the [Freqtrade example strategies](https://github.com/freqtrade/freqtrade-strategies) to give you ideas.
+### エントリーシグナルを入力する
 
-### Populate entry signals
+「populate_entry_trend」関数はエントリーシグナルの条件を定義します。
 
-The `populate_entry_trend` function defines conditions for an entry signal.
+データフレーム列「enter_long」がデータフレームに追加され、この列に値「1」がある場合、Freqtrade はエントリー信号を認識します。
 
-The dataframe column `enter_long` is added to the dataframe, and when a value of `1` is in this column, Freqtrade sees an entry signal.
+???ヒント「ショート」
+    ショートトレードを入力するには、「enter_short」列を使用します。
 
-??? Hint "Shorting"
-    To enter short trades, use the `enter_short` column.
+### 出口シグナルを設定する
 
-### Populate exit signals
+`populate_exit_trend` 関数は、終了シグナルの条件を定義します。
 
-The `populate_exit_trend` function defines conditions for an exit signal.
+データフレーム列「exit_long」がデータフレームに追加され、この列に「1」の値がある場合、Freqtrade は終了シグナルを認識します。
 
-The dataframe column `exit_long` is added to the dataframe, and when a value of `1` is in this column, Freqtrade sees an exit signal.
+???ヒント「ショート」
+    ショートトレードを終了するには、「exit_short」列を使用します。
 
-??? Hint "Shorting"
-    To exit short trades, use the `exit_short` column.
+## シンプルな戦略
 
-## A simple strategy
-
-Here is a minimal example of a Freqtrade strategy:
-
+Freqtrade 戦略の最小限の例を次に示します。
 ```python
 from freqtrade.strategy import IStrategy
 from pandas import DataFrame
@@ -109,95 +106,94 @@ class MyStrategy(IStrategy):
 
         return dataframe
 ```
+## 取引を行う
 
-## Making trades
+シグナルが見つかると (エントリーまたはエグジット列の「1」)、Freqtrade は注文、つまり「トレード」または「ポジション」の作成を試みます。
 
-When a signal is found (a `1` in an entry or exit column), Freqtrade will attempt to make an order, i.e. a `trade` or `position`.
+新しい取引ポジションはそれぞれ「スロット」を占有します。スロットは、同時に開くことができる新しい取引の最大数を表します。
 
-Each new trade position takes up a `slot`. Slots represent the maximum number of concurrent new trades that can be opened.
+スロットの数は、`max_open_trades` [configuration](configuration.md) オプションによって定義されます。
 
-The number of slots is defined by the `max_open_trades` [configuration](configuration.md) option.
+ただし、シグナルの生成によって必ずしも取引注文が作成されるとは限らないさまざまなシナリオが存在する可能性があります。これらには次のものが含まれます。
 
-However, there can be a range of scenarios where generating a signal does not always create a trade order. These include:
+- 資産を購入するのに十分な残りの賭け金、または資産を売却するのに十分な資金がウォレットにない（手数料を含む）
+- 新しい取引を開くのに十分な空きスロットが残っていない (開いているポジションの数が `max_open_trades` オプションに等しい)
+- ペアのオープントレードがすでに存在します (Freqtrade はポジションをスタックできませんが、[既存のポジションを調整](strategy-callbacks.md#adjust-trade-position) することはできます)
+- エントリーシグナルとエグジットシグナルが同じローソク足に存在する場合、それらは[衝突](strategy-customization.md#colliding-signals)とみなされ、注文は上げられません。
+- 関連する [entry](strategy-callbacks.md#trade-entry-buy-order-confirmation) または [exit](strategy-callbacks.md#trade-exit-sell-order-confirmation) コールバックのいずれかを使用して指定したロジックにより、ストラテジーは取引注文を積極的に拒否します。
 
-- not enough remaining stake to buy an asset, or funds in your wallet to sell an asset (including any fees)
-- not enough remaining free slots for a new trade to be opened (the number of positions you have open equals the `max_open_trades` option)
-- there is already an open trade for a pair (Freqtrade cannot stack positions - however it can [adjust existing positions](strategy-callbacks.md#adjust-trade-position))
-- if an entry and exit signal is present on the same candle, they are considered as [colliding](strategy-customization.md#colliding-signals), and no order will be raised
-- the strategy actively rejects the trade order due to logic you specify by using one of the relevant [entry](strategy-callbacks.md#trade-entry-buy-order-confirmation) or [exit](strategy-callbacks.md#trade-exit-sell-order-confirmation) callbacks
+詳細については、[戦略のカスタマイズ](strategy-customization.md) ドキュメントを参照してください。
 
-Read through the [strategy customization](strategy-customization.md) documentation for more details.
+## バックテストとフォワードテスト
 
-## Backtesting and forward testing
+戦略策定は、人間の「直感」をコンピューター制御の機能に変えるため、長くてイライラするプロセスになる可能性があります。
+(「アルゴ」) 戦略は必ずしも単純ではありません。
 
-Strategy development can be a long and frustrating process, as turning our human "gut instincts" into a working computer-controlled
-("algo") strategy is not always straightforward.
+したがって、戦略をテストして、意図したとおりに機能することを確認する必要があります。
 
-Therefore a strategy should be tested to verify that it is going to work as intended.
+Freqtrade には 2 つのテスト モードがあります。
 
-Freqtrade has two testing modes:
+- **バックテスト**: [取引所からダウンロード](data-download.md)した履歴データを使用するバックテストは、戦略のパフォーマンスを評価する簡単な方法です。ただし、結果を歪めることは非常に簡単であるため、戦略が実際よりもはるかに収益性が高いように見えます。詳細については、[バックテストのドキュメント](backtesting.md) を確認してください。
+- **ドライ ラン**: _フォワード テスト_と呼ばれることが多く、ドライ ランでは交換からのリアルタイム データが使用されます。ただし、取引につながるシグナルはすべて Freqtrade によって通常どおり追跡されますが、取引所自体で取引が開始されることはありません。フォワード テストはリアルタイムで実行されるため、結果が得られるまでに時間がかかりますが、バックテストよりも**潜在的な**パフォーマンスを示す信頼性の高い指標となります。
 
-- **backtesting**: using historical data that you [download from an exchange](data-download.md), backtesting is a quick way to assess performance of a strategy. However, it can be very easy to distort results so a strategy will look a lot more profitable than it really is. Check the [backtesting documentation](backtesting.md) for more information.
-- **dry run**: often referred to as _forward testing_, dry runs use real time data from the exchange. However, any signals that would result in trades are tracked as normal by Freqtrade, but do not have any trades opened on the exchange itself. Forward testing runs in real time, so whilst it takes longer to get results it is a much more reliable indicator of **potential** performance than backtesting.
+ドライ ランは、[設定](configuration.md#using-dry-run-mode) で `dry_run` を true に設定することで有効になります。
 
-Dry runs are enabled by setting `dry_run` to true in your [configuration](configuration.md#using-dry-run-mode).
+!!! Warning "バックテストは非常に不正確になる可能性がある"
+バックテストの結果が現実と一致しない場合には、さまざまな理由が考えられます。 [バックテストの前提条件](backtesting.md#assumptions-made-by-backtesting) および [一般的な戦略の間違い](strategy-customization.md#common-missing-when-developing-strategies) のドキュメントを確認してください。
+    Freqtrade 戦略をリストし、ランク付けしている Web サイトの中には、印象的なバックテスト結果を示しているものがあります。これらの結果が達成可能または現実的であると想定しないでください。
 
-!!! Warning "Backtests can be very inaccurate"
-    There are many reasons why backtest results may not match reality. Please check the [backtesting assumptions](backtesting.md#assumptions-made-by-backtesting) and [common strategy mistakes](strategy-customization.md#common-mistakes-when-developing-strategies) documentation.
-    Some websites that list and rank Freqtrade strategies show impressive backtest results. Do not assume these results are achieveable or realistic.
+???ヒント「便利なコマンド」
+    Freqtrade には、戦略の基本的な欠陥をチェックするための 2 つの便利なコマンドが含まれています: [lookahead-analysis](lookahead-analysis.md) と [recursive-analysis](recursive-analysis.md) です。
 
-??? Hint "Useful commands"
-    Freqtrade includes two useful commands to check for basic flaws in strategies: [lookahead-analysis](lookahead-analysis.md) and [recursive-analysis](recursive-analysis.md).
+### バックテストと予行演習の結果の評価
 
-### Assessing backtesting and dry run results
+バックテストの後に必ず戦略をドライランし、バックテストとドライランの結果が十分に類似しているかどうかを確認します。
 
-Always dry run your strategy after backtesting it to see if backtesting and dry run results are sufficiently similar.
+大きな違いがある場合は、エントリーシグナルとエグジットシグナルに一貫性があり、2 つのモード間で同じローソク足に表示されることを確認してください。ただし、ドライランとバックテストの間には常に違いがあります。
 
-If there is any significant difference, verify that your entry and exit signals are consistent and appear on the same candles between the two modes. However, there will always be differences between dry runs and backtests:
+- バックテストはすべての注文が約定したことを前提としています。ドライランでは、指値注文を使用している場合、または取引所にボリュームがない場合は、これが当てはまらない場合があります。
+- ローソク足の終値でのエントリーシグナルに続いて、バックテストでは、取引が次のローソク足の始値でエントリーすると想定されます (戦略にカスタム価格コールバックがある場合を除く)。予行演習では、シグナルと取引開始の間に遅延が生じることがよくあります。
+  これは、メインのタイムフレームに新しいローソク足が入ったとき、たとえば、 Freqtrade がすべてのペア データフレームを分析するのに 5 分ごとに時間がかかります。したがって、Freqtrade は数秒以内に取引を開始しようとします (できるだけ遅延が少ないことが理想的です)。
+  キャンドルが開いた後。
+- ドライランでのエントリー率はバックテストと一致しない可能性があるため、利益の計算も異なることになります。したがって、ROI、ストップロス、トレーリングストップロス、およびコールバックエグジットが同一でなくても正常です。
+- 新しいローソク足が入ってから、シグナルが上がって取引が開始されるまでの間に計算上の「ラグ」が大きくなるほど、価格の予測不可能性が大きくなります。コンピュータが番号のデータを処理するのに十分な能力があることを確認してください 
+  妥当な時間内にペアリストにあるペアの数。データ処理に大幅な遅延がある場合、Freqtrade はログで警告します。
 
-- Backtesting assumes all orders fill. In dry runs this might not be the case if using limit orders or there is no volume on the exchange.
-- Following an entry signal on candle close, backtesting assumes trades enter at the next candle's open price (unless you have custom pricing callbacks in your strategy). In dry runs, there is often a delay between signals and trades opening.
-  This is because when new candles come in on your main timeframe, e.g. every 5 minutes, it takes time for Freqtrade to analyse all pair dataframes. Therefore, Freqtrade will attempt to open trades a few seconds (ideally a small a delay as possible)
-  after candle open.
-- As entry rates in dry runs might not match backtesting, this means profit calculations will also differ. Therefore, it is normal if ROI, stoploss, trailing stoploss and callback exits are not identical.
-- The more computational "lag" you have between new candles coming in and your signals being raised and trades being opened will result in greater price unpredictability. Make sure your computer is powerful enough to process the data for the number 
-  of pairs you have in your pairlist within a reasonable time. Freqtrade will warn you in the logs if there are significant data processing delays.
+## 実行中のボットの制御または監視
 
-## Controlling or monitoring a running bot
+ボットがドライ モードまたはライブ モードで実行されると、Freqtrade には実行中のボットを制御または監視するための 6 つのメカニズムがあります。
 
-Once your bot is running in dry or live mode, Freqtrade has six mechanisms to control or monitor a running bot:
+- **[FreqUI](freq-ui.md)**: 最も簡単に始めることができる FreqUI は、ボットの現在のアクティビティを確認および制御するための Web インターフェイスです。
+- **[Telegram](telegram-usage.md)**: モバイル デバイスでは、ボット アクティビティに関するアラートを取得し、特定の側面を制御するために Telegram 統合を利用できます。
+- **[FTUI](https://github.com/freqtrade/ftui)**: FTUI は Freqtrade へのターミナル (コマンド ライン) インターフェイスであり、実行中のボットのみを監視できます。
+- **[freqtrade-client](rest-api.md#customing-the-api)**: REST API の Python 実装。これにより、Python アプリまたはコマンド ラインからリクエストを作成したり、ボットの応答を消費したりすることが簡単になります。
+- **[REST API エンドポイント](rest-api.md#available-endpoints)**: REST API を使用すると、プログラマーは Freqtrade ボットと対話するための独自のツールを開発できます。
+- **[Webhook](webhook-config.md)**: Freqtrade は他のサービスに情報を送信できます。 Discord、Webhook による。
 
-- **[FreqUI](freq-ui.md)**: The easiest to get started with, FreqUI is a web interface to see and control current activity of your bot.
-- **[Telegram](telegram-usage.md)**: On mobile devices, Telegram integration is available to get alerts about your bot activity and to control certain aspects.
-- **[FTUI](https://github.com/freqtrade/ftui)**: FTUI is a terminal (command line) interface to Freqtrade, and allows monitoring of a running bot only.
-- **[freqtrade-client](rest-api.md#consuming-the-api)**: A python implementation of the REST API, making it easy to make requests and consume bot responses from your python apps or the command line.
-- **[REST API endpoints](rest-api.md#available-endpoints)**: The REST API allows programmers to develop their own tools to interact with a Freqtrade bot.
-- **[Webhooks](webhook-config.md)**: Freqtrade can send information to other services, e.g. discord, by webhooks.
+### ログ
 
-### Logs
+Freqtrade は、何が起こっているかを理解するのに役立つ広範なデバッグ ログを生成します。ボット ログに表示される可能性のある情報とエラー メッセージについてよく理解してください。
 
-Freqtrade generates extensive debugging logs to help you understand what's happening. Please familiarise yourself with the information and error messages you might see in your bot logs.
+デフォルトでは、ログは標準出力 (コマンドライン) で行われます。代わりにファイルに書き出す場合は、「trade」コマンドを含む多くの freqtrade コマンドで、ファイルに書き込むための「--logfile」オプションを受け入れます。
 
-Logging by default occurs on standard out (the command line). If you want to write out to a file instead, many freqtrade commands, including the `trade` command, accept the `--logfile` option to write to a file.
+例については、[FAQ](faq.md#how-do-i-search-the-bot-logs-for-something) を確認してください。
 
-Check the [FAQ](faq.md#how-do-i-search-the-bot-logs-for-something) for examples.
+## 最終的な考え
 
-## Final Thoughts
+アルゴ取引は難しく、複数のシナリオで戦略を有利に機能させるには時間と労力がかかるため、ほとんどの公開戦略はパフォーマンスが良くありません。
 
-Algo trading is difficult, and most public strategies are not good performers due to the time and effort to make a strategy work profitably in multiple scenarios.
+したがって、パフォーマンスを評価する方法として公開戦略を採用し、バックテストを使用することには問題が生じることがよくあります。ただし、Freqtrade は、意思決定とデューデリジェンスの実行に役立つ便利な方法を提供します。
 
-Therefore, taking public strategies and using backtests as a way to assess performance is often problematic. However, Freqtrade provides useful ways to help you make decisions and do your due diligence.
+収益性を達成するにはさまざまな方法がありますが、パフォーマンスの悪い戦略を修正する単一のヒント、トリック、または設定オプションはありません。
 
-There are many different ways to achieve profitability, and there is no one single tip, trick or config option that will fix a poorly performing strategy.
+Freqtrade は、大規模で役立つコミュニティを備えたオープン ソース プラットフォームです。必ず [discord チャンネル](https://discord.gg/p7nuUNVfP7) にアクセスして、あなたの戦略を他の人と話し合ってください。
 
-Freqtrade is an open source platform with a large and helpful community - make sure to visit our [discord channel](https://discord.gg/p7nuUNVfP7) to discuss your strategy with others!
+いつものように、失っても構わない額だけを投資してください。
 
-As always, only invest what you are willing to lose.
+## 結論
 
-## Conclusion
+Freqtrade で戦略を開発するには、テクニカル指標に基づいてエントリーシグナルとエグジットシグナルを定義する必要があります。上記で概説した構造と方法に従うことで、独自の取引戦略を作成してテストできます。
 
-Developing a strategy in Freqtrade involves defining entry and exit signals based on technical indicators. By following the structure and methods outlined above, you can create and test your own trading strategies.
+一般的な質問と回答は、[FAQ](faq.md) でご覧いただけます。
 
-Common questions and answers are available on our [FAQ](faq.md).
-
-To continue, refer to the more in-depth [Freqtrade strategy customization documentation](strategy-customization.md).
+続行するには、より詳細な [Freqtrade 戦略カスタマイズ ドキュメント](strategy-customization.md) を参照してください。

@@ -1,70 +1,67 @@
-# Recursive analysis
+# 再帰的分析
 
-This page explains how to validate your strategy for inaccuracies due to recursive issues with certain indicators.
+このページでは、特定のインジケーターでの再帰的な問題による戦略の不正確性を検証する方法について説明します。
 
-A recursive formula defines any term of a sequence relative to its preceding term(s). An example of a recursive formula is a<sub>n</sub> = a<sub>n-1</sub> + b.
+再帰式は、その前の項を基準にしてシーケンスの項を定義します。再帰式の例は、a<sub>n</sub> = a<sub>n-1</sub> + b です。
 
-Why does this matter for Freqtrade? In backtesting, the bot will get full data of the pairs according to the timerange specified. But in a dry/live run, the bot will be limited by the amount of data each exchanges gives.
+Freqtrade にとってこれがなぜ重要なのでしょうか?バックテストでは、ボットは指定された時間範囲に従ってペアの完全なデータを取得します。ただし、ドライ/ライブ実行では、ボットは各交換で提供されるデータの量によって制限されます。
 
-For example, to calculate a very basic indicator called `steps`, the first row's value is always 0, while the following rows' values are equal to the value of the previous row plus 1. If I were to calculate it using the latest 1000 candles, then the `steps` value of the first row is 0, and the `steps` value at the last closed candle is 999.
+たとえば、「ステップ」と呼ばれる非常に基本的なインジケーターを計算する場合、最初の行の値は常に 0 ですが、後続の行の値は前の行の値に 1 を加えた値に等しくなります。最新の 1000 個のローソク足を使用して計算すると、最初の行の「ステップ」値は 0 になり、最後に閉じたローソク足の「ステップ」値は 999 になります。
 
-What happens if the calculation is using only the latest 500 candles? Then instead of 999, the `steps` value at last closed candle is 499. The difference of the value means your backtest result can differ from your dry/live run result.
+計算に最新の 500 個のローソク足のみを使用するとどうなりますか?すると、999 ではなく、最後に閉じたローソク足の「ステップ」値は 499 になります。値の違いは、バックテストの結果がドライ/ライブ実行の結果と異なる可能性があることを意味します。
 
-The `recursive-analysis` command requires historic data to be available. To learn how to get data for the pairs and exchange you're interested in,
-head over to the [Data Downloading](data-download.md) section of the documentation.
+「再帰分析」コマンドでは、履歴データが利用可能であることが必要です。興味のあるペアと交換のデータを取得する方法を学ぶには、
+ドキュメントの [データのダウンロード](data-download.md) セクションに進んでください。
 
-This command is built upon preparing different lengths of data and calculates indicators based on them.
-This does not backtest the strategy itself, but rather only calculates the indicators. After calculating the indicators of different startup candle values (`startup_candle_count`) are done, the values of last rows across all specified `startup_candle_count` are compared to see how much variance they show compared to the base calculation.
+このコマンドは、さまざまな長さのデータを準備して構築されており、それらに基づいてインジケーターを計算します。
+これは戦略自体をバックテストするのではなく、指標を計算するだけです。さまざまなスタートアップ キャンドル値 (`startup_candle_count`) のインジケーターの計算が完了した後、指定されたすべての `startup_candle_count` の最後の行の値が比較され、基本計算と比較してどの程度の差異が示されるかを確認します。
 
-Command settings:
+コマンド設定:
 
-- Use the `-p` option to set your desired pair to analyze. Since we are only looking at indicator values, using more than one pair is redundant. Preferably use a pair with a relatively high price and at least moderate volatility, such as BTC or ETH, to avoid rounding issues that can make the results inaccurate. If no pair is set on the command, the pair used for this analysis is the first pair in the whitelist.
-- It is recommended to set a long timerange (at least 5000 candles) so that the initial indicators' calculation that is going to be used as a benchmark has very small or no recursive issues itself. For example, for a 5m timeframe, a timerange of 5000 candles would be equal to 18 days.
-- `--cache` is forced to "none" to avoid loading previous indicators calculation automatically.
+- `-p` オプションを使用して、分析する目的のペアを設定します。インジケーター値のみを見ているため、複数のペアを使用するのは冗長です。結果が不正確になる可能性がある丸めの問題を避けるために、BTC や ETH など、比較的価格が高く、少なくとも中程度のボラティリティを持つペアを使用することをお勧めします。コマンドにペアが設定されていない場合、この分析に使用されるペアはホワイトリストの最初のペアになります。
+- ベンチマークとして使用される最初のインジケーターの計算自体に再帰的な問題が非常に小さいかまったくないように、長い時間範囲 (少なくとも 5000 ローソク足) を設定することをお勧めします。たとえば、5 メートルの時間枠の場合、5000 ローソク足の時間範囲は 18 日に相当します。
+- 以前のインジケーター計算が自動的に読み込まれるのを避けるために、「--cache」は強制的に「none」に設定されます。
+このコマンドは、再帰的な式チェックに加えて、インジケーター値のみに対して単純な先読みバイアス チェックも実行します。完全な先読みチェックを行うには、[先読み分析](lookahead-analysis.md) を使用します。
 
-In addition to the recursive formula check, this command also carries out a simple lookahead bias check on the indicator values only. For a full lookahead check, use [Lookahead-analysis](lookahead-analysis.md).
+## 再帰的解析コマンドリファレンス
 
-## Recursive-analysis command reference
+--8<-- "コマンド/再帰分析.md"
 
---8<-- "commands/recursive-analysis.md"
+### 奇数のデフォルトの起動キャンドルが使用されるのはなぜですか?
 
-### Why are odd-numbered default startup candles used?
+起動時のローソク足のデフォルト値は奇数です。ボットが取引所の API からローソク足データを取得するとき、最後のローソク足がボットによってチェックされるローソク足であり、残りのデータは「スタートアップ ローソク足」です。
 
-The default value for startup candles are odd numbers. When the bot fetches candle data from the exchange's API, the last candle is the one being checked by the bot and the rest of the data are the "startup candles".
+たとえば、Binance では、API 呼び出しごとに 1000 個のキャンドルが許可されています。ボットが 1000 個のキャンドルを受け取ると、最後のキャンドルが「現在のキャンドル」となり、その前の 999 個のキャンドルが「スタートアップ キャンドル」になります。起動時のキャンドル数を 999 ではなく 1000 に設定すると、ボットは代わりに 1001 個のキャンドルを取得しようとします。その後、取引所 API はローソク足のデータをページ分割された形式で送信します。つまり、Binance API の場合、これは 2 つのグループ (1 つは長さ 1000、もう 1 つは長さ 1) になります。これにより、ボットは戦略に 1001 個のローソク足のデータが必要であると判断し、代わりに 2000 個のローソク足に相当するデータをダウンロードします。これは、1 つの「現在のローソク足」と 1999 個の「開始キャンドル」があることを意味します。
 
-For example, Binance allows 1000 candles per API call. When the bot receives 1000 candles, the last candle is the "current candle", and the preceding 999 candles are the "startup candles". By setting the startup candle count as 1000 instead of 999, the bot will try to fetch 1001 candles instead. The exchange API will then send candle data in a paginated form, i.e. in case of the Binance API, this will be two groups- one of length 1000 and another of length 1. This results in the bot thinking the strategy needs 1001 candles of data, and so it will download 2000 candles worth of data instead, which means there will be 1 "current candle" and 1999 "startup candles".
+さらに、取引所は連続した一括 API 呼び出しの数を制限します。 Binanceでは5回の通話が可能です。この場合、API レート制限に達せずに Binance API からダウンロードできるキャンドルは 5000 個のみです。つまり、使用できる最大 `startup_candle_count` は 4999 個です。
 
-Furthermore, exchanges limit the number of consecutive bulk API calls, e.g. Binance allows 5 calls. In this case, only 5000 candles can be downloaded from Binance API without hitting the API rate limit, which means the max `startup_candle_count` you can have is 4999.
+このローソク足の制限は、取引所によって将来予告なく変更される可能性があることに注意してください。
 
-Please note that this candle limit may be changed in the future by the exchanges without any prior notice.
+### コマンドはどのように機能しますか?
 
-### How does the command work?
+- まず、指定された時間範囲を使用して初期インジケーター計算が実行され、インジケーター値のベンチマークが生成されます。
+- ベンチマークを設定した後、さまざまなスタートアップ キャンドル カウント値ごとに追加の実行が実行されます。
+- 次に、コマンドは最後のローソク足の行のインジケーター値を比較し、その違いを表にレポートします。
 
-- Firstly an initial indicator calculation is carried out using the supplied timerange to generate a benchmark for indicator values.
-- After setting the benchmark it will then carry out additional runs for each of the different startup candle count values.
-- The command will then compare the indicator values at the last candle rows and report the differences in a table.
+## 再帰的分析の出力を理解する
 
-## Understanding the recursive-analysis output
-
-This is an example of an output results table where at least one indicator has a recursive formula issue:
-
+これは、少なくとも 1 つのインジケーターに再帰式の問題がある出力結果テーブルの例です。
 ```
 | indicators   | 20      | 40      | 80     | 100    | 150     | 300     | 999    |
 |--------------+---------+---------+--------+--------+---------+---------+--------|
 | rsi_30       | nan%    | -6.025% | 0.612% | 0.828% | -0.140% | 0.000%  | 0.000% |
 | rsi_14       | 24.141% | -0.876% | 0.070% | 0.007% | -0.000% | -0.000% | -      |
 ```
+列ヘッダーは、分析で使用されるさまざまな「startup_candle_count」を示します。表内の値は、ベンチマーク値と比較した、計算された指標の分散を示します。
 
-The column headers indicate the different `startup_candle_count` used in the analysis. The values in the table indicate the variance of the calculated indicators compared to the benchmark value.
+「nan%」は、データ不足によりそのインジケーターの値を計算できないことを意味します。この例では、わずか 21 本のローソク足 (現在のローソク足 1 本 + 開始時のローソク足 20 本) では長さ 30 の RSI を計算できません。
 
-`nan%` means the value of that indicator cannot be calculated due to lack of data. In this example, you cannot calculate RSI with length 30 with just 21 candles (1 current candle + 20 startup candles).
+ユーザーは、インジケーターごとにテーブルを評価して、指定された「startup_candle_count」の結果が十分に小さい分散となり、インジケーターがエントリーおよび/またはエグジットに影響を与えないかどうかを判断する必要があります。
 
-Users should assess the table per indicator to decide if the specified `startup_candle_count` results in a sufficiently small variance so that the indicator does not have any effect on entries and/or exits.
+そのため、絶対ゼロの分散 (「-」 値で示される) を目指すことは、最良の選択肢ではない可能性があります。これは、インジケーターによっては、分散をゼロにするために、このような長い `startup_candle_count` を使用する必要がある場合があるためです。
 
-As such, aiming for absolute zero variance (shown by `-` value) might not be the best option, because some indicators might require you to use such a long `startup_candle_count` to have zero variance.
+## 注意事項
 
-## Caveats
-
-- `recursive-analysis` will only calculate and compare the indicator values at the last row. The output table reports the percentage differences between the different startup candle count calculations and the original benchmark calculation. Whether it has any actual impact on your entries and exits is not included.
-- The ideal scenario is that indicators will have no variance (or at least very close to 0%) despite the startup candle being varied. In reality, indicators such as EMA are using a recursive formula to calculate indicator values, so the goal is not necessarily to have zero percentage variance, but to have the variance low enough (and therefore `startup_candle_count` high enough) that the recursion inherent in the indicator will not have any real impact on trading decisions.
-- `recursive-analysis` will only run calculations on `populate_indicators` and `@informative` decorator(s). If you put any indicator calculation on `populate_entry_trend` or `populate_exit_trend`, it won't be calculated.
+- 「再帰分析」は、最後の行のインジケーター値のみを計算して比較します。出力テーブルには、さまざまな開始ローソク足のカウント計算と元のベンチマーク計算の間の差異のパーセンテージがレポートされます。それがエントリーとエグジットに実際の影響を与えるかどうかは含まれていません。
+- 理想的なシナリオは、開始ローソク足が変動しているにもかかわらず、インジケーターに変動がない (または少なくとも 0% に非常に近い) ことです。実際には、EMA などのインジケーターは再帰式を使用してインジケーター値を計算しているため、目標は必ずしもゼロパーセントの分散を持つことではありませんが、インジケーターに固有の再帰がトレーディングの決定に実際の影響を及ぼさないように分散を十分に低くすること (したがって「startup_candle_count」を十分に高くすること) にすることです。
+- `recursive-analysis` は、`populate_indicators` および `@informative` デコレータに対してのみ計算を実行します。 `populate_entry_trend` または `populate_exit_trend` にインジケーターの計算を置いた場合、それは計算されません。

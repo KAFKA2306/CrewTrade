@@ -1,14 +1,12 @@
-# Strategy analysis example
+# 戦略分析の例
 
-Debugging a strategy can be time-consuming. Freqtrade offers helper functions to visualize raw data.
-The following assumes you work with SampleStrategy, data for 5m timeframe from Binance and have downloaded them into the data directory in the default location.
-Please follow the [documentation](https://www.freqtrade.io/en/stable/data-download/) for more details.
+戦略のデバッグには時間がかかる場合があります。 Freqtrade は、生データを視覚化するためのヘルパー関数を提供します。
+以下では、Binance からの 5 分間のタイムフレームのデータである SampleStrategy を使用し、それらをデフォルトの場所のデータ ディレクトリにダウンロードしていることを前提としています。
+詳細については、[ドキュメント](https://www.freqtrade.io/en/stable/data-download/)を参照してください。
 
-## Setup
+## セットアップ
 
-### Change Working directory to repository root
-
-
+### 作業ディレクトリをリポジトリのルートに変更します
 ```python
 import os
 from pathlib import Path
@@ -31,10 +29,7 @@ except FileNotFoundError:
     print("Please define the project root relative to the current directory")
 print(Path.cwd())
 ```
-
-### Configure Freqtrade environment
-
-
+### Freqtrade 環境を構成する
 ```python
 from freqtrade.configuration import Configuration
 
@@ -75,11 +70,8 @@ candles = load_pair_history(
 print(f"Loaded {len(candles)} rows of data for {pair} from {data_location}")
 candles.head()
 ```
-
-## Load and run strategy
-* Rerun each time the strategy file is changed
-
-
+## 戦略をロードして実行する
+* 戦略ファイルが変更されるたびに再実行します
 ```python
 # Load strategy using values set above
 from freqtrade.data.dataprovider import DataProvider
@@ -94,36 +86,29 @@ strategy.ft_bot_start()
 df = strategy.analyze_ticker(candles, {"pair": pair})
 df.tail()
 ```
+### 取引詳細の表示
 
-### Display the trade details
-
-* Note that using `data.head()` would also work, however most indicators have some "startup" data at the top of the dataframe.
-* Some possible problems
-    * Columns with NaN values at the end of the dataframe
-    * Columns used in `crossed*()` functions with completely different units
-* Comparison with full backtest
-    * having 200 buy signals as output for one pair from `analyze_ticker()` does not necessarily mean that 200 trades will be made during backtesting.
-    * Assuming you use only one condition such as, `df['rsi'] < 30` as buy condition, this will generate multiple "buy" signals for each pair in sequence (until rsi returns > 29). The bot will only buy on the first of these signals (and also only if a trade-slot ("max_open_trades") is still available), or on one of the middle signals, as soon as a "slot" becomes available.  
-
-
-
+* `data.head()` を使用することもできますが、ほとんどのインジケーターにはデータフレームの先頭に「起動」データがあることに注意してください。
+* 考えられるいくつかの問題
+    * データフレームの末尾に NaN 値を含む列
+    * 完全に異なる単位を持つ `crossed*()` 関数で使用される列
+※フルバックテストとの比較
+    * `analyze_ticker()` からの 1 つのペアの出力として 200 の買いシグナルがあることは、必ずしもバックテスト中に 200 の取引が行われることを意味するわけではありません。
+    * 買い条件として「df['rsi'] < 30」などの 1 つの条件だけを使用すると、各ペアに対して複数の「買い」シグナルが順番に生成されます (rsi が > 29 を返すまで)。ボットは、これらのシグナルの最初のシグナルでのみ購入するか (トレードス​​ロット (「max_open_trades」) がまだ利用可能な場合のみ)、または「スロット」が利用可能になるとすぐに中間のシグナルの 1 つで購入します。
 ```python
 # Report results
 print(f"Generated {df['enter_long'].sum()} entry signals")
 data = df.set_index("date", drop=False)
 data.tail()
 ```
+## 既存のオブジェクトを Jupyter ノートブックにロードする
 
-## Load existing objects into a Jupyter notebook
+次のセルは、cli を使用してデータがすでに生成されていることを前提としています。  
+これらを使用すると、結果をさらに深く掘り下げて分析を実行できます。分析を実行しないと、情報過多により出力が非常に理解しにくくなります。
 
-The following cells assume that you have already generated data using the cli.  
-They will allow you to drill deeper into your results, and perform analysis which otherwise would make the output very difficult to digest due to information overload.
+### バックテスト結果を pandas データフレームにロードする
 
-### Load backtest results to pandas dataframe
-
-Analyze a trades dataframe (also used below for plotting)
-
-
+取引データフレームを分析します (以下のプロットにも使用されます)
 ```python
 from freqtrade.data.btanalysis import load_backtest_data, load_backtest_stats
 
@@ -170,10 +155,7 @@ trades = load_backtest_data(backtest_dir)
 # Show value-counts per pair
 trades.groupby("pair")["exit_reason"].value_counts()
 ```
-
-## Plotting daily profit / equity line
-
-
+## 毎日の利益/資本ラインのプロット
 ```python
 # Plotting equity line (starting with 0 on day 1 and adding daily profit for each backtested day)
 
@@ -197,12 +179,9 @@ df["equity_daily"] = df["equity"].cumsum()
 fig = px.line(df, x="dates", y="equity_daily")
 fig.show()
 ```
+### ライブ取引結果をパンダデータフレームにロードする
 
-### Load live trading results into a pandas dataframe
-
-In case you did already some trading and want to analyze your performance
-
-
+すでに取引を行っており、パフォーマンスを分析したい場合
 ```python
 from freqtrade.data.btanalysis import load_trades_from_db
 
@@ -213,13 +192,10 @@ trades = load_trades_from_db("sqlite:///tradesv3.sqlite")
 # Display results
 trades.groupby("pair")["exit_reason"].value_counts()
 ```
+## ロードされた取引を分析して取引の並列性を確認します
+これは、バックテストと非常に高い `max_open_trades` 設定を組み合わせて使用すると、最適な `max_open_trades` パラメーターを見つけるのに役立ちます。
 
-## Analyze the loaded trades for trade parallelism
-This can be useful to find the best `max_open_trades` parameter, when used with backtesting in conjunction with a very high `max_open_trades` setting.
-
-`analyze_trade_parallelism()` returns a timeseries dataframe with an "open_trades" column, specifying the number of open trades for each candle.
-
-
+`analyze_trade_Parallelism()` は、各ローソク足のオープン取引の数を指定する、「open_trades」列を持つ timeseries データフレームを返します。
 ```python
 from freqtrade.data.btanalysis import analyze_trade_parallelism
 
@@ -229,12 +205,9 @@ parallel_trades = analyze_trade_parallelism(trades, "5m")
 
 parallel_trades.plot()
 ```
+## 結果をプロットする
 
-## Plot results
-
-Freqtrade offers interactive plotting capabilities based on plotly.
-
-
+Freqtrade は、plotly に基づいたインタラクティブなプロット機能を提供します。
 ```python
 from freqtrade.plot.plotting import generate_candlestick_graph
 
@@ -263,10 +236,7 @@ graph = generate_candlestick_graph(
 # Render graph in a separate window
 graph.show(renderer="browser")
 ```
-
-## Plot average profit per trade as distribution graph
-
-
+## トレードごとの平均利益を分布グラフとしてプロットする
 ```python
 import plotly.figure_factory as ff
 
@@ -277,5 +247,4 @@ group_labels = ["profit_ratio"]  # name of the dataset
 fig = ff.create_distplot(hist_data, group_labels, bin_size=0.01)
 fig.show()
 ```
-
-Feel free to submit an issue or Pull Request enhancing this document if you would like to share ideas on how to best analyze the data.
+データを最適に分析する方法についてのアイデアを共有したい場合は、お気軽に問題を送信するか、このドキュメントを拡張するプル リクエストを送信してください。

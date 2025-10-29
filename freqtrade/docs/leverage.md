@@ -1,148 +1,140 @@
-# Trading with Leverage
+# レバレッジを使った取引
 
-!!! Warning "Beta feature"
-    This feature is still in it's testing phase. Should you notice something you think is wrong please let us know via Discord or via Github Issue.
+!!! Warning "ベータ版機能"
+    この機能はまだテスト段階です。間違っていると思われる点に気づいた場合は、Discord または Github Issue 経由でお知らせください。
 
-!!! Note "Multiple bots on one account"
-    You can't run 2 bots on the same account with leverage. For leveraged / margin trading, freqtrade assumes it's the only user of the account, and all liquidation levels are calculated based on this assumption.
+!!! Note "1 つのアカウントに複数のボット"
+    レバレッジを使用して同じアカウントで 2 つのボットを実行することはできません。レバレッジ取引/証拠金取引の場合、freqtrade はアカウントの唯一のユーザーであると想定し、すべての清算レベルはこの想定に基づいて計算されます。
 
-!!! Danger "Trading with leverage is very risky"
-    Do not trade with a leverage > 1 using a strategy that hasn't shown positive results in a live run using the spot market. Check the stoploss of your strategy. With a leverage of 2, a stoploss of 0.5 (50%) would be too low, and these trades would be liquidated before reaching that stoploss.
-    We do not assume any responsibility for eventual losses that occur from using this software or this mode.
+!!! Danger "レバレッジをかけて取引するのは非常に危険です"
+    スポット市場を使用したライブ実行でプラスの結果が示されていない戦略を使用して、レバレッジ > 1 で取引しないでください。戦略のストップロスを確認してください。レバレッジが 2 の場合、ストップロス 0.5 (50%) は低すぎるため、これらの取引はそのストップロスに達する前に清算されてしまいます。
+    本ソフトウェアまたは本モードの使用により生じた最終的な損失については、当社は一切の責任を負いません。
 
-    Please only use advanced trading modes when you know how freqtrade (and your strategy) works.
-    Also, never risk more than what you can afford to lose.
+    freqtrade (および戦略) がどのように機能するかを理解している場合にのみ、高度な取引モードを使用してください。
+    また、失うことができる以上のリスクを決して負わないでください。
 
-If you already have an existing strategy, please read the [strategy migration guide](strategy_migration.md#strategy-migration-between-v2-and-v3) to migrate your strategy from a freqtrade v2 strategy, to strategy of version 3 which can short and trade futures.
+すでに既存の戦略をお持ちの場合は、[戦略移行ガイド](strategy_migration.md#strategy-migration-between-v2-and-v3) を読んで、freqtrade v2 戦略から、先物の空売りと取引ができるバージョン 3 の戦略に戦略を移行してください。
 
-## Shorting
+## ショート
 
-Shorting is not possible when trading with [`trading_mode`](#leverage-trading-modes) set to `spot`. To short trade, `trading_mode` must be set to `margin`(currently unavailable) or [`futures`](#futures), with [`margin_mode`](#margin-mode) set to [`cross`](#cross-margin-mode) or [`isolated`](#isolated-margin-mode)
+[`trading_mode`](#leverage-trading-modes) を `spot` に設定して取引する場合、空売りはできません。空売りするには、`trading_mode` を `margin`(現在利用不可) または [`futures`](#futures) に設定し、[`margin_mode`](#margin-mode) を [`cross`](#cross-margin-mode) または [`isoulated`](#isoulated-margin-mode) に設定する必要があります。
 
-For a strategy to short, the strategy class must set the class variable `can_short = True`
+ストラテジをショートするには、ストラテジ クラスでクラス変数 `can_short = True` を設定する必要があります。
 
-Please read [strategy customization](strategy-customization.md#entry-signal-rules) for instructions on how to set signals to enter and exit short trades.
+ショートトレードをエントリーおよびエグジットするためのシグナルの設定方法については、[戦略のカスタマイズ](strategy-customization.md#entry-signal-rules) をお読みください。
 
-## Understand `trading_mode`
+## `trading_mode` を理解する
 
-The possible values are: `spot` (default), `margin`(*Currently unavailable*) or `futures`.
+可能な値は、「スポット」(デフォルト)、「マージン」(*現在利用不可*)、または「先物」です。
 
-### Spot
+### スポット
 
-Regular trading mode (low risk)
+通常取引モード（低リスク）
 
-- Long trades only (No short trades).
-- No leverage.
-- No Liquidation.
-- Profits gained/lost are equal to the change in value of the assets (minus trading fees).
+- ロング取引のみ (ショート取引は不可)。
+- レバレッジはありません。
+- 清算はありません。
+- 得られた利益または失われた利益は、資産価値の変化に等しくなります（取引手数料を差し引いたもの）。
 
-### Leverage trading modes
+### 取引モードを活用する
 
-With leverage, a trader borrows capital from the exchange. The capital must be re-payed fully to the exchange (potentially with interest), and the trader keeps any profits, or pays any losses, from any trades made using the borrowed capital.
+レバレッジを利用して、トレーダーは取引所から資金を借ります。資本は取引所に全額返済される必要があり（場合によっては利息が付きます）、トレーダーは借りた資本を使用して行われた取引から得た利益を保持するか、損失を支払います。
+資本は常に返済する必要があるため、トレーダーが借入資産を取引所に返済するのに十分な資本を確保するために、レバレッジ口座の資産総額が一定のポイント（損失の総額がトレーダーが実際にレバレッジ口座で所有している担保の価値よりも小さいポイント）まで低下すると、取引所は借入資本を使用して行われた取引を**清算**（トレーダーの資産を強制的に売却）します。また、取引所は**清算手数料**も請求するため、トレーダーの損失はさらに増加し​​ます。
 
-Because the capital must always be re-payed, exchanges will **liquidate** (forcefully sell the traders assets) a trade made using borrowed capital when the total value of assets in the leverage account drops to a certain point (a point where the total value of losses is less than the value of the collateral that the trader actually owns in the leverage account), in order to ensure that the trader has enough capital to pay the borrowed assets back to the exchange. The exchange will also charge a **liquidation fee**, adding to the traders losses.
+このため、**自分が何をしているのか正確に理解していない場合は、レバレッジを使って取引しないでください。レバレッジ取引はハイリスクであり、資産価値が急速にゼロになり、再び価値が増加する可能性はありません。**
 
-For this reason, **DO NOT TRADE WITH LEVERAGE IF YOU DON'T KNOW EXACTLY WHAT YOUR DOING. LEVERAGE TRADING IS HIGH RISK, AND CAN RESULT IN THE VALUE OF YOUR ASSETS DROPPING TO 0 VERY QUICKLY, WITH NO CHANCE OF INCREASING IN VALUE AGAIN.**
+#### マージン (現在利用不可)
 
-#### Margin (currently unavailable)
+取引はスポット市場で行われますが、取引所は選択したレバレッジに等しい金額の通貨を貸し出します。貸した金額を利子とともに取引所に返済すると、利益/損失に指定されたレバレッジが掛けられます。
 
-Trading occurs on the spot market, but the exchange lends currency to you in an amount equal to the chosen leverage. You pay the amount lent to you back to the exchange with interest, and your profits/losses are multiplied by the leverage specified.
+#### 先物
 
-#### Futures
+無期限スワップ (無期限先物としても知られる) は、そのベースとなる原資産と密接に結びついた価格で取引される契約です (例)。実際の資産を取引しているのではなく、デリバティブ契約を取引しています。無期限スワップ契約は、先物やオプション契約とは異なり、無期限に継続できます。
 
-Perpetual swaps (also known as Perpetual Futures) are contracts traded at a price that is closely tied to the underlying asset they are based off of (ex.). You are not trading the actual asset but instead are trading a derivative contract. Perpetual swap contracts can last indefinitely, in contrast to futures or option contracts.
+先物契約の価格変動による損益に加えて、トレーダーは、先物契約と原資産との価格差から得られる金額に相当する損益である「資金調達手数料」も交換します。先物契約と原資産との価格差は取引所によって異なります。
 
-In addition to the gains/losses from the change in price of the futures contract, traders also exchange _funding fees_, which are gains/losses worth an amount that is derived from the difference in price between the futures contract and the underlying asset. The difference in price between a futures contract and the underlying asset varies between exchanges.
-
-To trade in futures markets, you'll have to set `trading_mode` to "futures".
-You will also have to pick a "margin mode" (explanation below) - with freqtrade currently only supporting isolated margin.
-
+先物市場で取引するには、「trading_mode」を「先物」に設定する必要があります。
+また、「マージン モード」 (下記の説明) を選択する必要があります。現在、freqtrade は分離マージンのみをサポートしています。
 ``` json
 "trading_mode": "futures",
 "margin_mode": "isolated"
 ```
+##### ペアの命名
 
-##### Pair namings
+Freqtrade は [ccxt の先物命名規則](https://docs.ccxt.com/#/README?id=perpetual-swap-perpetual-future) に従います。
+したがって、先物ペアには「base/quote:settle」という名前が付けられます (例: 「ETH/USDT:USDT」)。
 
-Freqtrade follows the [ccxt naming conventions for futures](https://docs.ccxt.com/#/README?id=perpetual-swap-perpetual-future).
-A futures pair will therefore have the naming of `base/quote:settle` (e.g. `ETH/USDT:USDT`).
+### マージンモード
 
-### Margin mode
+「trading_mode」に加えて、「margin_mode」も設定する必要があります。
+freqtrade は現在 1 つのマージン モードのみをサポートしていますが、これは変更される予定であり、今設定することで将来のアップデートに備えることができます。
 
-On top of `trading_mode` - you will also have to configure your `margin_mode`.
-While freqtrade currently only supports one margin mode, this will change, and by configuring it now you're all set for future updates.
+可能な値は、「孤立」または「クロス」です。
 
-The possible values are: `isolated`, or `cross`.
+#### 分離マージン モード
 
-#### Isolated margin mode
-
-Each market(trading pair), keeps collateral in a separate account
-
+各市場（取引ペア）ごとに担保を別の口座に保管します
 ``` json
 "margin_mode": "isolated"
 ```
+#### クロスマージンモード
 
-#### Cross margin mode
-
-One account is used to share collateral between markets (trading pairs). Margin is taken from total account balance to avoid liquidation when needed.
-
+1 つのアカウントは、市場 (取引ペア) 間で担保を共有するために使用されます。証拠金は、必要な場合の清算を避けるために、口座残高の合計から差し引かれます。
 ``` json
 "margin_mode": "cross"
 ```
+このモードをサポートする取引所とその違いについては、[取引所固有のメモ](exchanges.md) をお読みください。
 
-Please read the [exchange specific notes](exchanges.md) for exchanges that support this mode and how they differ.
+!!! Warning "清算リスクの増加"
+    クロスマージンモードでは、すべての取引が同じ担保を共有するため、口座が完全に清算されるリスクが高まります。
+    1 つの取引で損失が発生すると、他の取引の清算価格に影響を与える可能性があります。  
+    また、クロスポジションの影響は、ドライラン モードやバックテスト モードでは完全にはシミュレートされない場合があります。
 
-!!! Warning "Increased risk of liquidation"
-    Cross margin mode increases the risk of full account liquidation, as all trades share the same collateral.
-    A loss on one trade can affect the liquidation price of other trades.  
-    Also, cross-position influence may not be fully simulated in dry-run or backtesting mode.
+## 使用するレバレッジを設定する
 
-## Set leverage to use
+戦略やリスク プロファイルが異なれば、必要なレバレッジのレベルも異なります。
+1 つの静的なレバレッジ値を設定することもできますが、freqtrade では [戦略レバレッジ コールバック](strategy-callbacks.md#leverage-callback) を介してこれを調整する柔軟性を提供します。これにより、ペアごとに、または戦略の結果に有利な他の要因に基づいて、異なるレバレッジを使用できます。
 
-Different strategies and risk profiles will require different levels of leverage.
-While you could configure one static leverage value - freqtrade offers you the flexibility to adjust this via [strategy leverage callback](strategy-callbacks.md#leverage-callback) - which allows you to use different leverages by pair, or based on some other factor benefitting your strategy result.
-
-If not implemented, leverage defaults to 1x (no leverage).
+実装されていない場合、レバレッジはデフォルトで 1x (レバレッジなし) になります。
 
 !!! Warning
-    Higher leverage also equals higher risk - be sure you fully understand the implications of using leverage!
+    レバレッジが高いほどリスクも高くなります。レバレッジを使用する場合の影響を十分に理解してください。
 
-## Understand `liquidation_buffer`
+## `liquidation_buffer` を理解する
 
-*Defaults to `0.05`*
+*デフォルトは「0.05」です*
 
-A ratio specifying how large of a safety net to place between the liquidation price and the stoploss to prevent a position from reaching the liquidation price.
-This artificial liquidation price is calculated as:
+ポジションが清算価格に達するのを防ぐために、清算価格とストップロスの間にどのくらいの大きさのセーフティネットを置くかを指定する比率。
+この人為的清算価格は次のように計算されます。
 
-`freqtrade_liquidation_price = liquidation_price ± (abs(open_rate - liquidation_price) * liquidation_buffer)`
+`freqtrade_liquidation_price = 清算価格 ± (abs(open_rate - 清算価格) * 清算バッファ)`
 
-- `±` = `+` for long trades
-- `±` = `-` for short trades
+- ロングトレードの場合は `±` = `+`
+- ショートトレードの場合は `±` = `-`
 
-Possible values are any floats between 0.0 and 0.99
+可能な値は、0.0 ～ 0.99 の任意の浮動小数点数です。
 
-**ex:** If a trade is entered at a price of 10 coin/USDT, and the liquidation price of this trade is 8 coin/USDT, then with `liquidation_buffer` set to `0.05` the minimum stoploss for this trade would be $8 + ((10 - 8) * 0.05) = 8 + 0.1 = 8.1$
+**例:** 取引が 10 コイン/USDT の価格でエントリーされ、この取引の清算価格が 8 コイン/USDT の場合、「liquidation_buffer」を「0.05」に設定すると、この取引の最小ストップロスは $8 + ((10 - 8) * 0.05) = 8 + 0.1 = 8.1$ になります。
 
-!!! Danger "A `liquidation_buffer` of 0.0, or a low `liquidation_buffer` is likely to result in liquidations, and liquidation fees"
-    Currently Freqtrade is able to calculate liquidation prices, but does not calculate liquidation fees. Setting your `liquidation_buffer` to 0.0, or using a low `liquidation_buffer` could result in your positions being liquidated. Freqtrade does not track liquidation fees, so liquidations will result in inaccurate profit/loss results for your bot. If you use a low `liquidation_buffer`, it is recommended to use `stoploss_on_exchange` if your exchange supports this.
+!!! Danger "`liquidation_buffer` が 0.0、または `liquidation_buffer` が低い場合、清算および清算手数料が発生する可能性があります。"
+    現在、Freqtrade は清算価格を計算できますが、清算手数料は計算できません。 `liquidation_buffer` を 0.0 に設定するか、低い `liquidation_buffer` を使用すると、ポジションが清算される可能性があります。 Freqtrade は清算手数料を追跡しないため、清算によりボットの損益結果が不正確になります。低い `liquidation_buffer` を使用する場合、取引所がこれをサポートしている場合は `stoploss_on_exchange` を使用することをお勧めします。
 
-## Unavailable funding rates
+## 利用できない資金調達レート
+先物データの場合、取引所は通常、先物のローソク足、マーク、資金調達レートを提供します。ただし、ローソク足やマークが利用可能であっても、資金調達レートが利用できないことはよくあります。これはバックテストの時間範囲に影響を与える可能性があります。つまり、以前の時間範囲ではなく最近の時間範囲のみをテストでき、「データが見つかりません」というエラーが発生する可能性があります。終了します。」エラー。これを回避するには、[configuration.md](configuration.md) にリストされているように `futures_funding_rate` 設定オプションを追加します。ペア、取引所、および時間範囲の特定の資金調達レートがわからない場合を除き、これを `0` に設定することをお勧めします。これを「0」以外に設定すると、戦略内の利益計算に大きな影響を与える可能性があります。 `custom_exit`、`custom_stoploss` などの関数内で。
 
-For futures data, exchanges commonly provide the futures candles, the marks, and the funding rates. However, it is common that whilst candles and marks might be available, the funding rates are not. This can affect backtesting timeranges, i.e. you may only be able to test recent timeranges and not earlier, experiencing the `No data found. Terminating.` error. To get around this, add the `futures_funding_rate` config option as listed in [configuration.md](configuration.md), and it is recommended that you set this to `0`, unless you know a given specific funding rate for your pair, exchange and timerange. Setting this to anything other than `0` can have drastic effects on your profit calculations within strategy, e.g. within the `custom_exit`, `custom_stoploss`, etc functions.
+!!! Warning "これは、バックテストが不正確であることを意味します。"
+    これにより、取引所から利用可能な資金調達レートが上書きされることはありませんが、誤った資金調達レートを設定すると、資金調達レートが利用できない過去の時間範囲ではバックテスト結果が不正確になることを意味することに留意してください。
 
-!!! Warning "This will mean your backtests are inaccurate."
-    This will not overwrite funding rates that are available from the exchange, but bear in mind that setting a false funding rate will mean backtesting results will be inaccurate for historical timeranges where funding rates are not available.
+### 開発者
 
-### Developer
+#### マージンモード
 
-#### Margin mode
+ショートの場合、「借りた」通貨の金利手数料を支払う通貨がクローズ取引と同時に購入されます（これは、ショートクローズ取引で購入した金額がショートオープニング取引で売った金額よりも大きいことを意味します）。
 
-For shorts, the currency which pays the interest fee for the `borrowed` currency is purchased at the same time of the closing trade (This means that the amount purchased in short closing trades is greater than the amount sold in short opening trades).
+ロングの場合、「借りた」通貨に対して利息を支払う通貨はすでにユーザーによって所有されており、購入する必要はありません。利息は取引の「close_value」から差し引かれます。
 
-For longs, the currency which pays the interest fee for the `borrowed` will already be owned by the user and does not need to be purchased. The interest is subtracted from the `close_value` of the trade.
+すべての手数料は、取引中の「current_profit」計算に含まれます。
 
-All Fees are included in `current_profit` calculations during the trade.
+#### 先物モード
 
-#### Futures mode
-
-Funding fees are either added or subtracted from the total amount of a trade
+資金調達手数料は取引総額から加算または減算されます。

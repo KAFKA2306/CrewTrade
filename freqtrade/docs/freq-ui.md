@@ -11,7 +11,7 @@ freqUI は、「freqtrade install-ui」コマンドを使用して手動でイ�
 ??? 「freqUI に貢献したいですか?」に注意してください。
     開発者はこのメソッドを使用せず、[freqUI リポジトリ](https://github.com/freqtrade/frequi) で説明されているメソッドを使用して対応するクローンを作成し、freqUI のソースコードを取得する必要があります。フロントエンドを構築するには、動作するノードのインストールが必要です。
 
-!!!ヒント「freqtrade を実行するのに freqUI は必要ありません」
+!!! ヒント「freqtrade を実行するのに freqUI は必要ありません」
     freqUI は freqtrade のオプションのコンポーネントであり、ボットの実行には必須ではありません。
     これはボットを監視し、ボットと対話するために使用できるフロントエンドです。しかし、freqtrade 自体はそれなしでも完全に正常に動作します。
 
@@ -35,7 +35,7 @@ FreqUI は、明るいテーマと暗いテーマを提供します。
 ![FreqUI - ログイン](assets/frequi-login-CORS.png#only-dark)
 ![FreqUI - ログイン](assets/frequi-login-CORS-light.png#only-light)
 
-!!!ヒント「CORS」
+!!! ヒント「CORS」
     このスクリーンショットに示されている Cors エラーは、UI が API とは異なるポートで実行されており、[CORS](#cors) がまだ正しくセットアップされていないことが原因です。
 
 ### 取引ビュー

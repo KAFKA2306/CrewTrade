@@ -12,7 +12,6 @@ freqtradeのファイルを保持するディレクトリ構造を作成しま�
 
 !!! Warning
     `--reset`を使用すると、データが失われる可能性があります。これは、すべてのサンプルファイルを再度尋ねることなく上書きするためです。
-
 ```
 ├── backtest_results
 ├── data
@@ -25,7 +24,6 @@ freqtradeのファイルを保持するディレクトリ構造を作成しま�
 └── strategies
     └── sample_strategy.py
 ```
-
 ## 新しい構成の作成
 
 新しい構成ファイルを作成し、構成の重要な選択肢であるいくつかの質問をします。
@@ -36,7 +34,6 @@ freqtradeのファイルを保持するディレクトリ構造を作成しま�
     重要な質問のみが尋ねられます。Freqtradeは、[構成ドキュメント](configuration.md#configuration-parameters)に記載されている、はるかに多くの構成の可能性を提供します。
 
 ### 構成例の作成
-
 ```
 $ freqtrade new-config --config user_data/config_binance.json
 
@@ -49,7 +46,6 @@ $ freqtrade new-config --config user_data/config_binance.json
 ? 取引所を選択してください binance
 ? Telegramを有効にしますか？ いいえ
 ```
-
 ## 構成の表示
 
 構成ファイルを表示します（デフォルトでは機密性の高い値は編集されています）。
@@ -58,7 +54,6 @@ $ freqtrade new-config --config user_data/config_binance.json
 ![構成出力の表示](assets/show-config-output.png)
 
 --8<-- "commands/show-config.md"
-
 ``` output
 結合された構成は次のとおりです。
 {
@@ -78,7 +73,6 @@ $ freqtrade new-config --config user_data/config_binance.json
   // ...
 }
 ```
-
 !!! Warning "このコマンドによって提供される情報の共有"
     デフォルトの出力（`--show-sensitive`なし）からすべての既知の機密情報を削除しようとします。
     それでも、誤って個人情報を公開していないことを確認するために、出力で機密性の高い値を再確認してください。
@@ -93,23 +87,17 @@ SampleStrategyと同様のテンプレートから新しい戦略を作成しま
 --8<-- "commands/new-strategy.md"
 
 ### 新しい戦略のサンプル使用法
-
 ```bash
 freqtrade new-strategy --strategy AwesomeStrategy
 ```
-
 カスタムユーザーディレクトリを使用
-
 ```bash
 freqtrade new-strategy --userdir ~/.freqtrade/ --strategy AwesomeStrategy
 ```
-
 高度なテンプレートを使用する（すべてのオプションの関数とメソッドを設定する）
-
 ```bash
 freqtrade new-strategy --strategy AwesomeStrategy --template advanced
 ```
-
 ## 戦略のリスト
 
 `list-strategies`サブコマンドを使用して、特定のディレクトリ内のすべての戦略を表示します。
@@ -122,23 +110,17 @@ freqtrade new-strategy --strategy AwesomeStrategy --template advanced
     これらのコマンドを使用すると、ディレクトリからすべてのpythonファイルを読み込もうとします。信頼できないファイルがこのディレクトリにある場合、すべてのモジュールレベルのコードが実行されるため、セキュリティリスクになる可能性があります。
 
 例：デフォルトの戦略ディレクトリを検索します（デフォルトのuserdir内）。
-
 ``` bash
 freqtrade list-strategies
 ```
-
 例：userdir内の戦略ディレクトリを検索します。
-
 ``` bash
 freqtrade list-strategies --userdir ~/.freqtrade/
 ```
-
 例：専用の戦略パスを検索します。
-
 ``` bash
 freqtrade list-strategies --strategy-path ~/.freqtrade/strategies/
 ```
-
 ## ハイパーオプトロス関数のリスト
 
 `list-hyperoptloss`サブコマンドを使用して、利用可能なすべてのハイパーオプトロス関数を表示します。
@@ -164,7 +146,6 @@ freqtrade list-strategies --strategy-path ~/.freqtrade/strategies/
 --8<-- "commands/list-exchanges.md"
 
 例：ボットで利用可能な取引所を表示します。
-
 ```
 $ freqtrade list-exchanges
 Freqtradeで利用可能な取引所：
@@ -179,7 +160,6 @@ huobi                            スポット
 kraken              公式     スポット
 okx                 公式     スポット、分離先物
 ```
-
 !!! info ""
     出力は明確にするために削減されています-サポートされている利用可能な取引所は時間とともに変更される可能性があります。
 
@@ -187,7 +167,6 @@ okx                 公式     スポット、分離先物
     「不足しているオプト：」の値は、特別な構成が必要な場合があります（たとえば、`fetchTickers`が不足している場合はオーダーブックを使用するなど）-しかし、理論的には機能するはずです（ただし、機能することを保証することはできません）。
 
 例：ccxtライブラリでサポートされているすべての取引所を表示します（Freqtradeで機能しないことがわかっている「悪い」ものを含む）
-
 ```
 $ freqtrade list-exchanges -a
 ccxtライブラリでサポートされているすべての取引所：
@@ -202,7 +181,6 @@ htx                 True     公式     スポット
 kraken              True     公式     スポット
 okx                 True     公式     スポット、分離先物
 ```
-
 !!! info ""
     出力が削減されました-サポートされている利用可能な取引所は時間とともに変更される可能性があります。
 
@@ -213,18 +191,15 @@ okx                 True     公式     スポット、分離先物
 --8<-- "commands/list-timeframes.md"
 
 * 例：構成ファイルで設定されている「binance」取引所のタイムフレームを表示します。
-
 ```
 $ freqtrade list-timeframes -c config_binance.json
 ...
 取引所`binance`で利用可能なタイムフレーム：1m、3m、5m、15m、30m、1h、2h、4h、6h、8h、12h、1d、3d、1w、1M
 ```
-
 * 例：Freqtradeで利用可能な取引所を列挙し、それぞれでサポートされているタイムフレームを出力します。
 ```
 $ for i in `freqtrade list-exchanges -1`; do freqtrade list-timeframes --exchange $i; done
 ```
-
 ## ペア/マーケットのリスト
 
 `list-pairs`および`list-markets`サブコマンドを使用すると、取引所で利用可能なペア/マーケットを表示できます。
@@ -249,23 +224,17 @@ Freqtradeによって取引されるペアの場合、ペアのクォート通�
 ### 例
 
 * デフォルトの構成ファイルで指定された取引所で、クォート通貨がUSDのアクティブなペアのリストをJSON形式で出力します（つまり、「Binance」取引所のペア）。
-
 ```
 $ freqtrade list-pairs --quote USD --print-json
 ```
-
 * `config_binance.json`構成ファイルで指定された取引所（つまり、「Binance」取引所）のすべてのペアのリストを、ベース通貨がBTCまたはETHで、クォート通貨がUSDTまたはUSDのものを、人間が読めるリストと要約として出力します。
-
 ```
 $ freqtrade list-pairs -c config_binance.json --all --base BTC ETH --quote USDT USD --print-list
 ```
-
 * 取引所「Kraken」のすべてのマーケットを、表形式で出力します。
-
 ```
 $ freqtrade list-markets --exchange kraken --all
 ```
-
 ## ペアリストのテスト
 
 `test-pairlist`サブコマンドを使用して、[動的ペアリスト](plugins.md#pairlists)の構成をテストします。
@@ -278,11 +247,9 @@ $ freqtrade list-markets --exchange kraken --all
 ### 例
 
 [動的ペアリスト](plugins.md#pairlists)を使用する場合にホワイトリストを表示します。
-
 ```
 freqtrade test-pairlist --config config.json --quote USDT BTC
 ```
-
 ## データベースの変換
 
 `freqtrade convert-db`を使用して、データベースをあるシステムから別のシステムに変換できます（sqlite -> postgres、postgres -> 他のpostgres）。すべての取引、注文、およびPairlockを移行します。
@@ -314,13 +281,11 @@ docker経由でウェブサーバーモードを使用することもできま�
 `docker compose run --rm -p 127.0.0.1:8080:8080 freqtrade webserver`を使用して、停止すると削除されるワンオフコンテナを起動できます。これは、ポート8080がまだ利用可能であり、他のボットがそのポートで実行されていないことを前提としています。
 
 または、docker-composeファイルを再構成して、コマンドを更新することもできます。
-
 ``` yml
     command: >
       webserver
       --config /freqtrade/user_data/config.json
 ```
-
 これで、`docker compose up`を使用してウェブサーバーを起動できます。
 これは、構成でウェブサーバーが有効になっており、docker用に構成されている（リスニングポート= `0.0.0.0`）ことを前提としています。
 
@@ -361,12 +326,10 @@ docker経由でウェブサーバーモードを使用することもできま�
 ```
 freqtrade hyperopt-list
 ```
-
 利益がプラスのエポックのみをリストします。スクリプトでリストを反復処理できるように、最良のエポックの詳細は出力しません。
 ```
 freqtrade hyperopt-list --profitable --no-details
 ```
-
 ## ハイパーオプト結果の詳細の表示
 
 `hyperopt-show`サブコマンドを使用して、Hyperoptモジュールによって以前に評価されたハイパー最適化エポックの詳細を表示できます。
@@ -380,17 +343,13 @@ freqtrade hyperopt-list --profitable --no-details
 ### 例
 
 エポック168の詳細を出力します（エポックの番号は、`hyperopt-list`サブコマンドまたはハイパー最適化実行中のHyperopt自体によって表示されます）。
-
 ```
 freqtrade hyperopt-show -n 168
 ```
-
 最後の最良のエポック（つまり、すべてのエポックの中で最良）の詳細を含むJSONデータを出力します。
-
 ```
 freqtrade hyperopt-show --best -n -1 --print-json --no-header
 ```
-
 ## 取引の表示
 
 選択した（またはすべての）取引をデータベースから画面に出力します。
@@ -400,11 +359,9 @@ freqtrade hyperopt-show --best -n -1 --print-json --no-header
 ### 例
 
 ID 2と3の取引をjsonとして出力します
-
 ``` bash
 freqtrade show-trades --db-url sqlite:///tradesv3.sqlite --trade-ids 2 3 --print-json
 ```
-
 ## 戦略アップデーター
 
 リストされた戦略または戦略フォルダー内のすべての戦略をv3準拠に更新します。

@@ -1,82 +1,69 @@
-# SQL Helper
+# SQL ヘルパー
 
-This page contains some help if you want to query your sqlite db.
+このページには、sqlite データベースにクエリを実行する場合のヘルプが含まれています。
 
-!!! Tip "Other Database systems"
-    To use other Database Systems like PostgreSQL or MariaDB, you can use the same queries, but you need to use the respective client for the database system. [Click here](advanced-setup.md#use-a-different-database-system) to learn how to setup a different database system with freqtrade.
+!!! Tip "その他のデータベース システム"
+    PostgreSQL や MariaDB などの他のデータベース システムを使用する場合は、同じクエリを使用できますが、データベース システムにそれぞれのクライアントを使用する必要があります。 freqtrade で別のデータベース システムをセットアップする方法については、[ここをクリック](advanced-setup.md#use-a- Different-database-system) を参照してください。
 
 !!! Warning
-    If you are not familiar with SQL, you should be very careful when running queries on your database.  
-    Always make sure to have a backup of your database before running any queries.
+    SQL に慣れていない場合は、データベースでクエリを実行するときに細心の注意を払う必要があります。  
+    クエリを実行する前に、必ずデータベースのバックアップを作成してください。
 
-## Install sqlite3
+## sqlite3をインストールする
 
-Sqlite3 is a terminal based sqlite application.
-Feel free to use a visual Database editor like SqliteBrowser if you feel more comfortable with that.
+Sqlite3 はターミナルベースの sqlite アプリケーションです。
+使い慣れている場合は、SqliteBrowser のようなビジュアル データベース エディターを自由に使用してください。
 
-### Ubuntu/Debian installation
-
+### Ubuntu/Debian のインストール
 ```bash
 sudo apt-get install sqlite3
 ```
+### docker 経由で sqlite3 を使用する
 
-### Using sqlite3 via docker
-
-The freqtrade docker image does contain sqlite3, so you can edit the database without having to install anything on the host system.
-
+freqtrade docker イメージには sqlite3 が含まれているため、ホスト システムに何もインストールせずにデータベースを編集できます。
 ``` bash
 docker compose exec freqtrade /bin/bash
 sqlite3 <database-file>.sqlite
 ```
-
-## Open the DB
-
+## DBを開く
 ```bash
 sqlite3
 .open <filepath>
 ```
+## テーブル構造
 
-## Table structure
-
-### List tables
-
+### リストテーブル
 ```bash
 .tables
 ```
-
-### Display table structure
-
+### 表示テーブル構造
 ```bash
 .schema <table_name>
 ```
-
-### Get all trades in the table
-
+### テーブル内のすべての取引を取得します
 ```sql
 SELECT * FROM trades;
 ```
+## 破壊的なクエリ
 
-## Destructive queries
-
-Queries that write to the database.
-These queries should usually not be necessary as freqtrade tries to handle all database operations itself - or exposes them via API or telegram commands.
+データベースに書き込むクエリ。
+freqtrade はすべてのデータベース操作をそれ自体で処理しようとするか、API またはテレグラム コマンドを介して公開するため、通常、これらのクエリは必要ありません。
 
 !!! Warning
-    Please make sure you have a backup of your database before running any of the below queries.
+    以下のクエリを実行する前に、データベースのバックアップがあることを確認してください。
 
 !!! Danger
-    You should also **never** run any writing query (`update`, `insert`, `delete`) while a bot is connected to the database.
-    This can and will lead to data corruption - most likely, without the possibility of recovery.
+    また、ボットがデータベースに接続されている間は、書き込みクエリ (「更新」、「挿入」、「削除」) を **決して** 実行しないでください。
+    これにより、データ破損が発生する可能性があり、データ破損が発生する可能性が高く、回復の可能性はありません。
 
-### Fix trade still open after a manual exit on the exchange
+### 取引所を手動で終了した後も取引がまだ開いている問題を修正
 
 !!! Warning
-    Manually selling a pair on the exchange will not be detected by the bot and it will try to sell anyway. Whenever possible, /forceexit <tradeid> should be used to accomplish the same thing.  
-    It is strongly advised to backup your database file before making any manual changes.
+    取引所でペアを手動で販売してもボットは検出されず、とにかく売ろうとします。可能な限り、/forceexit <tradeid> を使用して同じことを実行する必要があります。  
+    手動で変更を加える前に、データベース ファイルをバックアップすることを強くお勧めします。
 
 !!! Note
-    This should not be necessary after /forceexit, as force_exit orders are closed automatically by the bot on the next iteration.
-
+    /forceexit の注文は次の反復でボットによって自動的にクローズされるため、/forceexit の後にこれは必要ありません。
 ```sql
 UPDATE trades
 SET is_open=0,
@@ -87,9 +74,7 @@ SET is_open=0,
   exit_reason=<exit_reason>
 WHERE id=<trade_ID_to_update>;
 ```
-
-#### Example
-
+＃＃＃＃ 例
 ```sql
 UPDATE trades
 SET is_open=0,
@@ -100,22 +85,19 @@ SET is_open=0,
   exit_reason='force_exit'  
 WHERE id=31;
 ```
+### データベースから取引を削除します
 
-### Remove trade from the database
+!!! Tip "RPC メソッドを使用して取引を削除する"
+    Telegram または REST API 経由で `/delete <tradeid>` を使用することを検討してください。これが取引を削除するための推奨される方法です。
 
-!!! Tip "Use RPC Methods to delete trades"
-    Consider using `/delete <tradeid>` via telegram or rest API. That's the recommended way to deleting trades.
-
-If you'd still like to remove a trade from the database directly, you can use the below query.
+それでもデータベースから取引を直接削除したい場合は、以下のクエリを使用できます。
 
 !!! Danger
-    Some systems (Ubuntu) disable foreign keys in their sqlite3 packaging. When using sqlite - please ensure that foreign keys are on by running `PRAGMA foreign_keys = ON` before the above query.
-
+    一部のシステム (Ubuntu) では、sqlite3 パッケージ内の外部キーが無効になっています。 sqlite を使用する場合 - 上記のクエリの前に `PRAGMA foreign_keys = ON` を実行して、外部キーがオンになっていることを確認してください。
 ```sql
 DELETE FROM trades WHERE id = <tradeid>;
 
 DELETE FROM trades WHERE id = 31;
 ```
-
 !!! Warning
-    This will remove this trade from the database. Please make sure you got the correct id and **NEVER** run this query without the `where` clause.
+    これにより、この取引がデータベースから削除されます。正しい ID を取得していることを確認し、`where` 句を指定せずにこのクエリを**決して**実行しないでください。
