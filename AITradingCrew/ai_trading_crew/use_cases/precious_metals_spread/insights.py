@@ -59,6 +59,16 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
         lines.append("Not enough sequential signals per ticker.")
     else:
         lines.append(_format_table(next_signal, ["ticker", "median_days", "mean_change_pct"], ["Ticker", "Median Days", "Mean ΔGap %"]))
+    lines.append("")
+    lines.append("## Gap Threshold Reversion (8/10/12%)")
+    threshold_tables = _compute_gap_threshold_stats(metrics)
+    for threshold, table in threshold_tables.items():
+        lines.append(f"### ≥ {int(threshold * 100)}% → < {int(threshold * 50)}%")
+        if table.empty:
+            lines.append("No qualifying events.")
+        else:
+            lines.append(_format_table(table, ["ticker", "events", "successes", "success_rate", "mean_days", "median_days", "max_days"], ["Ticker", "Events", "Successes", "Success %", "Mean Days", "Median Days", "Max Days"]))
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -157,3 +167,46 @@ def _compute_next_signal_stats(edges: pd.DataFrame) -> pd.DataFrame:
             mean_change_pct = float(pd.Series(changes).mean() * 100)
             rows.append({"ticker": ticker, "median_days": median_days, "mean_change_pct": mean_change_pct})
     return pd.DataFrame(rows)
+
+
+def _compute_gap_threshold_stats(metrics: pd.DataFrame) -> Dict[float, pd.DataFrame]:
+    thresholds = [0.08, 0.10, 0.12]
+    records: List[Dict[str, object]] = []
+    for ticker in metrics.columns.levels[0]:
+        ticker_frame = metrics[ticker][["gap_pct"]].dropna()
+        ticker_frame = ticker_frame.sort_index()
+        ticker_frame["abs_gap"] = ticker_frame["gap_pct"].abs()
+        for threshold in thresholds:
+            trigger_mask = (ticker_frame["abs_gap"] >= threshold) & (ticker_frame["abs_gap"].shift(1) < threshold)
+            trigger_dates = ticker_frame.index[trigger_mask.fillna(True)]
+            for trigger_date in trigger_dates:
+                future = ticker_frame.loc[ticker_frame.index > trigger_date]
+                target = future[future["abs_gap"] < threshold / 2]
+                if not target.empty:
+                    duration = int((target.index[0] - trigger_date).days)
+                    success = 1
+                else:
+                    duration = None
+                    success = 0
+                records.append({"ticker": ticker, "threshold": threshold, "events": 1, "success": success, "duration": duration})
+    df = pd.DataFrame(records)
+    tables: Dict[float, pd.DataFrame] = {}
+    for threshold in [0.08, 0.10, 0.12]:
+        subset = df[df["threshold"] == threshold]
+        if subset.empty:
+            tables[threshold] = pd.DataFrame()
+            continue
+        summary = subset.groupby("ticker").agg(
+            events=("events", "sum"),
+            successes=("success", "sum")
+        )
+        durations = subset[subset["duration"].notna()].groupby("ticker")["duration"].agg(["mean", "median", "max"])
+        table = summary.join(durations, how="left").fillna(0)
+        table = table.reset_index()
+        table["success_rate"] = (table["successes"] / table["events"] * 100).round(2)
+        table["mean_days"] = table["mean"].round(2)
+        table["median_days"] = table["median"].round(2)
+        table["max_days"] = table["max"].astype(int)
+        table = table.drop(columns=["mean", "median", "max"])
+        tables[threshold] = table
+    return tables
