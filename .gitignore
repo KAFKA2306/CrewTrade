@@ -22,7 +22,6 @@ freqtrade/.git/
 yahooquery/.git/
 
 # AITradingCrew
-AITradingCrew/output/
 AITradingCrew/resources/
 AITradingCrew/config/
 
