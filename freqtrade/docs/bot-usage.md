@@ -1,68 +1,61 @@
-# Start the bot
+# ボットを起動する
 
-This page explains the different parameters of the bot and how to run it.
+このページでは、ボットのさまざまなパラメーターとその実行方法について説明します。
 
-!!! Note
-    If you've used `setup.sh`, don't forget to activate your virtual environment (`source .venv/bin/activate`) before running freqtrade commands.
+!!!注記
+    `setup.sh` を使用した場合は、freqtrade コマンドを実行する前に仮想環境 (`source .venv/bin/activate`) をアクティブ化することを忘れないでください。
 
-!!! Warning "Up-to-date clock"
-    The clock on the system running the bot must be accurate, synchronized to a NTP server frequently enough to avoid problems with communication to the exchanges.
+!!!警告「最新の時計です」
+    ボットを実行しているシステムの時計は正確である必要があり、交換局との通信に関する問題を避けるために十分な頻度で NTP サーバーと同期されている必要があります。
 
-## Bot commands
+## ボットコマンド
 
 --8<-- "commands/main.md"
 
-### Bot trading commands
+### ボット取引コマンド
 
 --8<-- "commands/trade.md"
 
-### How to specify which configuration file be used?
+### 使用する構成ファイルを指定するにはどうすればよいですか?
 
-The bot allows you to select which configuration file you want to use by means of
-the `-c/--config` command line option:
-
+ボットを使用すると、使用する構成ファイルを次の方法で選択できます。
+`-c/--config` コマンドライン オプション:
 ```bash
 freqtrade trade -c path/far/far/away/config.json
 ```
+デフォルトでは、ボットは現在の設定ファイルから「config.json」構成ファイルをロードします。
+作業ディレクトリ。
 
-Per default, the bot loads the `config.json` configuration file from the current
-working directory.
+### 複数の設定ファイルを使用するにはどうすればよいですか?
 
-### How to use multiple configuration files?
+ボットでは、複数の構成ファイルを指定して複数の構成ファイルを使用できます。
+コマンドラインの「-c/--config」オプション。設定パラメータ
+後者の構成ファイルで定義されたものは、同じ名前のパラメータをオーバーライドします
+前にコマンドラインで指定した以前の構成ファイルで定義されています。
 
-The bot allows you to use multiple configuration files by specifying multiple
-`-c/--config` options in the command line. Configuration parameters
-defined in the latter configuration files override parameters with the same name
-defined in the previous configuration files specified in the command line earlier.
-
-For example, you can make a separate configuration file with your key and secret
-for the Exchange you use for trading, specify default configuration file with
-empty key and secret values while running in the Dry Mode (which does not actually
-require them):
-
+たとえば、キーとシークレットを使用して別の構成ファイルを作成できます。
+取引に使用する Exchange の場合は、デフォルトの設定ファイルを次のように指定します。
+ドライ モードで実行中の空のキーとシークレットの値 (実際にはそうではありません)
+それらを必要とします):
 ```bash
 freqtrade trade -c ./config.json
 ```
-
-and specify both configuration files when running in the normal Live Trade Mode:
-
+通常のライブ取引モードで実行する場合は、両方の構成ファイルを指定します。
 ```bash
 freqtrade trade -c ./config.json -c path/to/secrets/keys.config.json
 ```
+これは、ローカル マシン上の Exchange 秘密キーと Exchange シークレットを隠すのに役立ちます。
+実際のシークレットを含むファイルに適切なファイル権限を設定し、さらに、
+サンプルを公開するときに、機密の個人データが意図せず公開されるのを防ぎます
+プロジェクトの問題またはインターネットで設定を確認してください。
 
-This could help you hide your private Exchange key and Exchange secret on you local machine
-by setting appropriate file permissions for the file which contains actual secrets and, additionally,
-prevent unintended disclosure of sensitive private data when you publish examples
-of your configuration in the project issues or in the Internet.
+この手法の詳細と例については、次のドキュメント ページを参照してください。
+[構成](configuration.md)。
 
-See more details on this technique with examples in the documentation page on
-[configuration](configuration.md).
+### カスタム データを保存する場所
 
-### Where to store custom data
-
-Freqtrade allows the creation of a user-data directory using `freqtrade create-userdir --userdir someDirectory`.
-This directory will look as follows:
-
+Freqtrade では、「freqtrade create-userdir --userdir someDirectory」を使用してユーザー データ ディレクトリを作成できます。
+このディレクトリは次のようになります。
 ```
 user_data/
 ├── backtest_results
@@ -72,65 +65,58 @@ user_data/
 ├── plot
 └── strategies
 ```
+エントリ「user_data_dir」設定を構成に追加して、ボットが常にこのディレクトリを指すようにすることができます。
+あるいは、すべてのコマンドに「--userdir」を渡します。
+ディレクトリが存在しない場合、ボットは起動に失敗しますが、必要なサブディレクトリは作成されます。
 
-You can add the entry "user_data_dir" setting to your configuration, to always point your bot to this directory.
-Alternatively, pass in `--userdir` to every command.
-The bot will fail to start if the directory does not exist, but will create necessary subdirectories.
+このディレクトリには、カスタム戦略、カスタム hyperopts および hyperopt 損失関数、バックテスト履歴データ (バックテスト コマンドまたはダウンロード スクリプトのいずれかを使用してダウンロード)、およびプロット出力が含まれている必要があります。
 
-This directory should contain your custom strategies, custom hyperopts and hyperopt loss functions, backtesting historical data (downloaded using either backtesting command or the download script) and plot outputs.
+戦略の変更を追跡するには、バージョン管理を使用することをお勧めします。
 
-It is recommended to use version control to keep track of changes to your strategies.
+### **--strategy** の使用方法?
 
-### How to use **--strategy**?
+このパラメータを使用すると、カスタム戦略クラスをロードできるようになります。
+ボットのインストールをテストするには、`create-userdir` サブコマンドによってインストールされた `SampleStrategy` (通常は `user_data/strategy/sample_strategy.py`) を使用できます。
 
-This parameter will allow you to load your custom strategy class.
-To test the bot installation, you can use the `SampleStrategy` installed by the `create-userdir` subcommand (usually `user_data/strategy/sample_strategy.py`).
+ボットは「user_data/strategies」内の戦略ファイルを検索します。
+他のディレクトリを使用する場合は、「--strategy-path」に関する次のセクションをお読みください。
 
-The bot will search your strategy file within `user_data/strategies`.
-To use other directories, please read the next section about `--strategy-path`.
+ストラテジーをロードするには、このパラメータにクラス名 (例: `CustomStrategy`) を渡すだけです。
 
-To load a strategy, simply pass the class name (e.g.: `CustomStrategy`) in this parameter.
-
-**Example:**
-In `user_data/strategies` you have a file `my_awesome_strategy.py` which has
-a strategy class called `AwesomeStrategy` to load it:
-
+**例:**
+「user_data/strategies」には、「my_awesome_strategy.py」ファイルがあります。
+それをロードするための `AwesomeStrategy` という戦略クラス:
 ```bash
 freqtrade trade --strategy AwesomeStrategy
 ```
+ボットが戦略ファイルを見つけられない場合、エラーが表示されます。
+理由をメッセージで示します (ファイルが見つからない、またはコード内のエラー)。
 
-If the bot does not find your strategy file, it will display in an error
-message the reason (File not found, or errors in your code).
+戦略ファイルの詳細については、こちらをご覧ください。
+[戦略のカスタマイズ](strategy-customization.md)。
 
-Learn more about strategy file in
-[Strategy Customization](strategy-customization.md).
+### **--strategy-path** の使用方法?
 
-### How to use **--strategy-path**?
-
-This parameter allows you to add an additional strategy lookup path, which gets
-checked before the default locations (The passed path must be a directory!):
-
+このパラメータを使用すると、追加の戦略ルックアップ パスを追加できます。
+デフォルトの場所の前にチェックされます (渡されるパスはディレクトリである必要があります!):
 ```bash
 freqtrade trade --strategy AwesomeStrategy --strategy-path /some/directory
 ```
+#### 戦略を導入するにはどうすればよいですか?
 
-#### How to install a strategy?
+これはとても簡単です。戦略ファイルをコピーしてディレクトリに貼り付けます
+`user_data/strategies` または `--strategy-path` を使用します。これで、ボットがそれを使用する準備が整いました。
 
-This is very simple. Copy paste your strategy file into the directory
-`user_data/strategies` or use `--strategy-path`. And voila, the bot is ready to use it.
+### **--db-url** の使用方法?
 
-### How to use **--db-url**?
-
-When you run the bot in Dry-run mode, per default no transactions are
-stored in a database. If you want to store your bot actions in a DB
-using `--db-url`. This can also be used to specify a custom database
-in production mode. Example command:
-
+ボットをドライラン モードで実行すると、デフォルトではトランザクションは実行されません。
+データベースに保存されます。ボットのアクションを DB に保存したい場合
+`--db-url` を使用します。これはカスタム データベースの指定にも使用できます
+本番モードで。コマンド例:
 ```bash
 freqtrade trade -c config.json --db-url sqlite:///tradesv3.dry_run.sqlite
 ```
+## 次のステップ
 
-## Next step
-
-The optimal strategy of the bot will change with time depending of the market trends. The next step is to
-[Strategy Customization](strategy-customization.md).
+ボットの最適な戦略は、市場の動向に応じて時間の経過とともに変化します。次のステップは、
+[戦略のカスタマイズ](strategy-customization.md)。
