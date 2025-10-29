@@ -1,57 +1,56 @@
-# Telegram usage
+# Telegramの使用法
 
-## Setup your Telegram bot
+## Telegramボットの設定
 
-Below we explain how to create your Telegram Bot, and how to get your
-Telegram user id.
+以下では、Telegramボットの作成方法とTelegramユーザーIDの取得方法について説明します。
 
-### 1. Create your Telegram bot
+### 1. Telegramボットの作成
 
-Start a chat with the [Telegram BotFather](https://telegram.me/BotFather)
+[Telegram BotFather](https://telegram.me/BotFather)とチャットを開始します。
 
-Send the message `/newbot`.
+メッセージ`/newbot`を送信します。
 
-*BotFather response:*
+*BotFatherの応答：*
 
-> Alright, a new bot. How are we going to call it? Please choose a name for your bot.
+> 新しいボットですね。名前は何にしますか？ボットの名前を選択してください。
 
-Choose the public name of your bot (e.x. `Freqtrade bot`)
+ボットの公開名を選択します（例：`Freqtrade bot`）。
 
-*BotFather response:*
+*BotFatherの応答：*
 
-> Good. Now let's choose a username for your bot. It must end in `bot`. Like this, for example: TetrisBot or tetris_bot.
+> 良いですね。では、ボットのユーザー名を選択しましょう。末尾は`bot`でなければなりません。たとえば、TetrisBotやtetris_botのようになります。
 
-Choose the name id of your bot and send it to the BotFather (e.g. "`My_own_freqtrade_bot`")
+ボットの名前IDを選択してBotFatherに送信します（例：`"My_own_freqtrade_bot"`）。
 
-*BotFather response:*
+*BotFatherの応答：*
 
-> Done! Congratulations on your new bot. You will find it at `t.me/yourbots_name_bot`. You can now add a description, about section and profile picture for your bot, see /help for a list of commands. By the way, when you've finished creating your cool bot, ping our Bot Support if you want a better username for it. Just make sure the bot is fully operational before you do this.
+> 完了しました！新しいボットおめでとうございます。`t.me/yourbots_name_bot`で見つかります。ボットの説明、概要セクション、プロフィール写真を追加できます。コマンドのリストについては、/helpを参照してください。ところで、クールなボットの作成が完了したら、より良いユーザー名が必要な場合は、ボットサポートに連絡してください。これを行う前に、ボットが完全に動作していることを確認してください。
 
-> Use this token to access the HTTP API: `22222222:APITOKEN`
+> HTTP APIにアクセスするには、このトークンを使用してください：`22222222:APITOKEN`
 
-> For a description of the Bot API, see this page: https://core.telegram.org/bots/api Father bot will return you the token (API key)
+> ボットAPIの説明については、このページを参照してください：https://core.telegram.org/bots/api Fatherボットがトークン（APIキー）を返します。
 
-Copy the API Token (`22222222:APITOKEN` in the above example) and keep use it for the config parameter `token`.
+APIトークン（上記の例では`22222222:APITOKEN`）をコピーし、設定パラメータ`token`に使用します。
 
-Don't forget to start the conversation with your bot, by clicking `/START` button
+`/START`ボタンをクリックして、ボットとの会話を開始することを忘れないでください。
 
-### 2. Telegram user_id
+### 2. TelegramユーザーID
 
-#### Get your user id
+#### ユーザーIDの取得
 
-Talk to the [userinfobot](https://telegram.me/userinfobot)
+[userinfobot](https://telegram.me/userinfobot)と話します。
 
-Get your "Id", you will use it for the config parameter `chat_id`.
+「Id」を取得し、設定パラメータ`chat_id`に使用します。
 
-#### Use Group id
+#### グループIDの使用
 
-To get the group ID, you can add the bot to the group, start freqtrade, and issue a `/tg_info` command.
-This will return the group id to you, without having to use some random bot.
-While "chat_id" is still required, it doesn't need to be set to this particular group id for this command.
+グループIDを取得するには、ボットをグループに追加し、freqtradeを開始して、`/tg_info`コマンドを発行します。
+これにより、ランダムなボットを使用せずにグループIDが返されます。
+「chat_id」はまだ必要ですが、このコマンドではこの特定のグループIDに設定する必要はありません。
 
-The response will also contain the "topic_id" if necessary - both in a format ready to copy/paste into your configuration.
+応答には、必要に応じて「topic_id」も含まれます。どちらも、設定にコピー/貼り付けできる形式です。
 
-``` json
+```json
  {
     "enabled": true,
     "token": "********",
@@ -60,33 +59,33 @@ The response will also contain the "topic_id" if necessary - both in a format re
 }
 ```
 
-For the Freqtrade configuration, you can then use the full value (including `-` ) as string:
+Freqtradeの設定では、完全な値（`-`を含む）を文字列として使用できます。
 
 ```json
    "chat_id": "-1001332619709"
 ```
 
-!!! Warning "Using telegram groups"
-    When using telegram groups, you're giving every member of the telegram group access to your freqtrade bot and to all commands possible via telegram. Please make sure that you can trust everyone in the telegram group to avoid unpleasant surprises.
+!!! Warning "Telegramグループの使用"
+    Telegramグループを使用する場合、Telegramグループのすべてのメンバーにfreqtradeボットへのアクセスと、Telegram経由で可能なすべてのコマンドへのアクセスを許可することになります。不快な驚きを避けるために、Telegramグループの全員を信頼できることを確認してください。
 
-##### Group Topic ID
+##### グループトピックID
 
-To use a specific topic in a group, you can use the `topic_id` parameter in the configuration. This will allow you to use the bot in a specific topic in a group.  
-Without this, the bot will always respond to the general channel in the group if topics are enabled for a group chat.
+グループ内の特定のトピックを使用するには、設定で`topic_id`パラメータを使用できます。これにより、グループ内の特定のトピックでボットを使用できます。
+これがないと、グループチャットでトピックが有効になっている場合、ボットは常にグループの一般チャネルに応答します。
 
 ```json
    "chat_id": "-1001332619709",
    "topic_id": "3"
 ```
 
-Similar to the group-id - you can use `/tg_info` from the topic/thread to get the correct topic-id.
+グループIDと同様に、トピック/スレッドから`/tg_info`を使用して正しいトピックIDを取得できます。
 
-#### Authorized users
+#### 承認されたユーザー
 
-For groups, it can be useful to limit who can send commands to the bot.
+グループの場合、ボットにコマンドを送信できるユーザーを制限すると便利な場合があります。
 
-If `"authorized_users": []` is present and empty, no user will be allowed to control the bot.
-In the below example, only the user with the id "1234567" is allowed to control the bot - all other users will only be able to receive messages.
+`"authorized_users": []`が存在し、空の場合、どのユーザーもボットを制御できません。
+以下の例では、ID「1234567」のユーザーのみがボットを制御でき、他のすべてのユーザーはメッセージを受信することしかできません。
 
 ```json
    "chat_id": "-1001332619709",
@@ -94,18 +93,18 @@ In the below example, only the user with the id "1234567" is allowed to control 
    "authorized_users": ["1234567"]
 ```
 
-## Control telegram noise
+## Telegramのノイズを制御する
 
-Freqtrade provides means to control the verbosity of your telegram bot.
-Each setting has the following possible values:
+Freqtradeは、Telegramボットの冗長性を制御する手段を提供します。
+各設定には、次の可能な値があります。
 
-* `on` - Messages will be sent, and user will be notified.
-* `silent` - Message will be sent, Notification will be without sound / vibration.
-* `off` - Skip sending a message-type all together.
+* `on` - メッセージが送信され、ユーザーに通知されます。
+* `silent` - メッセージが送信され、通知は音/振動なしになります。
+* `off` - メッセージタイプの送信を完全にスキップします。
 
-Example configuration showing the different settings:
+さまざまな設定を示す構成例：
 
-``` json
+```json
 "telegram": {
     "enabled": true,
     "token": "your_telegram_token",
@@ -144,21 +143,21 @@ Example configuration showing the different settings:
 },
 ```
 
-* `entry` notifications are sent when the order is placed, while `entry_fill` notifications are sent when the order is filled on the exchange.  
-* `exit` notifications are sent when the order is placed, while `exit_fill` notifications are sent when the order is filled on the exchange.  
-    Exit messages (`exit` and `exit_fill`) can be further controlled at individual exit reasons level, with the specific exit reason as the key. the default for all exit reasons is `on` - but can be configured via special `*` key - which will act as a wildcard for all exit reasons that are not explicitly defined.
-* `*_fill` notifications are off by default and must be explicitly enabled.  
-* `protection_trigger` notifications are sent when a protection triggers and `protection_trigger_global` notifications trigger when global protections are triggered.  
-* `strategy_msg` - Receive notifications from the strategy, sent via `self.dp.send_msg()` from the strategy [more details](strategy-customization.md#send-notification).  
-* `show_candle` - show candle values as part of entry/exit messages. Only possible values are `"ohlc"` or `"off"`.  
-* `balance_dust_level` will define what the `/balance` command takes as "dust" - Currencies with a balance below this will be shown.  
-* `allow_custom_messages` completely disable strategy messages.  
-* `reload` allows you to disable reload-buttons on selected messages.  
+* `entry`通知は注文が出されたときに送信され、`entry_fill`通知は注文が取引所で約定したときに送信されます。
+* `exit`通知は注文が出されたときに送信され、`exit_fill`通知は注文が取引所で約定したときに送信されます。
+    終了メッセージ（`exit`および`exit_fill`）は、個々の終了理由レベルでさらに制御でき、特定の終了理由がキーになります。すべての終了理由のデフォルトは`on`ですが、特別な`*`キーを介して構成できます。これは、明示的に定義されていないすべての終了理由のワイルドカードとして機能します。
+* `*_fill`通知はデフォルトでオフになっており、明示的に有効にする必要があります。
+* `protection_trigger`通知は保護がトリガーされたときに送信され、`protection_trigger_global`通知はグローバル保護がトリガーされたときにトリガーされます。
+* `strategy_msg` - 戦略から通知を受信し、戦略から`self.dp.send_msg()`を介して送信されます[詳細](strategy-customization.md#send-notification)。
+* `show_candle` - エントリ/終了メッセージの一部としてローソク足の値を表示します。可能な値は`"ohlc"`または`"off"`のみです。
+* `balance_dust_level`は、`/balance`コマンドが「ダスト」として認識するものを定義します。これより残高が低い通貨が表示されます。
+* `allow_custom_messages`は、戦略メッセージを完全に無効にします。
+* `reload`を使用すると、選択したメッセージのリロードボタンを無効にできます。
 
-## Create a custom keyboard (command shortcut buttons)
+## カスタムキーボードの作成（コマンドショートカットボタン）
 
-Telegram allows us to create a custom keyboard with buttons for commands.
-The default custom keyboard looks like this.
+Telegramでは、コマンド用のボタンを備えたカスタムキーボードを作成できます。
+デフォルトのカスタムキーボードは次のようになります。
 
 ```python
 [
@@ -168,11 +167,11 @@ The default custom keyboard looks like this.
 ]
 ```
 
-### Usage
+### 使用法
 
-You can create your own keyboard in `config.json`:
+`config.json`で独自のキーボードを作成できます。
 
-``` json
+```json
 "telegram": {
       "enabled": true,
       "token": "your_telegram_token",
@@ -185,114 +184,112 @@ You can create your own keyboard in `config.json`:
    },
 ```
 
-!!! Note "Supported Commands"
-    Only the following commands are allowed. Command arguments are not supported!
+!!! Note "サポートされているコマンド"
+    次のコマンドのみが許可されています。コマンド引数はサポートされていません！
 
     `/start`, `/pause`, `/stop`, `/status`, `/status table`, `/trades`, `/profit`, `/performance`, `/daily`, `/stats`, `/count`, `/locks`, `/balance`, `/stopentry`, `/reload_config`, `/show_config`, `/logs`, `/whitelist`, `/blacklist`, `/help`, `/version`, `/marketdir`
 
-## Telegram commands
+## Telegramコマンド
 
-Per default, the Telegram bot shows predefined commands. Some commands
-are only available by sending them to the bot. The table below list the
-official commands. You can ask at any moment for help with `/help`.
+デフォルトでは、Telegramボットは事前定義されたコマンドを表示します。一部のコマンドは、ボットに送信することによってのみ利用できます。以下の表に、公式コマンドを示します。いつでも`/help`でヘルプを求めることができます。
 
-|  Command | Description |
+| コマンド | 説明 |
 |----------|-------------|
-| **System commands**
-| `/start` | Starts the trader
-| `/pause | /stopentry | /stopbuy` | Pause the trader. Gracefully handle open trades according to their rules. Do not enter new positions.
-| `/stop` | Stops the trader
-| `/reload_config` | Reloads the configuration file
-| `/show_config` | Shows part of the current configuration with relevant settings to operation
-| `/logs [limit]` | Show last log messages.
-| `/help` | Show help message
-| `/version` | Show version
-| **Status** |
-| `/status` | Lists all open trades
-| `/status <trade_id>` | Lists one or more specific trade. Separate multiple <trade_id> with a blank space.
-| `/status table` | List all open trades in a table format. Pending buy orders are marked with an asterisk (*) Pending sell orders are marked with a double asterisk (**)
-| `/order <trade_id>` | Lists orders of one or more specific trade. Separate multiple <trade_id> with a blank space.
-| `/trades [limit]` | List all recently closed trades in a table format.
-| `/count` | Displays number of trades used and available
-| `/locks` | Show currently locked pairs.
-| `/unlock <pair or lock_id>` | Remove the lock for this pair (or for this lock id).
-| `/marketdir [long | short | even | none]` | Updates the user managed variable that represents the current market direction. If no direction is provided, the currently set direction will be displayed.
-| `/list_custom_data <trade_id> [key]` | List custom_data for Trade ID & Key combination. If no Key is supplied it will list all key-value pairs found for that Trade ID.
-| **Modify Trade states** |
-| `/forceexit <trade_id> | /fx <tradeid>` | Instantly exits the given trade  (Ignoring `minimum_roi`).
-| `/forceexit all | /fx all` | Instantly exits all open trades (Ignoring `minimum_roi`).
-| `/fx` | alias for `/forceexit`
-| `/forcelong <pair> [rate]` | Instantly buys the given pair. Rate is optional and only applies to limit orders. (`force_entry_enable` must be set to True)
-| `/forceshort <pair> [rate]` | Instantly shorts the given pair. Rate is optional and only applies to limit orders. This will only work on non-spot markets. (`force_entry_enable` must be set to True)
-| `/delete <trade_id>` | Delete a specific trade from the Database. Tries to close open orders. Requires manual handling of this trade on the exchange.
-| `/reload_trade <trade_id>` | Reload a trade from the Exchange. Only works in live, and can potentially help recover a trade that was manually sold on the exchange.
-| `/cancel_open_order <trade_id> | /coo <trade_id>` | Cancel an open order for a trade.
-| **Metrics** |
-| `/profit [<n>]` | Display a summary of your profit/loss from close trades and some stats about your performance, over the last n days (all trades by default)
-| `/profit_[long|short] [<n>]` | Display a summary of your profit/loss from close trades in one direction and some stats about your performance, over the last n days (all trades by default)
-| `/performance` | Show performance of each finished trade grouped by pair
-| `/balance` | Show bot managed balance per currency
-| `/balance full` | Show account balance per currency
-| `/daily <n>` | Shows profit or loss per day, over the last n days (n defaults to 7)
-| `/weekly <n>` | Shows profit or loss per week, over the last n weeks (n defaults to 8)
-| `/monthly <n>` | Shows profit or loss per month, over the last n months (n defaults to 6)
-| `/stats` | Shows Wins / losses by Exit reason as well as Avg. holding durations for buys and sells
-| `/exits` | Shows Wins / losses by Exit reason as well as Avg. holding durations for buys and sells
-| `/entries` | Shows Wins / losses by Exit reason as well as Avg. holding durations for buys and sells
-| `/whitelist [sorted] [baseonly]` | Show the current whitelist. Optionally display in alphabetical order and/or with just the base currency of each pairing.
-| `/blacklist [pair]` | Show the current blacklist, or adds a pair to the blacklist.
+| **システムコマンド**
+| `/start` | トレーダーを開始します
+| `/pause | /stopentry | /stopbuy` | トレーダーを一時停止します。ルールに従ってオープントレードを適切に処理します。新しいポジションには入りません。
+| `/stop` | トレーダーを停止します
+| `/reload_config` | 構成ファイルをリロードします
+| `/show_config` | 操作に関連する設定を含む現在の構成の一部を表示します
+| `/logs [limit]` | 最後のログメッセージを表示します。
+| `/help` | ヘルプメッセージを表示します
+| `/version` | バージョンを表示します
+| **ステータス** |
+| `/status` | すべてのオープントレードを一覧表示します
+| `/status <trade_id>` | 1つ以上の特定の取引を一覧表示します。複数の<trade_id>を空白で区切ります。
+| `/status table` | すべてのオープントレードを表形式で一覧表示します。保留中の買い注文はアスタリスク（*）でマークされます。保留中の売り注文は二重アスタリスク（**）でマークされます。
+| `/order <trade_id>` | 1つ以上の特定の取引の注文を一覧表示します。複数の<trade_id>を空白で区切ります。
+| `/trades [limit]` | 最近決済されたすべての取引を表形式で一覧表示します。
+| `/count` | 使用済みおよび利用可能な取引の数を表示します
+| `/locks` | 現在ロックされているペアを表示します。
+| `/unlock <pair or lock_id>` | このペア（またはこのロックID）のロックを解除します。
+| `/marketdir [long | short | even | none]` | 現在の市場の方向性を表すユーザー管理変数を更新します。方向が指定されていない場合は、現在設定されている方向が表示されます。
+| `/list_custom_data <trade_id> [key]` | 取引IDとキーの組み合わせのcustom_dataを一覧表示します。キーが指定されていない場合は、その取引IDで見つかったすべてのキーと値のペアが一覧表示されます。
+| **取引状態の変更** |
+| `/forceexit <trade_id> | /fx <tradeid>` | 指定された取引を即座に終了します（`minimum_roi`を無視）。
+| `/forceexit all | /fx all` | すべてのオープントレードを即座に終了します（`minimum_roi`を無視）。
+| `/fx` | `/forceexit`のエイリアス
+| `/forcelong <pair> [rate]` | 指定されたペアを即座に購入します。レートはオプションであり、指値注文にのみ適用されます。（`force_entry_enable`をTrueに設定する必要があります）
+| `/forceshort <pair> [rate]` | 指定されたペアを即座に空売りします。レートはオプションであり、指値注文にのみ適用されます。これは非スポット市場でのみ機能します。（`force_entry_enable`をTrueに設定する必要があります）
+| `/delete <trade_id>` | データベースから特定の取引を削除します。オープンオーダーを決済しようとします。取引所でのこの取引の手動処理が必要です。
+| `/reload_trade <trade_id>` | 取引所から取引をリロードします。ライブでのみ機能し、取引所で手動で売却された取引を回復するのに役立つ可能性があります。
+| `/cancel_open_order <trade_id> | /coo <trade_id>` | 取引のオープンオーダーをキャンセルします。
+| **メトリクス** |
+| `/profit [<n>]` | 過去n日間（デフォルトではすべての取引）の決済取引からの損益の概要とパフォーマンスに関するいくつかの統計を表示します
+| `/profit_[long|short] [<n>]` | 過去n日間（デフォルトではすべての取引）の一方向の決済取引からの損益の概要とパフォーマンスに関するいくつかの統計を表示します
+| `/performance` | ペアごとにグループ化された各終了取引のパフォーマンスを表示します
+| `/balance` | 通貨ごとのボット管理残高を表示します
+| `/balance full` | 通貨ごとの口座残高を表示します
+| `/daily <n>` | 過去n日間の1日あたりの損益を表示します（nのデフォルトは7）
+| `/weekly <n>` | 過去n週間の週ごとの損益を表示します（nのデフォルトは8）
+| `/monthly <n>` | 過去nか月間の月ごとの損益を表示します（nのデフォルトは6）
+| `/stats` | 終了理由別の勝ち/負け、および買いと売りの平均保有期間を表示します
+| `/exits` | 終了理由別の勝ち/負け、および買いと売りの平均保有期間を表示します
+| `/entries` | 終了理由別の勝ち/負け、および買いと売りの平均保有期間を表示します
+| `/whitelist [sorted] [baseonly]` | 現在のホワイトリストを表示します。オプションで、アルファベット順に表示したり、各ペアリングの基本通貨のみを表示したりできます。
+| `/blacklist [pair]` | 現在のブラックリストを表示するか、ペアをブラックリストに追加します。
 
-## Telegram commands in action
+## 実行中のTelegramコマンド
 
-Below, example of Telegram message you will receive for each command.
+以下に、各コマンドに対して受信するTelegramメッセージの例を示します。
 
 ### /start
 
-> **Status:** `running`
+> **ステータス：** `実行中`
 
 ### /pause | /stopentry | /stopbuy
 
-> **Status:** `paused, no more entries will occur from now. Run /start to enable entries.`
+> **ステータス：** `一時停止中、これ以降エントリは発生しません。エントリを有効にするには/startを実行してください。`
 
-Prevents the bot from opening new trades by changing the state to `paused`.
-Open trades will continue to be managed according to their regular rules (ROI/exit signals, stop-loss, etc.).
-Note that position adjustment remains active, but only on the exit side — meaning that when the bot is `paused`, it can only reduce the position size of open trades.
+状態を`一時停止`に変更することで、ボットが新しい取引を開始するのを防ぎます。
+オープントレードは、通常のルール（ROI /終了シグナル、ストップロスなど）に従って引き続き管理されます。
+ポジション調整は終了側でのみアクティブなままであることに注意してください。つまり、ボットが`一時停止`されている場合、オープントレードのポジションサイズを減らすことしかできません。
 
-After this, give the bot time to close off open trades (can be checked via `/status table`).
-Once all positions are closed, run `/stop` to completely stop the bot.
+この後、ボートにオープントレードを終了する時間を与えます（`/status table`で確認できます）。
+すべてのポジションが決済されたら、`/stop`を実行してボットを完全に停止します。
 
-Use `/start` to resume the bot to the `running` state, allowing it to open new positions.
+`/start`を使用してボットを`実行中`の状態に再開し、新しいポジションを開くことができるようにします。
 
 !!! Warning
-    The pause/stopentry signal is ONLY active while the bot is running, and is not persisted anyway, so restarting the bot will cause this to reset.
+    一時停止/停止エントリシグナルは、ボットの実行中にのみアクティブであり、永続化されないため、ボットを再起動するとリセットされます。
 
 ### /stop
 
-> `Stopping trader ...`
-> **Status:** `stopped`
+> `トレーダーを停止しています...`
+> **ステータス：** `停止`
 
 ### /status
 
-For each open trade, the bot will send you the following message.
-Enter Tag is configurable via Strategy.
+オープントレードごとに、ボットは次のメッセージを送信します。
+エントリタグは戦略を介して構成可能です。
 
-> **Trade ID:** `123` `(since 1 days ago)`  
-> **Current Pair:** CVC/BTC  
-> **Direction:** Long  
-> **Leverage:** 1.0  
-> **Amount:** `26.64180098`  
-> **Enter Tag:** Awesome Long Signal  
-> **Open Rate:** `0.00007489`  
-> **Current Rate:** `0.00007489`  
-> **Unrealized Profit:** `12.95%`  
-> **Stoploss:** `0.00007389 (-0.02%)`  
+> **取引ID：** `123` `(1日前から)`
+> **現在のペア：** CVC/BTC
+> **方向：** ロング
+> **レバレッジ：** 1.0
+> **金額：** `26.64180098`
+> **エントリタグ：** 素晴らしいロングシグナル
+> **オープンレート：** `0.00007489`
+> **現在のレート：** `0.00007489`
+> **未実現利益：** `12.95%`
+> **ストップロス：** `0.00007389 (-0.02%)`
 
 ### /status table
 
-Return the status of all open trades in a table format.
+すべてのオープントレードのステータスを表形式で返します。
 
 ```
-ID L/S    Pair     Since   Profit
+ID L/S    ペア     開始   利益
 ----    --------  -------  --------
   67 L   SC/BTC    1 d      13.33%
  123 S   CVC/BTC   1 h      12.95%
@@ -300,107 +297,107 @@ ID L/S    Pair     Since   Profit
 
 ### /count
 
-Return the number of trades used and available.
+使用済みおよび利用可能な取引の数を返します。
 
 ```
-current    max
+現在    最大
 ---------  -----
      2     10
 ```
 
 ### /profit
 
-Also available as `/profit_long` and `/profit_short` to show profit for long or short trades only.
+`/profit_long`および`/profit_short`としても利用でき、ロングまたはショートトレードのみの利益を表示します。
 
-Return a summary of your profit/loss and performance.
+損益とパフォーマンスの概要を返します。
 
-> **ROI:** Close trades  
->   ∙ `0.00485701 BTC (2.2%) (15.2 Σ%)`  
->   ∙ `62.968 USD`  
-> **ROI:** All trades  
->   ∙ `0.00255280 BTC (1.5%) (6.43 Σ%)`  
->   ∙ `33.095 EUR`  
+> **ROI：** 決済済み取引
+>   ∙ `0.00485701 BTC (2.2%) (15.2 Σ%)`
+>   ∙ `62.968 USD`
+> **ROI：** すべての取引
+>   ∙ `0.00255280 BTC (1.5%) (6.43 Σ%)`
+>   ∙ `33.095 EUR`
 >  
-> **Total Trade Count:** `138`  
-> **Bot started:** `2022-07-11 18:40:44`  
-> **First Trade opened:** `3 days ago`  
-> **Latest Trade opened:** `2 minutes ago`  
-> **Avg. Duration:** `2:33:45`  
-> **Best Performing:** `PAY/BTC: 50.23%`  
-> **Trading volume:** `0.5 BTC`  
-> **Profit factor:** `1.04`  
-> **Win / Loss:** `102 / 36`  
-> **Winrate:** `73.91%`  
-> **Expectancy (Ratio):** `4.87 (1.66)`  
-> **Max Drawdown:** `9.23% (0.01255 BTC)`  
+> **総取引数：** `138`
+> **ボット開始：** `2022-07-11 18:40:44`
+> **最初の取引開始：** `3日前`
+> **最新の取引開始：** `2分前`
+> **平均期間：** `2:33:45`
+> **最高成績：** `PAY/BTC: 50.23%`
+> **取引量：** `0.5 BTC`
+> **利益率：** `1.04`
+> **勝ち/負け：** `102 / 36`
+> **勝率：** `73.91%`
+> **期待値（比率）：** `4.87 (1.66)`
+> **最大ドローダウン：** `9.23% (0.01255 BTC)`
 
-The relative profit of `1.2%` is the average profit per trade.  
-The relative profit of `15.2 Σ%` is be based on the starting capital - so in this case, the starting capital was `0.00485701 * 1.152 = 0.00738 BTC`.  
-**Starting capital(**) is either taken from the `available_capital` setting, or calculated by using current wallet size - profits.  
-**Profit Factor** is calculated as gross profits / gross losses - and should serve as an overall metric for the strategy.  
-**Expectancy** corresponds to the average return per currency unit at risk, i.e. the winrate and the risk-reward ratio (the average gain of winning trades compared to the average loss of losing trades).  
-**Expectancy Ratio** is expected profit or loss of a subsequent trade based on the performance of all past trades.  
-**Max drawdown** corresponds to the backtesting metric `Absolute Drawdown (Account)` - calculated as `(Absolute Drawdown) / (DrawdownHigh + startingBalance)`.  
-**Bot started date** will refer to the date the bot was first started. For older bots, this will default to the first trade's open date.  
+`1.2%`の相対利益は、取引ごとの平均利益です。
+`15.2 Σ%`の相対利益は、開始資本に基づいています。この場合、開始資本は`0.00485701 * 1.152 = 0.00738 BTC`でした。
+**開始資本（**）は、`available_capital`設定から取得されるか、現在のウォレットサイズ-利益を使用して計算されます。
+**利益率**は、総利益/総損失として計算され、戦略の全体的な指標として機能します。
+**期待値**は、リスクのある通貨単位あたりの平均リターンに対応します。つまり、勝率とリスクリワード比（勝ちトレードの平均利益と負けトレードの平均損失の比較）です。
+**期待値比率**は、過去のすべての取引のパフォーマンスに基づいて、後続の取引の期待される利益または損失です。
+**最大ドローダウン**は、バックテストメトリック`絶対ドローダウン（アカウント）`に対応します-`（絶対ドローダウン）/（ドローダウンハイ+開始残高）`として計算されます。
+**ボット開始日**は、ボットが最初に開始された日付を参照します。古いボットの場合、これは最初の取引のオープン日にデフォルト設定されます。
 
 ### /forceexit <trade_id>
 
-> **BINANCE:** Exiting BTC/LTC with limit `0.01650000 (profit: ~-4.07%, -0.00008168)`
+> **BINANCE：** BTC/LTCを指値`0.01650000`で決済（利益：〜-4.07％、-0.00008168）
 
 !!! Tip
-    You can get a list of all open trades by calling `/forceexit` without parameter, which will show a list of buttons to simply exit a trade.
-    This command has an alias in `/fx` - which has the same capabilities, but is faster to type in "emergency" situations.
+    パラメータなしで`/forceexit`を呼び出すと、すべてのオープントレードのリストが表示され、取引を簡単に終了するためのボタンが表示されます。
+    このコマンドには`/fx`というエイリアスがあります。これは同じ機能を持ちますが、「緊急」事態では入力が速くなります。
 
 ### /forcelong <pair> [rate] | /forceshort <pair> [rate]
 
-`/forcebuy <pair> [rate]` is also supported for longs but should be considered deprecated.
+`/forcebuy <pair> [rate]`もロングでサポートされていますが、非推奨と見なすべきです。
 
-> **BINANCE:** Long ETH/BTC with limit `0.03400000` (`1.000000 ETH`, `225.290 USD`)
+> **BINANCE：** ETH/BTCを指値`0.03400000`でロング（`1.000000 ETH`、`225.290 USD`）
 
-Omitting the pair will open a query asking for the pair to trade (based on the current whitelist).
-Trades created through `/forcelong` will have the buy-tag of `force_entry`.
+ペアを省略すると、取引するペアを尋ねるクエリが開きます（現在のホワイトリストに基づく）。
+`/forcelong`を介して作成された取引には、`force_entry`の購入タグが付きます。
 
 ![Telegram force-buy screenshot](assets/telegram_forcebuy.png)
 
-Note that for this to work, `force_entry_enable` needs to be set to true.
+これが機能するには、`force_entry_enable`をtrueに設定する必要があることに注意してください。
 
-[More details](configuration.md#understand-force_entry_enable)
+[詳細](configuration.md#understand-force_entry_enable)
 
 ### /performance
 
-Return the performance of each crypto-currency the bot has sold.
-> Performance:  
-> 1. `RCN/BTC 0.003 BTC (57.77%) (1)`  
-> 2. `PAY/BTC 0.0012 BTC (56.91%) (1)`  
-> 3. `VIB/BTC 0.0011 BTC (47.07%) (1)`  
-> 4. `SALT/BTC 0.0010 BTC (30.24%) (1)`  
-> 5. `STORJ/BTC 0.0009 BTC (27.24%) (1)`  
-> ...  
+ボットが販売した各暗号通貨のパフォーマンスを返します。
+> パフォーマンス：
+> 1. `RCN/BTC 0.003 BTC (57.77%) (1)`
+> 2. `PAY/BTC 0.0012 BTC (56.91%) (1)`
+> 3. `VIB/BTC 0.0011 BTC (47.07%) (1)`
+> 4. `SALT/BTC 0.0010 BTC (30.24%) (1)`
+> 5. `STORJ/BTC 0.0009 BTC (27.24%) (1)`
+> ...
 
-The relative performance is calculated against the total investment in the currency, aggregating all filled entries for the currency.
+相対的なパフォーマンスは、通貨への総投資に対して計算され、通貨のすべての約定済みエントリを集計します。
 
 ### /balance
 
-Return the balance of all crypto-currency your have on the exchange.
+取引所にあるすべての暗号通貨の残高を返します。
 
-> **Currency:** BTC  
-> **Available:** 3.05890234  
-> **Balance:** 3.05890234  
-> **Pending:** 0.0  
+> **通貨：** BTC
+> **利用可能：** 3.05890234
+> **残高：** 3.05890234
+> **保留中：** 0.0
 >
-> **Currency:** CVC  
-> **Available:** 86.64180098  
-> **Balance:** 86.64180098  
-> **Pending:** 0.0  
+> **通貨：** CVC
+> **利用可能：** 86.64180098
+> **残高：** 86.64180098
+> **保留中：** 0.0
 
 ### /daily <n>
 
-Per default `/daily` will return the 7 last days. The example below if for `/daily 3`:
+デフォルトでは、`/daily`は過去7日間を返します。以下の例は`/daily 3`の場合です。
 
-> **Daily Profit over the last 3 days:**
+> **過去3日間の日次利益：**
 
 ```
-Day (count)     USDT          USD         Profit %
+日（カウント）     USDT          USD         利益％
 --------------  ------------  ----------  ----------
 2022-06-11 (1)  -0.746 USDT   -0.75 USD   -0.08%
 2022-06-10 (0)  0 USDT        0.00 USD    0.00%
@@ -409,13 +406,12 @@ Day (count)     USDT          USD         Profit %
 
 ### /weekly <n>
 
-Per default `/weekly` will return the 8 last weeks, including the current week. Each week starts
-from Monday. The example below if for `/weekly 3`:
+デフォルトでは、`/weekly`は現在週を含む過去8週間を返します。各週は月曜日から始まります。以下の例は`/weekly 3`の場合です。
 
-> **Weekly Profit over the last 3 weeks (starting from Monday):**
+> **過去3週間の週次利益（月曜日から）：**
 
 ```
-Monday (count)  Profit BTC      Profit USD   Profit %
+月曜日（カウント）  利益BTC      利益USD   利益％
 -------------  --------------  ------------    ----------
 2018-01-03 (5)  0.00224175 BTC  29,142 USD   4.98%
 2017-12-27 (1)  0.00033131 BTC   4,307 USD   0.00%
@@ -424,12 +420,11 @@ Monday (count)  Profit BTC      Profit USD   Profit %
 
 ### /monthly <n>
 
-Per default `/monthly` will return the 6 last months, including the current month. The example below
-if for `/monthly 3`:
+デフォルトでは、`/monthly`は現在月を含む過去6か月を返します。以下の例は`/monthly 3`の場合です。
 
-> **Monthly Profit over the last 3 months:**
+> **過去3か月間の月次利益：**
 ```
-Month (count)  Profit BTC      Profit USD    Profit %
+月（カウント）  利益BTC      利益USD    利益％
 -------------  --------------  ------------    ----------
 2018-01 (20)    0.00224175 BTC  29,142 USD  4.98%
 2017-12 (5)    0.00033131 BTC   4,307 USD   0.00%
@@ -438,45 +433,45 @@ Month (count)  Profit BTC      Profit USD    Profit %
 
 ### /whitelist
 
-Shows the current whitelist
+現在のホワイトリストを表示します
 
-> Using whitelist `StaticPairList` with 22 pairs  
+> ホワイトリスト`StaticPairList`を22ペアで使用しています
 > `IOTA/BTC, NEO/BTC, TRX/BTC, VET/BTC, ADA/BTC, ETC/BTC, NCASH/BTC, DASH/BTC, XRP/BTC, XVG/BTC, EOS/BTC, LTC/BTC, OMG/BTC, BTG/BTC, LSK/BTC, ZEC/BTC, HOT/BTC, IOTX/BTC, XMR/BTC, AST/BTC, XLM/BTC, NANO/BTC`
 
 ### /blacklist [pair]
 
-Shows the current blacklist.
-If Pair is set, then this pair will be added to the pairlist.
-Also supports multiple pairs, separated by a space.  
-Use `/reload_config` to reset the blacklist.
+現在のブラックリストを表示します。
+ペアが設定されている場合、このペアがペアリストに追加されます。
+スペースで区切られた複数のペアもサポートします。
+ブラックリストをリセットするには、`/reload_config`を使用します。
 
-> Using blacklist `StaticPairList` with 2 pairs  
->`DODGE/BTC`, `HOT/BTC`.  
+> ブラックリスト`StaticPairList`を2ペアで使用しています
+>`DODGE/BTC`、`HOT/BTC`。
 
 ### /version
 
-> **Version:** `0.14.3`
+> **バージョン：** `0.14.3`
 
 ### /marketdir
 
-If a market direction is provided the command updates the user managed variable that represents the current market direction.
-This variable is not set to any valid market direction on bot startup and must be set by the user. The example below is for `/marketdir long`:
+市場の方向性が指定されている場合、コマンドは現在の市場の方向性を表すユーザー管理変数を更新します。
+この変数は、ボットの起動時に有効な市場の方向性に設定されておらず、ユーザーが設定する必要があります。以下の例は`/marketdir long`の場合です。
 
 ```
-Successfully updated marketdirection from none to long.
+市場の方向性をnoneからlongに正常に更新しました。
 ```
 
-If no market direction is provided the command outputs the currently set market directions. The example below is for `/marketdir`:
+市場の方向性が指定されていない場合、コマンドは現在設定されている市場の方向性を出力します。以下の例は`/marketdir`の場合です。
 
 ```
-Currently set marketdirection: even
+現在設定されている市場の方向性：even
 ```
 
-You can use the market direction in your strategy via `self.market_direction`.
+`self.market_direction`を介して戦略で市場の方向性を使用できます。
 
-!!! Warning "Bot restarts"
-    Please note that the market direction is not persisted, and will be reset after a bot restart/reload.
+!!! Warning "ボットの再起動"
+    市場の方向性は永続化されず、ボットの再起動/リロード後にリセットされることに注意してください。
 
-!!! Danger "Backtesting"
-    As this value/variable is intended to be changed manually in dry/live trading.
-    Strategies using `market_direction` will probably not produce reliable, reproducible results (changes to this variable will not be reflected for backtesting). Use at your own risk.
+!!! Danger "バックテスト"
+    この値/変数は、ドライ/ライブ取引で手動で変更することを目的としているためです。
+    `market_direction`を使用する戦略は、信頼できる、再現可能な結果を生成しない可能性があります（この変数への変更はバックテストに反映されません）。自己責任で使用してください。
