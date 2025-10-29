@@ -1,30 +1,29 @@
-# Analyzing bot data with Jupyter notebooks
+# Jupyter ノートブックを使用したボット データの分析
 
-You can analyze the results of backtests and trading history easily using Jupyter notebooks. Sample notebooks are located at `user_data/notebooks/` after initializing the user directory with `freqtrade create-userdir --userdir user_data`.
+Jupyter ノートブックを使用すると、バックテストの結果や取引履歴を簡単に分析できます。サンプル ノートブックは、「freqtrade create-userdir --userdir user_data」でユーザー ディレクトリを初期化した後、「user_data/notebooks/」にあります。
 
-## Quick start with docker
+## Docker を使ったクイックスタート
 
-Freqtrade provides a docker-compose file which starts up a jupyter lab server.
-You can run this server using the following command: `docker compose -f docker/docker-compose-jupyter.yml up`
+Freqtrade は、jupyter lab サーバーを起動する docker-compose ファイルを提供します。
+次のコマンドを使用してこのサーバーを実行できます: `docker compose -f docker/docker-compose-jupyter.yml up`
 
-This will create a dockercontainer running jupyter lab, which will be accessible using `https://127.0.0.1:8888/lab`.
-Please use the link that's printed in the console after startup for simplified login.
+これにより、jupyter lab を実行する dockercontainer が作成され、`https://127.0.0.1:8888/lab` を使用してアクセスできるようになります。
+簡素化されたログインのために、起動後にコンソールに出力されるリンクを使用してください。
 
-For more information, Please visit the [Data analysis with Docker](docker_quickstart.md#data-analysis-using-docker-compose) section.
+詳細については、「[Docker を使用したデータ分析](docker_quickstart.md#data-analysis-using-docker-compose)」セクションを参照してください。
 
-### Pro tips
+### プロのヒント
 
-* See [jupyter.org](https://jupyter.org/documentation) for usage instructions.
-* Don't forget to start a Jupyter notebook server from within your conda or venv environment or use [nb_conda_kernels](https://github.com/Anaconda-Platform/nb_conda_kernels)*
-* Copy the example notebook before use so your changes don't get overwritten with the next freqtrade update.
+* 使用方法については、[jupyter.org](https://jupyter.org/documentation)を参照してください。
+* conda または venv 環境内から Jupyter ノートブック サーバーを起動するか、[nb_conda_kernels](https://github.com/Anaconda-Platform/nb_conda_kernels) を使用することを忘れないでください*
+* 変更内容が次回の freqtrade 更新で上書きされないように、使用する前にサンプル ノートブックをコピーしてください。
 
-### Using virtual environment with system-wide Jupyter installation
+### システム全体に Jupyter をインストールして仮想環境を使用する
 
-Sometimes it can be desired to use a system-wide installation of Jupyter notebook, and use a jupyter kernel from the virtual environment.
-This prevents you from installing the full jupyter suite multiple times per system, and provides an easy way to switch between tasks (freqtrade / other analytics tasks).
+場合によっては、Jupyter ノートブックのシステム全体のインストールを使用し、仮想環境から jupyter カーネルを使用することが必要な場合があります。
+これにより、システムごとに完全な jupyter スイートを複数回インストールすることがなくなり、タスク (freqtrade / その他の分析タスク) 間を簡単に切り替えることができます。
 
-For this to work, first activate your virtual environment and run the following commands:
-
+これを機能させるには、まず仮想環境をアクティブ化し、次のコマンドを実行します。
 ``` bash
 # Activate virtual environment
 source .venv/bin/activate
@@ -34,45 +33,43 @@ ipython kernel install --user --name=freqtrade
 # Restart jupyter (lab / notebook)
 # select kernel "freqtrade" in the notebook
 ```
+!!!注記
+    このセクションは完全を期すために提供されており、Freqtrade チームはこのセットアップに関する問題に対して完全なサポートを提供しません。また、Jupyter ノートブックを起動して実行する最も簡単な方法である仮想環境に Jupyter を直接インストールすることをお勧めします。この設定に関するヘルプについては、[Project Jupyter](https://jupyter.org/) [ドキュメント](https://jupyter.org/documentation) または [ヘルプ チャネル](https://jupyter.org/community) を参照してください。
 
-!!! Note
-    This section is provided for completeness, the Freqtrade Team won't provide full support for problems with this setup and will recommend to install Jupyter in the virtual environment directly, as that is the easiest way to get jupyter notebooks up and running. For help with this setup please refer to the [Project Jupyter](https://jupyter.org/) [documentation](https://jupyter.org/documentation) or [help channels](https://jupyter.org/community).
+!!!警告
+    一部のタスクはノートブックでは特にうまく機能しません。たとえば、非同期実行を使用するものはすべて、Jupyter にとって問題になります。また、freqtrade の主なエントリ ポイントはシェル cli であるため、ノートブックで純粋な Python を使用すると、ヘルパー関数に必要なオブジェクトとパラメーターを提供する引数がバイパスされます。これらの値を設定するか、必要なオブジェクトを手動で作成する必要がある場合があります。
 
-!!! Warning
-    Some tasks don't work especially well in notebooks. For example, anything using asynchronous execution is a problem for Jupyter. Also, freqtrade's primary entry point is the shell cli, so using pure python in a notebook bypasses arguments that provide required objects and parameters to helper functions. You may need to set those values or create expected objects manually.
+## 推奨されるワークフロー
 
-## Recommended workflow
-
-| Task | Tool |
+|タスク |ツール |
   --- | ---
-Bot operations | CLI
-Repetitive tasks | Shell scripts
-Data analysis & visualization | Notebook
+ボットの操作 | CLI
+反復的なタスク |シェルスクリプト
+データ分析と可視化 |ノート
 
-1. Use the CLI to
+1. CLI を使用して、
 
-    * download historical data
-    * run a backtest
-    * run with real-time data
-    * export results
+    * 過去のデータをダウンロード
+    * バックテストを実行する
+    * リアルタイムデータで実行
+    * 結果のエクスポート
 
-1. Collect these actions in shell scripts
+1. これらのアクションをシェル スクリプトに収集します
 
-    * save complicated commands with arguments
-    * execute multi-step operations
-    * automate testing strategies and preparing data for analysis
+    * 複雑なコマンドを引数付きで保存
+    * 複数ステップの操作を実行する
+    * テスト戦略と分析用のデータの準備を自動化します
 
-1. Use a notebook to
+1. ノートを使用して、
 
-    * visualize data
-    * mangle and plot to generate insights
+    * データを視覚化する
+    * マングルとプロットによる洞察の生成
 
-## Example utility snippets
+## ユーティリティ スニペットの例
 
-### Change directory to root
+### ディレクトリをルートに変更します
 
-Jupyter notebooks execute from the notebook directory. The following snippet searches for the project root, so relative paths remain consistent.
-
+Jupyter ノートブックはノートブック ディレクトリから実行されます。次のスニペットはプロジェクト ルートを検索するため、相対パスの一貫性が保たれます。
 ```python
 import os
 from pathlib import Path
@@ -92,12 +89,10 @@ except:
     project_root = Path.cwd()
 print(Path.cwd())
 ```
+### 複数の構成ファイルをロードする
 
-### Load multiple configuration files
-
-This option can be useful to inspect the results of passing in multiple configs.
-This will also run through the whole Configuration initialization, so the configuration is completely initialized to be passed to other methods.
-
+このオプションは、複数の構成を渡した結果を検査するのに役立ちます。
+これは構成の初期化全体でも実行されるため、構成は完全に初期化され、他のメソッドに渡されます。
 ``` python
 import json
 from freqtrade.configuration import Configuration
@@ -108,20 +103,17 @@ config = Configuration.from_files(["config1.json", "config2.json"])
 # Show the config in memory
 print(json.dumps(config['original_config'], indent=2))
 ```
-
-For Interactive environments, have an additional configuration specifying `user_data_dir` and pass this in last, so you don't have to change directories while running the bot.
-Best avoid relative paths, since this starts at the storage location of the jupyter notebook, unless the directory is changed.
-
+インタラクティブ環境の場合は、「user_data_dir」を指定する追加構成を用意し、これを最後に渡します。これにより、ボットの実行中にディレクトリを変更する必要がなくなります。
+ディレクトリが変更されない限り、相対パスは jupyter ノートブックの保存場所から始まるため、相対パスは避けた方がよいでしょう。
 ``` json
 {
     "user_data_dir": "~/.freqtrade/"
 }
 ```
+### 詳細なデータ分析ドキュメント
 
-### Further Data analysis documentation
+* [戦略デバッグ](strategy_analysis_example.md) - Jupyter ノートブックとしても利用可能 (`user_data/notebooks/strategy_analysis_example.ipynb`)
+* [プロット](plotting.md)
+* [タグ分析](advanced-backtesting.md)
 
-* [Strategy debugging](strategy_analysis_example.md) - also available as Jupyter notebook (`user_data/notebooks/strategy_analysis_example.ipynb`)
-* [Plotting](plotting.md)
-* [Tag Analysis](advanced-backtesting.md)
-
-Feel free to submit an issue or Pull Request enhancing this document if you would like to share ideas on how to best analyze the data.
+データを最適に分析する方法についてのアイデアを共有したい場合は、お気軽に問題を送信するか、このドキュメントを拡張するプル リクエストを送信してください。
