@@ -1,66 +1,66 @@
-# Utility Subcommands
+# ユーティリティサブコマンド
 
-Besides the Live-Trade and Dry-Run run modes, the `backtesting` and `hyperopt` optimization subcommands, and the `download-data` subcommand which prepares historical data, the bot contains a number of utility subcommands. They are described in this section.
+ライブトレードおよびドライラン実行モード、`backtesting`および`hyperopt`最適化サブコマンド、および履歴データを準備する`download-data`サブコマンドに加えて、ボットには多数のユーティリティサブコマンドが含まれています。それらはこのセクションで説明されています。
 
-## Create userdir
+## ユーザーディレクトリの作成
 
-Creates the directory structure to hold your files for freqtrade.
-Will also create strategy and hyperopt examples for you to get started.
-Can be used multiple times - using `--reset` will reset the sample strategy and hyperopt files to their default state.
+freqtradeのファイルを保持するディレクトリ構造を作成します。
+また、開始するための戦略とハイパーオプトの例も作成します。
+複数回使用できます-`--reset`を使用すると、サンプル戦略とハイパーオプトファイルがデフォルトの状態にリセットされます。
 
 --8<-- "commands/create-userdir.md"
 
 !!! Warning
-    Using `--reset` may result in loss of data, since this will overwrite all sample files without asking again.
+    `--reset`を使用すると、データが失われる可能性があります。これは、すべてのサンプルファイルを再度尋ねることなく上書きするためです。
 
 ```
 ├── backtest_results
 ├── data
 ├── hyperopt_results
 ├── hyperopts
-│   ├── sample_hyperopt_loss.py
+│   ├── sample_hyperopt_loss.py
 ├── notebooks
-│   └── strategy_analysis_example.ipynb
+│   └── strategy_analysis_example.ipynb
 ├── plot
 └── strategies
     └── sample_strategy.py
 ```
 
-## Create new config
+## 新しい構成の作成
 
-Creates a new configuration file, asking some questions which are important selections for a configuration.
+新しい構成ファイルを作成し、構成の重要な選択肢であるいくつかの質問をします。
 
 --8<-- "commands/new-config.md"
 
 !!! Warning
-    Only vital questions are asked. Freqtrade offers a lot more configuration possibilities, which are listed in the [Configuration documentation](configuration.md#configuration-parameters)
+    重要な質問のみが尋ねられます。Freqtradeは、[構成ドキュメント](configuration.md#configuration-parameters)に記載されている、はるかに多くの構成の可能性を提供します。
 
-### Create config examples
+### 構成例の作成
 
 ```
 $ freqtrade new-config --config user_data/config_binance.json
 
-? Do you want to enable Dry-run (simulated trades)?  Yes
-? Please insert your stake currency: BTC
-? Please insert your stake amount: 0.05
-? Please insert max_open_trades (Integer or -1 for unlimited open trades): 3
-? Please insert your desired timeframe (e.g. 5m): 5m
-? Please insert your display Currency (for reporting): USD
-? Select exchange  binance
-? Do you want to enable Telegram?  No
+? ドライラン（シミュレートされた取引）を有効にしますか？ はい
+? 賭け金通貨を挿入してください：BTC
+? 賭け金額を挿入してください：0.05
+? max_open_tradesを挿入してください（整数または無制限のオープントレードの場合は-1）：3
+? ご希望の時間枠を挿入してください（例：5m）：5m
+? 表示通貨を挿入してください（レポート用）：USD
+? 取引所を選択してください binance
+? Telegramを有効にしますか？ いいえ
 ```
 
-## Show config
+## 構成の表示
 
-Show configuration file (with sensitive values redacted by default).
-Especially useful with [split configuration files](configuration.md#multiple-configuration-files) or [environment variables](configuration.md#environment-variables), where this command will show the merged configuration.
+構成ファイルを表示します（デフォルトでは機密性の高い値は編集されています）。
+[分割構成ファイル](configuration.md#multiple-configuration-files)または[環境変数](configuration.md#environment-variables)で特に便利です。このコマンドはマージされた構成を表示します。
 
-![Show config output](assets/show-config-output.png)
+![構成出力の表示](assets/show-config-output.png)
 
 --8<-- "commands/show-config.md"
 
 ``` output
-Your combined configuration is:
+結合された構成は次のとおりです。
 {
   "exit_pricing": {
     "price_side": "other",
@@ -79,244 +79,241 @@ Your combined configuration is:
 }
 ```
 
-!!! Warning "Sharing information provided by this command"
-    We try to remove all known sensitive information from the default output (without `--show-sensitive`). 
-    Yet, please do double-check for sensitive values in your output to make sure you're not accidentally exposing some private info.
+!!! Warning "このコマンドによって提供される情報の共有"
+    デフォルトの出力（`--show-sensitive`なし）からすべての既知の機密情報を削除しようとします。
+    それでも、誤って個人情報を公開していないことを確認するために、出力で機密性の高い値を再確認してください。
 
-## Create new strategy
+## 新しい戦略の作成
 
-Creates a new strategy from a template similar to SampleStrategy.
-The file will be named inline with your class name, and will not overwrite existing files.
+SampleStrategyと同様のテンプレートから新しい戦略を作成します。
+ファイルはクラス名とインラインで名前が付けられ、既存のファイルは上書きされません。
 
-Results will be located in `user_data/strategies/<strategyclassname>.py`.
+結果は`user_data/strategies/<strategyclassname>.py`にあります。
 
 --8<-- "commands/new-strategy.md"
 
-### Sample usage of new-strategy
+### 新しい戦略のサンプル使用法
 
 ```bash
 freqtrade new-strategy --strategy AwesomeStrategy
 ```
 
-With custom user directory
+カスタムユーザーディレクトリを使用
 
 ```bash
 freqtrade new-strategy --userdir ~/.freqtrade/ --strategy AwesomeStrategy
 ```
 
-Using the advanced template (populates all optional functions and methods)
+高度なテンプレートを使用する（すべてのオプションの関数とメソッドを設定する）
 
 ```bash
 freqtrade new-strategy --strategy AwesomeStrategy --template advanced
 ```
 
-## List Strategies
+## 戦略のリスト
 
-Use the `list-strategies` subcommand to see all strategies in one particular directory.
+`list-strategies`サブコマンドを使用して、特定のディレクトリ内のすべての戦略を表示します。
 
-This subcommand is useful for finding problems in your environment with loading strategies: modules with strategies that contain errors and failed to load are printed in red (LOAD FAILED), while strategies with duplicate names are printed in yellow (DUPLICATE NAME).
+このサブコマンドは、戦略の読み込みに関する環境の問題を見つけるのに役立ちます。エラーが含まれていて読み込みに失敗した戦略を持つモジュールは赤で表示され（LOAD FAILED）、名前が重複している戦略は黄色で表示されます（DUPLICATE NAME）。
 
 --8<-- "commands/list-strategies.md"
 
 !!! Warning
-    Using these commands will try to load all python files from a directory. This can be a security risk if untrusted files reside in this directory, since all module-level code is executed.
+    これらのコマンドを使用すると、ディレクトリからすべてのpythonファイルを読み込もうとします。信頼できないファイルがこのディレクトリにある場合、すべてのモジュールレベルのコードが実行されるため、セキュリティリスクになる可能性があります。
 
-Example: Search default strategies directories (within the default userdir).
+例：デフォルトの戦略ディレクトリを検索します（デフォルトのuserdir内）。
 
 ``` bash
 freqtrade list-strategies
 ```
 
-Example: Search strategies  directory within the userdir.
+例：userdir内の戦略ディレクトリを検索します。
 
 ``` bash
 freqtrade list-strategies --userdir ~/.freqtrade/
 ```
 
-Example: Search dedicated strategy path.
+例：専用の戦略パスを検索します。
 
 ``` bash
 freqtrade list-strategies --strategy-path ~/.freqtrade/strategies/
 ```
 
-## List Hyperopt-Loss functions
+## ハイパーオプトロス関数のリスト
 
-Use the `list-hyperoptloss` subcommand to see all hyperopt loss functions available.
+`list-hyperoptloss`サブコマンドを使用して、利用可能なすべてのハイパーオプトロス関数を表示します。
 
-It provides a quick list of all available loss functions in your environment.
+環境で利用可能なすべての損失関数のクイックリストを提供します。
 
-This subcommand can be useful for finding problems in your environment with loading loss functions: modules with Hyperopt-Loss functions that contain errors and failed to load are printed in red (LOAD FAILED), while hyperopt-Loss functions with duplicate names are printed in yellow (DUPLICATE NAME).
+このサブコマンドは、損失関数の読み込みに関する環境の問題を見つけるのに役立ちます。エラーが含まれていて読み込みに失敗したHyperopt-Loss関数を持つモジュールは赤で表示され（LOAD FAILED）、名前が重複しているhyperopt-Loss関数は黄色で表示されます（DUPLICATE NAME）。
 
 --8<-- "commands/list-hyperoptloss.md"
 
-## List freqAI models
+## freqAIモデルのリスト
 
-Use the `list-freqaimodels` subcommand to see all freqAI models available.
+`list-freqaimodels`サブコマンドを使用して、利用可能なすべてのfreqAIモデルを表示します。
 
-This subcommand is useful for finding problems in your environment with loading freqAI models: modules with models that contain errors and failed to load are printed in red (LOAD FAILED), while models with duplicate names are printed in yellow (DUPLICATE NAME).
+このサブコマンドは、freqAIモデルの読み込みに関する環境の問題を見つけるのに役立ちます。エラーが含まれていて読み込みに失敗したモデルを持つモジュールは赤で表示され（LOAD FAILED）、名前が重複しているモデルは黄色で表示されます（DUPLICATE NAME）。
 
 --8<-- "commands/list-freqaimodels.md"
 
-## List Exchanges
+## 取引所のリスト
 
-Use the `list-exchanges` subcommand to see the exchanges available for the bot.
+`list-exchanges`サブコマンドを使用して、ボットで利用可能な取引所を表示します。
 
 --8<-- "commands/list-exchanges.md"
 
-Example: see exchanges available for the bot:
+例：ボットで利用可能な取引所を表示します。
 
 ```
 $ freqtrade list-exchanges
-Exchanges available for Freqtrade:
-Exchange name       Supported    Markets                 Reason
+Freqtradeで利用可能な取引所：
+取引所名       サポート    マーケット                 理由
 ------------------  -----------  ----------------------  ------------------------------------------------------------------------
-binance             Official     spot, isolated futures
-bitmart             Official     spot
-bybit                            spot, isolated futures
-gate                Official     spot, isolated futures
-htx                 Official     spot
-huobi                            spot
-kraken              Official     spot
-okx                 Official     spot, isolated futures
+binance             公式     スポット、分離先物
+bitmart             公式     スポット
+bybit                            スポット、分離先物
+gate                公式     スポット、分離先物
+htx                 公式     スポット
+huobi                            スポット
+kraken              公式     スポット
+okx                 公式     スポット、分離先物
 ```
 
 !!! info ""
-    Output reduced for clarity - supported and available exchanges may change over time.
+    出力は明確にするために削減されています-サポートされている利用可能な取引所は時間とともに変更される可能性があります。
 
-!!! Note "missing opt exchanges"
-    Values with "missing opt:" might need special configuration (e.g. using orderbook if `fetchTickers` is missing) - but should in theory work (although we cannot guarantee they will).
+!!! Note "不足しているオプト取引所"
+    「不足しているオプト：」の値は、特別な構成が必要な場合があります（たとえば、`fetchTickers`が不足している場合はオーダーブックを使用するなど）-しかし、理論的には機能するはずです（ただし、機能することを保証することはできません）。
 
-Example: see all exchanges supported by the ccxt library (including 'bad' ones, i.e. those that are known to not work with Freqtrade)
+例：ccxtライブラリでサポートされているすべての取引所を表示します（Freqtradeで機能しないことがわかっている「悪い」ものを含む）
 
 ```
 $ freqtrade list-exchanges -a
-All exchanges supported by the ccxt library:
-Exchange name       Valid    Supported    Markets                 Reason
+ccxtライブラリでサポートされているすべての取引所：
+取引所名       有効    サポート    マーケット                 理由
 ------------------  -------  -----------  ----------------------  ---------------------------------------------------------------------------------
-binance             True     Official     spot, isolated futures
-bitflyer            False                 spot                    missing: fetchOrder. missing opt: fetchTickers.
-bitmart             True     Official     spot
-bybit               True                  spot, isolated futures
-gate                True     Official     spot, isolated futures
-htx                 True     Official     spot
-kraken              True     Official     spot
-okx                 True     Official     spot, isolated futures
+binance             True     公式     スポット、分離先物
+bitflyer            False                 スポット                    不足：fetchOrder。不足しているオプト：fetchTickers。
+bitmart             True     公式     スポット
+bybit               True                  スポット、分離先物
+gate                True     公式     スポット、分離先物
+htx                 True     公式     スポット
+kraken              True     公式     スポット
+okx                 True     公式     スポット、分離先物
 ```
 
 !!! info ""
-    Reduced output - supported and available exchanges may change over time.
+    出力が削減されました-サポートされている利用可能な取引所は時間とともに変更される可能性があります。
 
-## List Timeframes
+## タイムフレームのリスト
 
-Use the `list-timeframes` subcommand to see the list of timeframes available for the exchange.
+`list-timeframes`サブコマンドを使用して、取引所で利用可能なタイムフレームのリストを表示します。
 
 --8<-- "commands/list-timeframes.md"
 
-* Example: see the timeframes for the 'binance' exchange, set in the configuration file:
+* 例：構成ファイルで設定されている「binance」取引所のタイムフレームを表示します。
 
 ```
 $ freqtrade list-timeframes -c config_binance.json
 ...
-Timeframes available for the exchange `binance`: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M
+取引所`binance`で利用可能なタイムフレーム：1m、3m、5m、15m、30m、1h、2h、4h、6h、8h、12h、1d、3d、1w、1M
 ```
 
-* Example: enumerate exchanges available for Freqtrade and print timeframes supported by each of them:
+* 例：Freqtradeで利用可能な取引所を列挙し、それぞれでサポートされているタイムフレームを出力します。
 ```
 $ for i in `freqtrade list-exchanges -1`; do freqtrade list-timeframes --exchange $i; done
 ```
 
-## List pairs/list markets
+## ペア/マーケットのリスト
 
-The `list-pairs` and `list-markets` subcommands allow to see the pairs/markets available on exchange.
+`list-pairs`および`list-markets`サブコマンドを使用すると、取引所で利用可能なペア/マーケットを表示できます。
 
-Pairs are markets with the '/' character between the base currency part and the quote currency part in the market symbol.
-For example, in the 'ETH/BTC' pair 'ETH' is the base currency, while 'BTC' is the quote currency.
+ペアは、マーケットシンボルのベース通貨部分とクォート通貨部分の間に「/」文字があるマーケットです。
+たとえば、「ETH/BTC」ペアでは、「ETH」がベース通貨、「BTC」がクォート通貨です。
 
-For pairs traded by Freqtrade the pair quote currency is defined by the value of the `stake_currency` configuration setting.
+Freqtradeによって取引されるペアの場合、ペアのクォート通貨は`stake_currency`構成設定の値によって定義されます。
 
-You can print info about any pair/market with these subcommands - and you can filter output by quote-currency using `--quote BTC`, or by base-currency using `--base ETH` options correspondingly.
+これらのサブコマンドでペア/マーケットに関する情報を出力できます-そして、`--quote BTC`を使用してクォート通貨で出力をフィルタリングしたり、`--base ETH`を使用してベース通貨でフィルタリングしたりできます。
 
-These subcommands have same usage and same set of available options:
+これらのサブコマンドには、同じ使用法と利用可能なオプションの同じセットがあります。
 
 --8<-- "commands/list-pairs.md"
 
-By default, only active pairs/markets are shown. Active pairs/markets are those that can currently be traded on the exchange.
-You can use the `-a`/`-all` option to see the list of all pairs/markets, including the inactive ones.
-Pairs may be listed as untradeable if the smallest tradeable price for the market is very small, i.e. less than `1e-11` (`0.00000000001`)
+デフォルトでは、アクティブなペア/マーケットのみが表示されます。アクティブなペア/マーケットとは、現在取引所で取引できるものです。
+`-a`/`-all`オプションを使用して、非アクティブなものを含むすべてのペア/マーケットのリストを表示できます。
+マーケットの最小取引可能価格が非常に小さい場合、つまり`1e-11`（`0.00000000001`）未満の場合、ペアは取引不可としてリストされる場合があります。
 
-Pairs/markets are sorted by its symbol string in the printed output.
+ペア/マーケットは、出力されたシンボル文字列でソートされます。
 
-### Examples
+### 例
 
-* Print the list of active pairs with quote currency USD on exchange, specified in the default
-configuration file (i.e. pairs on the "Binance" exchange) in JSON format:
+* デフォルトの構成ファイルで指定された取引所で、クォート通貨がUSDのアクティブなペアのリストをJSON形式で出力します（つまり、「Binance」取引所のペア）。
 
 ```
 $ freqtrade list-pairs --quote USD --print-json
 ```
 
-* Print the list of all pairs on the exchange, specified in the `config_binance.json` configuration file
-(i.e. on the "Binance" exchange) with base currencies BTC or ETH and quote currencies USDT or USD, as the
-human-readable list with summary:
+* `config_binance.json`構成ファイルで指定された取引所（つまり、「Binance」取引所）のすべてのペアのリストを、ベース通貨がBTCまたはETHで、クォート通貨がUSDTまたはUSDのものを、人間が読めるリストと要約として出力します。
 
 ```
 $ freqtrade list-pairs -c config_binance.json --all --base BTC ETH --quote USDT USD --print-list
 ```
 
-* Print all markets on exchange "Kraken", in the tabular format:
+* 取引所「Kraken」のすべてのマーケットを、表形式で出力します。
 
 ```
 $ freqtrade list-markets --exchange kraken --all
 ```
 
-## Test pairlist
+## ペアリストのテスト
 
-Use the `test-pairlist` subcommand to test the configuration of [dynamic pairlists](plugins.md#pairlists).
+`test-pairlist`サブコマンドを使用して、[動的ペアリスト](plugins.md#pairlists)の構成をテストします。
 
-Requires a configuration with specified `pairlists` attribute.
-Can be used to generate static pairlists to be used during backtesting / hyperopt.
+`pairlists`属性が指定された構成が必要です。
+バックテスト/ハイパーオプト中に使用する静的ペアリストを生成するために使用できます。
 
 --8<-- "commands/test-pairlist.md"
 
-### Examples
+### 例
 
-Show whitelist when using a [dynamic pairlist](plugins.md#pairlists).
+[動的ペアリスト](plugins.md#pairlists)を使用する場合にホワイトリストを表示します。
 
 ```
 freqtrade test-pairlist --config config.json --quote USDT BTC
 ```
 
-## Convert database
+## データベースの変換
 
-`freqtrade convert-db` can be used to convert your database from one system to another (sqlite -> postgres, postgres -> other postgres), migrating all trades, orders and Pairlocks.
+`freqtrade convert-db`を使用して、データベースをあるシステムから別のシステムに変換できます（sqlite -> postgres、postgres -> 他のpostgres）。すべての取引、注文、およびPairlockを移行します。
 
-Please refer to the [corresponding documentation](advanced-setup.md#use-a-different-database-system) to learn about requirements for different database systems.
+さまざまなデータベースシステムの要件については、[対応するドキュメント](advanced-setup.md#use-a-different-database-system)を参照してください。
 
 --8<-- "commands/convert-db.md"
 
 !!! Warning
-    Please ensure to only use this on an empty target database. Freqtrade will perform a regular migration, but may fail if entries already existed.
+    これを空のターゲットデータベースでのみ使用してください。Freqtradeは通常の移行を実行しますが、エントリがすでに存在する場合は失敗する可能性があります。
 
-## Webserver mode
+## ウェブサーバーモード
 
-!!! Warning "Experimental"
-    Webserver mode is an experimental mode to increase backesting and strategy development productivity.
-    There may still be bugs - so if you happen to stumble across these, please report them as github issues, thanks.
+!!! Warning "実験的"
+    ウェブサーバーモードは、バックテストと戦略開発の生産性を向上させるための実験的なモードです。
+    まだバグがある可能性があります-もしこれらに遭遇した場合は、githubの問題として報告してください。ありがとうございます。
 
-Run freqtrade in webserver mode.
-Freqtrade will start the webserver and allow FreqUI to start and control backtesting processes.
-This has the advantage that data will not be reloaded between backtesting runs (as long as timeframe and timerange remain identical).
-FreqUI will also show the backtesting results.
+ウェブサーバーモードでfreqtradeを実行します。
+Freqtradeはウェブサーバーを起動し、FreqUIがバックテストプロセスを開始および制御できるようにします。
+これには、バックテストの実行間でデータが再読み込みされないという利点があります（タイムフレームとタイムレンジが同じままである限り）。
+FreqUIはバックテストの結果も表示します。
 
 --8<-- "commands/webserver.md"
 
-### Webserver mode - docker
+### ウェブサーバーモード-docker
 
-You can also use webserver mode via docker.
-Starting a one-off container requires the configuration of the port explicitly, as ports are not exposed by default.
-You can use `docker compose run --rm -p 127.0.0.1:8080:8080 freqtrade webserver` to start a one-off container that'll be removed once you stop it. This assumes that port 8080 is still available and no other bot is running on that port.
+docker経由でウェブサーバーモードを使用することもできます。
+ワンオフコンテナを起動するには、ポートがデフォルトで公開されていないため、ポートを明示的に構成する必要があります。
+`docker compose run --rm -p 127.0.0.1:8080:8080 freqtrade webserver`を使用して、停止すると削除されるワンオフコンテナを起動できます。これは、ポート8080がまだ利用可能であり、他のボットがそのポートで実行されていないことを前提としています。
 
-Alternatively, you can reconfigure the docker-compose file to have the command updated:
+または、docker-composeファイルを再構成して、コマンドを更新することもできます。
 
 ``` yml
     command: >
@@ -324,98 +321,98 @@ Alternatively, you can reconfigure the docker-compose file to have the command u
       --config /freqtrade/user_data/config.json
 ```
 
-You can now use `docker compose up` to start the webserver.
-This assumes that the configuration has a webserver enabled and configured for docker (listening port = `0.0.0.0`).
+これで、`docker compose up`を使用してウェブサーバーを起動できます。
+これは、構成でウェブサーバーが有効になっており、docker用に構成されている（リスニングポート= `0.0.0.0`）ことを前提としています。
 
 !!! Tip
-    Don't forget to reset the command back to the trade command if you want to start a live or dry-run bot. 
+    ライブまたはドライランボットを起動する場合は、コマンドをトレードコマンドに戻すことを忘れないでください。
 
-## Show previous Backtest results
+## 以前のバックテスト結果の表示
 
-Allows you to show previous backtest results.
-Adding `--show-pair-list` outputs a sorted pair list you can easily copy/paste into your configuration (omitting bad pairs).
+以前のバックテスト結果を表示できます。
+`--show-pair-list`を追加すると、構成に簡単にコピー/貼り付けできるソートされたペアリストが出力されます（不良ペアは省略されます）。
 
-??? Warning "Strategy overfitting"
-    Only using winning pairs can lead to an overfitted strategy, which will not work well on future data. Make sure to extensively test your strategy in dry-run before risking real money.
+??? Warning "戦略の過剰適合"
+    勝利ペアのみを使用すると、戦略が過剰適合し、将来のデータではうまく機能しなくなる可能性があります。実際のお金を危険にさらす前に、ドライランで戦略を広範囲にテストしてください。
 
 --8<-- "commands/backtesting-show.md"
 
-## Detailed backtest analysis
+## 詳細なバックテスト分析
 
-Advanced backtest result analysis.
+高度なバックテスト結果分析。
 
-More details in the [Backtesting analysis](advanced-backtesting.md#analyze-the-buyentry-and-sellexit-tags) Section.
+詳細は[バックテスト分析](advanced-backtesting.md#analyze-the-buyentry-and-sellexit-tags)セクションにあります。
 
 --8<-- "commands/backtesting-analysis.md"
 
-## List Hyperopt results
+## ハイパーオプト結果のリスト
 
-You can list the hyperoptimization epochs the Hyperopt module evaluated previously with the `hyperopt-list` sub-command.
+`hyperopt-list`サブコマンドを使用して、Hyperoptモジュールが以前に評価したハイパー最適化エポックをリストできます。
 
 --8<-- "commands/hyperopt-list.md"
 
 !!! Note
-    `hyperopt-list` will automatically use the latest available hyperopt results file.
-    You can override this using the `--hyperopt-filename` argument, and specify another, available filename (without path!).
+    `hyperopt-list`は、利用可能な最新のハイパーオプト結果ファイルを自動的に使用します。
+    これを`--hyperopt-filename`引数を使用して上書きし、別の利用可能なファイル名（パスなし！）を指定できます。
 
-### Examples
+### 例
 
-List all results, print details of the best result at the end:
+すべての結果をリストし、最後に最良の結果の詳細を出力します。
 ```
 freqtrade hyperopt-list
 ```
 
-List only epochs with positive profit. Do not print the details of the best epoch, so that the list can be iterated in a script:
+利益がプラスのエポックのみをリストします。スクリプトでリストを反復処理できるように、最良のエポックの詳細は出力しません。
 ```
 freqtrade hyperopt-list --profitable --no-details
 ```
 
-## Show details of Hyperopt results
+## ハイパーオプト結果の詳細の表示
 
-You can show the details of any hyperoptimization epoch previously evaluated by the Hyperopt module with the `hyperopt-show` subcommand.
+`hyperopt-show`サブコマンドを使用して、Hyperoptモジュールによって以前に評価されたハイパー最適化エポックの詳細を表示できます。
 
 --8<-- "commands/hyperopt-show.md"
 
 !!! Note
-    `hyperopt-show` will automatically use the latest available hyperopt results file.
-    You can override this using the `--hyperopt-filename` argument, and specify another, available filename (without path!).
+    `hyperopt-show`は、利用可能な最新のハイパーオプト結果ファイルを自動的に使用します。
+    これを`--hyperopt-filename`引数を使用して上書きし、別の利用可能なファイル名（パスなし！）を指定できます。
 
-### Examples
+### 例
 
-Print details for the epoch 168 (the number of the epoch is shown by the `hyperopt-list` subcommand or by Hyperopt itself during hyperoptimization run):
+エポック168の詳細を出力します（エポックの番号は、`hyperopt-list`サブコマンドまたはハイパー最適化実行中のHyperopt自体によって表示されます）。
 
 ```
 freqtrade hyperopt-show -n 168
 ```
 
-Prints JSON data with details for the last best epoch (i.e., the best of all epochs):
+最後の最良のエポック（つまり、すべてのエポックの中で最良）の詳細を含むJSONデータを出力します。
 
 ```
 freqtrade hyperopt-show --best -n -1 --print-json --no-header
 ```
 
-## Show trades
+## 取引の表示
 
-Print selected (or all) trades from database to screen.
+選択した（またはすべての）取引をデータベースから画面に出力します。
 
 --8<-- "commands/show-trades.md"
 
-### Examples
+### 例
 
-Print trades with id 2 and 3 as json
+ID 2と3の取引をjsonとして出力します
 
 ``` bash
 freqtrade show-trades --db-url sqlite:///tradesv3.sqlite --trade-ids 2 3 --print-json
 ```
 
-## Strategy-Updater
+## 戦略アップデーター
 
-Updates listed strategies or all strategies within the strategies folder to be v3 compliant.
-If the command runs without --strategy-list then all strategies inside the strategies folder will be converted.
-Your original strategy will remain available in the `user_data/strategies_orig_updater/` directory.
+リストされた戦略または戦略フォルダー内のすべての戦略をv3準拠に更新します。
+コマンドが--strategy-listなしで実行される場合、戦略フォルダー内のすべての戦略が変換されます。
+元の戦略は`user_data/strategies_orig_updater/`ディレクトリで引き続き利用できます。
 
-!!! Warning "Conversion results"
-    Strategy updater will work on a "best effort" approach. Please do your due diligence and verify the results of the conversion.
-    We also recommend to run a python formatter (e.g. `black`) to format results in a sane manner.
+!!! Warning "変換結果"
+    戦略アップデーターは「ベストエフォート」アプローチで機能します。変換の結果を検証するために、デューデリジェンスを行ってください。
+    また、結果を健全な方法でフォーマットするために、pythonフォーマッター（例：`black`）を実行することをお勧めします。
 
 --8<-- "commands/strategy-updater.md"
