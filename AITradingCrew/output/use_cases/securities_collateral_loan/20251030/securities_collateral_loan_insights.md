@@ -1,23 +1,31 @@
 # Securities Collateral Loan Insight
 
+## Optimization Summary
+- Total ETFs evaluated: 223
+- ETFs with sufficient data: 223
+- Selected ETFs: 223
+- Portfolio annual return: 23.08%
+- Portfolio annual volatility: 15.68%
+- Portfolio Sharpe ratio: 1.471
+
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥18136749
-- Current loan ratio: 0.551
-- Buffer to 70%: 21.23% drop
-- Buffer to 85%: 35.13% drop
-- Max drawdown (history): -3.00%
+- Current collateral value: ¥15587342
+- Current loan ratio: 0.642
+- Buffer to 70%: 8.35% drop
+- Buffer to 85%: 24.52% drop
+- Max drawdown (history): -30.85%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥16,323,074 | 0.613 | No | No |
-| -20% | ¥14,509,399 | 0.689 | No | No |
-| -30% | ¥12,695,724 | 0.788 | Yes | No |
-| -40% | ¥10,882,049 | 0.919 | Yes | Yes |
+| -10% | ¥14,028,607 | 0.713 | Yes | No |
+| -20% | ¥12,469,873 | 0.802 | Yes | No |
+| -30% | ¥10,911,139 | 0.916 | Yes | Yes |
+| -40% | ¥9,352,405 | 1.069 | Yes | Yes |
 
 ## Historical Breach Counts
-- Margin call events: 0
+- Margin call events: 258
 - Forced liquidation events: 0
 
 ## Interest Projection (Simple)
