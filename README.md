@@ -1,6 +1,4 @@
-![0_zFUNL_p_C-IEeoAQ (1)](https://github.com/user-attachments/assets/97e29d19-3d73-413c-a51e-67f8ad579432)
 
-*Photo by Igor Omilaev on Unsplash*
 
 # AI Trading Crew 🤖
 
