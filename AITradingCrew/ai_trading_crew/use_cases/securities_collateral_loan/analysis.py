@@ -6,7 +6,12 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-from ai_trading_crew.use_cases.securities_collateral_loan.config import LoanScenario, SecuritiesCollateralLoanConfig
+from ai_trading_crew.use_cases.securities_collateral_loan.config import (
+    LoanScenario,
+    SecuritiesCollateralLoanConfig,
+    CollateralAsset,
+)
+from ai_trading_crew.use_cases.securities_collateral_loan import etf_screening, optimizer
 
 
 @dataclass
@@ -20,6 +25,63 @@ class SecuritiesCollateralLoanAnalyzer:
         self.config = config
 
     def evaluate(self, data_payload: Dict[str, pd.DataFrame]) -> Dict[str, object]:
+        mode = data_payload.get("mode", "manual")
+
+        if mode == "optimization":
+            return self._evaluate_optimization_mode(data_payload)
+        else:
+            return self._evaluate_manual_mode(data_payload)
+
+    def _evaluate_optimization_mode(self, data_payload: Dict[str, pd.DataFrame]) -> Dict[str, object]:
+        prices = data_payload["prices"]
+        etf_master = data_payload["etf_master"]
+
+        if prices.empty:
+            raise ValueError("Price data is empty")
+
+        risk_metrics = etf_screening.compute_risk_metrics(prices, etf_master)
+        correlation_matrix = etf_screening.compute_correlation_matrix(prices)
+
+        objective_weights = self.config.optimization.objective_weights
+        constraints = self.config.optimization.constraints
+        sample_size = self.config.optimization.sample_size
+
+        ranked_etfs = etf_screening.rank_etfs(risk_metrics, objective_weights)
+
+        optimized = optimizer.optimize_collateral_portfolio(
+            prices,
+            etf_master,
+            objective_weights,
+            constraints,
+            sample_size,
+            target_value=self.config.loan_amount / self.config.ltv_limit,
+        )
+
+        optimized_portfolio = optimized["portfolio"]
+        self.config.collateral_assets = [
+            CollateralAsset(
+                ticker=row["ticker"],
+                quantity=row["quantity"],
+                description=row.get("name", ""),
+            )
+            for _, row in optimized_portfolio.iterrows()
+        ]
+
+        manual_result = self._evaluate_manual_mode({"prices": prices})
+
+        manual_result.update({
+            "mode": "optimization",
+            "etf_master": etf_master,
+            "risk_metrics": risk_metrics,
+            "ranked_etfs": ranked_etfs,
+            "correlation_matrix": correlation_matrix,
+            "optimized_portfolio": optimized_portfolio,
+            "optimization_metrics": optimized["metrics"],
+        })
+
+        return manual_result
+
+    def _evaluate_manual_mode(self, data_payload: Dict[str, pd.DataFrame]) -> Dict[str, object]:
         prices = data_payload["prices"]
         if prices.empty:
             raise ValueError("Price data is empty. Please check collateral tickers.")

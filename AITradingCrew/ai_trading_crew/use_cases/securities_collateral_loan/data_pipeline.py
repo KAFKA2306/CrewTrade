@@ -6,7 +6,7 @@ from typing import Dict
 
 import pandas as pd
 
-from ai_trading_crew.use_cases.data_clients import YFinanceEquityDataClient
+from ai_trading_crew.use_cases.data_clients import YFinanceEquityDataClient, ToushinKyokaiDataClient
 from ai_trading_crew.use_cases.securities_collateral_loan.config import SecuritiesCollateralLoanConfig
 
 
@@ -14,12 +14,36 @@ class SecuritiesCollateralLoanDataPipeline:
     def __init__(self, config: SecuritiesCollateralLoanConfig, raw_data_dir: Path) -> None:
         self.config = config
         self.client = YFinanceEquityDataClient(raw_data_dir)
+        self.toushin_client = ToushinKyokaiDataClient(raw_data_dir)
 
     def collect(self) -> Dict[str, pd.DataFrame]:
+        if self.config.optimization and self.config.optimization.enabled:
+            return self._collect_optimization_mode()
+        else:
+            return self._collect_manual_mode()
+
+    def _collect_manual_mode(self) -> Dict[str, pd.DataFrame]:
         tickers = [asset.ticker for asset in self.config.collateral_assets]
         frames = self.client.get_frames(tickers, self.config.period)
         prices = self._combine_close(frames)
-        return {"prices": prices}
+        return {"mode": "manual", "prices": prices}
+
+    def _collect_optimization_mode(self) -> Dict[str, pd.DataFrame]:
+        etf_master = self.toushin_client.get_etf_master()
+        tickers = etf_master["ticker"].tolist()
+
+        lookback = self.config.optimization.lookback if self.config.optimization else self.config.period
+        frames = self.client.get_frames(tickers, lookback)
+        prices = self._combine_close(frames)
+
+        valid_tickers = prices.columns.tolist()
+        etf_master_filtered = etf_master[etf_master["ticker"].isin(valid_tickers)]
+
+        return {
+            "mode": "optimization",
+            "etf_master": etf_master_filtered,
+            "prices": prices,
+        }
 
     def _combine_close(self, frames: Dict[str, pd.DataFrame]) -> pd.DataFrame:
         series_list: Dict[str, pd.Series] = {}

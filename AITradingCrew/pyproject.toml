@@ -18,6 +18,8 @@ dependencies = [
     "ta-lib>=0.6.3",
     "linkup-sdk>=0.2.4",
     "crawl4ai>=0.6.3",
+    "openpyxl>=3.0.0",
+    "requests>=2.31.0",
 ]
 
 [project.scripts]

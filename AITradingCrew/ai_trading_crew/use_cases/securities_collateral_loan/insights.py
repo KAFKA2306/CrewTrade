@@ -15,6 +15,29 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
     lines: List[str] = []
     lines.append("# Securities Collateral Loan Insight")
     lines.append("")
+
+    mode = analysis_payload.get("mode", "manual")
+    if mode == "optimization":
+        lines.append("## Optimization Summary")
+        opt_metrics = analysis_payload.get("optimization_metrics", {})
+        etf_master = analysis_payload.get("etf_master")
+        ranked_etfs = analysis_payload.get("ranked_etfs")
+
+        if etf_master is not None:
+            lines.append(f"- Total ETFs evaluated: {len(etf_master)}")
+
+        if ranked_etfs is not None and len(ranked_etfs) > 0:
+            lines.append(f"- ETFs with sufficient data: {len(ranked_etfs)}")
+
+        optimized_portfolio = analysis_payload.get("optimized_portfolio")
+        if optimized_portfolio is not None:
+            lines.append(f"- Selected ETFs: {len(optimized_portfolio)}")
+
+        lines.append(f"- Portfolio annual return: {opt_metrics.get('annual_return', 0) * 100:.2f}%")
+        lines.append(f"- Portfolio annual volatility: {opt_metrics.get('annual_volatility', 0) * 100:.2f}%")
+        lines.append(f"- Portfolio Sharpe ratio: {opt_metrics.get('sharpe_ratio', 0):.3f}")
+        lines.append("")
+
     lines.append("## Current Profile")
     lines.append(f"- Loan amount: ¥{summary['loan_amount']:,}")
     lines.append(f"- Current collateral value: ¥{summary['current_collateral_value']:.0f}")

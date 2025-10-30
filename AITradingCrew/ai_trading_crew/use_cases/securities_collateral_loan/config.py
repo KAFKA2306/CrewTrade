@@ -18,6 +18,23 @@ class LoanScenario(BaseModel):
     label: str | None = None
 
 
+class OptimizationSettings(BaseModel):
+    enabled: bool = Field(default=False)
+    objective_weights: Dict[str, float] = Field(
+        default_factory=lambda: {"sharpe": 0.6, "volatility": 0.4}
+    )
+    constraints: Dict[str, float] = Field(
+        default_factory=lambda: {
+            "min_weight": 0.05,
+            "max_weight": 0.35,
+            "max_category_weight": 0.50,
+            "max_volatility": 0.12,
+        }
+    )
+    sample_size: int = Field(default=20000, gt=0)
+    lookback: str = Field(default="3y")
+
+
 class SecuritiesCollateralLoanConfig(UseCaseConfig):
     period: str = Field(default="3y")
     loan_amount: float = Field(default=10_000_000, gt=0)
@@ -35,6 +52,7 @@ class SecuritiesCollateralLoanConfig(UseCaseConfig):
         ]
     )
     interest_horizons_days: List[int] = Field(default_factory=lambda: [30, 90, 180])
+    optimization: OptimizationSettings | None = None
 
     @validator("period")
     def _validate_period(cls, value: str) -> str:

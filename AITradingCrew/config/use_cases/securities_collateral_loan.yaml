@@ -34,3 +34,15 @@ interest_horizons_days:
   - 30
   - 90
   - 180
+optimization:
+  enabled: false
+  objective_weights:
+    sharpe: 0.6
+    volatility: 0.4
+  constraints:
+    min_weight: 0.05
+    max_weight: 0.35
+    max_category_weight: 0.5
+    max_volatility: 0.12
+  sample_size: 20000
+  lookback: 3y

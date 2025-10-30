@@ -62,8 +62,22 @@ class SecuritiesCollateralLoanReporter:
         pd.DataFrame(scenarios).to_parquet(scenario_path)
         stored_paths["scenarios"] = scenario_path
 
+        mode = analysis_payload.get("mode", "manual")
+        if mode == "optimization":
+            risk_metrics = analysis_payload.get("risk_metrics")
+            if risk_metrics is not None:
+                risk_path = self.processed_dir / "etf_risk_metrics.parquet"
+                risk_metrics.to_parquet(risk_path)
+                stored_paths["etf_risk_metrics"] = risk_path
+
+            optimized_portfolio = analysis_payload.get("optimized_portfolio")
+            if optimized_portfolio is not None:
+                opt_path = self.processed_dir / "optimized_portfolio.parquet"
+                optimized_portfolio.to_parquet(opt_path)
+                stored_paths["optimized_portfolio"] = opt_path
+
         report_path = self.report_dir / "securities_collateral_loan_report.md"
-        report_path.write_text(self._build_report(summary, asset_breakdown, scenarios, warning_events, liquidation_events))
+        report_path.write_text(self._build_report(summary, asset_breakdown, scenarios, warning_events, liquidation_events, analysis_payload))
         stored_paths["report"] = report_path
 
         insight_path = self.report_dir / "securities_collateral_loan_insights.md"
@@ -79,10 +93,17 @@ class SecuritiesCollateralLoanReporter:
         scenarios: List[Dict[str, float]],
         warning_events: pd.DataFrame,
         liquidation_events: pd.DataFrame,
+        analysis_payload: Dict[str, object] = None,
     ) -> str:
         lines: List[str] = []
         lines.append("# Securities Collateral Loan Risk Report")
         lines.append("")
+
+        mode = analysis_payload.get("mode", "manual") if analysis_payload else "manual"
+        if mode == "optimization":
+            lines.append("*Generated via automated portfolio optimization*")
+            lines.append("")
+
         lines.append("## Overview")
         lines.append(f"- Loan amount: ¥{summary['loan_amount']:,}")
         lines.append(f"- Annual interest rate: {self.config.annual_interest_rate * 100:.3f}%")
@@ -98,6 +119,30 @@ class SecuritiesCollateralLoanReporter:
             lines.append(f"- Buffer to forced liquidation: {summary['buffer_to_liquidation_pct'] * 100:.2f}% drop from current value")
         lines.append(f"- Historical max drawdown (portfolio): {summary['max_drawdown'] * 100:.2f}%")
         lines.append("")
+
+        if mode == "optimization" and analysis_payload:
+            opt_metrics = analysis_payload.get("optimization_metrics")
+            ranked_etfs = analysis_payload.get("ranked_etfs")
+
+            if opt_metrics:
+                lines.append("## Portfolio Optimization Results")
+                lines.append(f"- Annual return: {opt_metrics.get('annual_return', 0) * 100:.2f}%")
+                lines.append(f"- Annual volatility: {opt_metrics.get('annual_volatility', 0) * 100:.2f}%")
+                lines.append(f"- Sharpe ratio: {opt_metrics.get('sharpe_ratio', 0):.3f}")
+                lines.append(f"- Composite score: {opt_metrics.get('composite_score', 0):.3f}")
+                lines.append("")
+
+            if ranked_etfs is not None and len(ranked_etfs) > 0:
+                lines.append("## Top 10 ETFs by Composite Score")
+                lines.append("| Rank | Ticker | Name | Return | Volatility | Sharpe | Score |")
+                lines.append("| --- | --- | --- | --- | --- | --- | --- |")
+                for i, (_, row) in enumerate(ranked_etfs.head(10).iterrows(), 1):
+                    lines.append(
+                        f"| {i} | {row['ticker']} | {row.get('name', '')[:30]} | "
+                        f"{row['annual_return'] * 100:.2f}% | {row['annual_volatility'] * 100:.2f}% | "
+                        f"{row['sharpe_ratio']:.3f} | {row['composite_score']:.3f} |"
+                    )
+                lines.append("")
 
         lines.append("## Collateral Breakdown")
         lines.append("| Ticker | Description | Quantity | Price | Market Value |")
