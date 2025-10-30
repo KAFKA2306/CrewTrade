@@ -40,12 +40,20 @@ class ToushinKyokaiDataClient:
 
         etf_only = df[df['上場投信・上場投資法人の別'] == '上場投信'].copy()
 
-        etf_only['ticker'] = etf_only['銘柄コード'].astype(str) + '.T'
+        def normalize_ticker(code):
+            code_str = str(code)
+            code_str = code_str.replace('A', '')
+            if len(code_str) == 5 and code_str.endswith('0'):
+                code_str = code_str[:-1]
+            return code_str + '.T'
+
+        etf_only['ticker'] = etf_only['銘柄コード'].apply(normalize_ticker)
         etf_only['name'] = etf_only['ファンド名称']
         etf_only['provider'] = etf_only['運用会社名']
         etf_only['category'] = etf_only['上場投信・上場投資法人の別']
 
         result = etf_only[['ticker', 'name', 'provider', 'category']].copy()
         result = result.dropna(subset=['ticker'])
+        result = result.drop_duplicates(subset=['ticker'], keep='first')
 
         return result

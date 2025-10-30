@@ -60,5 +60,12 @@ class SecuritiesCollateralLoanDataPipeline:
             return pd.DataFrame()
         combined = pd.concat(series_list.values(), axis=1).sort_index()
         combined = combined.ffill()
-        combined = combined.dropna(how="any")
+
+        if self.config.optimization and self.config.optimization.enabled:
+            min_valid = int(len(combined.columns) * 0.7)
+            combined = combined.dropna(thresh=min_valid)
+            valid_cols = combined.columns[combined.notna().sum() >= len(combined) * 0.9]
+            combined = combined[valid_cols]
+        else:
+            combined = combined.dropna(how="any")
         return combined
