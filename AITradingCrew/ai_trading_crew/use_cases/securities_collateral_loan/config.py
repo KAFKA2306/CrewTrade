@@ -48,11 +48,10 @@ class SecuritiesCollateralLoanConfig(UseCaseConfig):
 DEFAULT_CONFIG = SecuritiesCollateralLoanConfig(
     name="securities_collateral_loan",
     collateral_assets=[
-        CollateralAsset(ticker="1489.T", quantity=194, description="Nikkei High Dividend Yield 50 ETF"),
-        CollateralAsset(ticker="1306.T", quantity=202, description="TOPIX ETF"),
-        CollateralAsset(ticker="2568.T", quantity=45, description="GX US Treasury 7-10 ETF"),
-        CollateralAsset(ticker="2510.T", quantity=18469, description="JGB 3-10Y ETF"),
-        CollateralAsset(ticker="2622.T", quantity=48, description="J-REIT ETF"),
-        CollateralAsset(ticker="348A.T", quantity=3156, description="Yomiuri 333 ETF"),
+        CollateralAsset(ticker="1306.T", quantity=73, description="NEXT FUNDS TOPIX ETF"),
+        CollateralAsset(ticker="2568.T", quantity=118, description="NASDAQ100 ETF (No Hedge)"),
+        CollateralAsset(ticker="2510.T", quantity=19302, description="NEXT FUNDS Domestic Bond NOMURA-BPI"),
+        CollateralAsset(ticker="2622.T", quantity=159, description="iShares USD Emerging Markets Bond Hedged"),
+        CollateralAsset(ticker="348A.T", quantity=1004, description="MAXIS Yomiuri 333 ETF"),
     ],
 )

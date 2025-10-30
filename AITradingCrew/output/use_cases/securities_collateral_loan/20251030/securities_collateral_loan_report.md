@@ -4,24 +4,23 @@
 - Loan amount: ¥10,000,000.0
 - Annual interest rate: 1.875%
 - Collateral period evaluated: 3y
-- Current collateral market value: ¥18172884
-- Current loan ratio: 0.550
+- Current collateral market value: ¥18136749
+- Current loan ratio: 0.551
 - Max allowable borrowing ratio (Rakuten Securities): 0.60
 - Margin call (補充) threshold: 0.70
 - Forced liquidation threshold: 0.85
-- Buffer to margin call: 21.39% drop from current value
-- Buffer to forced liquidation: 35.26% drop from current value
-- Historical max drawdown (portfolio): -2.83%
+- Buffer to margin call: 21.23% drop from current value
+- Buffer to forced liquidation: 35.13% drop from current value
+- Historical max drawdown (portfolio): -3.00%
 
 ## Collateral Breakdown
 | Ticker | Description | Quantity | Price | Market Value |
 | --- | --- | --- | --- | --- |
-| 1489.T | Nikkei High Dividend Yield 50 ETF | 194 | ¥2565.00 | ¥497610 |
-| 1306.T | TOPIX ETF | 202 | ¥3438.00 | ¥694476 |
-| 2568.T | GX US Treasury 7-10 ETF | 45 | ¥6832.00 | ¥307440 |
-| 2510.T | JGB 3-10Y ETF | 18469 | ¥858.00 | ¥15846402 |
-| 2622.T | J-REIT ETF | 48 | ¥1777.00 | ¥85296 |
-| 348A.T | Yomiuri 333 ETF | 3156 | ¥235.00 | ¥741660 |
+| 1306.T | NEXT FUNDS TOPIX ETF | 73 | ¥3438.00 | ¥250974 |
+| 2568.T | NASDAQ100 ETF (No Hedge) | 118 | ¥6832.00 | ¥806176 |
+| 2510.T | NEXT FUNDS Domestic Bond NOMURA-BPI | 19302 | ¥858.00 | ¥16561116 |
+| 2622.T | iShares USD Emerging Markets Bond Hedged | 159 | ¥1777.00 | ¥282543 |
+| 348A.T | MAXIS Yomiuri 333 ETF | 1004 | ¥235.00 | ¥235940 |
 
 ## Interest Projection
 | Days | Interest (¥) |
@@ -33,10 +32,10 @@
 ## Stress Scenarios
 | Scenario | Post Value (¥) | Loan Ratio | Margin Call? | Liquidation? |
 | --- | --- | --- | --- | --- |
-| -10% | ¥16355596 | 0.611 | No | No |
-| -20% | ¥14538307 | 0.688 | No | No |
-| -30% | ¥12721019 | 0.786 | Yes | No |
-| -40% | ¥10903730 | 0.917 | Yes | Yes |
+| -10% | ¥16323074 | 0.613 | No | No |
+| -20% | ¥14509399 | 0.689 | No | No |
+| -30% | ¥12695724 | 0.788 | Yes | No |
+| -40% | ¥10882049 | 0.919 | Yes | Yes |
 
 ## Historical Breaches
 No historical instances exceeded Rakuten Securities thresholds within the observation window.
