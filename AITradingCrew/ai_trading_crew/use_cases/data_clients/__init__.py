@@ -5,6 +5,7 @@ from .equities import YFinanceEquityDataClient
 from .toushin_kyokai import ToushinKyokaiDataClient
 from .jpx import JPXETFExpenseRatioClient
 from .pricing import get_price_series
+from .index_mapping import IndexETFMappingClient
 
 __all__ = [
     "PreciousMetalsDataClient",
@@ -14,4 +15,5 @@ __all__ = [
     "ToushinKyokaiDataClient",
     "JPXETFExpenseRatioClient",
     "get_price_series",
+    "IndexETFMappingClient",
 ]
