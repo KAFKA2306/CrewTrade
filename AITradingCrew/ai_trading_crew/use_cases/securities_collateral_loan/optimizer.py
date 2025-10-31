@@ -1,9 +1,47 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+
+
+def _weighted_metric_score(metrics: Dict[str, float], objective_weights: Dict[str, float]) -> float:
+    active: List[Tuple[float, float]] = []
+    for key, weight in objective_weights.items():
+        if key in metrics:
+            active.append((weight, metrics[key]))
+    if not active:
+        return 0.0
+    weights = np.array([item[0] for item in active], dtype=float)
+    total = weights.sum()
+    if total == 0:
+        weights = np.full_like(weights, 1 / len(weights), dtype=float)
+    else:
+        weights = weights / total
+    values = np.array([item[1] for item in active], dtype=float)
+    return float(values @ weights)
+
+
+def _portfolio_expense(
+    weights: np.ndarray,
+    tickers: List[str],
+    expense_lookup: Dict[str, float],
+    default_expense: float,
+) -> Optional[float]:
+    if not expense_lookup:
+        return None
+    expense_values: List[float] = []
+    for ticker, weight in zip(tickers, weights):
+        if weight <= 0:
+            continue
+        expense = expense_lookup.get(ticker, default_expense)
+        if np.isnan(expense):
+            expense = default_expense
+        expense_values.append(weight * float(expense))
+    if not expense_values:
+        return None
+    return float(sum(expense_values))
 
 
 def optimize_collateral_portfolio(
@@ -83,7 +121,18 @@ def optimize_collateral_portfolio(
 
         sharpe = portfolio_return / portfolio_volatility if portfolio_volatility > 0 else 0
 
-        score = sharpe / portfolio_volatility if portfolio_volatility > 0 else 0
+        candidate_expense = _portfolio_expense(weights, tickers, expense_lookup, default_expense)
+
+        metric_inputs = {
+            "return": portfolio_return,
+            "volatility": -portfolio_volatility,
+            "sharpe": sharpe,
+        }
+        if candidate_expense is not None:
+            metric_inputs["expense"] = -candidate_expense
+        score = _weighted_metric_score(metric_inputs, objective_weights)
+        if score == 0 and portfolio_volatility > 0:
+            score = sharpe / portfolio_volatility
 
         if score > best_score:
             best_score = score
@@ -140,18 +189,10 @@ def optimize_collateral_portfolio(
     sharpe_ratio = portfolio_return / portfolio_volatility if portfolio_volatility > 0 else 0
 
     weighted_expense_ratio = None
-    if expense_lookup:
-        expense_values = []
-        for ticker, weight in zip(tickers, best_portfolio):
-            if weight <= 0:
-                continue
-            expense = expense_lookup.get(ticker)
-            if expense is None or np.isnan(expense):
-                expense = default_expense
-            expense_values.append(weight * float(expense))
-        if expense_values:
-            weighted_expense_ratio = float(sum(expense_values))
-    else:
+    expense = _portfolio_expense(best_portfolio, tickers, expense_lookup, default_expense)
+    if expense is not None:
+        weighted_expense_ratio = expense
+    elif not expense_lookup:
         weighted_expense_ratio = 0.0
 
     return {

@@ -1,6 +1,14 @@
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
+
+FEATURE_CONFIG: Tuple[Tuple[str, bool, str], ...] = (
+    ("annual_return", False, "return_percentile"),
+    ("annual_volatility", True, "volatility_percentile"),
+    ("sharpe_ratio", False, "sharpe_percentile"),
+    ("max_drawdown", True, "drawdown_percentile"),
+    ("expense_ratio", True, "expense_percentile"),
+)
 
 
 def compute_risk_metrics(prices: pd.DataFrame, etf_master: pd.DataFrame) -> pd.DataFrame:
@@ -32,6 +40,8 @@ def compute_risk_metrics(prices: pd.DataFrame, etf_master: pd.DataFrame) -> pd.D
 
     metrics_df = pd.DataFrame(metrics_list)
     result = metrics_df.merge(etf_master, on="ticker", how="left")
+    percentiles = _compute_percentiles(result)
+    result = result.join(percentiles)
 
     return result
 
@@ -47,7 +57,29 @@ def rank_etfs(
 ) -> pd.DataFrame:
     df = risk_metrics.copy()
 
-    df["composite_score"] = df["sharpe_ratio"] / df["annual_volatility"]
+    metric_map = {
+        "return": "return_percentile",
+        "volatility": "volatility_percentile",
+        "sharpe": "sharpe_percentile",
+        "drawdown": "drawdown_percentile",
+        "expense": "expense_percentile",
+    }
+
+    active = [(metric_map[key], objective_weights[key]) for key in objective_weights if key in metric_map and metric_map[key] in df.columns]
+    if active:
+        columns, weights = zip(*active)
+        values = df.loc[:, list(columns)].to_numpy()
+        weights_array = np.array(weights, dtype=float)
+        total_weight = weights_array.sum()
+        if total_weight == 0:
+            weights_array = np.full_like(weights_array, 1 / len(weights_array), dtype=float)
+        else:
+            weights_array = weights_array / total_weight
+        composite = values @ weights_array
+        df["composite_score"] = composite
+    else:
+        df["composite_score"] = df["sharpe_ratio"].rank(pct=True, ascending=False, method="average")
+
     df = df.sort_values("composite_score", ascending=False)
 
     return df
@@ -108,3 +140,12 @@ def _collect_component(seed: str, corr: pd.DataFrame, threshold: float) -> Set[s
             component.add(neighbor)
             to_visit.append(neighbor)
     return component
+
+
+def _compute_percentiles(df: pd.DataFrame) -> pd.DataFrame:
+    result = pd.DataFrame(index=df.index)
+    for source, ascending, target in FEATURE_CONFIG:
+        if source in df.columns:
+            series = df[source]
+            result[target] = series.rank(pct=True, ascending=ascending, method="average")
+    return result
