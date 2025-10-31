@@ -16,8 +16,9 @@ def normalize_jpx_ticker(code: Any) -> str | None:
 
     code_str = code_str.replace("　", "").replace(" ", "")
 
-    if len(code_str) == 5 and code_str.endswith("0") and code_str[-2].isalpha():
-        code_str = code_str[:-1]
+    if len(code_str) == 5 and code_str.endswith("0"):
+        if code_str[-2].isalpha() or code_str[:-1].isdigit():
+            code_str = code_str[:-1]
 
     if code_str.isdigit() and len(code_str) < 4:
         code_str = code_str.zfill(4)

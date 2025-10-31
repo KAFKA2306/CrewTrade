@@ -39,3 +39,6 @@ yahooquery/uv.lock
 yahooquery/demo/
 yahooquery/docs/
 yahooquery/tests/
+
+# Root level resources
+/resources/
