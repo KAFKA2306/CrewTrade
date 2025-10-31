@@ -37,6 +37,23 @@ class RiskPolicy(BaseModel):
     )
 
 
+class CoreSatelliteConfig(BaseModel):
+    enabled: bool = Field(default=False)
+    core_weight: float = Field(default=0.60, ge=0, le=1)
+    satellite_weight: float = Field(default=0.40, ge=0, le=1)
+    core_rebalance_years: int = Field(default=2, ge=1)
+
+
+class PortfolioMetadata(BaseModel):
+    anchor_date: str
+    portfolio_type: str
+    core_weight: float
+    satellite_weight: float
+    rebalance_year: int
+    valid_until: str | None = None
+    optimization_method: str
+
+
 class OptimizationSettings(BaseModel):
     enabled: bool = Field(default=False)
     objective_weights: Dict[str, float] = Field(
@@ -62,6 +79,7 @@ class OptimizationSettings(BaseModel):
     walkforward_years: int = Field(default=1, ge=1)
     risk_policy: RiskPolicy | None = None
     profiles: Optional[List[OptimizationProfile]] = None
+    core_satellite: CoreSatelliteConfig | None = None
 
 
 class SecuritiesCollateralLoanConfig(UseCaseConfig):

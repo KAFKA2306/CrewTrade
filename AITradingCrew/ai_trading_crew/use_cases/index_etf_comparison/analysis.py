@@ -47,6 +47,9 @@ class IndexETFComparisonAnalyzer:
                 annual_volatility = returns.std() * np.sqrt(252)
                 sharpe_ratio = annual_return / annual_volatility if annual_volatility > 0 else 0
 
+                if abs(annual_return) > 10 or abs(annual_volatility) > 10:
+                    continue
+
                 frame = price_frames.get(ticker)
                 avg_volume = 0
                 if frame is not None and "Volume" in frame.columns:
