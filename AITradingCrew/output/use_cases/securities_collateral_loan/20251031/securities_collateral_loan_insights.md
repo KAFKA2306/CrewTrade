@@ -5,16 +5,16 @@
 - ETFs with sufficient data: 182
 - Candidate universe after filtering: 40
 - Selected ETFs (max_sharpe): 14
-- Portfolio annual return: 27.58%
-- Portfolio annual volatility: 17.70%
-- Portfolio Sharpe ratio: 1.558
+- Portfolio annual return: 27.64%
+- Portfolio annual volatility: 17.72%
+- Portfolio Sharpe ratio: 1.559
 - Weighted expense ratio: 0.34%
 
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
-| max_sharpe | 27.58% | 17.70% | 1.558 | 0.34% | Yes |
-| low_volatility | 25.82% | 16.03% | 1.611 | 0.28% |  |
-| cost_focus | 27.23% | 16.73% | 1.628 | 0.29% |  |
+| max_sharpe | 27.64% | 17.72% | 1.559 | 0.34% | Yes |
+| low_volatility | 25.87% | 16.04% | 1.613 | 0.28% |  |
+| cost_focus | 27.29% | 16.75% | 1.630 | 0.29% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0

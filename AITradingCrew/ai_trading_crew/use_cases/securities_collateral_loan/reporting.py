@@ -62,6 +62,14 @@ class SecuritiesCollateralLoanReporter:
         pd.DataFrame(scenarios).to_parquet(scenario_path)
         stored_paths["scenarios"] = scenario_path
 
+        forward_test = analysis_payload.get("forward_test")
+        if isinstance(forward_test, dict):
+            series = forward_test.get("series")
+            if isinstance(series, pd.DataFrame) and not series.empty:
+                forward_path = self.processed_dir / "forward_performance.parquet"
+                series.to_parquet(forward_path)
+                stored_paths["forward_performance"] = forward_path
+
         mode = analysis_payload.get("mode", "manual")
         if mode == "optimization":
             risk_metrics = analysis_payload.get("risk_metrics")
@@ -304,6 +312,25 @@ class SecuritiesCollateralLoanReporter:
                 sharpe_value = row.get("sharpe_ratio")
                 sharpe_display = f"{sharpe_value:.3f}" if sharpe_value is not None else "N/A"
                 lines.append(f"| {row['year']} | {ret_display} | {vol_display} | {sharpe_display} |")
+            lines.append("")
+
+        forward_test = analysis_payload.get("forward_test")
+        if isinstance(forward_test, dict):
+            summary_forward = forward_test.get("summary", {})
+            lines.append("### Forward Performance")
+            lines.append(f"- Anchor date: {forward_test.get('anchor_date')}")
+            start = summary_forward.get("start")
+            end = summary_forward.get("end")
+            if start and end:
+                lines.append(f"- Forward window: {start.date()} → {end.date()}")
+            if summary_forward.get("cumulative_return") is not None:
+                lines.append(f"- Cumulative return: {summary_forward['cumulative_return'] * 100:.2f}%")
+            if summary_forward.get("annualized_return") is not None:
+                lines.append(f"- Annualized return: {summary_forward['annualized_return'] * 100:.2f}%")
+            if summary_forward.get("annualized_volatility") is not None:
+                lines.append(f"- Annualized volatility: {summary_forward['annualized_volatility'] * 100:.2f}%")
+            if summary_forward.get("max_drawdown") is not None:
+                lines.append(f"- Max drawdown: {summary_forward['max_drawdown'] * 100:.2f}%")
             lines.append("")
 
         lines.append("## Interest Projection")
