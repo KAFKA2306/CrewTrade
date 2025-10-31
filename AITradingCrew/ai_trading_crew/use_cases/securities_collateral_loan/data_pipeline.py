@@ -72,6 +72,9 @@ class SecuritiesCollateralLoanDataPipeline:
                 series = series.loc[start:]
             if as_of is not None:
                 series = series.loc[:as_of]
+            series = series.dropna()
+            if series.empty:
+                continue
             series_list[ticker] = series.rename(ticker)
         if not series_list:
             return pd.DataFrame()
@@ -79,10 +82,15 @@ class SecuritiesCollateralLoanDataPipeline:
         combined = combined.ffill()
 
         if self.config.optimization and self.config.optimization.enabled:
-            min_valid = int(len(combined.columns) * 0.7)
-            combined = combined.dropna(thresh=min_valid)
-            valid_cols = combined.columns[combined.notna().sum() >= len(combined) * 0.9]
-            combined = combined[valid_cols]
+            if not combined.empty:
+                coverage = combined.notna().sum()
+                required_rows = max(int(len(combined.index) * 0.5), 60)
+                valid_cols = coverage[coverage >= required_rows].index.tolist()
+                if not valid_cols:
+                    valid_cols = coverage.sort_values(ascending=False).head(40).index.tolist()
+                combined = combined[valid_cols]
+                min_valid = max(int(len(valid_cols) * 0.7), 1)
+                combined = combined.dropna(thresh=min_valid)
         else:
             combined = combined.dropna(how="any")
         return combined

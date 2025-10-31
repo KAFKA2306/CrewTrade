@@ -63,7 +63,7 @@ class SecuritiesCollateralLoanBacktester:
 
             try:
                 analysis_payload = analyzer.evaluate(data_payload)
-            except ValueError:
+            except Exception:
                 continue
 
             forward_test = self._compute_forward_test(anchor, analysis_payload, pipeline)
