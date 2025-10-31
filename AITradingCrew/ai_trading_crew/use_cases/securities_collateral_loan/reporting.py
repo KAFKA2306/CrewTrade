@@ -223,6 +223,10 @@ class SecuritiesCollateralLoanReporter:
                 if expense_value is not None:
                     lines.append(f"| Weighted Expense Ratio | {expense_value * 100:.2f}% |")
                 lines.append("")
+                constraints = analysis_payload.get("optimization_profile_results", {}).get(primary_profile, {}).get("constraints")
+                if constraints and "max_volatility" in constraints:
+                    lines.append(f"*Note: Portfolio volatility constraint ({constraints['max_volatility'] * 100:.0f}%) is based on lookback period data. Actual volatility during holding period may differ due to market regime changes.*")
+                    lines.append("")
             lines.append("")
 
             if optimization_profiles:

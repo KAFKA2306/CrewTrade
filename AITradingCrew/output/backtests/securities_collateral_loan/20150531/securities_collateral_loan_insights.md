@@ -1,41 +1,41 @@
 # Securities Collateral Loan Insight
 
 ## Optimization Summary
-- Total ETFs evaluated: 56
-- ETFs with sufficient data: 47
-- Candidate universe after filtering: 39
-- Selected ETFs (max_sharpe): 14
-- Excluded 9 ETF(s) with volatility > 25.0%
-- Portfolio annual return: 23.29%
-- Portfolio annual volatility: 11.51%
-- Portfolio Sharpe ratio: 2.024
-- Weighted expense ratio: 0.27%
+- Total ETFs evaluated: 44
+- ETFs with sufficient data: 40
+- Candidate universe after filtering: 32
+- Selected ETFs (max_sharpe): 6
+- Excluded 4 ETF(s) with volatility > 25.0%
+- Portfolio annual return: 18.73%
+- Portfolio annual volatility: 9.68%
+- Portfolio Sharpe ratio: 1.934
+- Weighted expense ratio: 0.26%
 
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
-| max_sharpe | 23.29% | 11.51% | 2.024 | 0.27% | Yes |
-| low_volatility | 22.03% | 11.02% | 2.000 | 0.28% |  |
-| cost_focus | 23.84% | 11.86% | 2.010 | 0.25% |  |
+| max_sharpe | 18.73% | 9.68% | 1.934 | 0.26% | Yes |
+| low_volatility | 18.38% | 10.15% | 1.810 | 0.26% |  |
+| cost_focus | 20.33% | 10.86% | 1.873 | 0.27% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥16594970
-- Current loan ratio: 0.603
-- Buffer to 70%: 13.92% drop
-- Buffer to 85%: 29.11% drop
-- Max drawdown (history): -15.31%
+- Current collateral value: ¥18302001
+- Current loan ratio: 0.546
+- Buffer to 70%: 21.94% drop
+- Buffer to 85%: 35.72% drop
+- Max drawdown (history): -12.80%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥14,935,473 | 0.669 | No | No |
-| -20% | ¥13,275,976 | 0.753 | Yes | No |
-| -30% | ¥11,616,479 | 0.861 | Yes | Yes |
-| -40% | ¥9,956,982 | 1.004 | Yes | Yes |
+| -10% | ¥16,471,801 | 0.607 | No | No |
+| -20% | ¥14,641,601 | 0.683 | No | No |
+| -30% | ¥12,811,401 | 0.781 | Yes | No |
+| -40% | ¥10,981,201 | 0.911 | Yes | Yes |
 
 ## Historical Breach Counts
-- Margin call events: 603
-- Forced liquidation events: 353
+- Margin call events: 451
+- Forced liquidation events: 152
 
 ## Interest Projection (Simple)
 | Days | Interest (¥) |

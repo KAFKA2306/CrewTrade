@@ -124,7 +124,7 @@ class SecuritiesCollateralLoanAnalyzer:
             ]
 
         profile_results: Dict[str, Dict[str, object]] = {}
-        target_value = self.config.loan_amount / self.config.ltv_limit
+        target_value = (self.config.loan_amount / self.config.ltv_limit) * 1.10
 
         for profile in profile_configs:
             profile_corr_threshold = profile.correlation_threshold or base_correlation_threshold

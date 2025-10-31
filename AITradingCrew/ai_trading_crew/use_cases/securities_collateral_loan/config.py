@@ -39,7 +39,7 @@ class OptimizationSettings(BaseModel):
             "min_weight": 0.05,
             "max_weight": 0.35,
             "max_category_weight": 0.50,
-            "max_volatility": 0.12,
+            "max_volatility": 0.15,
             "max_asset_volatility": 0.25,
             "max_asset_drawdown": 0.30,
         }

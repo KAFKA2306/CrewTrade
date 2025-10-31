@@ -45,10 +45,40 @@ class ToushinKyokaiDataClient:
         etf_only['ticker'] = etf_only['銘柄コード'].apply(normalize_jpx_ticker)
         etf_only['name'] = etf_only['ファンド名称']
         etf_only['provider'] = etf_only['運用会社名']
-        etf_only['category'] = etf_only['上場投信・上場投資法人の別']
+        etf_only['category'] = etf_only['name'].apply(self._infer_category)
 
         result = etf_only[['ticker', 'name', 'provider', 'category']].copy()
         result = result.dropna(subset=['ticker'])
         result = result.drop_duplicates(subset=['ticker'], keep='first')
 
         return result
+
+    @staticmethod
+    def _infer_category(name: str) -> str:
+        if not isinstance(name, str):
+            return "その他"
+
+        name_lower = name.lower()
+
+        if any(kw in name for kw in ["リート", "REIT", "不動産"]):
+            return "REIT"
+        if any(kw in name for kw in ["債券", "国債", "トレジャリー", "ボンド", "bond"]):
+            return "債券"
+        if any(kw in name for kw in ["金", "銀", "プラチナ", "パラジウム", "原油", "コモディティ", "商品"]):
+            return "コモディティ"
+
+        if any(kw in name for kw in ["食品", "エネルギー", "素材", "化学", "医薬品", "自動車", "輸送機",
+                                      "鉄鋼", "非鉄", "機械", "電機", "情報通信", "サービス", "電力", "ガス",
+                                      "運輸", "物流", "商社", "小売", "銀行", "証券", "保険", "金融"]):
+            return "国内セクター"
+
+        if any(kw in name_lower for kw in ["s&p", "nasdaq", "nyダウ", "ダウ", "msci", "米国", "アメリカ",
+                                             "world", "world", "先進国", "kokusai", "acwi", "新興国",
+                                             "エマージング", "海外", "グローバル", "欧州", "アジア",
+                                             "中国", "インド", "ブラジル", "豪州"]):
+            return "海外株式"
+
+        if any(kw in name for kw in ["TOPIX", "日経", "JPX", "東証", "配当", "225", "グロース", "スタンダード"]):
+            return "国内株式"
+
+        return "その他"

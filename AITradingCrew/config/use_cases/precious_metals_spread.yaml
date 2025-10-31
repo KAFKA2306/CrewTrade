@@ -1,0 +1,4 @@
+name: precious_metals_spread
+period: 2y
+rolling_window: 20
+z_score_threshold: 2.0

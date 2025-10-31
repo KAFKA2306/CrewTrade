@@ -70,7 +70,7 @@ optimization:
     min_weight: 0.05
     max_weight: 0.35
     max_category_weight: 0.5
-    max_volatility: 0.12
+    max_volatility: 0.15
   sample_size: 20000
   lookback: "3y"
   exclude_hedged_etfs: true
