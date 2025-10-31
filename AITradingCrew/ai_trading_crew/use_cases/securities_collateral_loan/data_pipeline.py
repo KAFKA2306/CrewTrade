@@ -49,9 +49,12 @@ class SecuritiesCollateralLoanDataPipeline:
         if as_of is not None and lookback:
             training_start = self._calculate_start(as_of, lookback)
         if training_start is not None:
-            historical_window = prices_full.loc[:training_start]
-            has_history = historical_window.notna().any(axis=0)
-            eligible = has_history[has_history].index.tolist()
+            coverage_start = prices_full.apply(lambda series: series.first_valid_index())
+            coverage_start = pd.to_datetime(coverage_start, errors="coerce")
+            eligible = coverage_start[coverage_start.notna() & (coverage_start <= training_start)].index.tolist()
+            if not eligible:
+                coverage_order = coverage_start.dropna().sort_values()
+                eligible = coverage_order.head(min(len(coverage_order), 40)).index.tolist()
             prices_full = prices_full[eligible]
 
         prices = prices_full
