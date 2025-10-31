@@ -3,7 +3,21 @@ from datetime import datetime, timedelta
 import pandas as pd
 import requests
 
-from .ticker_utils import normalize_jpx_ticker
+from .ticker_utils import normalize_jpx_ticker, normalize_text
+
+CATEGORY_KEYWORDS = [
+    ("REIT", tuple(normalize_text(x) for x in ["リート", "REIT", "不動産"])),
+    ("債券", tuple(normalize_text(x) for x in ["債券", "国債", "トレジャリー", "ボンド", "bond"])),
+    ("コモディティ", tuple(normalize_text(x) for x in ["金", "銀", "プラチナ", "パラジウム", "原油", "コモディティ", "商品"])),
+    ("国内セクター", tuple(normalize_text(x) for x in ["食品", "エネルギー", "素材", "化学", "医薬品", "自動車", "輸送機",
+                                      "鉄鋼", "非鉄", "機械", "電機", "情報通信", "サービス", "電力", "ガス",
+                                      "運輸", "物流", "商社", "小売", "銀行", "証券", "保険", "金融"])),
+    ("国内株式", tuple(normalize_text(x) for x in ["TOPIX", "日経", "JPX", "東証", "225", "グロース", "スタンダード", "ジャパン", "日本株", "日本"])),
+    ("海外株式", tuple(normalize_text(x) for x in ["s&p", "nasdaq", "nyダウ", "ダウ", "米国", "アメリカ",
+                                             "world", "先進国", "kokusai", "acwi", "新興国",
+                                             "エマージング", "海外", "グローバル", "欧州", "アジア",
+                                             "中国", "インド", "ブラジル", "豪州"])),
+]
 
 class ToushinKyokaiDataClient:
     EXCEL_URL = "https://www.toushin.or.jp/files/static/486/listed_fund_for_investor.xlsx"
@@ -55,30 +69,10 @@ class ToushinKyokaiDataClient:
 
     @staticmethod
     def _infer_category(name: str) -> str:
-        if not isinstance(name, str):
+        normalized = normalize_text(name)
+        if not normalized:
             return "その他"
-
-        name_lower = name.lower()
-
-        if any(kw in name for kw in ["リート", "REIT", "不動産"]):
-            return "REIT"
-        if any(kw in name for kw in ["債券", "国債", "トレジャリー", "ボンド", "bond"]):
-            return "債券"
-        if any(kw in name for kw in ["金", "銀", "プラチナ", "パラジウム", "原油", "コモディティ", "商品"]):
-            return "コモディティ"
-
-        if any(kw in name for kw in ["食品", "エネルギー", "素材", "化学", "医薬品", "自動車", "輸送機",
-                                      "鉄鋼", "非鉄", "機械", "電機", "情報通信", "サービス", "電力", "ガス",
-                                      "運輸", "物流", "商社", "小売", "銀行", "証券", "保険", "金融"]):
-            return "国内セクター"
-
-        if any(kw in name_lower for kw in ["s&p", "nasdaq", "nyダウ", "ダウ", "msci", "米国", "アメリカ",
-                                             "world", "world", "先進国", "kokusai", "acwi", "新興国",
-                                             "エマージング", "海外", "グローバル", "欧州", "アジア",
-                                             "中国", "インド", "ブラジル", "豪州"]):
-            return "海外株式"
-
-        if any(kw in name for kw in ["TOPIX", "日経", "JPX", "東証", "配当", "225", "グロース", "スタンダード"]):
-            return "国内株式"
-
+        for category, keywords in CATEGORY_KEYWORDS:
+            if any(token in normalized for token in keywords):
+                return category
         return "その他"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+import unicodedata
 
 
 def normalize_jpx_ticker(code: Any) -> str | None:
@@ -27,3 +28,9 @@ def normalize_jpx_ticker(code: Any) -> str | None:
         return None
 
     return f"{code_str}.T"
+
+
+def normalize_text(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    return unicodedata.normalize("NFKC", value).lower()

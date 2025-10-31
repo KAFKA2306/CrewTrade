@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 
 from .toushin_kyokai import ToushinKyokaiDataClient
+from .ticker_utils import normalize_text
 
 
 class IndexETFMappingClient:
@@ -21,7 +22,7 @@ class IndexETFMappingClient:
             return pd.read_parquet(self.cache_path)
 
         etf_master = self.toushin_client.get_etf_master()
-        mapping_records = []
+        best_matches: Dict[str, Tuple[Tuple[int, int], str]] = {}
 
         for index_name, index_config in self.index_keywords.items():
             keywords = index_config.get("keywords", [])
@@ -34,11 +35,17 @@ class IndexETFMappingClient:
                 expected_categories,
                 exclude_keywords
             )
-            for ticker in matched_etfs:
-                mapping_records.append({"index_name": index_name, "ticker": ticker})
+            for ticker, score in matched_etfs.items():
+                current = best_matches.get(ticker)
+                candidate = (score, index_name)
+                if current is None or candidate > current:
+                    best_matches[ticker] = candidate
 
+        mapping_records = [{"index_name": index, "ticker": ticker} for ticker, (_, index) in best_matches.items()]
         mapping_df = pd.DataFrame(mapping_records)
         mapping_df = mapping_df.drop_duplicates()
+        if not mapping_df.empty:
+            mapping_df = mapping_df.sort_values(["index_name", "ticker"]).reset_index(drop=True)
         mapping_df.to_parquet(self.cache_path, index=False)
         return mapping_df
 
@@ -48,57 +55,51 @@ class IndexETFMappingClient:
         keywords: List[str],
         expected_categories: List[str],
         exclude_keywords: List[str]
-    ) -> List[str]:
-        matched = set()
+    ) -> Dict[str, Tuple[int, int]]:
+        normalized_keywords: List[str] = []
+        for keyword in keywords:
+            token = normalize_text(keyword)
+            if token:
+                normalized_keywords.append(token)
+        normalized_excludes: List[str] = []
+        for keyword in exclude_keywords:
+            token = normalize_text(keyword)
+            if token:
+                normalized_excludes.append(token)
+        allowed_categories = {category for category in expected_categories if category}
+        matched: Dict[str, Tuple[int, int]] = {}
         for _, row in etf_master.iterrows():
             name = row.get("name", "")
             category = row.get("category", "")
-            if not isinstance(name, str):
+            ticker = row.get("ticker")
+            normalized_name = normalize_text(name)
+            if not normalized_name or not ticker:
                 continue
 
-            if self._is_hedged(name):
+            if allowed_categories and category not in allowed_categories:
                 continue
 
-            if expected_categories and category not in expected_categories:
+            if normalized_excludes and self._contains_any(normalized_name, normalized_excludes):
                 continue
 
-            if self._has_exclude_keyword(name, exclude_keywords):
+            score = self._match_score(normalized_name, normalized_keywords)
+            if score == (0, 0):
                 continue
 
-            name_lower = name.lower()
-            for keyword in keywords:
-                keyword_lower = keyword.lower()
-                if keyword_lower in name_lower:
-                    matched.add(row["ticker"])
-                    break
-        return list(matched)
+            current = matched.get(ticker)
+            if current is None or score > current:
+                matched[ticker] = score
+        return matched
 
-    def _is_hedged(self, name: str) -> bool:
-        hedged_keywords = [
-            "為替ヘッジあり",
-            "為替ヘッジ有",
-            "ヘッジあり",
-            "ヘッジ有",
-            "為替ヘッジ)",
-            "(為替ヘッジ",
-            "hedged",
-            "hedge)",
-            "(hedge",
-        ]
-        name_lower = name.lower()
-        for keyword in hedged_keywords:
-            if keyword.lower() in name_lower:
-                return True
-        return False
+    def _contains_any(self, normalized_name: str, keywords: List[str]) -> bool:
+        return any(keyword in normalized_name for keyword in keywords)
 
-    def _has_exclude_keyword(self, name: str, exclude_keywords: List[str]) -> bool:
-        if not exclude_keywords:
-            return False
-        name_lower = name.lower()
-        for keyword in exclude_keywords:
-            if keyword.lower() in name_lower:
-                return True
-        return False
+    def _match_score(self, normalized_name: str, keywords: List[str]) -> Tuple[int, int]:
+        matched = [keyword for keyword in keywords if keyword in normalized_name]
+        if not matched:
+            return (0, 0)
+        length = sum(len(keyword.replace(" ", "")) for keyword in matched)
+        return (len(matched), length)
 
     def get_etfs_for_index(self, index_name: str) -> List[str]:
         mapping = self.get_mapping()

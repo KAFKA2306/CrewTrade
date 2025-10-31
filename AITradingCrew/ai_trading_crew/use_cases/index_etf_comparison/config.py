@@ -26,7 +26,7 @@ INDEX_KEYWORDS: Dict[str, Dict[str, Any]] = {
     "S&P500": {
         "keywords": ["s&p500", "s&p 500", "spx"],
         "expected_categories": ["海外株式"],
-        "exclude_keywords": ["債券", "bond", "reit"],
+        "exclude_keywords": ["債券", "bond", "reit", "配当", "貴族", "半導体", "キャッシュ", "トップ", "均等", "イコール", "equal", "aristocrat", "cash", "semiconductor", "top"],
     },
     "東証REIT Core": {
         "keywords": ["reit", "core", "東証reit core"],
@@ -44,9 +44,9 @@ INDEX_KEYWORDS: Dict[str, Dict[str, Any]] = {
         "exclude_keywords": [],
     },
     "MSCIエマージング": {
-        "keywords": ["msci", "エマージング", "emerging"],
+        "keywords": ["エマージング", "新興国株式", "emerging"],
         "expected_categories": ["海外株式"],
-        "exclude_keywords": ["債券", "bond", "固定"],
+        "exclude_keywords": ["債券", "bond", "固定", "kokusai", "先進国"],
     },
     "新興国債券": {
         "keywords": ["新興国", "債券", "emerging", "bond"],
@@ -69,7 +69,7 @@ INDEX_KEYWORDS: Dict[str, Dict[str, Any]] = {
         "exclude_keywords": ["株式", "債券"],
     },
     "情報通信サービス": {
-        "keywords": ["情報通信", "サービス", "it", "通信"],
+        "keywords": ["情報通信・サービス", "情報通信サービス"],
         "expected_categories": ["国内株式", "国内セクター"],
         "exclude_keywords": [],
     },
@@ -81,10 +81,10 @@ INDEX_KEYWORDS: Dict[str, Dict[str, Any]] = {
     "NASDAQ100": {
         "keywords": ["nasdaq", "ナスダック"],
         "expected_categories": ["海外株式"],
-        "exclude_keywords": ["債券", "bond", "reit"],
+        "exclude_keywords": ["債券", "bond", "reit", "トップ", "top"],
     },
     "TOPIX-17 小売": {
-        "keywords": ["topix", "小売", "retail"],
+        "keywords": ["小売", "retail"],
         "expected_categories": ["国内株式", "国内セクター"],
         "exclude_keywords": [],
     },
