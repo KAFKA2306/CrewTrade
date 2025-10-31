@@ -47,13 +47,7 @@ def rank_etfs(
 ) -> pd.DataFrame:
     df = risk_metrics.copy()
 
-    sharpe_norm = (df["sharpe_ratio"] - df["sharpe_ratio"].min()) / (df["sharpe_ratio"].max() - df["sharpe_ratio"].min() + 1e-9)
-    volatility_norm = 1 - (df["annual_volatility"] - df["annual_volatility"].min()) / (df["annual_volatility"].max() - df["annual_volatility"].min() + 1e-9)
-
-    w_sharpe = objective_weights.get("sharpe", 0.6)
-    w_volatility = objective_weights.get("volatility", 0.4)
-
-    df["composite_score"] = w_sharpe * sharpe_norm + w_volatility * volatility_norm
+    df["composite_score"] = df["sharpe_ratio"] / df["annual_volatility"]
     df = df.sort_values("composite_score", ascending=False)
 
     return df

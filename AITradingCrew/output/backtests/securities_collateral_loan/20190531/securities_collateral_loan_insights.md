@@ -2,9 +2,11 @@
 
 ## Optimization Summary
 - Total ETFs evaluated: 96
-- ETFs with sufficient data: 92
+- ETFs with sufficient data: 76
 - Candidate universe after filtering: 40
 - Selected ETFs (max_sharpe): 14
+- Excluded 7 ETF(s) with volatility > 25.0%
+- Excluded 9 ETF(s) with drawdown worse than -30.0%
 - Portfolio annual return: 6.45%
 - Portfolio annual volatility: 5.58%
 - Portfolio Sharpe ratio: 1.155
@@ -13,7 +15,7 @@
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
 | max_sharpe | 6.45% | 5.58% | 1.155 | 0.24% | Yes |
-| low_volatility | 5.27% | 4.94% | 1.068 | 0.25% |  |
+| low_volatility | 4.85% | 4.71% | 1.031 | 0.22% |  |
 | cost_focus | 6.73% | 5.66% | 1.190 | 0.18% |  |
 
 ## Current Profile

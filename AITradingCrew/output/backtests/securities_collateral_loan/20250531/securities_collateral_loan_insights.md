@@ -2,39 +2,41 @@
 
 ## Optimization Summary
 - Total ETFs evaluated: 219
-- ETFs with sufficient data: 177
+- ETFs with sufficient data: 115
 - Candidate universe after filtering: 40
 - Selected ETFs (max_sharpe): 14
-- Portfolio annual return: 19.68%
-- Portfolio annual volatility: 17.31%
-- Portfolio Sharpe ratio: 1.137
-- Weighted expense ratio: 0.44%
+- Excluded 59 ETF(s) with volatility > 25.0%
+- Excluded 3 ETF(s) with drawdown worse than -30.0%
+- Portfolio annual return: 15.14%
+- Portfolio annual volatility: 11.69%
+- Portfolio Sharpe ratio: 1.295
+- Weighted expense ratio: 0.35%
 
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
-| max_sharpe | 19.68% | 17.31% | 1.137 | 0.44% | Yes |
-| low_volatility | 19.43% | 16.05% | 1.211 | 0.47% |  |
-| cost_focus | 19.01% | 16.44% | 1.156 | 0.47% |  |
+| max_sharpe | 15.14% | 11.69% | 1.295 | 0.35% | Yes |
+| low_volatility | 14.11% | 10.76% | 1.312 | 0.36% |  |
+| cost_focus | 16.57% | 12.66% | 1.308 | 0.39% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥16602174
-- Current loan ratio: 0.602
-- Buffer to 70%: 13.95% drop
-- Buffer to 85%: 29.14% drop
-- Max drawdown (history): -16.64%
+- Current collateral value: ¥16534680
+- Current loan ratio: 0.605
+- Buffer to 70%: 13.60% drop
+- Buffer to 85%: 28.85% drop
+- Max drawdown (history): -12.32%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥14,941,956 | 0.669 | No | No |
-| -20% | ¥13,281,739 | 0.753 | Yes | No |
-| -30% | ¥11,621,522 | 0.861 | Yes | Yes |
-| -40% | ¥9,961,304 | 1.004 | Yes | Yes |
+| -10% | ¥14,881,212 | 0.672 | No | No |
+| -20% | ¥13,227,744 | 0.756 | Yes | No |
+| -30% | ¥11,574,276 | 0.864 | Yes | Yes |
+| -40% | ¥9,920,808 | 1.008 | Yes | Yes |
 
 ## Historical Breach Counts
-- Margin call events: 516
-- Forced liquidation events: 319
+- Margin call events: 397
+- Forced liquidation events: 184
 
 ## Interest Projection (Simple)
 | Days | Interest (¥) |

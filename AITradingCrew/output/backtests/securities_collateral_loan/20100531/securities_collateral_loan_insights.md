@@ -2,39 +2,40 @@
 
 ## Optimization Summary
 - Total ETFs evaluated: 34
-- ETFs with sufficient data: 34
-- Candidate universe after filtering: 28
+- ETFs with sufficient data: 19
+- Candidate universe after filtering: 14
 - Selected ETFs (max_sharpe): 14
-- Portfolio annual return: 9.89%
-- Portfolio annual volatility: 18.26%
-- Portfolio Sharpe ratio: 0.542
-- Weighted expense ratio: 0.30%
+- Excluded 15 ETF(s) with volatility > 25.0%
+- Portfolio annual return: 0.90%
+- Portfolio annual volatility: 15.14%
+- Portfolio Sharpe ratio: 0.059
+- Weighted expense ratio: 0.25%
 
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
-| max_sharpe | 9.89% | 18.26% | 0.542 | 0.30% | Yes |
-| low_volatility | 4.92% | 17.27% | 0.285 | 0.26% |  |
-| cost_focus | 6.55% | 16.63% | 0.394 | 0.25% |  |
+| max_sharpe | 0.90% | 15.14% | 0.059 | 0.25% | Yes |
+| low_volatility | 4.64% | 15.24% | 0.304 | 0.26% |  |
+| cost_focus | 3.04% | 15.47% | 0.196 | 0.24% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥16629126
-- Current loan ratio: 0.601
-- Buffer to 70%: 14.09% drop
-- Buffer to 85%: 29.25% drop
-- Max drawdown (history): -34.18%
+- Current collateral value: ¥16622694
+- Current loan ratio: 0.602
+- Buffer to 70%: 14.06% drop
+- Buffer to 85%: 29.23% drop
+- Max drawdown (history): -28.51%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥14,966,213 | 0.668 | No | No |
-| -20% | ¥13,303,300 | 0.752 | Yes | No |
-| -30% | ¥11,640,388 | 0.859 | Yes | Yes |
-| -40% | ¥9,977,475 | 1.002 | Yes | Yes |
+| -10% | ¥14,960,425 | 0.668 | No | No |
+| -20% | ¥13,298,155 | 0.752 | Yes | No |
+| -30% | ¥11,635,886 | 0.859 | Yes | Yes |
+| -40% | ¥9,973,617 | 1.003 | Yes | Yes |
 
 ## Historical Breach Counts
-- Margin call events: 105
-- Forced liquidation events: 4
+- Margin call events: 23
+- Forced liquidation events: 0
 
 ## Interest Projection (Simple)
 | Days | Interest (¥) |

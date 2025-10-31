@@ -2,39 +2,41 @@
 
 ## Optimization Summary
 - Total ETFs evaluated: 187
-- ETFs with sufficient data: 157
+- ETFs with sufficient data: 149
 - Candidate universe after filtering: 40
 - Selected ETFs (max_sharpe): 14
-- Portfolio annual return: 28.48%
-- Portfolio annual volatility: 13.92%
-- Portfolio Sharpe ratio: 2.046
-- Weighted expense ratio: 0.27%
+- Excluded 7 ETF(s) with volatility > 25.0%
+- Excluded 1 ETF(s) with drawdown worse than -30.0%
+- Portfolio annual return: 22.84%
+- Portfolio annual volatility: 10.95%
+- Portfolio Sharpe ratio: 2.085
+- Weighted expense ratio: 0.22%
 
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
-| max_sharpe | 28.48% | 13.92% | 2.046 | 0.27% | Yes |
-| low_volatility | 30.26% | 13.96% | 2.168 | 0.33% |  |
-| cost_focus | 29.09% | 13.77% | 2.113 | 0.29% |  |
+| max_sharpe | 22.84% | 10.95% | 2.085 | 0.22% | Yes |
+| low_volatility | 22.37% | 9.85% | 2.270 | 0.26% |  |
+| cost_focus | 23.58% | 10.35% | 2.280 | 0.27% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥16509514
-- Current loan ratio: 0.606
-- Buffer to 70%: 13.47% drop
-- Buffer to 85%: 28.74% drop
-- Max drawdown (history): -8.29%
+- Current collateral value: ¥16533563
+- Current loan ratio: 0.605
+- Buffer to 70%: 13.60% drop
+- Buffer to 85%: 28.84% drop
+- Max drawdown (history): -10.22%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥14,858,562 | 0.673 | No | No |
-| -20% | ¥13,207,611 | 0.757 | Yes | No |
-| -30% | ¥11,556,659 | 0.865 | Yes | Yes |
-| -40% | ¥9,905,708 | 1.010 | Yes | Yes |
+| -10% | ¥14,880,207 | 0.672 | No | No |
+| -20% | ¥13,226,850 | 0.756 | Yes | No |
+| -30% | ¥11,573,494 | 0.864 | Yes | Yes |
+| -40% | ¥9,920,138 | 1.008 | Yes | Yes |
 
 ## Historical Breach Counts
-- Margin call events: 661
-- Forced liquidation events: 498
+- Margin call events: 627
+- Forced liquidation events: 429
 
 ## Interest Projection (Simple)
 | Days | Interest (¥) |

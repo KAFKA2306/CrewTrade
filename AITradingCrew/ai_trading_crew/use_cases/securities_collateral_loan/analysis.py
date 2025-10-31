@@ -84,6 +84,33 @@ class SecuritiesCollateralLoanAnalyzer:
         base_min_assets = min(self.config.optimization.min_assets, len(prices.columns))
         base_min_assets = max(base_min_assets, 3)
 
+        volatility_excluded: List[Dict[str, str]] = []
+        drawdown_excluded: List[Dict[str, str]] = []
+
+        max_asset_volatility = constraints.get("max_asset_volatility")
+        max_asset_drawdown = constraints.get("max_asset_drawdown")
+
+        if max_asset_volatility is not None and "annual_volatility" in risk_metrics.columns:
+            mask_volatility = (risk_metrics["annual_volatility"] <= max_asset_volatility).fillna(False)
+            excluded_vol_df = risk_metrics.loc[~mask_volatility, ["ticker", "name"]].drop_duplicates(subset=["ticker"])
+            if not excluded_vol_df.empty:
+                volatility_excluded = excluded_vol_df.to_dict("records")
+                drop_tickers = excluded_vol_df["ticker"].tolist()
+                correlation_matrix = correlation_matrix.drop(index=drop_tickers, columns=drop_tickers, errors="ignore")
+            risk_metrics = risk_metrics.loc[mask_volatility]
+
+        if max_asset_drawdown is not None and "max_drawdown" in risk_metrics.columns:
+            mask_drawdown = (risk_metrics["max_drawdown"].abs() <= max_asset_drawdown).fillna(False)
+            excluded_drawdown_df = risk_metrics.loc[~mask_drawdown, ["ticker", "name"]].drop_duplicates(subset=["ticker"])
+            if not excluded_drawdown_df.empty:
+                drawdown_excluded = excluded_drawdown_df.to_dict("records")
+                drop_tickers = excluded_drawdown_df["ticker"].tolist()
+                correlation_matrix = correlation_matrix.drop(index=drop_tickers, columns=drop_tickers, errors="ignore")
+            risk_metrics = risk_metrics.loc[mask_drawdown]
+
+        if risk_metrics.empty:
+            raise ValueError("No ETFs remain after applying volatility/drawdown filters. Adjust thresholds or review data.")
+
         ranked_etfs = etf_screening.rank_etfs(risk_metrics, objective_weights)
 
         profile_configs: List[OptimizationProfile]
@@ -215,6 +242,12 @@ class SecuritiesCollateralLoanAnalyzer:
             "annual_asset_returns": self._compute_annual_asset_returns(selected_prices, asset_breakdown),
             "annual_portfolio_returns": self._compute_annual_portfolio_returns(manual_result["portfolio_value"]),
             "hedged_excluded": hedged_assets,
+            "volatility_excluded": volatility_excluded,
+            "drawdown_excluded": drawdown_excluded,
+            "asset_filter_thresholds": {
+                "max_asset_volatility": max_asset_volatility,
+                "max_asset_drawdown": max_asset_drawdown,
+            },
         })
 
         return manual_result

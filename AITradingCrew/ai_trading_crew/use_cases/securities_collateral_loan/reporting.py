@@ -180,6 +180,25 @@ class SecuritiesCollateralLoanReporter:
                     f"{item.get('ticker')}({(item.get('name') or '')[:15]})" for item in hedged_excluded
                 )
                 lines.append(f"- Excluded hedged ETFs: {excluded_items}")
+            constraints = self.config.optimization.constraints if self.config.optimization else {}
+            max_asset_volatility = constraints.get("max_asset_volatility") if constraints else None
+            volatility_excluded = analysis_payload.get("volatility_excluded") or []
+            if volatility_excluded:
+                excluded_items = ", ".join(
+                    f"{item.get('ticker')}({(item.get('name') or '')[:15]})" for item in volatility_excluded
+                )
+                threshold_note = f" (> {max_asset_volatility * 100:.1f}% annualized volatility)" if max_asset_volatility is not None else ""
+                lines.append(f"- Excluded high-volatility ETFs{threshold_note}: {excluded_items}")
+            max_asset_drawdown = constraints.get("max_asset_drawdown") if constraints else None
+            drawdown_excluded = analysis_payload.get("drawdown_excluded") or []
+            if drawdown_excluded:
+                excluded_items = ", ".join(
+                    f"{item.get('ticker')}({(item.get('name') or '')[:15]})" for item in drawdown_excluded
+                )
+                threshold_note = ""
+                if max_asset_drawdown is not None:
+                    threshold_note = f" (drawdown worse than -{max_asset_drawdown * 100:.1f}%)"
+                lines.append(f"- Excluded deep-drawdown ETFs{threshold_note}: {excluded_items}")
             if primary_profile:
                 lines.append(f"- Selected profile: {primary_profile}")
 

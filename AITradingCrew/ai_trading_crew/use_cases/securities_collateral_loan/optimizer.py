@@ -82,22 +82,8 @@ def optimize_collateral_portfolio(
             continue
 
         sharpe = portfolio_return / portfolio_volatility if portfolio_volatility > 0 else 0
-        expense_candidate = 0.0
-        if expense_lookup:
-            for idx, weight in enumerate(weights):
-                if weight <= 0:
-                    continue
-                ticker = tickers[idx]
-                expense = expense_lookup.get(ticker)
-                if expense is None or np.isnan(expense):
-                    expense = default_expense
-                expense_candidate += weight * float(expense)
 
-        w_sharpe = objective_weights.get("sharpe", 0.6)
-        w_volatility = objective_weights.get("volatility", 0.4)
-        w_expense = objective_weights.get("expense", 0.0)
-
-        score = w_sharpe * sharpe - w_volatility * portfolio_volatility - w_expense * expense_candidate
+        score = sharpe / portfolio_volatility if portfolio_volatility > 0 else 0
 
         if score > best_score:
             best_score = score

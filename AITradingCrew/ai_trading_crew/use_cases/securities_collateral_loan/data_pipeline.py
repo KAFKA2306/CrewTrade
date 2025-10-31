@@ -52,6 +52,14 @@ class SecuritiesCollateralLoanDataPipeline:
         else:
             etf_master_filtered["expense_ratio"] = None
 
+        etf_master_filtered = etf_master_filtered[
+            (etf_master_filtered["expense_ratio"].isna()) |
+            (etf_master_filtered["expense_ratio"] < 0.004)
+        ]
+
+        valid_tickers_filtered = etf_master_filtered["ticker"].tolist()
+        prices = prices[valid_tickers_filtered]
+
         return {
             "mode": "optimization",
             "etf_master": etf_master_filtered,

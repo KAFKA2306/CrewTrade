@@ -42,6 +42,26 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
             else:
                 lines.append(f"- Selected ETFs: {len(optimized_portfolio)}")
 
+        thresholds = analysis_payload.get("asset_filter_thresholds") or {}
+        volatility_excluded = analysis_payload.get("volatility_excluded") or []
+        if volatility_excluded:
+            max_asset_volatility = thresholds.get("max_asset_volatility")
+            if max_asset_volatility is not None:
+                lines.append(
+                    f"- Excluded {len(volatility_excluded)} ETF(s) with volatility > {max_asset_volatility * 100:.1f}%"
+                )
+            else:
+                lines.append(f"- Excluded {len(volatility_excluded)} ETF(s) above volatility threshold")
+        drawdown_excluded = analysis_payload.get("drawdown_excluded") or []
+        if drawdown_excluded:
+            max_asset_drawdown = thresholds.get("max_asset_drawdown")
+            if max_asset_drawdown is not None:
+                lines.append(
+                    f"- Excluded {len(drawdown_excluded)} ETF(s) with drawdown worse than -{max_asset_drawdown * 100:.1f}%"
+                )
+            else:
+                lines.append(f"- Excluded {len(drawdown_excluded)} ETF(s) failing drawdown constraint")
+
         lines.append(f"- Portfolio annual return: {opt_metrics.get('annual_return', 0) * 100:.2f}%")
         lines.append(f"- Portfolio annual volatility: {opt_metrics.get('annual_volatility', 0) * 100:.2f}%")
         lines.append(f"- Portfolio Sharpe ratio: {opt_metrics.get('sharpe_ratio', 0):.3f}")
