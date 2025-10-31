@@ -17,6 +17,13 @@ class SecuritiesCollateralLoanReporter:
         self.processed_dir.mkdir(parents=True, exist_ok=True)
         self.report_dir.mkdir(parents=True, exist_ok=True)
 
+    def _save_parquet(self, name: str, data: pd.DataFrame | pd.Series) -> Path:
+        path = self.processed_dir / f"{name}.parquet"
+        if isinstance(data, pd.Series):
+            data = data.to_frame(name=data.name or "value")
+        data.to_parquet(path)
+        return path
+
     def persist(self, analysis_payload: Dict[str, object]) -> Dict[str, Path]:
         prices: pd.DataFrame = analysis_payload["prices"]
         positions: pd.DataFrame = analysis_payload["positions"]
@@ -30,59 +37,30 @@ class SecuritiesCollateralLoanReporter:
 
         stored_paths: Dict[str, Path] = {}
 
-        prices_path = self.processed_dir / "prices.parquet"
-        prices.to_parquet(prices_path)
-        stored_paths["prices"] = prices_path
-
-        positions_path = self.processed_dir / "positions.parquet"
-        positions.to_parquet(positions_path)
-        stored_paths["positions"] = positions_path
-
-        portfolio_path = self.processed_dir / "portfolio_value.parquet"
-        portfolio_value.to_frame(name="portfolio_value").to_parquet(portfolio_path)
-        stored_paths["portfolio_value"] = portfolio_path
-
-        ratio_path = self.processed_dir / "loan_ratio.parquet"
-        loan_ratio_series.to_frame(name="loan_ratio").to_parquet(ratio_path)
-        stored_paths["loan_ratio"] = ratio_path
-
-        warning_path = self.processed_dir / "warning_events.parquet"
-        warning_events.to_parquet(warning_path)
-        stored_paths["warning_events"] = warning_path
-
-        liquidation_path = self.processed_dir / "liquidation_events.parquet"
-        liquidation_events.to_parquet(liquidation_path)
-        stored_paths["liquidation_events"] = liquidation_path
-
-        breakdown_path = self.processed_dir / "asset_breakdown.parquet"
-        asset_breakdown.to_parquet(breakdown_path)
-        stored_paths["asset_breakdown"] = breakdown_path
-
-        scenario_path = self.processed_dir / "scenarios.parquet"
-        pd.DataFrame(scenarios).to_parquet(scenario_path)
-        stored_paths["scenarios"] = scenario_path
+        stored_paths["prices"] = self._save_parquet("prices", prices)
+        stored_paths["positions"] = self._save_parquet("positions", positions)
+        stored_paths["portfolio_value"] = self._save_parquet("portfolio_value", portfolio_value)
+        stored_paths["loan_ratio"] = self._save_parquet("loan_ratio", loan_ratio_series)
+        stored_paths["warning_events"] = self._save_parquet("warning_events", warning_events)
+        stored_paths["liquidation_events"] = self._save_parquet("liquidation_events", liquidation_events)
+        stored_paths["asset_breakdown"] = self._save_parquet("asset_breakdown", asset_breakdown)
+        stored_paths["scenarios"] = self._save_parquet("scenarios", pd.DataFrame(scenarios))
 
         forward_test = analysis_payload.get("forward_test")
         if isinstance(forward_test, dict):
             series = forward_test.get("series")
             if isinstance(series, pd.DataFrame) and not series.empty:
-                forward_path = self.processed_dir / "forward_performance.parquet"
-                series.to_parquet(forward_path)
-                stored_paths["forward_performance"] = forward_path
+                stored_paths["forward_performance"] = self._save_parquet("forward_performance", series)
 
         mode = analysis_payload.get("mode", "manual")
         if mode == "optimization":
             risk_metrics = analysis_payload.get("risk_metrics")
             if isinstance(risk_metrics, pd.DataFrame):
-                risk_path = self.processed_dir / "etf_risk_metrics.parquet"
-                risk_metrics.to_parquet(risk_path)
-                stored_paths["etf_risk_metrics"] = risk_path
+                stored_paths["etf_risk_metrics"] = self._save_parquet("etf_risk_metrics", risk_metrics)
 
             candidate_universe = analysis_payload.get("candidate_universe")
             if isinstance(candidate_universe, pd.DataFrame):
-                candidate_path = self.processed_dir / "candidate_universe.parquet"
-                candidate_universe.to_parquet(candidate_path)
-                stored_paths["candidate_universe"] = candidate_path
+                stored_paths["candidate_universe"] = self._save_parquet("candidate_universe", candidate_universe)
 
             profile_results = analysis_payload.get("optimization_profile_results", {})
             primary_profile = analysis_payload.get("primary_profile")
@@ -231,32 +209,11 @@ class SecuritiesCollateralLoanReporter:
                     f"(threshold {corr_threshold:.2f})"
                 )
             hedged_excluded = analysis_payload.get("hedged_excluded") or []
-            if hedged_excluded:
-                excluded_items = ", ".join(
-                    f"{item.get('ticker')}({(item.get('name') or '')[:15]})" for item in hedged_excluded
-                )
-                lines.append(f"- Excluded hedged ETFs: {excluded_items}")
-            constraints = self.config.optimization.constraints if self.config.optimization else {}
-            max_asset_volatility = constraints.get("max_asset_volatility") if constraints else None
             volatility_excluded = analysis_payload.get("volatility_excluded") or []
-            if volatility_excluded:
-                excluded_items = ", ".join(
-                    f"{item.get('ticker')}({(item.get('name') or '')[:15]})" for item in volatility_excluded
-                )
-                threshold_note = ""
-                if max_asset_volatility is not None:
-                    threshold_note = f" (> {max_asset_volatility * 100:.1f}% annualized volatility)"
-                lines.append(f"- Excluded high-volatility ETFs{threshold_note}: {excluded_items}")
-            max_asset_drawdown = constraints.get("max_asset_drawdown") if constraints else None
             drawdown_excluded = analysis_payload.get("drawdown_excluded") or []
-            if drawdown_excluded:
-                excluded_items = ", ".join(
-                    f"{item.get('ticker')}({(item.get('name') or '')[:15]})" for item in drawdown_excluded
-                )
-                threshold_note = ""
-                if max_asset_drawdown is not None:
-                    threshold_note = f" (drawdown worse than -{max_asset_drawdown * 100:.1f}%)"
-                lines.append(f"- Excluded deep-drawdown ETFs{threshold_note}: {excluded_items}")
+
+            lines.append(f"- Excluded ETFs: {len(hedged_excluded)} hedged, {len(volatility_excluded)} high-volatility, {len(drawdown_excluded)} deep-drawdown")
+            constraints = self.config.optimization.constraints if self.config.optimization else {}
             if primary_profile:
                 lines.append(f"- Selected profile: {primary_profile}")
 
@@ -370,16 +327,6 @@ class SecuritiesCollateralLoanReporter:
                 lines.append("")
 
             opt_metrics = analysis_payload.get("optimization_metrics") or {}
-            if opt_metrics:
-                metrics_parts = [
-                    f"return {opt_metrics.get('annual_return', 0) * 100:.2f}%",
-                    f"volatility {opt_metrics.get('annual_volatility', 0) * 100:.2f}%",
-                    f"Sharpe {opt_metrics.get('sharpe_ratio', 0):.3f}",
-                ]
-                if opt_metrics.get("expense_ratio") is not None:
-                    metrics_parts.append(f"expense {opt_metrics['expense_ratio'] * 100:.2f}%")
-                lines.append(f"- Selected portfolio metrics (backtest period): {', '.join(metrics_parts)}")
-                lines.append("")
 
             prices_df = analysis_payload.get("prices") if analysis_payload else None
             backtest_start = None

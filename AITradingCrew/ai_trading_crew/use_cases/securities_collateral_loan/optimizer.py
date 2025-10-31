@@ -5,6 +5,8 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
+from ai_trading_crew.use_cases.securities_collateral_loan.hrp_optimizer import HierarchicalRiskParity
+
 
 def _weighted_metric_score(metrics: Dict[str, float], objective_weights: Dict[str, float]) -> float:
     active: List[Tuple[float, float]] = []
@@ -54,6 +56,7 @@ def optimize_collateral_portfolio(
     max_assets: Optional[int] = None,
     min_assets: int = 3,
     score_strategy: Optional[str] = None,
+    use_hrp: bool = True,
 ) -> Dict:
     returns = prices.pct_change().dropna()
     tickers = list(prices.columns)
@@ -89,69 +92,97 @@ def optimize_collateral_portfolio(
     best_portfolio = None
     best_score = -np.inf
 
-    for _ in range(sample_size):
-        if subset_capacity < n_assets:
-            subset_size = np.random.randint(min_assets, subset_capacity + 1)
-            subset_indices = np.random.choice(n_assets, size=subset_size, replace=False)
-        else:
-            subset_indices = np.arange(n_assets)
-        candidate_weights = np.random.dirichlet(np.ones(len(subset_indices)))
+    if use_hrp:
+        hrp = HierarchicalRiskParity(prices, constraints)
+        hrp_result = hrp.optimize()
 
-        if min_weight > 0 and np.any(candidate_weights < min_weight):
-            continue
-        if np.any(candidate_weights > max_weight):
-            continue
+        hrp_weights = np.zeros(n_assets)
+        for _, row in hrp_result.iterrows():
+            ticker = row['ticker']
+            weight = row['weight']
+            if ticker in tickers:
+                idx = tickers.index(ticker)
+                hrp_weights[idx] = weight
 
-        weights = np.zeros(n_assets)
-        weights[subset_indices] = candidate_weights
+        if max_assets is not None and np.sum(hrp_weights > 1e-4) > max_assets:
+            top_indices = np.argsort(hrp_weights)[-max_assets:]
+            filtered_weights = np.zeros(n_assets)
+            filtered_weights[top_indices] = hrp_weights[top_indices]
+            filtered_weights = filtered_weights / filtered_weights.sum()
+            hrp_weights = filtered_weights
 
-        if max_category_weight is not None and category_lookup:
-            category_weights: Dict[str, float] = {}
-            for idx, weight in zip(subset_indices, candidate_weights):
-                ticker = tickers[idx]
-                category = category_lookup.get(ticker, "その他")
-                category_weights[category] = category_weights.get(category, 0.0) + weight
-            if any(weight > max_category_weight for weight in category_weights.values()):
+        portfolio_return = float(np.dot(annual_returns.values, hrp_weights))
+        portfolio_volatility = float(np.sqrt(np.dot(hrp_weights, cov_matrix @ hrp_weights)))
+
+        if portfolio_volatility <= max_volatility and portfolio_volatility > 0:
+            sharpe = portfolio_return / portfolio_volatility
+            best_portfolio = hrp_weights
+            best_score = sharpe
+
+    if best_portfolio is None:
+        for _ in range(sample_size):
+            if subset_capacity < n_assets:
+                subset_size = np.random.randint(min_assets, subset_capacity + 1)
+                subset_indices = np.random.choice(n_assets, size=subset_size, replace=False)
+            else:
+                subset_indices = np.arange(n_assets)
+            candidate_weights = np.random.dirichlet(np.ones(len(subset_indices)))
+
+            if min_weight > 0 and np.any(candidate_weights < min_weight):
+                continue
+            if np.any(candidate_weights > max_weight):
                 continue
 
-        portfolio_return = float(np.dot(annual_returns.values, weights))
-        portfolio_volatility = float(np.sqrt(np.dot(weights, cov_matrix @ weights)))
+            weights = np.zeros(n_assets)
+            weights[subset_indices] = candidate_weights
 
-        if portfolio_volatility > max_volatility or portfolio_volatility == 0:
-            continue
+            if max_category_weight is not None and category_lookup:
+                category_weights: Dict[str, float] = {}
+                for idx, weight in zip(subset_indices, candidate_weights):
+                    ticker = tickers[idx]
+                    category = category_lookup.get(ticker, "その他")
+                    category_weights[category] = category_weights.get(category, 0.0) + weight
+                if any(weight > max_category_weight for weight in category_weights.values()):
+                    continue
 
-        sharpe = portfolio_return / portfolio_volatility if portfolio_volatility > 0 else 0
+            portfolio_return = float(np.dot(annual_returns.values, weights))
+            portfolio_volatility = float(np.sqrt(np.dot(weights, cov_matrix @ weights)))
 
-        candidate_expense = _portfolio_expense(weights, tickers, expense_lookup, default_expense)
+            if portfolio_volatility > max_volatility or portfolio_volatility == 0:
+                continue
 
-        if score_strategy:
-            strategy = score_strategy.lower()
-            if strategy == "min_variance":
-                score = -portfolio_volatility
-            elif strategy == "max_sharpe":
-                score = sharpe
-            elif strategy == "max_kelly":
-                if portfolio_volatility > 0:
-                    score = portfolio_return / (portfolio_volatility ** 2)
+            sharpe = portfolio_return / portfolio_volatility if portfolio_volatility > 0 else 0
+
+            candidate_expense = _portfolio_expense(weights, tickers, expense_lookup, default_expense)
+
+            if score_strategy:
+                strategy = score_strategy.lower()
+                if strategy == "min_variance":
+                    score = -portfolio_volatility
+                elif strategy == "max_sharpe":
+                    score = sharpe
+                elif strategy == "max_kelly":
+                    if portfolio_volatility > 0:
+                        score = portfolio_return / (portfolio_volatility ** 2)
+                    else:
+                        score = -np.inf
                 else:
                     score = -np.inf
             else:
-                score = -np.inf
-        else:
-            metric_inputs = {
-                "return": portfolio_return,
-                "volatility": -portfolio_volatility,
-                "sharpe": sharpe,
-            }
-            if candidate_expense is not None:
-                metric_inputs["expense"] = -candidate_expense
-            score = _weighted_metric_score(metric_inputs, objective_weights)
-            if score == 0 and portfolio_volatility > 0:
-                score = sharpe / portfolio_volatility
+                metric_inputs = {
+                    "return": portfolio_return,
+                    "volatility": -portfolio_volatility,
+                    "sharpe": sharpe,
+                }
+                if candidate_expense is not None:
+                    metric_inputs["expense"] = -candidate_expense
+                score = _weighted_metric_score(metric_inputs, objective_weights)
+                if score == 0 and portfolio_volatility > 0:
+                    score = sharpe / portfolio_volatility
 
-        if score > best_score:
-            best_score = score
-            best_portfolio = weights
+            if score > best_score:
+                best_score = score
+                best_portfolio = weights
 
     if best_portfolio is None:
         fallback_subset = min(subset_capacity, n_assets)

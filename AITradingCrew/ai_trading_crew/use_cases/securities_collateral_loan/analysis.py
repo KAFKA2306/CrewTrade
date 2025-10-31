@@ -266,6 +266,10 @@ class SecuritiesCollateralLoanAnalyzer:
 
         manual_result["asset_breakdown"] = asset_breakdown
 
+        portfolio_returns = manual_result["portfolio_value"].pct_change().dropna()
+        drawdown_validation = self._validate_portfolio_drawdown(portfolio_returns)
+        allocation_validation = self._validate_asset_allocation(asset_breakdown)
+
         prices_forward = data_payload.get("prices_forward")
         forward_test = None
         if isinstance(prices_forward, pd.DataFrame) and not prices_forward.empty:
@@ -297,6 +301,8 @@ class SecuritiesCollateralLoanAnalyzer:
                 "max_asset_drawdown": max_asset_drawdown,
             },
             "variant_portfolios": variant_portfolios,
+            "drawdown_validation": drawdown_validation,
+            "allocation_validation": allocation_validation,
         })
 
         if self.config.optimization and self.config.optimization.risk_policy:
@@ -542,4 +548,78 @@ class SecuritiesCollateralLoanAnalyzer:
                 "sharpe_ratio": sharpe_ratio,
                 "max_drawdown": max_drawdown,
             },
+        }
+
+    def _validate_portfolio_drawdown(self, portfolio_returns: pd.Series) -> Dict[str, object]:
+        cumulative = (1 + portfolio_returns).cumprod()
+        peak = cumulative.cummax()
+        drawdown = (cumulative - peak) / peak
+        max_drawdown = float(drawdown.min())
+
+        max_dd_constraint = self.config.optimization.constraints.get("max_portfolio_drawdown")
+        if max_dd_constraint is None:
+            return {"max_drawdown": max_drawdown, "constraint": None, "compliant": True}
+
+        compliant = abs(max_drawdown) <= max_dd_constraint
+        return {
+            "max_drawdown": max_drawdown,
+            "constraint": max_dd_constraint,
+            "compliant": compliant,
+            "breach_amount": abs(max_drawdown) - max_dd_constraint if not compliant else 0.0,
+        }
+
+    def _validate_asset_allocation(self, asset_breakdown: pd.DataFrame) -> Dict[str, object]:
+        allocation_config = self.config.optimization.constraints.get("asset_allocation")
+        if not allocation_config:
+            return {"compliant": True, "allocations": {}, "constraints": {}}
+
+        category_map = {
+            "債券": "bonds",
+            "金": "gold",
+            "ゴールド": "gold",
+            "コモディティ": "gold",
+            "株式": "equity",
+            "国内株式": "equity",
+            "海外株式": "equity",
+        }
+
+        allocations = {}
+        for allocation_key in allocation_config.keys():
+            allocations[allocation_key] = 0.0
+
+        if "category" in asset_breakdown.columns and "weight" in asset_breakdown.columns:
+            for _, row in asset_breakdown.iterrows():
+                category = str(row["category"]).strip() if pd.notna(row["category"]) else ""
+                weight = float(row["weight"]) if pd.notna(row["weight"]) else 0.0
+
+                allocation_key = category_map.get(category)
+                if allocation_key and allocation_key in allocations:
+                    allocations[allocation_key] += weight
+
+        violations = []
+        for allocation_key, current_weight in allocations.items():
+            constraint = allocation_config.get(allocation_key, {})
+            min_weight = constraint.get("min", 0.0)
+            max_weight = constraint.get("max", 1.0)
+
+            if current_weight < min_weight:
+                violations.append({
+                    "type": allocation_key,
+                    "current": current_weight,
+                    "constraint": f">= {min_weight}",
+                    "breach": min_weight - current_weight,
+                })
+            elif current_weight > max_weight:
+                violations.append({
+                    "type": allocation_key,
+                    "current": current_weight,
+                    "constraint": f"<= {max_weight}",
+                    "breach": current_weight - max_weight,
+                })
+
+        return {
+            "compliant": len(violations) == 0,
+            "allocations": allocations,
+            "constraints": allocation_config,
+            "violations": violations,
         }

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
@@ -21,7 +21,7 @@ class LoanScenario(BaseModel):
 class OptimizationProfile(BaseModel):
     name: str = Field(description="Identifier for the optimization profile.")
     objective_weights: Dict[str, float]
-    constraints_override: Dict[str, float] | None = None
+    constraints_override: Dict[str, Any] | None = None
     correlation_threshold: float | None = Field(default=None, gt=0, lt=1)
     max_universe_size: int | None = Field(default=None, ge=3)
     max_portfolio_size: int | None = Field(default=None, ge=1)
@@ -42,7 +42,7 @@ class OptimizationSettings(BaseModel):
     objective_weights: Dict[str, float] = Field(
         default_factory=lambda: {"sharpe": 0.6, "volatility": 0.4}
     )
-    constraints: Dict[str, float] = Field(
+    constraints: Dict[str, Any] = Field(
         default_factory=lambda: {
             "min_weight": 0.05,
             "max_weight": 0.35,

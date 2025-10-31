@@ -43,8 +43,23 @@ optimization:
     min_weight: 0.05
     max_weight: 0.2
     max_category_weight: 0.5
-    max_volatility: 0.15
-    max_asset_drawdown: 0.45
+    max_volatility: 0.12
+    max_asset_drawdown: 0.30
+    max_portfolio_drawdown: 0.25
+    asset_allocation:
+      bonds:
+        min: 0.15
+        max: 0.30
+      gold:
+        min: 0.15
+        max: 0.25
+      equity:
+        min: 0.40
+        max: 0.60
+    core_satellite:
+      core_weight: 0.60
+      satellite_weight: 0.40
+      core_rebalance_years: 2
   risk_policy:
     primary_metric: max_asset_drawdown
     description: >
