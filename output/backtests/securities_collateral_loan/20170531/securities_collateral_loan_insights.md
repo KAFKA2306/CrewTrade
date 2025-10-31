@@ -2,41 +2,41 @@
 
 ## Optimization Summary
 - Total ETFs evaluated: 41
-- ETFs with sufficient data: 25
-- Candidate universe after filtering: 17
-- Selected ETFs (max_sharpe): 9
-- Excluded 12 ETF(s) with volatility > 25.0%
-- Excluded 4 ETF(s) with drawdown worse than -30.0%
-- Portfolio annual return: 18.29%
-- Portfolio annual volatility: 14.04%
-- Portfolio Sharpe ratio: 1.303
-- Weighted expense ratio: 0.22%
+- ETFs with sufficient data: 27
+- Candidate universe after filtering: 18
+- Selected ETFs (max_sharpe): 6
+- Excluded 2 ETF(s) with volatility > 35.0%
+- Excluded 12 ETF(s) with drawdown worse than -35.0%
+- Portfolio annual return: 19.12%
+- Portfolio annual volatility: 14.44%
+- Portfolio Sharpe ratio: 1.325
+- Weighted expense ratio: 0.24%
 
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
-| max_sharpe | 18.29% | 14.04% | 1.303 | 0.22% | Yes |
-| low_volatility | 15.85% | 12.46% | 1.272 | 0.23% |  |
-| cost_focus | 17.99% | 13.62% | 1.321 | 0.23% |  |
+| max_sharpe | 19.12% | 14.44% | 1.325 | 0.24% | Yes |
+| low_volatility | 15.09% | 12.08% | 1.248 | 0.24% |  |
+| cost_focus | 17.05% | 13.27% | 1.285 | 0.25% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥18268612
-- Current loan ratio: 0.547
-- Buffer to 70%: 21.80% drop
-- Buffer to 85%: 35.60% drop
-- Max drawdown (history): -15.23%
+- Current collateral value: ¥18303676
+- Current loan ratio: 0.546
+- Buffer to 70%: 21.95% drop
+- Buffer to 85%: 35.72% drop
+- Max drawdown (history): -15.81%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥16,441,751 | 0.608 | No | No |
-| -20% | ¥14,614,890 | 0.684 | No | No |
-| -30% | ¥12,788,028 | 0.782 | Yes | No |
-| -40% | ¥10,961,167 | 0.912 | Yes | Yes |
+| -10% | ¥16,473,308 | 0.607 | No | No |
+| -20% | ¥14,642,941 | 0.683 | No | No |
+| -30% | ¥12,812,573 | 0.780 | Yes | No |
+| -40% | ¥10,982,206 | 0.911 | Yes | Yes |
 
 ## Historical Breach Counts
-- Margin call events: 527
-- Forced liquidation events: 192
+- Margin call events: 506
+- Forced liquidation events: 205
 
 ## Interest Projection (Simple)
 | Days | Interest (¥) |

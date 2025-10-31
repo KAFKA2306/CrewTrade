@@ -44,8 +44,8 @@ optimization:
     max_weight: 0.35
     max_category_weight: 0.5
     max_volatility: 0.15
-    max_asset_volatility: 0.25
-    max_asset_drawdown: 0.3
+    max_asset_volatility: 0.35
+    max_asset_drawdown: 0.35
   sample_size: 20000
   lookback: 5y
   history_window: 10y
