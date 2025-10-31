@@ -23,7 +23,7 @@ yahooquery/.git/
 
 # AITradingCrew
 AITradingCrew/resources/
-AITradingCrew/config/
+nohup.outAITradingCrew/config/
 
 # freqtrade
 freqtrade/user_data/
