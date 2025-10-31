@@ -255,6 +255,9 @@ class SecuritiesCollateralLoanAnalyzer:
             },
         })
 
+        if self.config.optimization and self.config.optimization.risk_policy:
+            manual_result["risk_policy"] = self.config.optimization.risk_policy.dict()
+
         if forward_test is not None:
             manual_result["forward_test"] = forward_test
 

@@ -35,6 +35,15 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
         if candidate_universe is not None and len(candidate_universe) > 0:
             lines.append(f"- Candidate universe after filtering: {len(candidate_universe)}")
 
+        risk_policy = analysis_payload.get("risk_policy") or {}
+        if risk_policy:
+            primary_metric = risk_policy.get("primary_metric", "N/A")
+            description = risk_policy.get("description")
+            bullet = f"- Risk gate metric: {primary_metric}"
+            if description:
+                bullet += f" — {description}"
+            lines.append(bullet)
+
         optimized_portfolio = analysis_payload.get("optimized_portfolio")
         if optimized_portfolio is not None:
             if primary_profile:

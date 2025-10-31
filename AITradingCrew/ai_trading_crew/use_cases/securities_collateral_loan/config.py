@@ -29,6 +29,14 @@ class OptimizationProfile(BaseModel):
     sample_size: int | None = Field(default=None, gt=0)
 
 
+class RiskPolicy(BaseModel):
+    primary_metric: str = Field(description="Metric used as the primary gate for asset inclusion.", min_length=1)
+    description: str | None = Field(
+        default=None,
+        description="Short note explaining how the metric governs inclusion/exclusion.",
+    )
+
+
 class OptimizationSettings(BaseModel):
     enabled: bool = Field(default=False)
     objective_weights: Dict[str, float] = Field(
@@ -40,7 +48,6 @@ class OptimizationSettings(BaseModel):
             "max_weight": 0.35,
             "max_category_weight": 0.50,
             "max_volatility": 0.15,
-            "max_asset_volatility": 0.35,
             "max_asset_drawdown": 0.35,
         }
     )
@@ -53,6 +60,7 @@ class OptimizationSettings(BaseModel):
     max_portfolio_size: int = Field(default=12, ge=3)
     min_assets: int = Field(default=5, ge=1)
     walkforward_years: int = Field(default=1, ge=1)
+    risk_policy: RiskPolicy | None = None
     profiles: Optional[List[OptimizationProfile]] = None
 
 

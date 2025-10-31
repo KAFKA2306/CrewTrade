@@ -215,7 +215,9 @@ class SecuritiesCollateralLoanReporter:
             ranked_etfs = analysis_payload.get("ranked_etfs")
             candidate_universe = analysis_payload.get("candidate_universe")
             optimization_profiles = analysis_payload.get("optimization_profiles", {})
+            profile_results = analysis_payload.get("optimization_profile_results", {})
             etf_master = analysis_payload.get("etf_master")
+            filter_thresholds = analysis_payload.get("asset_filter_thresholds") or {}
 
             lines.append("## Optimization Summary")
             if isinstance(etf_master, pd.DataFrame):
@@ -223,9 +225,10 @@ class SecuritiesCollateralLoanReporter:
             if isinstance(ranked_etfs, pd.DataFrame):
                 lines.append(f"- ETFs with sufficient data: {len(ranked_etfs)}")
             if isinstance(candidate_universe, pd.DataFrame):
+                corr_threshold = self.config.optimization.correlation_threshold if self.config.optimization else 0.0
                 lines.append(
                     f"- Candidate universe after correlation filter: {len(candidate_universe)} "
-                    f"(threshold {self.config.optimization.correlation_threshold:.2f})"
+                    f"(threshold {corr_threshold:.2f})"
                 )
             hedged_excluded = analysis_payload.get("hedged_excluded") or []
             if hedged_excluded:
@@ -240,7 +243,9 @@ class SecuritiesCollateralLoanReporter:
                 excluded_items = ", ".join(
                     f"{item.get('ticker')}({(item.get('name') or '')[:15]})" for item in volatility_excluded
                 )
-                threshold_note = f" (> {max_asset_volatility * 100:.1f}% annualized volatility)" if max_asset_volatility is not None else ""
+                threshold_note = ""
+                if max_asset_volatility is not None:
+                    threshold_note = f" (> {max_asset_volatility * 100:.1f}% annualized volatility)"
                 lines.append(f"- Excluded high-volatility ETFs{threshold_note}: {excluded_items}")
             max_asset_drawdown = constraints.get("max_asset_drawdown") if constraints else None
             drawdown_excluded = analysis_payload.get("drawdown_excluded") or []
@@ -254,6 +259,129 @@ class SecuritiesCollateralLoanReporter:
                 lines.append(f"- Excluded deep-drawdown ETFs{threshold_note}: {excluded_items}")
             if primary_profile:
                 lines.append(f"- Selected profile: {primary_profile}")
+
+            if profile_results:
+                variant_rows: List[Dict[str, object]] = []
+                for name, result in profile_results.items():
+                    metrics = result.get("metrics") if isinstance(result, dict) else None
+                    if not isinstance(metrics, dict):
+                        continue
+                    ann_return = metrics.get("annual_return")
+                    ann_vol = metrics.get("annual_volatility")
+                    sharpe_val = metrics.get("sharpe_ratio")
+                    if ann_vol and ann_vol > 0:
+                        kelly_val = ann_return / (ann_vol ** 2) if ann_return is not None else None
+                    else:
+                        kelly_val = None
+                    variant_rows.append(
+                        {
+                            "profile": name,
+                            "annual_return": ann_return,
+                            "annual_volatility": ann_vol,
+                            "sharpe": sharpe_val,
+                            "kelly": kelly_val,
+                            "portfolio": result.get("portfolio") if isinstance(result.get("portfolio"), pd.DataFrame) else None,
+                        }
+                    )
+
+                def _select_variant(rows: List[Dict[str, object]], key: str, reverse: bool = True) -> Dict[str, object] | None:
+                    valid = [row for row in rows if row.get(key) is not None]
+                    if not valid:
+                        return None
+                    return sorted(valid, key=lambda row: row[key], reverse=reverse)[0]
+
+                variant_definitions = [
+                    ("Max Sharpe Portfolio", _select_variant(variant_rows, "sharpe", True)),
+                    ("Minimum-Variance Portfolio", _select_variant(variant_rows, "annual_volatility", False)),
+                    ("Max Kelly Criterion Portfolio", _select_variant(variant_rows, "kelly", True)),
+                ]
+
+                table_rows: List[str] = []
+                holdings_blocks: List[str] = []
+
+                def _fmt_pct(value: float | None) -> str:
+                    return f"{value * 100:.2f}%" if value is not None else "N/A"
+
+                def _fmt_ratio(value: float | None) -> str:
+                    return f"{value:.3f}" if value is not None else "N/A"
+
+                for label, variant in variant_definitions:
+                    if variant is None:
+                        continue
+                    table_rows.append(
+                        f"| {label} | {variant['profile']} | "
+                        f"{_fmt_pct(variant.get('annual_return'))} | "
+                        f"{_fmt_pct(variant.get('annual_volatility'))} | "
+                        f"{_fmt_ratio(variant.get('sharpe'))} | "
+                        f"{_fmt_ratio(variant.get('kelly'))} |"
+                    )
+
+                    portfolio_df = variant.get("portfolio")
+                    if isinstance(portfolio_df, pd.DataFrame) and not portfolio_df.empty:
+                        formatted_rows: List[str] = []
+                        formatted_rows.append("| Ticker | Weight | Weight (Realized) | Quantity | Price | Name |")
+                        formatted_rows.append("| --- | --- | --- | --- | --- | --- |")
+                        for _, row in portfolio_df.iterrows():
+                            ticker = row.get("ticker", "")
+                            weight = row.get("weight", 0.0) or 0.0
+                            realized = row.get("weight_realized", weight)
+                            qty = row.get("quantity")
+                            price = row.get("latest_price")
+                            name_value = row.get("name") or row.get("description") or ""
+                            qty_display = f"{int(qty)}" if pd.notna(qty) else "N/A"
+                            price_display = f"¥{price:,.0f}" if pd.notna(price) else "N/A"
+                            formatted_rows.append(
+                                f"| {ticker} | {weight * 100:.2f}% | {realized * 100:.2f}% | {qty_display} | {price_display} | {name_value} |"
+                            )
+                        if formatted_rows:
+                            header = f"**{label} Holdings ({variant['profile']})**"
+                            holdings_blocks.append(header)
+                            holdings_blocks.extend(formatted_rows)
+                            holdings_blocks.append("")
+
+                if table_rows:
+                    lines.append("")
+                    lines.append("### Portfolio Variants")
+                    lines.append("| Variant | Source Profile | Annual Return | Annual Volatility | Sharpe | Kelly (r/σ²) |")
+                    lines.append("| --- | --- | --- | --- | --- | --- |")
+                    lines.extend(table_rows)
+                    lines.append("")
+                    if holdings_blocks:
+                        lines.extend(holdings_blocks)
+
+            if hedged_excluded or volatility_excluded or drawdown_excluded:
+                lines.append("### Filter Diagnostics")
+                threshold_notes: List[str] = []
+                max_vol_threshold = filter_thresholds.get("max_asset_volatility")
+                max_dd_threshold = filter_thresholds.get("max_asset_drawdown")
+                if max_vol_threshold is not None:
+                    threshold_notes.append(f"max volatility ≤ {max_vol_threshold * 100:.1f}%")
+                if max_dd_threshold is not None:
+                    threshold_notes.append(f"max drawdown ≥ -{max_dd_threshold * 100:.1f}%")
+                if threshold_notes:
+                    lines.append(f"- Applied Asset Filters: {', '.join(threshold_notes)}")
+                if hedged_excluded:
+                    lines.append("")
+                    lines.append("**Removed for currency hedging**")
+                    lines.append("| Ticker | Name |")
+                    lines.append("| --- | --- |")
+                    for item in hedged_excluded:
+                        lines.append(f"| {item.get('ticker','')} | {item.get('name','')} |")
+                if volatility_excluded:
+                    lines.append("")
+                    lines.append("**Removed for excess volatility**")
+                    lines.append("| Ticker | Name |")
+                    lines.append("| --- | --- |")
+                    for item in volatility_excluded:
+                        lines.append(f"| {item.get('ticker','')} | {item.get('name','')} |")
+                if drawdown_excluded:
+                    lines.append("")
+                    lines.append("**Removed for deep drawdown**")
+                    lines.append("| Ticker | Name |")
+                    lines.append("| --- | --- |")
+                    for item in drawdown_excluded:
+                        lines.append(f"| {item.get('ticker','')} | {item.get('name','')} |")
+                lines.append("")
 
             opt_metrics = analysis_payload.get("optimization_metrics") or {}
             if opt_metrics:
