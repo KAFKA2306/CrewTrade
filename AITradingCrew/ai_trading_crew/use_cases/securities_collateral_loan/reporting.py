@@ -65,19 +65,48 @@ class SecuritiesCollateralLoanReporter:
         mode = analysis_payload.get("mode", "manual")
         if mode == "optimization":
             risk_metrics = analysis_payload.get("risk_metrics")
-            if risk_metrics is not None:
+            if isinstance(risk_metrics, pd.DataFrame):
                 risk_path = self.processed_dir / "etf_risk_metrics.parquet"
                 risk_metrics.to_parquet(risk_path)
                 stored_paths["etf_risk_metrics"] = risk_path
 
-            optimized_portfolio = analysis_payload.get("optimized_portfolio")
-            if optimized_portfolio is not None:
-                opt_path = self.processed_dir / "optimized_portfolio.parquet"
-                optimized_portfolio.to_parquet(opt_path)
-                stored_paths["optimized_portfolio"] = opt_path
+            candidate_universe = analysis_payload.get("candidate_universe")
+            if isinstance(candidate_universe, pd.DataFrame):
+                candidate_path = self.processed_dir / "candidate_universe.parquet"
+                candidate_universe.to_parquet(candidate_path)
+                stored_paths["candidate_universe"] = candidate_path
+
+            profile_results = analysis_payload.get("optimization_profile_results", {})
+            primary_profile = analysis_payload.get("primary_profile")
+            profile_paths: Dict[str, Path] = {}
+            for name, result in profile_results.items():
+                portfolio = result.get("portfolio") if isinstance(result, dict) else None
+                if isinstance(portfolio, pd.DataFrame):
+                    path = self.processed_dir / f"optimized_portfolio_{name}.parquet"
+                    portfolio.to_parquet(path)
+                    stored_paths[f"optimized_portfolio_{name}"] = path
+                    profile_paths[name] = path
+
+            if primary_profile and primary_profile in profile_paths:
+                stored_paths["optimized_portfolio"] = profile_paths[primary_profile]
+            else:
+                optimized_portfolio = analysis_payload.get("optimized_portfolio")
+                if isinstance(optimized_portfolio, pd.DataFrame):
+                    opt_path = self.processed_dir / "optimized_portfolio.parquet"
+                    optimized_portfolio.to_parquet(opt_path)
+                    stored_paths["optimized_portfolio"] = opt_path
 
         report_path = self.report_dir / "securities_collateral_loan_report.md"
-        report_path.write_text(self._build_report(summary, asset_breakdown, scenarios, warning_events, liquidation_events, analysis_payload))
+        report_path.write_text(
+            self._build_report(
+                summary,
+                asset_breakdown,
+                scenarios,
+                warning_events,
+                liquidation_events,
+                analysis_payload,
+            )
+        )
         stored_paths["report"] = report_path
 
         insight_path = self.report_dir / "securities_collateral_loan_insights.md"
@@ -121,38 +150,161 @@ class SecuritiesCollateralLoanReporter:
         lines.append("")
 
         if mode == "optimization" and analysis_payload:
-            opt_metrics = analysis_payload.get("optimization_metrics")
+            primary_profile = analysis_payload.get("primary_profile")
             ranked_etfs = analysis_payload.get("ranked_etfs")
+            candidate_universe = analysis_payload.get("candidate_universe")
+            optimization_profiles = analysis_payload.get("optimization_profiles", {})
+            etf_master = analysis_payload.get("etf_master")
 
+            lines.append("## Optimization Summary")
+            if isinstance(etf_master, pd.DataFrame):
+                lines.append(f"- Total ETFs evaluated: {len(etf_master)}")
+            if isinstance(ranked_etfs, pd.DataFrame):
+                lines.append(f"- ETFs with sufficient data: {len(ranked_etfs)}")
+            if isinstance(candidate_universe, pd.DataFrame):
+                lines.append(
+                    f"- Candidate universe after correlation filter: {len(candidate_universe)} "
+                    f"(threshold {self.config.optimization.correlation_threshold:.2f})"
+                )
+            hedged_excluded = analysis_payload.get("hedged_excluded") or []
+            if hedged_excluded:
+                excluded_items = ", ".join(
+                    f"{item.get('ticker')}({(item.get('name') or '')[:15]})" for item in hedged_excluded
+                )
+                lines.append(f"- Excluded hedged ETFs: {excluded_items}")
+            if primary_profile:
+                lines.append(f"- Selected profile: {primary_profile}")
+
+            opt_metrics = analysis_payload.get("optimization_metrics") or {}
             if opt_metrics:
-                lines.append("## Portfolio Optimization Results")
-                lines.append(f"- Annual return: {opt_metrics.get('annual_return', 0) * 100:.2f}%")
-                lines.append(f"- Annual volatility: {opt_metrics.get('annual_volatility', 0) * 100:.2f}%")
-                lines.append(f"- Sharpe ratio: {opt_metrics.get('sharpe_ratio', 0):.3f}")
-                lines.append(f"- Composite score: {opt_metrics.get('composite_score', 0):.3f}")
+                metrics_parts = [
+                    f"return {opt_metrics.get('annual_return', 0) * 100:.2f}%",
+                    f"volatility {opt_metrics.get('annual_volatility', 0) * 100:.2f}%",
+                    f"Sharpe {opt_metrics.get('sharpe_ratio', 0):.3f}",
+                ]
+                if opt_metrics.get("expense_ratio") is not None:
+                    metrics_parts.append(f"expense {opt_metrics['expense_ratio'] * 100:.2f}%")
+                lines.append(f"- Selected portfolio metrics: {', '.join(metrics_parts)}")
+                lines.append("")
+                lines.append("### Portfolio Metrics (Annualized)")
+                lines.append("| Metric | Value |")
+                lines.append("| --- | --- |")
+                lines.append(f"| Annual Return | {opt_metrics.get('annual_return', 0) * 100:.2f}% |")
+                lines.append(f"| Annual Volatility | {opt_metrics.get('annual_volatility', 0) * 100:.2f}% |")
+                lines.append(f"| Sharpe Ratio | {opt_metrics.get('sharpe_ratio', 0):.3f} |")
+                expense_value = opt_metrics.get("expense_ratio")
+                if expense_value is not None:
+                    lines.append(f"| Weighted Expense Ratio | {expense_value * 100:.2f}% |")
+                lines.append("")
+            lines.append("")
+
+            if optimization_profiles:
+                lines.append("### Profile Metrics")
+                lines.append("| Profile | Annual Return | Volatility | Sharpe | Expense Ratio | Selected |")
+                lines.append("| --- | --- | --- | --- | --- | --- |")
+                for name, metrics in optimization_profiles.items():
+                    if not metrics:
+                        continue
+                    expense_ratio = metrics.get("expense_ratio")
+                    expense_display = f"{expense_ratio * 100:.2f}%" if expense_ratio is not None else "N/A"
+                    lines.append(
+                        f"| {name} | {metrics.get('annual_return', 0) * 100:.2f}% | "
+                        f"{metrics.get('annual_volatility', 0) * 100:.2f}% | "
+                        f"{metrics.get('sharpe_ratio', 0):.3f} | {expense_display} | "
+                        f"{'Yes' if name == primary_profile else ''} |"
+                    )
                 lines.append("")
 
-            if ranked_etfs is not None and len(ranked_etfs) > 0:
-                lines.append("## Top 10 ETFs by Composite Score")
-                lines.append("| Rank | Ticker | Name | Return | Volatility | Sharpe | Score |")
-                lines.append("| --- | --- | --- | --- | --- | --- | --- |")
+            if isinstance(ranked_etfs, pd.DataFrame) and not ranked_etfs.empty:
+                lines.append("### Top 10 ETFs by Composite Score")
+                lines.append("| Rank | Ticker | Name | Return | Volatility | Sharpe | Expense | Score |")
+                lines.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
                 for i, (_, row) in enumerate(ranked_etfs.head(10).iterrows(), 1):
+                    expense = row.get("expense_ratio")
+                    expense_display = f"{expense * 100:.2f}%" if expense is not None and not pd.isna(expense) else "N/A"
                     lines.append(
                         f"| {i} | {row['ticker']} | {row.get('name', '')[:30]} | "
                         f"{row['annual_return'] * 100:.2f}% | {row['annual_volatility'] * 100:.2f}% | "
-                        f"{row['sharpe_ratio']:.3f} | {row['composite_score']:.3f} |"
+                        f"{row['sharpe_ratio']:.3f} | {expense_display} | {row['composite_score']:.3f} |"
                     )
                 lines.append("")
 
         lines.append("## Collateral Breakdown")
-        lines.append("| Ticker | Description | Quantity | Price | Market Value |")
-        lines.append("| --- | --- | --- | --- | --- |")
-        for _, row in asset_breakdown.iterrows():
-            lines.append(
-                f"| {row['ticker']} | {row['description']} | {row['quantity']:.0f} | "
-                f"¥{row['latest_price']:.2f} | ¥{row['market_value']:.0f} |"
+        asset_breakdown_sorted = asset_breakdown.sort_values("market_value", ascending=False)
+
+        if mode == "optimization" and "category" in asset_breakdown.columns:
+            category_summary = asset_breakdown.groupby("category").agg(
+                market_value=("market_value", "sum"),
+                count=("ticker", "count"),
             )
+            category_summary["weight"] = category_summary["market_value"] / category_summary["market_value"].sum()
+            category_summary = category_summary.sort_values("market_value", ascending=False)
+
+            lines.append("### By Category")
+            lines.append("| Category | ETF Count | Market Value | Weight |")
+            lines.append("| --- | --- | --- | --- |")
+            for cat, row in category_summary.iterrows():
+                lines.append(
+                    f"| {cat} | {int(row['count'])} | ¥{row['market_value']:,.0f} | {row['weight']*100:.1f}% |"
+                )
+            lines.append("")
+
+            lines.append(f"### Top Holdings (out of {len(asset_breakdown)} ETFs)")
+
+        lines.append("| Ticker | Name | Quantity | Price | Market Value | Weight | Expense | Return | Volatility | Sharpe |")
+        lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+
+        display_count = min(20, len(asset_breakdown_sorted))
+        for _, row in asset_breakdown_sorted.head(display_count).iterrows():
+            weight = row.get("weight_realized", row.get("weight"))
+            weight_display = f"{weight * 100:.1f}%" if weight is not None and not pd.isna(weight) else "N/A"
+            expense = row.get("expense_ratio")
+            expense_display = f"{expense * 100:.2f}%" if expense is not None and not pd.isna(expense) else "N/A"
+            name = row.get("description") or row.get("name") or ""
+            ret = row.get("annual_return")
+            ret_display = f"{ret * 100:.2f}%" if ret is not None and not pd.isna(ret) else "N/A"
+            vol = row.get("annual_volatility")
+            vol_display = f"{vol * 100:.2f}%" if vol is not None and not pd.isna(vol) else "N/A"
+            sharpe = row.get("sharpe_ratio")
+            sharpe_display = f"{sharpe:.3f}" if sharpe is not None and not pd.isna(sharpe) else "N/A"
+            lines.append(
+                f"| {row['ticker']} | {name[:40]} | {row['quantity']:.0f} | "
+                f"¥{row['latest_price']:.2f} | ¥{row['market_value']:.0f} | "
+                f"{weight_display} | {expense_display} | {ret_display} | {vol_display} | {sharpe_display} |"
+            )
+
+        total_value = asset_breakdown["market_value"].sum()
         lines.append("")
+        lines.append(f"*Total: {len(asset_breakdown)} ETFs, Portfolio value: ¥{total_value:,.0f}*")
+        lines.append("")
+
+        annual_asset_returns = analysis_payload.get("annual_asset_returns") or []
+        if annual_asset_returns:
+            lines.append("### Annual Performance by ETF")
+            lines.append("| Year | Ticker | Name | Return | Volatility | Sharpe |")
+            lines.append("| --- | --- | --- | --- | --- | --- |")
+            for row in annual_asset_returns:
+                ret_display = f"{row['annual_return'] * 100:.2f}%"
+                vol_display = f"{row['annual_volatility'] * 100:.2f}%" if row["annual_volatility"] is not None else "N/A"
+                sharpe_value = row.get("sharpe_ratio")
+                sharpe_display = f"{sharpe_value:.3f}" if sharpe_value is not None else "N/A"
+                lines.append(
+                    f"| {row['year']} | {row['ticker']} | {row.get('name', '')[:40]} | {ret_display} | {vol_display} | {sharpe_display} |"
+                )
+            lines.append("")
+
+        annual_portfolio_returns = analysis_payload.get("annual_portfolio_returns") or []
+        if annual_portfolio_returns:
+            lines.append("### Annual Portfolio Performance")
+            lines.append("| Year | Return | Volatility | Sharpe |")
+            lines.append("| --- | --- | --- | --- |")
+            for row in annual_portfolio_returns:
+                ret_display = f"{row['annual_return'] * 100:.2f}%"
+                vol_display = f"{row['annual_volatility'] * 100:.2f}%" if row["annual_volatility"] is not None else "N/A"
+                sharpe_value = row.get("sharpe_ratio")
+                sharpe_display = f"{sharpe_value:.3f}" if sharpe_value is not None else "N/A"
+                lines.append(f"| {row['year']} | {ret_display} | {vol_display} | {sharpe_display} |")
+            lines.append("")
 
         lines.append("## Interest Projection")
         lines.append("| Days | Interest (¥) |")
@@ -173,30 +325,31 @@ class SecuritiesCollateralLoanReporter:
             )
         lines.append("")
 
-        lines.append("## Historical Breaches")
-        if warning_events.empty and liquidation_events.empty:
-            lines.append("No historical instances exceeded Rakuten Securities thresholds within the observation window.")
-        else:
-            if not warning_events.empty:
-                lines.append("### Margin Call Alerts (>= 70%)")
+        if len(warning_events) > 0 or len(liquidation_events) > 0:
+            lines.append("## Historical Breaches")
+            if len(warning_events) > 0:
+                lines.append("### Margin Call Summary (>= 70%)")
+                lines.append(f"- Total events: {len(warning_events)} days")
+                lines.append(f"- First breach: {warning_events['date'].min().date()}")
+                lines.append(f"- Last breach: {warning_events['date'].max().date()}")
+                lines.append(f"- Max ratio: {warning_events['loan_ratio'].max():.3f}")
+                lines.append("")
+                lines.append("**First 5 events:**")
                 lines.append("| Date | Loan Ratio |")
                 lines.append("| --- | --- |")
-                for _, row in warning_events.iterrows():
+                for _, row in warning_events.head(5).iterrows():
                     lines.append(f"| {row['date'].date()} | {row['loan_ratio']:.3f} |")
                 lines.append("")
-            if not liquidation_events.empty:
-                lines.append("### Forced Liquidation Events (>= 85%)")
+                lines.append("**Last 5 events:**")
                 lines.append("| Date | Loan Ratio |")
                 lines.append("| --- | --- |")
-                for _, row in liquidation_events.iterrows():
+                for _, row in warning_events.tail(5).iterrows():
                     lines.append(f"| {row['date'].date()} | {row['loan_ratio']:.3f} |")
                 lines.append("")
 
-        lines.append("## Notes")
-        lines.append("- Loan ratio is calculated as outstanding balance divided by collateral market value.")
-        lines.append("- Rakuten Securities/Rakuten Bank requires top-up within 2 business days once the ratio reaches 70%, and may liquidate collateral immediately at 85%+.")
-        lines.append("- Borrowing limit is capped at approximately 60% of collateral value; ensure new acquisitions keep the loan ratio below 0.60 after execution.")
-        lines.append("- Interest is estimated on a simple basis and excludes taxes or transaction costs.")
-        lines.append("")
+            if len(liquidation_events) > 0:
+                lines.append("### Forced Liquidation Summary (>= 85%)")
+                lines.append(f"- Total events: {len(liquidation_events)} days")
+                lines.append("")
 
         return "\n".join(lines)

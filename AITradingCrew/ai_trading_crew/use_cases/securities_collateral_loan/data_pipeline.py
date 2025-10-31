@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
 import pandas as pd
 
-from ai_trading_crew.use_cases.data_clients import YFinanceEquityDataClient, ToushinKyokaiDataClient
+from ai_trading_crew.use_cases.data_clients import (
+    JPXETFExpenseRatioClient,
+    ToushinKyokaiDataClient,
+    YFinanceEquityDataClient,
+)
 from ai_trading_crew.use_cases.securities_collateral_loan.config import SecuritiesCollateralLoanConfig
 
 
@@ -15,6 +18,7 @@ class SecuritiesCollateralLoanDataPipeline:
         self.config = config
         self.client = YFinanceEquityDataClient(raw_data_dir)
         self.toushin_client = ToushinKyokaiDataClient(raw_data_dir)
+        self.expense_client = JPXETFExpenseRatioClient(raw_data_dir)
 
     def collect(self) -> Dict[str, pd.DataFrame]:
         if self.config.optimization and self.config.optimization.enabled:
@@ -37,7 +41,13 @@ class SecuritiesCollateralLoanDataPipeline:
         prices = self._combine_close(frames)
 
         valid_tickers = prices.columns.tolist()
-        etf_master_filtered = etf_master[etf_master["ticker"].isin(valid_tickers)]
+        etf_master_filtered = etf_master[etf_master["ticker"].isin(valid_tickers)].copy()
+
+        expense_ratios = self.expense_client.get_expense_ratios()
+        if not expense_ratios.empty:
+            etf_master_filtered = etf_master_filtered.merge(expense_ratios, on="ticker", how="left")
+        else:
+            etf_master_filtered["expense_ratio"] = None
 
         return {
             "mode": "optimization",

@@ -35,7 +35,7 @@ interest_horizons_days:
   - 90
   - 180
 optimization:
-  enabled: false
+  enabled: true
   objective_weights:
     sharpe: 0.6
     volatility: 0.4
@@ -46,3 +46,32 @@ optimization:
     max_volatility: 0.12
   sample_size: 20000
   lookback: 3y
+  profiles:
+    - name: max_sharpe
+      objective_weights:
+        sharpe: 1.0
+        volatility: 0.0
+      correlation_threshold: 0.92
+      max_portfolio_size: 14
+      min_assets: 6
+    - name: low_volatility
+      objective_weights:
+        sharpe: 0.2
+        volatility: 0.8
+      correlation_threshold: 0.85
+      max_portfolio_size: 8
+      min_assets: 5
+      constraints_override:
+        max_weight: 0.28
+        min_weight: 0.04
+    - name: cost_focus
+      objective_weights:
+        sharpe: 0.5
+        volatility: 0.2
+        expense: 0.3
+      correlation_threshold: 0.9
+      max_portfolio_size: 10
+      min_assets: 6
+      constraints_override:
+        max_weight: 0.22
+        min_weight: 0.03

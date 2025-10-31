@@ -7,9 +7,10 @@ import numpy as np
 import pandas as pd
 
 from ai_trading_crew.use_cases.securities_collateral_loan.config import (
-    LoanScenario,
-    SecuritiesCollateralLoanConfig,
     CollateralAsset,
+    LoanScenario,
+    OptimizationProfile,
+    SecuritiesCollateralLoanConfig,
 )
 from ai_trading_crew.use_cases.securities_collateral_loan import etf_screening, optimizer
 
@@ -42,32 +43,158 @@ class SecuritiesCollateralLoanAnalyzer:
         risk_metrics = etf_screening.compute_risk_metrics(prices, etf_master)
         correlation_matrix = etf_screening.compute_correlation_matrix(prices)
 
+        def _is_hedged_label(value: str) -> bool:
+            text = (value or "").strip()
+            if not text:
+                return False
+            text_lower = text.lower()
+            if "hedged" in text_lower and "unhedged" not in text_lower and "hedge-free" not in text_lower:
+                return True
+            if "ヘッジ" in text:
+                if any(keyword in text for keyword in ("ヘッジなし", "ヘッジ無し", "ヘッジ無", "ノーヘッジ")):
+                    return False
+                return True
+            return False
+
+        hedged_mask = pd.Series(False, index=etf_master.index)
+        for column in ("name", "description"):
+            if column in etf_master.columns:
+                hedged_mask = hedged_mask | etf_master[column].fillna("").apply(_is_hedged_label)
+        hedged_tickers = set(etf_master.loc[hedged_mask, "ticker"].tolist())
+
+        hedged_assets: List[Dict[str, str]] = []
+        if hedged_tickers:
+            risk_metrics = risk_metrics[~risk_metrics["ticker"].isin(hedged_tickers)]
+            correlation_matrix = correlation_matrix.drop(index=list(hedged_tickers), columns=list(hedged_tickers), errors="ignore")
+            hedged_assets = (
+                etf_master.loc[etf_master["ticker"].isin(hedged_tickers), ["ticker", "name"]]
+                .drop_duplicates(subset=["ticker"])
+                .to_dict("records")
+            )
+
+        if risk_metrics.empty:
+            raise ValueError("No ETFs remain after removing hedged products. Adjust filters or allow hedged ETFs.")
+
         objective_weights = self.config.optimization.objective_weights
         constraints = self.config.optimization.constraints
         sample_size = self.config.optimization.sample_size
+        base_correlation_threshold = self.config.optimization.correlation_threshold
+        base_universe_cap = self.config.optimization.max_universe_size
+        base_portfolio_cap = self.config.optimization.max_portfolio_size
+        base_min_assets = min(self.config.optimization.min_assets, len(prices.columns))
+        base_min_assets = max(base_min_assets, 3)
 
         ranked_etfs = etf_screening.rank_etfs(risk_metrics, objective_weights)
 
-        optimized = optimizer.optimize_collateral_portfolio(
-            prices,
-            etf_master,
-            objective_weights,
-            constraints,
-            sample_size,
-            target_value=self.config.loan_amount / self.config.ltv_limit,
-        )
+        profile_configs: List[OptimizationProfile]
+        if self.config.optimization.profiles:
+            profile_configs = self.config.optimization.profiles
+        else:
+            profile_configs = [
+                OptimizationProfile(name="max_sharpe", objective_weights={"sharpe": 1.0, "volatility": 0.0}),
+                OptimizationProfile(name="balanced", objective_weights=objective_weights),
+                OptimizationProfile(name="min_volatility", objective_weights={"sharpe": 0.0, "volatility": 1.0}),
+            ]
 
+        profile_results: Dict[str, Dict[str, object]] = {}
+        target_value = self.config.loan_amount / self.config.ltv_limit
+
+        for profile in profile_configs:
+            profile_corr_threshold = profile.correlation_threshold or base_correlation_threshold
+            profile_universe_cap = profile.max_universe_size or base_universe_cap
+
+            candidate_universe = etf_screening.select_candidate_universe(
+                ranked_etfs,
+                correlation_matrix,
+                profile_corr_threshold,
+                max_assets=profile_universe_cap,
+            )
+
+            if candidate_universe.empty:
+                profile_results[profile.name] = {"error": "No ETFs after correlation filtering."}
+                continue
+
+            candidate_tickers = candidate_universe["ticker"].tolist()
+            prices_subset = prices[candidate_tickers]
+            metadata_subset = etf_master[etf_master["ticker"].isin(candidate_tickers)].copy()
+
+            try:
+                profile_constraints = constraints.copy()
+                if profile.constraints_override:
+                    profile_constraints.update(profile.constraints_override)
+
+                profile_portfolio_cap = profile.max_portfolio_size or base_portfolio_cap
+                profile_min_assets = profile.min_assets or base_min_assets
+                profile_min_assets = min(profile_min_assets, len(candidate_tickers))
+                profile_min_assets = max(profile_min_assets, 3)
+
+                result = optimizer.optimize_collateral_portfolio(
+                    prices_subset,
+                    metadata_subset,
+                    profile.objective_weights,
+                    profile_constraints,
+                    profile.sample_size or sample_size,
+                    target_value=target_value,
+                    max_assets=profile_portfolio_cap,
+                    min_assets=profile_min_assets,
+                )
+                result["candidate_universe"] = candidate_universe
+                result["metadata_subset"] = metadata_subset
+                result["correlation_threshold"] = profile_corr_threshold
+                result["max_universe_size"] = profile_universe_cap
+                profile_results[profile.name] = result
+            except Exception as exc:
+                profile_results[profile.name] = {
+                    "error": str(exc),
+                    "candidate_universe": candidate_universe,
+                    "metadata_subset": metadata_subset,
+                }
+
+        primary_profile_name = None
+        for profile in profile_configs:
+            result = profile_results.get(profile.name)
+            if result and "portfolio" in result:
+                primary_profile_name = profile.name
+                break
+        if primary_profile_name is None:
+            raise RuntimeError("Optimization failed for all configured profiles.")
+
+        optimized = profile_results[primary_profile_name]
         optimized_portfolio = optimized["portfolio"]
         self.config.collateral_assets = [
             CollateralAsset(
                 ticker=row["ticker"],
                 quantity=row["quantity"],
-                description=row.get("name", ""),
+                description=row.get("name") or row.get("description") or "",
             )
             for _, row in optimized_portfolio.iterrows()
         ]
 
-        manual_result = self._evaluate_manual_mode({"prices": prices})
+        selected_prices = prices[optimized_portfolio["ticker"].tolist()]
+        manual_result = self._evaluate_manual_mode({"prices": selected_prices})
+
+        asset_breakdown = manual_result["asset_breakdown"]
+        metadata_subset_primary = optimized.get("metadata_subset", etf_master)
+        merge_cols = [col for col in ["ticker", "category", "expense_ratio", "name", "provider"] if col in metadata_subset_primary.columns]
+        if merge_cols:
+            enriched = metadata_subset_primary[merge_cols].drop_duplicates(subset=["ticker"])
+            asset_breakdown = asset_breakdown.merge(enriched, on="ticker", how="left")
+            asset_breakdown["description"] = asset_breakdown["name"].fillna(asset_breakdown["description"])
+        portfolio_merge_cols = [col for col in ["ticker", "weight", "weight_realized"] if col in optimized_portfolio.columns]
+        if portfolio_merge_cols:
+            asset_breakdown = asset_breakdown.merge(optimized_portfolio[portfolio_merge_cols], on="ticker", how="left")
+        asset_breakdown["category"] = asset_breakdown["category"].fillna("その他")
+
+        risk_merge_cols = [col for col in ["ticker", "annual_return", "annual_volatility", "sharpe_ratio"] if col in risk_metrics.columns]
+        if risk_merge_cols:
+            risk_enriched = (
+                risk_metrics[risk_metrics["ticker"].isin(asset_breakdown["ticker"])]
+                [risk_merge_cols]
+                .drop_duplicates(subset=["ticker"])
+            )
+            asset_breakdown = asset_breakdown.merge(risk_enriched, on="ticker", how="left")
+
+        manual_result["asset_breakdown"] = asset_breakdown
 
         manual_result.update({
             "mode": "optimization",
@@ -77,6 +204,17 @@ class SecuritiesCollateralLoanAnalyzer:
             "correlation_matrix": correlation_matrix,
             "optimized_portfolio": optimized_portfolio,
             "optimization_metrics": optimized["metrics"],
+            "optimization_profiles": {
+                name: result.get("metrics")
+                for name, result in profile_results.items()
+                if "metrics" in result
+            },
+            "optimization_profile_results": profile_results,
+            "primary_profile": primary_profile_name,
+            "candidate_universe": optimized.get("candidate_universe"),
+            "annual_asset_returns": self._compute_annual_asset_returns(selected_prices, asset_breakdown),
+            "annual_portfolio_returns": self._compute_annual_portfolio_returns(manual_result["portfolio_value"]),
+            "hedged_excluded": hedged_assets,
         })
 
         return manual_result
@@ -205,3 +343,64 @@ class SecuritiesCollateralLoanAnalyzer:
             return None
         cushion = 1 - target_collateral / value
         return round(float(cushion), 4)
+
+    def _compute_annual_asset_returns(self, prices: pd.DataFrame, asset_breakdown: pd.DataFrame) -> List[Dict[str, float]]:
+        if prices.empty:
+            return []
+        tickers = asset_breakdown["ticker"].tolist()
+        returns = prices[tickers].pct_change().dropna(how="all")
+        if returns.empty:
+            return []
+        returns["__year__"] = returns.index.year
+        annual_rows: List[Dict[str, float]] = []
+        grouped = returns.groupby("__year__")
+        name_map = {}
+        if "description" in asset_breakdown.columns:
+            name_map = asset_breakdown.set_index("ticker")["description"].fillna("").to_dict()
+        if not name_map and "name" in asset_breakdown.columns:
+            name_map = asset_breakdown.set_index("ticker")["name"].fillna("").to_dict()
+        for year, df_year in grouped:
+            for ticker in tickers:
+                if ticker not in df_year.columns:
+                    continue
+                series = df_year[ticker].dropna()
+                if series.empty:
+                    continue
+                ann_return = (1 + series).prod() - 1
+                ann_vol = float(series.std() * np.sqrt(252))
+                sharpe = ann_return / ann_vol if ann_vol > 0 else np.nan
+                annual_rows.append(
+                    {
+                        "year": int(year),
+                        "ticker": ticker,
+                        "name": name_map.get(ticker) or "",
+                        "annual_return": float(ann_return),
+                        "annual_volatility": ann_vol,
+                        "sharpe_ratio": float(sharpe) if not np.isnan(sharpe) else None,
+                    }
+                )
+        return sorted(annual_rows, key=lambda row: (row["year"], row["ticker"]))
+
+    def _compute_annual_portfolio_returns(self, portfolio_value: pd.Series) -> List[Dict[str, float]]:
+        if portfolio_value.empty:
+            return []
+        returns = portfolio_value.pct_change().dropna()
+        if returns.empty:
+            return []
+        returns_by_year = returns.groupby(returns.index.year)
+        annual_rows: List[Dict[str, float]] = []
+        for year, series in returns_by_year:
+            if series.empty:
+                continue
+            ann_return = (1 + series).prod() - 1
+            ann_vol = float(series.std() * np.sqrt(252))
+            sharpe = ann_return / ann_vol if ann_vol > 0 else np.nan
+            annual_rows.append(
+                {
+                    "year": int(year),
+                    "annual_return": float(ann_return),
+                    "annual_volatility": ann_vol,
+                    "sharpe_ratio": float(sharpe) if not np.isnan(sharpe) else None,
+                }
+            )
+        return sorted(annual_rows, key=lambda row: row["year"])

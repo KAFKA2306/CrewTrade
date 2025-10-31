@@ -19,9 +19,12 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
     mode = analysis_payload.get("mode", "manual")
     if mode == "optimization":
         lines.append("## Optimization Summary")
-        opt_metrics = analysis_payload.get("optimization_metrics", {})
+        opt_metrics = analysis_payload.get("optimization_metrics", {}) or {}
         etf_master = analysis_payload.get("etf_master")
         ranked_etfs = analysis_payload.get("ranked_etfs")
+        candidate_universe = analysis_payload.get("candidate_universe")
+        optimization_profiles = analysis_payload.get("optimization_profiles", {})
+        primary_profile = analysis_payload.get("primary_profile")
 
         if etf_master is not None:
             lines.append(f"- Total ETFs evaluated: {len(etf_master)}")
@@ -29,13 +32,48 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
         if ranked_etfs is not None and len(ranked_etfs) > 0:
             lines.append(f"- ETFs with sufficient data: {len(ranked_etfs)}")
 
+        if candidate_universe is not None and len(candidate_universe) > 0:
+            lines.append(f"- Candidate universe after filtering: {len(candidate_universe)}")
+
         optimized_portfolio = analysis_payload.get("optimized_portfolio")
         if optimized_portfolio is not None:
-            lines.append(f"- Selected ETFs: {len(optimized_portfolio)}")
+            if primary_profile:
+                lines.append(f"- Selected ETFs ({primary_profile}): {len(optimized_portfolio)}")
+            else:
+                lines.append(f"- Selected ETFs: {len(optimized_portfolio)}")
 
         lines.append(f"- Portfolio annual return: {opt_metrics.get('annual_return', 0) * 100:.2f}%")
         lines.append(f"- Portfolio annual volatility: {opt_metrics.get('annual_volatility', 0) * 100:.2f}%")
         lines.append(f"- Portfolio Sharpe ratio: {opt_metrics.get('sharpe_ratio', 0):.3f}")
+        if opt_metrics.get("expense_ratio") is not None:
+            lines.append(f"- Weighted expense ratio: {opt_metrics['expense_ratio'] * 100:.2f}%")
+
+        if optimization_profiles:
+            profile_rows: List[Dict[str, object]] = []
+            for name, metrics in optimization_profiles.items():
+                if not metrics:
+                    continue
+                expense = metrics.get("expense_ratio")
+                profile_rows.append(
+                    {
+                        "profile": name,
+                        "return": f"{metrics.get('annual_return', 0) * 100:.2f}%",
+                        "volatility": f"{metrics.get('annual_volatility', 0) * 100:.2f}%",
+                        "sharpe": f"{metrics.get('sharpe_ratio', 0):.3f}",
+                        "expense": f"{expense * 100:.2f}%" if expense is not None else "N/A",
+                        "selected": "Yes" if name == primary_profile else "",
+                    }
+                )
+            if profile_rows:
+                profile_df = pd.DataFrame(profile_rows)
+                lines.append("")
+                lines.append(
+                    _format_table(
+                        profile_df,
+                        ["profile", "return", "volatility", "sharpe", "expense", "selected"],
+                        ["Profile", "Return", "Volatility", "Sharpe", "Expense", "Selected"],
+                    )
+                )
         lines.append("")
 
     lines.append("## Current Profile")

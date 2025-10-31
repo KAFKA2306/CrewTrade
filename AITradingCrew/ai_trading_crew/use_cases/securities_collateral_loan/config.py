@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
@@ -18,6 +18,17 @@ class LoanScenario(BaseModel):
     label: str | None = None
 
 
+class OptimizationProfile(BaseModel):
+    name: str = Field(description="Identifier for the optimization profile.")
+    objective_weights: Dict[str, float]
+    constraints_override: Dict[str, float] | None = None
+    correlation_threshold: float | None = Field(default=None, gt=0, lt=1)
+    max_universe_size: int | None = Field(default=None, ge=3)
+    max_portfolio_size: int | None = Field(default=None, ge=1)
+    min_assets: int | None = Field(default=None, ge=1)
+    sample_size: int | None = Field(default=None, gt=0)
+
+
 class OptimizationSettings(BaseModel):
     enabled: bool = Field(default=False)
     objective_weights: Dict[str, float] = Field(
@@ -33,6 +44,11 @@ class OptimizationSettings(BaseModel):
     )
     sample_size: int = Field(default=20000, gt=0)
     lookback: str = Field(default="3y")
+    correlation_threshold: float = Field(default=0.9, gt=0, lt=1)
+    max_universe_size: int = Field(default=40, ge=3)
+    max_portfolio_size: int = Field(default=12, ge=3)
+    min_assets: int = Field(default=5, ge=1)
+    profiles: Optional[List[OptimizationProfile]] = None
 
 
 class SecuritiesCollateralLoanConfig(UseCaseConfig):

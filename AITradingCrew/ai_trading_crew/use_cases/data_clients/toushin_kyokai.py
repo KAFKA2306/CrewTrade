@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 import pandas as pd
 import requests
 
+from .ticker_utils import normalize_jpx_ticker
+
 class ToushinKyokaiDataClient:
     EXCEL_URL = "https://www.toushin.or.jp/files/static/486/listed_fund_for_investor.xlsx"
     CACHE_DURATION_DAYS = 30
@@ -40,14 +42,7 @@ class ToushinKyokaiDataClient:
 
         etf_only = df[df['上場投信・上場投資法人の別'] == '上場投信'].copy()
 
-        def normalize_ticker(code):
-            code_str = str(code)
-            code_str = code_str.replace('A', '')
-            if len(code_str) == 5 and code_str.endswith('0'):
-                code_str = code_str[:-1]
-            return code_str + '.T'
-
-        etf_only['ticker'] = etf_only['銘柄コード'].apply(normalize_ticker)
+        etf_only['ticker'] = etf_only['銘柄コード'].apply(normalize_jpx_ticker)
         etf_only['name'] = etf_only['ファンド名称']
         etf_only['provider'] = etf_only['運用会社名']
         etf_only['category'] = etf_only['上場投信・上場投資法人の別']

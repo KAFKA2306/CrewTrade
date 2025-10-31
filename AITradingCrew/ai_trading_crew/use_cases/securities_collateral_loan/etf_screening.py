@@ -1,6 +1,6 @@
-import pandas as pd
 import numpy as np
-from typing import Dict
+import pandas as pd
+from typing import Dict, List, Set
 
 
 def compute_risk_metrics(prices: pd.DataFrame, etf_master: pd.DataFrame) -> pd.DataFrame:
@@ -57,3 +57,60 @@ def rank_etfs(
     df = df.sort_values("composite_score", ascending=False)
 
     return df
+
+
+def select_candidate_universe(
+    ranked_metrics: pd.DataFrame,
+    correlation_matrix: pd.DataFrame,
+    correlation_threshold: float,
+    max_assets: int | None = None,
+) -> pd.DataFrame:
+    if ranked_metrics.empty:
+        return ranked_metrics
+
+    tickers: List[str] = ranked_metrics["ticker"].tolist()
+    corr = correlation_matrix.reindex(index=tickers, columns=tickers).abs().fillna(0)
+
+    visited: Set[str] = set()
+    selected: List[str] = []
+
+    for ticker in tickers:
+        if ticker in visited:
+            continue
+
+        component = _collect_component(ticker, corr, correlation_threshold)
+        visited.update(component)
+
+        component_df = ranked_metrics[ranked_metrics["ticker"].isin(component)].copy()
+        component_df["expense_ratio_filled"] = component_df["expense_ratio"].fillna(float("inf"))
+        component_df = component_df.sort_values(
+            by=["expense_ratio_filled", "composite_score", "sharpe_ratio"],
+            ascending=[True, False, False],
+        )
+        selected.append(component_df.iloc[0]["ticker"])
+
+    selected_df = ranked_metrics[ranked_metrics["ticker"].isin(selected)].drop_duplicates(subset=["ticker"], keep="first")
+
+    if max_assets is not None and len(selected_df) > max_assets:
+        selected_df = selected_df.sort_values(by=["composite_score", "sharpe_ratio"], ascending=[False, False]).head(max_assets)
+
+    selected_order = [ticker for ticker in tickers if ticker in selected_df["ticker"].values]
+    selected_df = selected_df.set_index("ticker").loc[selected_order].reset_index()
+    selected_df = selected_df.drop(columns=["expense_ratio_filled"], errors="ignore")
+    return selected_df
+
+
+def _collect_component(seed: str, corr: pd.DataFrame, threshold: float) -> Set[str]:
+    component: Set[str] = {seed}
+    to_visit: List[str] = [seed]
+
+    while to_visit:
+        current = to_visit.pop()
+        row = corr.loc[current]
+        neighbors = [col for col, value in row.items() if value >= threshold and col != current]
+        for neighbor in neighbors:
+            if neighbor in component:
+                continue
+            component.add(neighbor)
+            to_visit.append(neighbor)
+    return component
