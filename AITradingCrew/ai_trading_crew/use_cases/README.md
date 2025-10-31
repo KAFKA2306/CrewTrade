@@ -1,8 +1,8 @@
-# Use Cases Framework
+# ユースケースフレームワーク
 
 拡張可能なユースケースアーキテクチャ。投資戦略分析・リスク管理のための独立したモジュール群。
 
-## アーキテクチャ
+## アーキテクチャ概要
 
 ```
 use_case_runner.py
@@ -42,16 +42,16 @@ use_cases/
 
 ## 実装済みユースケース
 
-### precious_metals_spread
+### precious_metals_spread（貴金属スプレッド）
 ETF（1540, 1541, 1542, 1543）とスポット価格の乖離を監視。裁定取引機会を検出。
 
-### credit_spread
+### credit_spread（クレジットスプレッド）
 ジャンク債（HYG, JNK）とトレジャリー（TLT）のスプレッドを分析。リスクオン/オフシグナル。
 
-### yield_spread
+### yield_spread（イールドスプレッド）
 イールドカーブのスプレッド（10Y-2Y等）を監視。景気循環・リセッション予測。
 
-### securities_collateral_loan
+### securities_collateral_loan（証券担保ローン）
 証券担保ローンのリスク分析とポートフォリオ最適化。2つのモード：
 
 - **手動モード**: 指定した担保資産でLTV・補充ライン・ロスカット分析
@@ -90,7 +90,7 @@ uv run -m ai_trading_crew.use_case_runner securities_collateral_loan --config co
 4. `config/use_cases/{new_use_case}.yaml` 作成
 5. 実行: `uv run -m ai_trading_crew.use_case_runner new_use_case --config ...`
 
-## 標準モジュール構成
+## 標準モジュール構成テンプレート
 
 各ユースケースは以下のモジュールで構成（省略可能）:
 
