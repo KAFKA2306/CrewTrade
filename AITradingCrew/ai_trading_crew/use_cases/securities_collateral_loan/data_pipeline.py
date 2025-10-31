@@ -60,11 +60,21 @@ class SecuritiesCollateralLoanDataPipeline:
         valid_tickers_filtered = etf_master_filtered["ticker"].tolist()
         prices = prices[valid_tickers_filtered]
 
-        return {
+        prices_forward = None
+        if as_of is not None and self.config.optimization and self.config.optimization.forward_test_period:
+            forward_start = as_of + pd.Timedelta(days=1)
+            forward_end = self._calculate_end(as_of, self.config.optimization.forward_test_period)
+            frames_forward = self.client.get_frames(valid_tickers_filtered, period=None, start=forward_start, end=forward_end)
+            prices_forward = self._combine_close(frames_forward, start=forward_start, as_of=forward_end)
+
+        result = {
             "mode": "optimization",
             "etf_master": etf_master_filtered,
             "prices": prices,
         }
+        if prices_forward is not None and not prices_forward.empty:
+            result["prices_forward"] = prices_forward
+        return result
 
     def _combine_close(self, frames: Dict[str, pd.DataFrame], start: pd.Timestamp | None = None, as_of: pd.Timestamp | None = None) -> pd.DataFrame:
         series_list: Dict[str, pd.Series] = {}
@@ -118,3 +128,19 @@ class SecuritiesCollateralLoanDataPipeline:
         else:
             offset = pd.DateOffset(days=365 * value)
         return (as_of - offset).normalize()
+
+    def _calculate_end(self, as_of: pd.Timestamp, forward_period: str) -> pd.Timestamp:
+        forward_period = forward_period.strip().lower()
+        if not forward_period:
+            return as_of
+        value = float(forward_period[:-1]) if forward_period[:-1] else 1.0
+        unit = forward_period[-1]
+        if unit == "y":
+            offset = pd.DateOffset(years=int(value))
+        elif unit == "m":
+            offset = pd.DateOffset(months=int(value))
+        elif unit == "d":
+            offset = pd.DateOffset(days=int(value))
+        else:
+            offset = pd.DateOffset(days=365 * value)
+        return (as_of + offset).normalize()

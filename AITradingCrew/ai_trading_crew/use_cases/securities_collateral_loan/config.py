@@ -46,6 +46,7 @@ class OptimizationSettings(BaseModel):
     )
     sample_size: int = Field(default=20000, gt=0)
     lookback: str = Field(default="3y")
+    forward_test_period: str = Field(default="1y", description="Forward test period for backtesting (e.g., '1y' for 1 year)")
     correlation_threshold: float = Field(default=0.9, gt=0, lt=1)
     max_universe_size: int = Field(default=40, ge=3)
     max_portfolio_size: int = Field(default=12, ge=3)

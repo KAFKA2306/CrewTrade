@@ -123,6 +123,59 @@ class SecuritiesCollateralLoanReporter:
 
         return stored_paths
 
+    def _format_backtest_vs_forward_comparison(
+        self,
+        backtest_metrics: Dict[str, float],
+        forward_metrics: Dict[str, float],
+        constraints: Dict[str, float],
+    ) -> List[str]:
+        lines = []
+        lines.append("")
+        lines.append("### Backtest vs Forward Comparison")
+        lines.append("")
+        lines.append("| Metric | Backtest Period | Forward Period | Difference | Status |")
+        lines.append("| --- | --- | --- | --- | --- |")
+
+        bt_return = backtest_metrics.get("annual_return", 0)
+        fw_return = forward_metrics.get("annualized_return", 0)
+        if fw_return != 0:
+            diff_return = fw_return - bt_return
+            lines.append(
+                f"| Annual Return | {bt_return * 100:.2f}% | {fw_return * 100:.2f}% | "
+                f"{diff_return * 100:+.2f}% | {'⚠️' if abs(diff_return) > 0.05 else '✓'} |"
+            )
+
+        bt_vol = backtest_metrics.get("annual_volatility", 0)
+        fw_vol = forward_metrics.get("annualized_volatility", 0)
+        max_vol = constraints.get("max_volatility", 0.15)
+        if fw_vol != 0:
+            diff_vol = fw_vol - bt_vol
+            status = "⚠️ BREACH" if fw_vol > max_vol else "✓"
+            lines.append(
+                f"| Annual Volatility | {bt_vol * 100:.2f}% | {fw_vol * 100:.2f}% | "
+                f"{diff_vol * 100:+.2f}% | {status} |"
+            )
+
+        bt_sharpe = backtest_metrics.get("sharpe_ratio", 0)
+        fw_sharpe = forward_metrics.get("sharpe_ratio", 0)
+        if fw_sharpe != 0:
+            diff_sharpe = fw_sharpe - bt_sharpe
+            lines.append(
+                f"| Sharpe Ratio | {bt_sharpe:.3f} | {fw_sharpe:.3f} | "
+                f"{diff_sharpe:+.3f} | {'⚠️' if diff_sharpe < -0.5 else '✓'} |"
+            )
+
+        bt_dd = backtest_metrics.get("max_drawdown", 0)
+        fw_dd = forward_metrics.get("max_drawdown", 0)
+        if fw_dd != 0:
+            diff_dd = fw_dd - bt_dd
+            lines.append(
+                f"| Max Drawdown | {bt_dd * 100:.2f}% | {fw_dd * 100:.2f}% | "
+                f"{diff_dd * 100:+.2f}% | {'⚠️' if abs(diff_dd) > 0.10 else '✓'} |"
+            )
+
+        return lines
+
     def _build_report(
         self,
         summary: Dict[str, object],
@@ -211,22 +264,52 @@ class SecuritiesCollateralLoanReporter:
                 ]
                 if opt_metrics.get("expense_ratio") is not None:
                     metrics_parts.append(f"expense {opt_metrics['expense_ratio'] * 100:.2f}%")
-                lines.append(f"- Selected portfolio metrics: {', '.join(metrics_parts)}")
+                lines.append(f"- Selected portfolio metrics (backtest period): {', '.join(metrics_parts)}")
                 lines.append("")
-                lines.append("### Portfolio Metrics (Annualized)")
-                lines.append("| Metric | Value |")
-                lines.append("| --- | --- |")
-                lines.append(f"| Annual Return | {opt_metrics.get('annual_return', 0) * 100:.2f}% |")
-                lines.append(f"| Annual Volatility | {opt_metrics.get('annual_volatility', 0) * 100:.2f}% |")
-                lines.append(f"| Sharpe Ratio | {opt_metrics.get('sharpe_ratio', 0):.3f} |")
+
+            prices_df = analysis_payload.get("prices") if analysis_payload else None
+            backtest_start = None
+            backtest_end = None
+            if isinstance(prices_df, pd.DataFrame) and not prices_df.empty:
+                backtest_start = prices_df.index.min()
+                backtest_end = prices_df.index.max()
+
+            lines.append("## Part 1: BACKTEST PERIOD ANALYSIS")
+            lines.append("")
+            lines.append("**Purpose**: Portfolio construction and constraint validation")
+            if backtest_start and backtest_end:
+                duration_days = (backtest_end - backtest_start).days
+                duration_years = duration_days / 365.25
+                lines.append(f"**Period**: {backtest_start.date()} to {backtest_end.date()} ({duration_years:.1f} years)")
+            else:
+                lines.append(f"**Period**: Lookback period ({self.config.period})")
+            lines.append("**Important**: These metrics are based on **historical data** used for optimization.")
+            lines.append("They do NOT guarantee future performance.")
+            lines.append("")
+
+            if opt_metrics:
+                lines.append("### Backtest Period Metrics")
+                lines.append("| Metric | Value | Constraint | Status |")
+                lines.append("| --- | --- | --- | --- |")
+
+                ann_return = opt_metrics.get('annual_return', 0)
+                lines.append(f"| Annual Return | {ann_return * 100:.2f}% | - | - |")
+
+                ann_vol = opt_metrics.get('annual_volatility', 0)
+                constraints = self.config.optimization.constraints if self.config.optimization else {}
+                max_vol = constraints.get("max_volatility", 0.15)
+                vol_status = "✅" if ann_vol <= max_vol else "❌"
+                lines.append(f"| Annual Volatility | {ann_vol * 100:.2f}% | ≤ {max_vol * 100:.0f}% | {vol_status} |")
+
+                sharpe = opt_metrics.get('sharpe_ratio', 0)
+                lines.append(f"| Sharpe Ratio | {sharpe:.3f} | - | - |")
+
                 expense_value = opt_metrics.get("expense_ratio")
                 if expense_value is not None:
-                    lines.append(f"| Weighted Expense Ratio | {expense_value * 100:.2f}% |")
+                    exp_status = "✅" if expense_value < 0.004 else "❌"
+                    lines.append(f"| Weighted Expense Ratio | {expense_value * 100:.2f}% | < 0.40% | {exp_status} |")
+
                 lines.append("")
-                constraints = analysis_payload.get("optimization_profile_results", {}).get(primary_profile, {}).get("constraints")
-                if constraints and "max_volatility" in constraints:
-                    lines.append(f"*Note: Portfolio volatility constraint ({constraints['max_volatility'] * 100:.0f}%) is based on lookback period data. Actual volatility during holding period may differ due to market regime changes.*")
-                    lines.append("")
             lines.append("")
 
             if optimization_profiles:
@@ -260,7 +343,11 @@ class SecuritiesCollateralLoanReporter:
                     )
                 lines.append("")
 
-        lines.append("## Collateral Breakdown")
+        lines.append("## Part 2: PORTFOLIO CONSTRUCTION")
+        lines.append("")
+        lines.append("**Purpose**: Selected ETFs and portfolio composition at anchor date")
+        lines.append("")
+        lines.append("### Collateral Breakdown")
         asset_breakdown_sorted = asset_breakdown.sort_values("market_value", ascending=False)
 
         if mode == "optimization" and "category" in asset_breakdown.columns:
@@ -337,23 +424,71 @@ class SecuritiesCollateralLoanReporter:
                 lines.append(f"| {row['year']} | {ret_display} | {vol_display} | {sharpe_display} |")
             lines.append("")
 
-        forward_test = analysis_payload.get("forward_test")
+        forward_test = analysis_payload.get("forward_test") if analysis_payload else None
         if isinstance(forward_test, dict):
             summary_forward = forward_test.get("summary", {})
-            lines.append("### Forward Performance")
-            lines.append(f"- Anchor date: {forward_test.get('anchor_date')}")
             start = summary_forward.get("start")
             end = summary_forward.get("end")
+
+            lines.append("## Part 3: FORWARD PERIOD PERFORMANCE ⭐")
+            lines.append("")
+            lines.append("**Purpose**: Actual realized risk and return during holding period")
             if start and end:
-                lines.append(f"- Forward window: {start.date()} → {end.date()}")
+                duration_days = (end - start).days
+                duration_years = duration_days / 365.25
+                lines.append(f"**Period**: {start.date()} to {end.date()} ({duration_years:.1f} years)")
+            lines.append("**Important**: This is the **ACTUAL PERFORMANCE** after portfolio construction.")
+            lines.append("")
+
+            lines.append("### Forward Period Metrics")
+            lines.append("| Metric | Value |")
+            lines.append("| --- | --- |")
             if summary_forward.get("cumulative_return") is not None:
-                lines.append(f"- Cumulative return: {summary_forward['cumulative_return'] * 100:.2f}%")
+                lines.append(f"| Cumulative Return | {summary_forward['cumulative_return'] * 100:.2f}% |")
             if summary_forward.get("annualized_return") is not None:
-                lines.append(f"- Annualized return: {summary_forward['annualized_return'] * 100:.2f}%")
+                lines.append(f"| Annualized Return | {summary_forward['annualized_return'] * 100:.2f}% |")
             if summary_forward.get("annualized_volatility") is not None:
-                lines.append(f"- Annualized volatility: {summary_forward['annualized_volatility'] * 100:.2f}%")
+                fw_vol = summary_forward['annualized_volatility']
+                constraints = self.config.optimization.constraints if self.config.optimization else {}
+                max_vol = constraints.get("max_volatility", 0.15)
+                vol_note = " ⚠️ (Exceeds constraint)" if fw_vol > max_vol else ""
+                lines.append(f"| Annualized Volatility | {fw_vol * 100:.2f}%{vol_note} |")
             if summary_forward.get("max_drawdown") is not None:
-                lines.append(f"- Max drawdown: {summary_forward['max_drawdown'] * 100:.2f}%")
+                lines.append(f"| Max Drawdown | {summary_forward['max_drawdown'] * 100:.2f}% |")
+            if summary_forward.get("sharpe_ratio") is not None:
+                lines.append(f"| Sharpe Ratio | {summary_forward['sharpe_ratio']:.3f} |")
+            lines.append("")
+
+            opt_metrics = analysis_payload.get("optimization_metrics") if analysis_payload else {}
+            if opt_metrics and summary_forward:
+                constraints = self.config.optimization.constraints if self.config.optimization else {}
+                comparison_lines = self._format_backtest_vs_forward_comparison(
+                    opt_metrics, summary_forward, constraints
+                )
+                lines.extend(comparison_lines)
+                lines.append("")
+
+                fw_vol = summary_forward.get("annualized_volatility", 0)
+                bt_vol = opt_metrics.get("annual_volatility", 0)
+                max_vol = constraints.get("max_volatility", 0.15)
+                if fw_vol > max_vol or abs(fw_vol - bt_vol) > 0.03:
+                    lines.append("### ⚠️ Forward-Looking Bias Warning")
+                    lines.append("")
+                    if fw_vol > max_vol:
+                        lines.append(
+                            f"**IMPORTANT**: Forward period volatility ({fw_vol * 100:.2f}%) "
+                            f"**EXCEEDED** the backtest constraint ({max_vol * 100:.0f}%)."
+                        )
+                    if abs(fw_vol - bt_vol) > 0.03:
+                        diff_pct = (fw_vol - bt_vol) / bt_vol * 100 if bt_vol > 0 else 0
+                        lines.append(
+                            f"Forward volatility changed by {diff_pct:+.1f}% relative to backtest period."
+                        )
+                    lines.append("")
+                    lines.append("This demonstrates that **historical constraints do NOT guarantee future compliance**.")
+                    lines.append("Market regime changes can significantly alter risk characteristics.")
+                    lines.append("")
+
             lines.append("")
 
         lines.append("## Interest Projection")

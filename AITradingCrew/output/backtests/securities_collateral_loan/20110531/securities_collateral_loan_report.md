@@ -22,23 +22,30 @@
 - Excluded high-volatility ETFs (> 25.0% annualized volatility): 1618.T(ＮＥＸＴ　ＦＵＮＤＳ　エネルギ), 1624.T(ＮＥＸＴ　ＦＵＮＤＳ　機械（Ｔ), 1631.T(ＮＥＸＴ　ＦＵＮＤＳ　銀行（Ｔ), 1632.T(ＮＥＸＴ　ＦＵＮＤＳ　金融（除), 1622.T(ＮＥＸＴ　ＦＵＮＤＳ　自動車・), 1629.T(ＮＥＸＴ　ＦＵＮＤＳ　商社・卸), 1623.T(ＮＥＸＴ　ＦＵＮＤＳ　鉄鋼・非), 1625.T(ＮＥＸＴ　ＦＵＮＤＳ　電機・精), 1615.T(ＮＥＸＴ　ＦＵＮＤＳ　東証銀行), 1633.T(ＮＥＸＴ　ＦＵＮＤＳ　不動産（), 1671.T(ＷＴＩ原油価格連動型上場投信)
 - Excluded deep-drawdown ETFs (drawdown worse than -30.0%): 1630.T(ＮＥＸＴ　ＦＵＮＤＳ　小売（Ｔ), 1627.T(ＮＥＸＴ　ＦＵＮＤＳ　電力・ガ)
 - Selected profile: max_sharpe
-- Selected portfolio metrics: return 2.84%, volatility 15.72%, Sharpe 0.180, expense 0.26%
+- Selected portfolio metrics (backtest period): return 2.84%, volatility 15.72%, Sharpe 0.180, expense 0.26%
 
-### Portfolio Metrics (Annualized)
-| Metric | Value |
-| --- | --- |
-| Annual Return | 2.84% |
-| Annual Volatility | 15.72% |
-| Sharpe Ratio | 0.180 |
-| Weighted Expense Ratio | 0.26% |
+## Part 1: BACKTEST PERIOD ANALYSIS
+
+**Purpose**: Portfolio construction and constraint validation
+**Period**: 2008-06-02 to 2011-05-31 (3.0 years)
+**Important**: These metrics are based on **historical data** used for optimization.
+They do NOT guarantee future performance.
+
+### Backtest Period Metrics
+| Metric | Value | Constraint | Status |
+| --- | --- | --- | --- |
+| Annual Return | 2.84% | - | - |
+| Annual Volatility | 15.72% | ≤ 15% | ❌ |
+| Sharpe Ratio | 0.180 | - | - |
+| Weighted Expense Ratio | 0.26% | < 0.40% | ✅ |
 
 
 ### Profile Metrics
 | Profile | Annual Return | Volatility | Sharpe | Expense Ratio | Selected |
 | --- | --- | --- | --- | --- | --- |
 | max_sharpe | 2.84% | 15.72% | 0.180 | 0.26% | Yes |
-| low_volatility | 9.88% | 14.56% | 0.679 | 0.27% |  |
-| cost_focus | 7.64% | 14.99% | 0.509 | 0.24% |  |
+| low_volatility | 8.32% | 13.89% | 0.599 | 0.26% |  |
+| cost_focus | 5.86% | 13.97% | 0.419 | 0.26% |  |
 
 ### Top 10 ETFs by Composite Score
 | Rank | Ticker | Name | Return | Volatility | Sharpe | Expense | Score |
@@ -54,7 +61,11 @@
 | 9 | 1346.T | ＭＡＸＩＳ　日経２２５上場投信 | 0.39% | 21.96% | 0.018 | 0.12% | 0.081 |
 | 10 | 1329.T | ｉシェアーズ・コア　日経２２５　ＥＴＦ | 0.29% | 23.20% | 0.013 | 0.04% | 0.054 |
 
-## Collateral Breakdown
+## Part 2: PORTFOLIO CONSTRUCTION
+
+**Purpose**: Selected ETFs and portfolio composition at anchor date
+
+### Collateral Breakdown
 ### By Category
 | Category | ETF Count | Market Value | Weight |
 | --- | --- | --- | --- |
@@ -134,6 +145,39 @@
 | 2009 | 16.92% | 23.95% | 0.707 |
 | 2010 | 2.43% | 12.68% | 0.192 |
 | 2011 | -2.60% | 21.09% | -0.123 |
+
+## Part 3: FORWARD PERIOD PERFORMANCE ⭐
+
+**Purpose**: Actual realized risk and return during holding period
+**Period**: 2011-06-01 to 2012-05-31 (1.0 years)
+**Important**: This is the **ACTUAL PERFORMANCE** after portfolio construction.
+
+### Forward Period Metrics
+| Metric | Value |
+| --- | --- |
+| Cumulative Return | -9.66% |
+| Annualized Return | -9.84% |
+| Annualized Volatility | 11.33% |
+| Max Drawdown | -14.17% |
+| Sharpe Ratio | -0.869 |
+
+
+### Backtest vs Forward Comparison
+
+| Metric | Backtest Period | Forward Period | Difference | Status |
+| --- | --- | --- | --- | --- |
+| Annual Return | 2.84% | -9.84% | -12.68% | ⚠️ |
+| Annual Volatility | 15.72% | 11.33% | -4.39% | ✓ |
+| Sharpe Ratio | 0.180 | -0.869 | -1.049 | ⚠️ |
+| Max Drawdown | 0.00% | -14.17% | -14.17% | ⚠️ |
+
+### ⚠️ Forward-Looking Bias Warning
+
+Forward volatility changed by -27.9% relative to backtest period.
+
+This demonstrates that **historical constraints do NOT guarantee future compliance**.
+Market regime changes can significantly alter risk characteristics.
+
 
 ## Interest Projection
 | Days | Interest (¥) |

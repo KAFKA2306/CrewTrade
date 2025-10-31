@@ -21,23 +21,30 @@
 - Candidate universe after correlation filter: 14 (threshold 0.90)
 - Excluded high-volatility ETFs (> 25.0% annualized volatility): 1618.T(ＮＥＸＴ　ＦＵＮＤＳ　エネルギ), 1624.T(ＮＥＸＴ　ＦＵＮＤＳ　機械（Ｔ), 1631.T(ＮＥＸＴ　ＦＵＮＤＳ　銀行（Ｔ), 1632.T(ＮＥＸＴ　ＦＵＮＤＳ　金融（除), 1622.T(ＮＥＸＴ　ＦＵＮＤＳ　自動車・), 1629.T(ＮＥＸＴ　ＦＵＮＤＳ　商社・卸), 1623.T(ＮＥＸＴ　ＦＵＮＤＳ　鉄鋼・非), 1625.T(ＮＥＸＴ　ＦＵＮＤＳ　電機・精), 1615.T(ＮＥＸＴ　ＦＵＮＤＳ　東証銀行), 1633.T(ＮＥＸＴ　ＦＵＮＤＳ　不動産（), 1346.T(ＭＡＸＩＳ　日経２２５上場投信)
 - Selected profile: max_sharpe
-- Selected portfolio metrics: return 0.90%, volatility 15.14%, Sharpe 0.059, expense 0.25%
+- Selected portfolio metrics (backtest period): return 0.90%, volatility 15.14%, Sharpe 0.059, expense 0.25%
 
-### Portfolio Metrics (Annualized)
-| Metric | Value |
-| --- | --- |
-| Annual Return | 0.90% |
-| Annual Volatility | 15.14% |
-| Sharpe Ratio | 0.059 |
-| Weighted Expense Ratio | 0.25% |
+## Part 1: BACKTEST PERIOD ANALYSIS
+
+**Purpose**: Portfolio construction and constraint validation
+**Period**: 2008-03-19 to 2010-05-31 (2.2 years)
+**Important**: These metrics are based on **historical data** used for optimization.
+They do NOT guarantee future performance.
+
+### Backtest Period Metrics
+| Metric | Value | Constraint | Status |
+| --- | --- | --- | --- |
+| Annual Return | 0.90% | - | - |
+| Annual Volatility | 15.14% | ≤ 15% | ❌ |
+| Sharpe Ratio | 0.059 | - | - |
+| Weighted Expense Ratio | 0.25% | < 0.40% | ✅ |
 
 
 ### Profile Metrics
 | Profile | Annual Return | Volatility | Sharpe | Expense Ratio | Selected |
 | --- | --- | --- | --- | --- | --- |
 | max_sharpe | 0.90% | 15.14% | 0.059 | 0.25% | Yes |
-| low_volatility | 7.02% | 14.82% | 0.474 | 0.24% |  |
-| cost_focus | 5.62% | 14.59% | 0.385 | 0.24% |  |
+| low_volatility | 7.07% | 14.82% | 0.477 | 0.24% |  |
+| cost_focus | 5.63% | 14.43% | 0.390 | 0.29% |  |
 
 ### Top 10 ETFs by Composite Score
 | Rank | Ticker | Name | Return | Volatility | Sharpe | Expense | Score |
@@ -53,7 +60,11 @@
 | 9 | 1630.T | ＮＥＸＴ　ＦＵＮＤＳ　小売（ＴＯＰＩＸ－１７）上場投信 | 16.27% | 20.39% | 0.798 | 0.32% | 3.914 |
 | 10 | 1306.T | ＮＥＸＴ　ＦＵＮＤＳ　ＴＯＰＩＸ連動型上場投信 | 17.40% | 21.47% | 0.810 | 0.05% | 3.773 |
 
-## Collateral Breakdown
+## Part 2: PORTFOLIO CONSTRUCTION
+
+**Purpose**: Selected ETFs and portfolio composition at anchor date
+
+### Collateral Breakdown
 ### By Category
 | Category | ETF Count | Market Value | Weight |
 | --- | --- | --- | --- |
@@ -133,6 +144,39 @@
 | 2008 | 0.23% | 38.34% | 0.006 |
 | 2009 | 10.67% | 20.82% | 0.513 |
 | 2010 | -0.50% | 13.03% | -0.038 |
+
+## Part 3: FORWARD PERIOD PERFORMANCE ⭐
+
+**Purpose**: Actual realized risk and return during holding period
+**Period**: 2010-06-01 to 2011-05-31 (1.0 years)
+**Important**: This is the **ACTUAL PERFORMANCE** after portfolio construction.
+
+### Forward Period Metrics
+| Metric | Value |
+| --- | --- |
+| Cumulative Return | -3.70% |
+| Annualized Return | -3.85% |
+| Annualized Volatility | 17.23% ⚠️ (Exceeds constraint) |
+| Max Drawdown | -17.75% |
+| Sharpe Ratio | -0.224 |
+
+
+### Backtest vs Forward Comparison
+
+| Metric | Backtest Period | Forward Period | Difference | Status |
+| --- | --- | --- | --- | --- |
+| Annual Return | 0.90% | -3.85% | -4.75% | ✓ |
+| Annual Volatility | 15.14% | 17.23% | +2.09% | ⚠️ BREACH |
+| Sharpe Ratio | 0.059 | -0.224 | -0.283 | ✓ |
+| Max Drawdown | 0.00% | -17.75% | -17.75% | ⚠️ |
+
+### ⚠️ Forward-Looking Bias Warning
+
+**IMPORTANT**: Forward period volatility (17.23%) **EXCEEDED** the backtest constraint (15%).
+
+This demonstrates that **historical constraints do NOT guarantee future compliance**.
+Market regime changes can significantly alter risk characteristics.
+
 
 ## Interest Projection
 | Days | Interest (¥) |

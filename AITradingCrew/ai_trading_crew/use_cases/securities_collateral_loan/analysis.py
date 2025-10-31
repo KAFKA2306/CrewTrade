@@ -223,6 +223,11 @@ class SecuritiesCollateralLoanAnalyzer:
 
         manual_result["asset_breakdown"] = asset_breakdown
 
+        prices_forward = data_payload.get("prices_forward")
+        forward_test = None
+        if isinstance(prices_forward, pd.DataFrame) and not prices_forward.empty:
+            forward_test = self._compute_forward_test(prices_forward, optimized_portfolio)
+
         manual_result.update({
             "mode": "optimization",
             "etf_master": etf_master,
@@ -249,6 +254,9 @@ class SecuritiesCollateralLoanAnalyzer:
                 "max_asset_drawdown": max_asset_drawdown,
             },
         })
+
+        if forward_test is not None:
+            manual_result["forward_test"] = forward_test
 
         return manual_result
 
@@ -437,3 +445,54 @@ class SecuritiesCollateralLoanAnalyzer:
                 }
             )
         return sorted(annual_rows, key=lambda row: row["year"])
+
+    def _compute_forward_test(self, prices_forward: pd.DataFrame, optimized_portfolio: pd.DataFrame) -> Dict[str, object]:
+        portfolio_tickers = optimized_portfolio["ticker"].tolist()
+        available_tickers = [t for t in portfolio_tickers if t in prices_forward.columns]
+
+        if not available_tickers:
+            return {}
+
+        prices_subset = prices_forward[available_tickers].copy()
+
+        if prices_subset.empty:
+            return {}
+
+        weights_map = optimized_portfolio.set_index("ticker")["weight_realized"].to_dict()
+        weights = np.array([weights_map.get(t, 0) for t in available_tickers])
+        weights = weights / weights.sum()
+
+        returns = prices_subset.pct_change().dropna()
+
+        if returns.empty:
+            return {}
+
+        portfolio_returns = (returns * weights).sum(axis=1)
+        portfolio_value = (1 + portfolio_returns).cumprod()
+
+        cumulative_return = float(portfolio_value.iloc[-1] - 1) if len(portfolio_value) > 0 else 0.0
+
+        n_days = len(portfolio_returns)
+        n_years = n_days / 252.0
+        annualized_return = (1 + cumulative_return) ** (1 / n_years) - 1 if n_years > 0 else 0.0
+
+        annualized_volatility = float(portfolio_returns.std() * np.sqrt(252))
+
+        sharpe_ratio = annualized_return / annualized_volatility if annualized_volatility > 0 else 0.0
+
+        running_max = portfolio_value.cummax()
+        drawdown = (portfolio_value - running_max) / running_max
+        max_drawdown = float(drawdown.min())
+
+        return {
+            "series": portfolio_value.to_frame(name="portfolio_value"),
+            "summary": {
+                "start": prices_subset.index.min(),
+                "end": prices_subset.index.max(),
+                "cumulative_return": cumulative_return,
+                "annualized_return": annualized_return,
+                "annualized_volatility": annualized_volatility,
+                "sharpe_ratio": sharpe_ratio,
+                "max_drawdown": max_drawdown,
+            },
+        }

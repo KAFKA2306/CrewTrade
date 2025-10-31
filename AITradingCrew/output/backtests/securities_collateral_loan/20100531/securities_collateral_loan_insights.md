@@ -14,8 +14,8 @@
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
 | max_sharpe | 0.90% | 15.14% | 0.059 | 0.25% | Yes |
-| low_volatility | 7.02% | 14.82% | 0.474 | 0.24% |  |
-| cost_focus | 5.62% | 14.59% | 0.385 | 0.24% |  |
+| low_volatility | 7.07% | 14.82% | 0.477 | 0.24% |  |
+| cost_focus | 5.63% | 14.43% | 0.390 | 0.29% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
