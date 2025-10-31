@@ -42,8 +42,17 @@ class SecuritiesCollateralLoanBacktester:
         self.processed_base_dir.mkdir(parents=True, exist_ok=True)
         self.report_base_dir.mkdir(parents=True, exist_ok=True)
 
-    def run(self, anchors: List[pd.Timestamp]) -> List[BacktestResult]:
+    def run(self, anchors: List[pd.Timestamp] | None = None) -> List[BacktestResult]:
         results: List[BacktestResult] = []
+
+        if anchors is None:
+            settings = getattr(self.config, "optimization", None)
+            years = None
+            if settings and settings.walkforward_years:
+                years = settings.walkforward_years
+            if years is None:
+                years = 1
+            anchors = build_anchor_dates(years)
 
         for anchor in anchors:
             config_snapshot = self.config.model_copy(deep=True)
@@ -88,6 +97,13 @@ class SecuritiesCollateralLoanBacktester:
         forward_prices = forward_prices.loc[forward_prices.index >= anchor]
         if forward_prices.empty:
             return None
+
+        settings = pipeline.config.optimization
+        if settings and settings.forward_test_period:
+            end_limit = pipeline._calculate_end(anchor, settings.forward_test_period)
+            forward_prices = forward_prices.loc[:end_limit]
+            if forward_prices.empty:
+                return None
 
         quantities = optimized_portfolio.set_index("ticker")["quantity"]
         aligned_prices = forward_prices[tickers].dropna(how="all")
@@ -154,7 +170,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("name", help="Use case name", default="securities_collateral_loan")
     parser.add_argument("--config", dest="config_path")
-    parser.add_argument("--years", dest="years", type=int, default=20)
+    parser.add_argument("--years", dest="years", type=int)
     args = parser.parse_args()
 
     config = build_config(args.name, args.config_path)
@@ -170,7 +186,7 @@ def main() -> None:
         report_base_dir=report_base_dir,
     )
 
-    anchors = build_anchor_dates(args.years)
+    anchors = build_anchor_dates(args.years) if args.years else None
     backtester.run(anchors)
 
 

@@ -47,7 +47,9 @@ optimization:
     max_asset_volatility: 0.25
     max_asset_drawdown: 0.3
   sample_size: 20000
-  lookback: 3y
+  lookback: 5y
+  history_window: 10y
+  walkforward_years: 10
   profiles:
     - name: max_sharpe
       objective_weights:

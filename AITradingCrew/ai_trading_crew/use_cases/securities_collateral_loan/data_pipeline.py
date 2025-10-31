@@ -36,12 +36,27 @@ class SecuritiesCollateralLoanDataPipeline:
         etf_master = self.toushin_client.get_etf_master()
         tickers = etf_master["ticker"].tolist()
 
-        lookback = self.config.optimization.lookback if self.config.optimization else self.config.period
+        settings = self.config.optimization
+        lookback = settings.lookback if settings else self.config.period
+        history_window = settings.history_window if settings and settings.history_window else lookback
         start = None
-        if as_of is not None and lookback:
-            start = self._calculate_start(as_of, lookback)
+        if as_of is not None and history_window:
+            start = self._calculate_start(as_of, history_window)
         frames = self.client.get_frames(tickers, period=None, start=start, end=as_of)
-        prices = self._combine_close(frames, start=start, as_of=as_of)
+        prices_full = self._combine_close(frames, start=start, as_of=as_of)
+
+        training_start = None
+        if as_of is not None and lookback:
+            training_start = self._calculate_start(as_of, lookback)
+        if training_start is not None:
+            historical_window = prices_full.loc[:training_start]
+            has_history = historical_window.notna().any(axis=0)
+            eligible = has_history[has_history].index.tolist()
+            prices_full = prices_full[eligible]
+
+        prices = prices_full
+        if training_start is not None:
+            prices = prices_full.loc[training_start:]
 
         valid_tickers = prices.columns.tolist()
         etf_master_filtered = etf_master[etf_master["ticker"].isin(valid_tickers)].copy()
