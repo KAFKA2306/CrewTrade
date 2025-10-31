@@ -169,6 +169,11 @@ class SecuritiesCollateralLoanAnalyzer:
                 result["metadata_subset"] = metadata_subset
                 result["correlation_threshold"] = profile_corr_threshold
                 result["max_universe_size"] = profile_universe_cap
+                result["candidate_tickers"] = candidate_tickers
+                result["constraints_used"] = profile_constraints.copy()
+                result["sample_size_used"] = profile.sample_size or sample_size
+                result["max_assets_used"] = profile_portfolio_cap
+                result["min_assets_used"] = profile_min_assets
                 profile_results[profile.name] = result
             except Exception as exc:
                 profile_results[profile.name] = {
@@ -188,6 +193,44 @@ class SecuritiesCollateralLoanAnalyzer:
 
         optimized = profile_results[primary_profile_name]
         optimized_portfolio = optimized["portfolio"]
+
+        variant_portfolios: Dict[str, Dict[str, object]] = {}
+        candidate_tickers_primary = optimized.get("candidate_tickers")
+        metadata_subset_primary = optimized.get("metadata_subset", etf_master)
+        constraints_primary = optimized.get("constraints_used", constraints)
+        sample_size_primary = optimized.get("sample_size_used", sample_size)
+        max_assets_primary = optimized.get("max_assets_used", base_portfolio_cap)
+        min_assets_primary = optimized.get("min_assets_used", base_min_assets)
+        if candidate_tickers_primary:
+            prices_candidate = prices[candidate_tickers_primary]
+            variant_specs = [
+                ("max_sharpe", "Max Sharpe Portfolio"),
+                ("min_variance", "Minimum-Variance Portfolio"),
+                ("max_kelly", "Max Kelly Criterion Portfolio"),
+            ]
+            for strategy_key, strategy_label in variant_specs:
+                try:
+                    variant_result = optimizer.optimize_collateral_portfolio(
+                        prices_candidate,
+                        metadata_subset_primary,
+                        {},
+                        constraints_primary,
+                        sample_size_primary,
+                        target_value=target_value,
+                        max_assets=max_assets_primary,
+                        min_assets=min_assets_primary,
+                        score_strategy=strategy_key,
+                    )
+                    variant_result["strategy"] = strategy_key
+                    variant_result["strategy_label"] = strategy_label
+                    variant_result["source_profile"] = strategy_key
+                    variant_portfolios[strategy_key] = variant_result
+                except Exception as exc:
+                    variant_portfolios[strategy_key] = {
+                        "strategy": strategy_key,
+                        "strategy_label": strategy_label,
+                        "error": str(exc),
+                    }
         self.config.collateral_assets = [
             CollateralAsset(
                 ticker=row["ticker"],
@@ -253,6 +296,7 @@ class SecuritiesCollateralLoanAnalyzer:
                 "max_asset_volatility": max_asset_volatility,
                 "max_asset_drawdown": max_asset_drawdown,
             },
+            "variant_portfolios": variant_portfolios,
         })
 
         if self.config.optimization and self.config.optimization.risk_policy:

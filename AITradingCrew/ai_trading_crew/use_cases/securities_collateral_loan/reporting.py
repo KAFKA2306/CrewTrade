@@ -260,44 +260,17 @@ class SecuritiesCollateralLoanReporter:
             if primary_profile:
                 lines.append(f"- Selected profile: {primary_profile}")
 
-            if profile_results:
-                variant_rows: List[Dict[str, object]] = []
-                for name, result in profile_results.items():
-                    metrics = result.get("metrics") if isinstance(result, dict) else None
-                    if not isinstance(metrics, dict):
-                        continue
-                    ann_return = metrics.get("annual_return")
-                    ann_vol = metrics.get("annual_volatility")
-                    sharpe_val = metrics.get("sharpe_ratio")
-                    if ann_vol and ann_vol > 0:
-                        kelly_val = ann_return / (ann_vol ** 2) if ann_return is not None else None
-                    else:
-                        kelly_val = None
-                    variant_rows.append(
-                        {
-                            "profile": name,
-                            "annual_return": ann_return,
-                            "annual_volatility": ann_vol,
-                            "sharpe": sharpe_val,
-                            "kelly": kelly_val,
-                            "portfolio": result.get("portfolio") if isinstance(result.get("portfolio"), pd.DataFrame) else None,
-                        }
-                    )
-
-                def _select_variant(rows: List[Dict[str, object]], key: str, reverse: bool = True) -> Dict[str, object] | None:
-                    valid = [row for row in rows if row.get(key) is not None]
-                    if not valid:
-                        return None
-                    return sorted(valid, key=lambda row: row[key], reverse=reverse)[0]
-
-                variant_definitions = [
-                    ("Max Sharpe Portfolio", _select_variant(variant_rows, "sharpe", True)),
-                    ("Minimum-Variance Portfolio", _select_variant(variant_rows, "annual_volatility", False)),
-                    ("Max Kelly Criterion Portfolio", _select_variant(variant_rows, "kelly", True)),
+            variant_portfolios = analysis_payload.get("variant_portfolios") or {}
+            if variant_portfolios:
+                strategy_labels = [
+                    ("max_sharpe", "Max Sharpe Portfolio"),
+                    ("min_variance", "Minimum-Variance Portfolio"),
+                    ("max_kelly", "Max Kelly Criterion Portfolio"),
                 ]
 
                 table_rows: List[str] = []
                 holdings_blocks: List[str] = []
+                errors: List[str] = []
 
                 def _fmt_pct(value: float | None) -> str:
                     return f"{value * 100:.2f}%" if value is not None else "N/A"
@@ -305,18 +278,26 @@ class SecuritiesCollateralLoanReporter:
                 def _fmt_ratio(value: float | None) -> str:
                     return f"{value:.3f}" if value is not None else "N/A"
 
-                for label, variant in variant_definitions:
-                    if variant is None:
+                for strategy_key, label in strategy_labels:
+                    variant = variant_portfolios.get(strategy_key)
+                    if not isinstance(variant, dict):
                         continue
+                    if "error" in variant and "metrics" not in variant:
+                        errors.append(f"- {label}: {variant['error']}")
+                        continue
+
+                    metrics = variant.get("metrics", {})
+                    portfolio_df = variant.get("portfolio") if isinstance(variant.get("portfolio"), pd.DataFrame) else None
+                    method_display = variant.get("strategy", strategy_key)
+
                     table_rows.append(
-                        f"| {label} | {variant['profile']} | "
-                        f"{_fmt_pct(variant.get('annual_return'))} | "
-                        f"{_fmt_pct(variant.get('annual_volatility'))} | "
-                        f"{_fmt_ratio(variant.get('sharpe'))} | "
-                        f"{_fmt_ratio(variant.get('kelly'))} |"
+                        f"| {label} | {method_display} | "
+                        f"{_fmt_pct(metrics.get('annual_return'))} | "
+                        f"{_fmt_pct(metrics.get('annual_volatility'))} | "
+                        f"{_fmt_ratio(metrics.get('sharpe_ratio'))} | "
+                        f"{_fmt_ratio(metrics.get('kelly_ratio'))} |"
                     )
 
-                    portfolio_df = variant.get("portfolio")
                     if isinstance(portfolio_df, pd.DataFrame) and not portfolio_df.empty:
                         formatted_rows: List[str] = []
                         formatted_rows.append("| Ticker | Weight | Weight (Realized) | Quantity | Price | Name |")
@@ -334,20 +315,25 @@ class SecuritiesCollateralLoanReporter:
                                 f"| {ticker} | {weight * 100:.2f}% | {realized * 100:.2f}% | {qty_display} | {price_display} | {name_value} |"
                             )
                         if formatted_rows:
-                            header = f"**{label} Holdings ({variant['profile']})**"
+                            header = f"**{label} Holdings ({method_display})**"
                             holdings_blocks.append(header)
                             holdings_blocks.extend(formatted_rows)
                             holdings_blocks.append("")
 
-                if table_rows:
+                if table_rows or errors:
                     lines.append("")
                     lines.append("### Portfolio Variants")
-                    lines.append("| Variant | Source Profile | Annual Return | Annual Volatility | Sharpe | Kelly (r/σ²) |")
-                    lines.append("| --- | --- | --- | --- | --- | --- |")
-                    lines.extend(table_rows)
-                    lines.append("")
-                    if holdings_blocks:
-                        lines.extend(holdings_blocks)
+                    if table_rows:
+                        lines.append("| Variant | Optimization Strategy | Annual Return | Annual Volatility | Sharpe | Kelly (r/σ²) |")
+                        lines.append("| --- | --- | --- | --- | --- | --- |")
+                        lines.extend(table_rows)
+                        lines.append("")
+                        if holdings_blocks:
+                            lines.extend(holdings_blocks)
+                    if errors:
+                        lines.append("**Variant Optimization Notes**")
+                        lines.extend(errors)
+                        lines.append("")
 
             if hedged_excluded or volatility_excluded or drawdown_excluded:
                 lines.append("### Filter Diagnostics")

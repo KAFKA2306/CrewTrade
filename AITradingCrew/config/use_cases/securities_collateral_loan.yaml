@@ -41,7 +41,7 @@ optimization:
     volatility: 0.4
   constraints:
     min_weight: 0.05
-    max_weight: 0.35
+    max_weight: 0.2
     max_category_weight: 0.5
     max_volatility: 0.15
     max_asset_drawdown: 0.45
@@ -52,34 +52,34 @@ optimization:
       constraint; other limits remain for portfolio construction, not asset gating.
   sample_size: 20000
   lookback: 5y
-  history_window: 10y
-  walkforward_years: 10
+  history_window: 5y
+  walkforward_years: 5
   profiles:
     - name: max_sharpe
       objective_weights:
         sharpe: 1.0
         volatility: 0.0
-      correlation_threshold: 0.9
-      max_portfolio_size: 14
-      min_assets: 6
+      correlation_threshold: 0.8
+      max_portfolio_size: 20
+      min_assets: 10
     - name: low_volatility
       objective_weights:
-        sharpe: 0.2
-        volatility: 0.8
-      correlation_threshold: 0.85
-      max_portfolio_size: 8
-      min_assets: 5
+        sharpe: 0
+        volatility: 1
+      correlation_threshold: 0.8
+      max_portfolio_size: 20
+      min_assets: 10
       constraints_override:
-        max_weight: 0.28
-        min_weight: 0.04
+        max_weight: 0.2
+        min_weight: 0.05
     - name: cost_focus
       objective_weights:
         sharpe: 0.5
         volatility: 0.2
         expense: 0.3
-      correlation_threshold: 0.9
+      correlation_threshold: 0.8
       max_portfolio_size: 10
-      min_assets: 6
+      min_assets: 10
       constraints_override:
-        max_weight: 0.22
-        min_weight: 0.03
+        max_weight: 0.2
+        min_weight: 0.05

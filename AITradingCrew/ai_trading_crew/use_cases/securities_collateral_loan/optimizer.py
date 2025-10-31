@@ -53,6 +53,7 @@ def optimize_collateral_portfolio(
     target_value: float = 10_000_000,
     max_assets: Optional[int] = None,
     min_assets: int = 3,
+    score_strategy: Optional[str] = None,
 ) -> Dict:
     returns = prices.pct_change().dropna()
     tickers = list(prices.columns)
@@ -123,16 +124,30 @@ def optimize_collateral_portfolio(
 
         candidate_expense = _portfolio_expense(weights, tickers, expense_lookup, default_expense)
 
-        metric_inputs = {
-            "return": portfolio_return,
-            "volatility": -portfolio_volatility,
-            "sharpe": sharpe,
-        }
-        if candidate_expense is not None:
-            metric_inputs["expense"] = -candidate_expense
-        score = _weighted_metric_score(metric_inputs, objective_weights)
-        if score == 0 and portfolio_volatility > 0:
-            score = sharpe / portfolio_volatility
+        if score_strategy:
+            strategy = score_strategy.lower()
+            if strategy == "min_variance":
+                score = -portfolio_volatility
+            elif strategy == "max_sharpe":
+                score = sharpe
+            elif strategy == "max_kelly":
+                if portfolio_volatility > 0:
+                    score = portfolio_return / (portfolio_volatility ** 2)
+                else:
+                    score = -np.inf
+            else:
+                score = -np.inf
+        else:
+            metric_inputs = {
+                "return": portfolio_return,
+                "volatility": -portfolio_volatility,
+                "sharpe": sharpe,
+            }
+            if candidate_expense is not None:
+                metric_inputs["expense"] = -candidate_expense
+            score = _weighted_metric_score(metric_inputs, objective_weights)
+            if score == 0 and portfolio_volatility > 0:
+                score = sharpe / portfolio_volatility
 
         if score > best_score:
             best_score = score
@@ -195,6 +210,10 @@ def optimize_collateral_portfolio(
     elif not expense_lookup:
         weighted_expense_ratio = 0.0
 
+    kelly_ratio = None
+    if portfolio_volatility > 0:
+        kelly_ratio = portfolio_return / (portfolio_volatility ** 2)
+
     return {
         "portfolio": portfolio_df,
         "weights": best_portfolio,
@@ -204,5 +223,7 @@ def optimize_collateral_portfolio(
             "sharpe_ratio": sharpe_ratio,
             "composite_score": best_score,
             "expense_ratio": weighted_expense_ratio,
+            "kelly_ratio": kelly_ratio,
         },
+        "score_strategy": score_strategy,
     }
