@@ -4,6 +4,7 @@ from .yield_spread import YieldSpreadDataClient
 from .equities import YFinanceEquityDataClient
 from .toushin_kyokai import ToushinKyokaiDataClient
 from .jpx import JPXETFExpenseRatioClient
+from .pricing import get_price_series
 
 __all__ = [
     "PreciousMetalsDataClient",
@@ -12,4 +13,5 @@ __all__ = [
     "YFinanceEquityDataClient",
     "ToushinKyokaiDataClient",
     "JPXETFExpenseRatioClient",
+    "get_price_series",
 ]

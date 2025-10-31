@@ -7,6 +7,7 @@ import pandas as pd
 
 from ai_trading_crew.use_cases.data_clients import (
     JPXETFExpenseRatioClient,
+    get_price_series,
     ToushinKyokaiDataClient,
     YFinanceEquityDataClient,
 )
@@ -97,13 +98,7 @@ class SecuritiesCollateralLoanDataPipeline:
     def _combine_close(self, frames: Dict[str, pd.DataFrame], start: pd.Timestamp | None = None, as_of: pd.Timestamp | None = None) -> pd.DataFrame:
         series_list: Dict[str, pd.Series] = {}
         for ticker, frame in frames.items():
-            if "Close" in frame.columns:
-                series = frame["Close"].copy()
-            else:
-                series = frame.iloc[:, 0].copy()
-            tz_info = getattr(series.index, "tz", None)
-            if tz_info is not None:
-                series = series.tz_convert(None)
+            series = get_price_series(frame)
             if start is not None:
                 series = series.loc[start:]
             if as_of is not None:

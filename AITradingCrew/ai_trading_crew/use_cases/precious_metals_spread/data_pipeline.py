@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict
 import pandas as pd
-from ai_trading_crew.use_cases.data_clients import PreciousMetalsDataClient
+from ai_trading_crew.use_cases.data_clients import PreciousMetalsDataClient, get_price_series
 from ai_trading_crew.use_cases.precious_metals_spread.config import PreciousMetalsSpreadConfig
 
 
@@ -26,11 +26,8 @@ class PreciousMetalsSpreadDataPipeline:
     def _combine_close(self, frames: Dict[str, pd.DataFrame]) -> pd.DataFrame:
         series_list = []
         for ticker, frame in frames.items():
-            close_series = frame["Close"].copy()
-            tz_info = getattr(close_series.index, "tz", None)
-            if tz_info is not None:
-                close_series = close_series.tz_convert(None)
-            series_list.append(close_series.rename(ticker))
+            price_series = get_price_series(frame)
+            series_list.append(price_series.rename(ticker))
         combined = pd.concat(series_list, axis=1)
         combined = combined.sort_index()
         return combined
