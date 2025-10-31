@@ -8,8 +8,10 @@ import pandas as pd
 
 from ai_trading_crew.use_cases.securities_collateral_loan.config import (
     CollateralAsset,
+    CoreSatelliteConfig,
     LoanScenario,
     OptimizationProfile,
+    PortfolioMetadata,
     SecuritiesCollateralLoanConfig,
 )
 from ai_trading_crew.use_cases.securities_collateral_loan import etf_screening, optimizer
@@ -39,6 +41,10 @@ class SecuritiesCollateralLoanAnalyzer:
 
         if prices.empty:
             raise ValueError("Price data is empty")
+
+        cs_config = self.config.optimization.core_satellite if self.config.optimization else None
+        prev_portfolio = data_payload.get('previous_portfolio')
+        prev_metadata = data_payload.get('previous_metadata')
 
         risk_metrics = etf_screening.compute_risk_metrics(prices, etf_master)
         correlation_matrix = etf_screening.compute_correlation_matrix(prices)
@@ -231,6 +237,14 @@ class SecuritiesCollateralLoanAnalyzer:
                         "strategy_label": strategy_label,
                         "error": str(exc),
                     }
+
+        if cs_config and cs_config.enabled:
+            optimized_portfolio, portfolio_metadata = self._apply_core_satellite_strategy(
+                optimized_portfolio, prev_portfolio, prev_metadata, cs_config, prices
+            )
+        else:
+            portfolio_metadata = None
+
         self.config.collateral_assets = [
             CollateralAsset(
                 ticker=row["ticker"],
@@ -304,6 +318,9 @@ class SecuritiesCollateralLoanAnalyzer:
             "drawdown_validation": drawdown_validation,
             "allocation_validation": allocation_validation,
         })
+
+        if portfolio_metadata is not None:
+            manual_result["metadata"] = portfolio_metadata
 
         if self.config.optimization and self.config.optimization.risk_policy:
             manual_result["risk_policy"] = self.config.optimization.risk_policy.dict()
@@ -623,3 +640,91 @@ class SecuritiesCollateralLoanAnalyzer:
             "constraints": allocation_config,
             "violations": violations,
         }
+
+    def _apply_core_satellite_strategy(
+        self,
+        optimized_portfolio: pd.DataFrame,
+        prev_portfolio: pd.DataFrame | None,
+        prev_metadata: PortfolioMetadata | None,
+        cs_config: CoreSatelliteConfig,
+        prices: pd.DataFrame
+    ) -> tuple[pd.DataFrame, PortfolioMetadata]:
+        print(f"    Core-satellite: prev_portfolio={prev_portfolio.shape if prev_portfolio is not None else None}, prev_metadata.rebalance_year={prev_metadata.rebalance_year if prev_metadata else None}")
+        needs_core_rebalance = (
+            prev_portfolio is None or
+            prev_metadata is None or
+            prev_metadata.rebalance_year >= cs_config.core_rebalance_years
+        )
+        print(f"    needs_core_rebalance={needs_core_rebalance}")
+
+        anchor_date = prices.index.max()
+
+        if needs_core_rebalance:
+            print(f"    Creating NEW core portfolio (full rebalance)")
+            sorted_by_sharpe = optimized_portfolio.copy()
+            if "sharpe_ratio" in sorted_by_sharpe.columns:
+                sorted_by_sharpe = sorted_by_sharpe.sort_values("sharpe_ratio", ascending=False)
+            elif "weight" in sorted_by_sharpe.columns:
+                sorted_by_sharpe = sorted_by_sharpe.sort_values("weight", ascending=False)
+
+            n_total = len(optimized_portfolio)
+            n_core = max(1, int(n_total * cs_config.core_weight))
+
+            core_portfolio = sorted_by_sharpe.head(n_core).copy()
+            core_portfolio["portfolio_type"] = "core"
+
+            satellite_portfolio = sorted_by_sharpe.tail(n_total - n_core).copy()
+            satellite_portfolio["portfolio_type"] = "satellite"
+
+            core_total_weight = core_portfolio["weight"].sum() if len(core_portfolio) > 0 else 0
+            satellite_total_weight = satellite_portfolio["weight"].sum() if len(satellite_portfolio) > 0 else 0
+
+            if core_total_weight > 0:
+                core_portfolio["weight"] = core_portfolio["weight"] / core_total_weight * cs_config.core_weight
+            if satellite_total_weight > 0:
+                satellite_portfolio["weight"] = satellite_portfolio["weight"] / satellite_total_weight * cs_config.satellite_weight
+
+            combined = pd.concat([core_portfolio, satellite_portfolio], ignore_index=True)
+
+            metadata = PortfolioMetadata(
+                anchor_date=anchor_date.isoformat(),
+                portfolio_type="mixed",
+                core_weight=cs_config.core_weight,
+                satellite_weight=cs_config.satellite_weight,
+                rebalance_year=0,
+                valid_until=(anchor_date + pd.DateOffset(years=cs_config.core_rebalance_years)).isoformat(),
+                optimization_method="hrp"
+            )
+            print(f"    Created metadata: rebalance_year={metadata.rebalance_year}")
+
+            return combined, metadata
+        else:
+            print(f"    KEEPING previous core, rebalancing only satellite")
+            core_portfolio = prev_portfolio[prev_portfolio["portfolio_type"] == "core"].copy()
+            satellite_portfolio = optimized_portfolio.copy()
+            satellite_portfolio["portfolio_type"] = "satellite"
+
+            core_total_weight = core_portfolio["weight"].sum() if len(core_portfolio) > 0 else 0
+            satellite_total_weight = satellite_portfolio["weight"].sum() if len(satellite_portfolio) > 0 else 0
+
+            if core_total_weight > 0:
+                core_portfolio["weight"] = core_portfolio["weight"] / core_total_weight * cs_config.core_weight
+            if satellite_total_weight > 0:
+                satellite_portfolio["weight"] = satellite_portfolio["weight"] / satellite_total_weight * cs_config.satellite_weight
+
+            combined = pd.concat([core_portfolio, satellite_portfolio], ignore_index=True)
+
+            new_rebalance_year = prev_metadata.rebalance_year + 1
+            print(f"    Incrementing rebalance_year: {prev_metadata.rebalance_year} -> {new_rebalance_year}")
+            metadata = PortfolioMetadata(
+                anchor_date=anchor_date.isoformat(),
+                portfolio_type="mixed",
+                core_weight=cs_config.core_weight,
+                satellite_weight=cs_config.satellite_weight,
+                rebalance_year=new_rebalance_year,
+                valid_until=prev_metadata.valid_until,
+                optimization_method="hrp"
+            )
+            print(f"    Created metadata: rebalance_year={metadata.rebalance_year}, valid_until={metadata.valid_until}")
+
+            return combined, metadata

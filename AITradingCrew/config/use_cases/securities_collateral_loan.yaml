@@ -56,10 +56,11 @@ optimization:
       equity:
         min: 0.40
         max: 0.60
-    core_satellite:
-      core_weight: 0.60
-      satellite_weight: 0.40
-      core_rebalance_years: 2
+  core_satellite:
+    enabled: true
+    core_weight: 0.60
+    satellite_weight: 0.40
+    core_rebalance_years: 2
   risk_policy:
     primary_metric: max_asset_drawdown
     description: >

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import pandas as pd
 
@@ -13,6 +14,7 @@ from ai_trading_crew.use_cases.base import UseCasePaths
 from ai_trading_crew.use_cases.securities_collateral_loan.analysis import (
     SecuritiesCollateralLoanAnalyzer,
 )
+from ai_trading_crew.use_cases.securities_collateral_loan.config import PortfolioMetadata
 from ai_trading_crew.use_cases.securities_collateral_loan.data_pipeline import (
     SecuritiesCollateralLoanDataPipeline,
 )
@@ -54,7 +56,7 @@ class SecuritiesCollateralLoanBacktester:
                 years = 1
             anchors = build_anchor_dates(years)
 
-        for anchor in anchors:
+        for year_index, anchor in enumerate(anchors):
             config_snapshot = self.config.model_copy(deep=True)
             processed_dir = self.processed_base_dir / anchor.strftime("%Y%m%d")
             report_dir = self.report_base_dir / anchor.strftime("%Y%m%d")
@@ -66,13 +68,21 @@ class SecuritiesCollateralLoanBacktester:
             reporter = SecuritiesCollateralLoanReporter(config_snapshot, processed_dir, report_dir)
 
             data_payload = pipeline.collect(as_of=anchor)
+
+            prev_portfolio, prev_metadata = self._load_previous_portfolio(anchor)
+            data_payload['previous_portfolio'] = prev_portfolio
+            data_payload['previous_metadata'] = prev_metadata
+            data_payload['year_index'] = year_index
             prices = data_payload.get("prices")
             if prices is None or prices.empty:
                 continue
 
             try:
                 analysis_payload = analyzer.evaluate(data_payload)
-            except Exception:
+            except Exception as e:
+                print(f"ERROR in analyze.evaluate: {e}")
+                import traceback
+                traceback.print_exc()
                 continue
 
             forward_test = self._compute_forward_test(anchor, analysis_payload, pipeline)
@@ -151,6 +161,26 @@ class SecuritiesCollateralLoanBacktester:
             "series": series,
             "summary": summary,
         }
+
+    def _load_previous_portfolio(self, anchor: pd.Timestamp) -> Tuple[pd.DataFrame | None, PortfolioMetadata | None]:
+        prev_year = anchor.year - 1
+        prev_anchor = pd.Timestamp(year=prev_year, month=anchor.month, day=anchor.day)
+
+        prev_dir = self.processed_base_dir / prev_anchor.strftime("%Y%m%d")
+        portfolio_path = prev_dir / "optimized_portfolio.parquet"
+        metadata_path = prev_dir / "portfolio_metadata.json"
+
+        if not portfolio_path.exists():
+            return None, None
+
+        portfolio = pd.read_parquet(portfolio_path)
+        metadata = None
+        if metadata_path.exists():
+            with open(metadata_path, 'r') as f:
+                metadata_dict = json.load(f)
+                metadata = PortfolioMetadata(**metadata_dict)
+
+        return portfolio, metadata
 
 
 def build_anchor_dates(years: int, reference_date: datetime | None = None) -> List[pd.Timestamp]:

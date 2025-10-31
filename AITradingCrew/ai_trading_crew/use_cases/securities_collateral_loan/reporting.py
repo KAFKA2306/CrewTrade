@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Dict, List
 
 import pandas as pd
 
-from ai_trading_crew.use_cases.securities_collateral_loan.config import SecuritiesCollateralLoanConfig
+from ai_trading_crew.use_cases.securities_collateral_loan.config import PortfolioMetadata, SecuritiesCollateralLoanConfig
 from ai_trading_crew.use_cases.securities_collateral_loan.insights import build_insight_markdown
 
 
@@ -73,14 +74,21 @@ class SecuritiesCollateralLoanReporter:
                     stored_paths[f"optimized_portfolio_{name}"] = path
                     profile_paths[name] = path
 
-            if primary_profile and primary_profile in profile_paths:
-                stored_paths["optimized_portfolio"] = profile_paths[primary_profile]
-            else:
-                optimized_portfolio = analysis_payload.get("optimized_portfolio")
-                if isinstance(optimized_portfolio, pd.DataFrame):
-                    opt_path = self.processed_dir / "optimized_portfolio.parquet"
-                    optimized_portfolio.to_parquet(opt_path)
-                    stored_paths["optimized_portfolio"] = opt_path
+            optimized_portfolio = analysis_payload.get("optimized_portfolio")
+            if isinstance(optimized_portfolio, pd.DataFrame):
+                opt_path = self.processed_dir / "optimized_portfolio.parquet"
+                optimized_portfolio.to_parquet(opt_path)
+                stored_paths["optimized_portfolio"] = opt_path
+
+            metadata = analysis_payload.get("metadata")
+            print(f"    Reporting: Received metadata: {metadata}")
+            if isinstance(metadata, PortfolioMetadata):
+                metadata_path = self.processed_dir / "portfolio_metadata.json"
+                print(f"    Reporting: Saving metadata with rebalance_year={metadata.rebalance_year}")
+                with open(metadata_path, 'w') as f:
+                    json.dump(metadata.dict(), f, indent=2)
+                stored_paths["portfolio_metadata"] = metadata_path
+                print(f"    Reporting: Saved to {metadata_path}")
 
         report_path = self.report_dir / "securities_collateral_loan_report.md"
         report_path.write_text(
