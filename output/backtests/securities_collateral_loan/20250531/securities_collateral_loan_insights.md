@@ -1,41 +1,42 @@
 # Securities Collateral Loan Insight
 
 ## Optimization Summary
-- Total ETFs evaluated: 20
-- ETFs with sufficient data: 12
-- Candidate universe after filtering: 12
-- Selected ETFs (max_sharpe): 12
-- Excluded 5 ETF(s) with volatility > 25.0%
-- Portfolio annual return: -5.33%
-- Portfolio annual volatility: 11.47%
-- Portfolio Sharpe ratio: -0.464
-- Weighted expense ratio: 0.20%
+- Total ETFs evaluated: 109
+- ETFs with sufficient data: 82
+- Candidate universe after filtering: 40
+- Selected ETFs (max_sharpe): 6
+- Excluded 16 ETF(s) with volatility > 25.0%
+- Excluded 3 ETF(s) with drawdown worse than -30.0%
+- Portfolio annual return: 11.41%
+- Portfolio annual volatility: 13.33%
+- Portfolio Sharpe ratio: 0.856
+- Weighted expense ratio: 0.19%
 
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
-| max_sharpe | -5.33% | 11.47% | -0.464 | 0.20% | Yes |
-| low_volatility | -8.57% | 13.09% | -0.655 | 0.22% |  |
-| cost_focus | -6.66% | 11.80% | -0.564 | 0.21% |  |
+| max_sharpe | 11.41% | 13.33% | 0.856 | 0.19% | Yes |
+| low_volatility | 12.64% | 9.61% | 1.316 | 0.18% |  |
+| cost_focus | 9.96% | 10.84% | 0.919 | 0.22% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥18328405
+- Current collateral value: ¥18317522
 - Current loan ratio: 0.546
-- Buffer to 70%: 22.06% drop
-- Buffer to 85%: 35.81% drop
-- Max drawdown (history): -11.38%
+- Buffer to 70%: 22.01% drop
+- Buffer to 85%: 35.77% drop
+- Max drawdown (history): -17.95%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥16,495,565 | 0.606 | No | No |
-| -20% | ¥14,662,724 | 0.682 | No | No |
-| -30% | ¥12,829,884 | 0.779 | Yes | No |
-| -40% | ¥10,997,043 | 0.909 | Yes | Yes |
+| -10% | ¥16,485,770 | 0.607 | No | No |
+| -20% | ¥14,654,018 | 0.682 | No | No |
+| -30% | ¥12,822,265 | 0.780 | Yes | No |
+| -40% | ¥10,990,513 | 0.910 | Yes | Yes |
 
 ## Historical Breach Counts
-- Margin call events: 19
-- Forced liquidation events: 17
+- Margin call events: 403
+- Forced liquidation events: 0
 
 ## Interest Projection (Simple)
 | Days | Interest (¥) |

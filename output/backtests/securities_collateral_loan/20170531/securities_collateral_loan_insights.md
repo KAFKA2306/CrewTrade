@@ -4,39 +4,39 @@
 - Total ETFs evaluated: 41
 - ETFs with sufficient data: 25
 - Candidate universe after filtering: 17
-- Selected ETFs (max_sharpe): 6
+- Selected ETFs (max_sharpe): 9
 - Excluded 12 ETF(s) with volatility > 25.0%
 - Excluded 4 ETF(s) with drawdown worse than -30.0%
-- Portfolio annual return: 16.08%
-- Portfolio annual volatility: 14.15%
-- Portfolio Sharpe ratio: 1.136
-- Weighted expense ratio: 0.24%
+- Portfolio annual return: 18.29%
+- Portfolio annual volatility: 14.04%
+- Portfolio Sharpe ratio: 1.303
+- Weighted expense ratio: 0.22%
 
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
-| max_sharpe | 16.08% | 14.15% | 1.136 | 0.24% | Yes |
-| low_volatility | 12.76% | 12.49% | 1.021 | 0.27% |  |
-| cost_focus | 17.14% | 14.90% | 1.150 | 0.25% |  |
+| max_sharpe | 18.29% | 14.04% | 1.303 | 0.22% | Yes |
+| low_volatility | 15.85% | 12.46% | 1.272 | 0.23% |  |
+| cost_focus | 17.99% | 13.62% | 1.321 | 0.23% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥18291545
+- Current collateral value: ¥18268612
 - Current loan ratio: 0.547
-- Buffer to 70%: 21.90% drop
-- Buffer to 85%: 35.68% drop
-- Max drawdown (history): -16.98%
+- Buffer to 70%: 21.80% drop
+- Buffer to 85%: 35.60% drop
+- Max drawdown (history): -15.23%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥16,462,390 | 0.607 | No | No |
-| -20% | ¥14,633,236 | 0.683 | No | No |
-| -30% | ¥12,804,082 | 0.781 | Yes | No |
-| -40% | ¥10,974,927 | 0.911 | Yes | Yes |
+| -10% | ¥16,441,751 | 0.608 | No | No |
+| -20% | ¥14,614,890 | 0.684 | No | No |
+| -30% | ¥12,788,028 | 0.782 | Yes | No |
+| -40% | ¥10,961,167 | 0.912 | Yes | Yes |
 
 ## Historical Breach Counts
-- Margin call events: 672
-- Forced liquidation events: 422
+- Margin call events: 527
+- Forced liquidation events: 192
 
 ## Interest Projection (Simple)
 | Days | Interest (¥) |
