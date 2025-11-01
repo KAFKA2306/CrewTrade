@@ -27,11 +27,18 @@ class Index7PortfolioReporter:
         portfolio.to_parquet(portfolio_path, index=False)
 
         chart_paths = {}
+        walk_forward_results = None
+        walk_forward_error = None
         if self.config is not None:
             print("  Generating visualizations...")
             validator = Index7PortfolioValidator(self.config)
             visualizer = Index7PortfolioVisualizer(self.output_dir)
-            chart_paths = visualizer.generate_all_charts(analysis_payload, validator)
+            try:
+                walk_forward_results = validator.walk_forward_test(train_years=5, test_years=2, rebalance_freq="Q")
+            except Exception as exc:
+                walk_forward_error = str(exc)
+                walk_forward_results = None
+            chart_paths = visualizer.generate_all_charts(analysis_payload, validator, walk_forward_results)
             print(f"  ✓ Generated {len(chart_paths)} charts")
 
         report_lines = []
@@ -74,18 +81,71 @@ class Index7PortfolioReporter:
         else:
             report_lines.append("\n✅ **HEALTHY:** LTV within safe limits")
 
+        if self.config is not None:
+            opt_conf = self.config.optimization
+            report_lines.append("\n## トレーニング設定と検証概要\n")
+            report_lines.append(f"- **最適化サンプル数:** {opt_conf.sample_size:,}")
+            report_lines.append(
+                f"- **最適化目的関数ウェイト:** "
+                + ", ".join(f"{k} {v*100:.0f}%" for k, v in opt_conf.objective_weights.items())
+            )
+            report_lines.append(
+                f"- **制約条件:** "
+                + ", ".join(f"{k}={v:.2f}" for k, v in opt_conf.constraints.items())
+            )
+            report_lines.append(f"- **リバランス頻度（検証時）:** 四半期（Q）")
+            report_lines.append(f"- **訓練期間 / テスト期間:** 5年 / 2年（ローリング）")
+            report_lines.append(f"- **最適化ルックバック:** {opt_conf.lookback}")
+            report_lines.append(f"- **最大ドローダウンバッファ:** {opt_conf.max_drawdown_buffer*100:.2f}%")
+
+            if walk_forward_results:
+                summary = walk_forward_results.get("summary", {})
+                report_lines.append("\n### ウォークフォワード検証サマリー\n")
+                report_lines.append(f"- **評価期間数:** {summary.get('num_periods', 0)}")
+                if summary:
+                    report_lines.append(f"- **平均アウトオブサンプル Sharpe:** {summary.get('avg_sharpe', 0):.3f} ± {summary.get('std_sharpe', 0):.3f}")
+                    report_lines.append(f"- **平均年率リターン:** {summary.get('avg_annual_return', 0)*100:.2f}%")
+                    report_lines.append(f"- **平均最大ドローダウン:** {summary.get('avg_max_drawdown', 0)*100:.2f}%")
+                    report_lines.append(f"- **Stability Score:** {summary.get('stability_score', 0):.3f}")
+
+                report_lines.append("\n### 期間別ポートフォリオ構成（降順ウェイト）\n")
+                report_lines.append("| Period | 訓練期間 | テスト期間 | ウェイト構成 | Sharpe | Max DD |")
+                report_lines.append("|--------|-----------|------------|--------------|--------|--------|")
+                for idx, period in enumerate(walk_forward_results.get("walk_forward_results", []), start=1):
+                    weights = period["portfolio_weights"]
+                    sorted_assets = sorted(weights.items(), key=lambda x: -x[1])
+                    weight_lines = "<br>".join(f"{ticker} {weight*100:.1f}%" for ticker, weight in sorted_assets)
+                    test_perf = period.get("test_performance", {})
+                    report_lines.append(
+                        f"| {idx} | {period['train_start'].date()}〜{period['train_end'].date()} | "
+                        f"{period['test_start'].date()}〜{period['test_end'].date()} | {weight_lines} | "
+                        f"{test_perf.get('sharpe_ratio', 0):.3f} | {test_perf.get('max_drawdown', 0)*100:.2f}% |"
+                    )
+            elif walk_forward_error:
+                report_lines.append("\n### ウォークフォワード検証サマリー\n")
+                report_lines.append(f"- 実行エラー: {walk_forward_error}")
+
         if chart_paths:
             report_lines.append("\n## Visualizations\n")
 
             report_lines.append("### Portfolio Allocation")
+            report_lines.append(
+                "100% stacked bar chart comparing asset weights across the optimized "
+                "portfolio, reference strategies (Equal Weight, 60/40 Mix, Inverse-Vol, "
+                "Min/Max variants), and walk-forward periods."
+            )
             report_lines.append("![Portfolio Allocation](./graphs/01_allocation.png)\n")
 
             report_lines.append("### Cumulative Returns Comparison")
-            report_lines.append("Performance of optimized portfolio vs benchmarks over the full period.")
+            report_lines.append(
+                "Stacked area view of strategy share (Optimized, Equal Weight, reference mixes) with cumulative return overlay."
+            )
             report_lines.append("![Cumulative Returns](./graphs/02_cumulative_returns.png)\n")
 
             report_lines.append("### Drawdown Evolution")
-            report_lines.append("Historical drawdown profile showing maximum decline periods.")
+            report_lines.append(
+                "Stacked drawdown contributions by asset category, with total drawdown overlay."
+            )
             report_lines.append("![Drawdown](./graphs/03_drawdown.png)\n")
 
             report_lines.append("### LTV Stress Tests")
@@ -97,7 +157,11 @@ class Index7PortfolioReporter:
             report_lines.append("![Asset Contribution](./graphs/05_asset_contribution.png)\n")
 
             report_lines.append("### Risk-Return Profile")
-            report_lines.append("Scatter plot showing individual asset positions vs optimized portfolio on risk-return spectrum.")
+            report_lines.append(
+                "Scatter plot comparing individual assets with multiple allocation strategies "
+                "(Optimized, Equal Weight, 60/40 Mix, Inverse-Vol, Min Variance, Max Sharpe, "
+                "Min Volatility, Min Drawdown, Max Kelly, Walk-Forward portfolios WF#1/WF#2)."
+            )
             report_lines.append("![Risk-Return](./graphs/06_risk_return.png)\n")
 
             report_lines.append("### Rolling Sharpe Ratio")

@@ -15,3 +15,8 @@
 ## 備考
 - 設定ファイルは `AITradingCrew/config/use_cases/index_7_portfolio_original.yaml` を使用。国内ETFとは別ユニバースのため、検証目的でのみ利用。
 - `validation.py` 内のウォークフォワード処理で `FutureWarning: 'M' is deprecated` が発生するため、将来的には `ME`（月末）頻度への変更を検討。
+- `01_allocation.png` は最新ポートフォリオに加えて Equal Weight / 60/40 Mix / Inverse-Vol / Min Variance / Max Sharpe / Min Volatility / Min Drawdown / Max Kelly / 各ウォークフォワード期間のウェイトを100%積み上げ棒グラフで比較表示。
+- `03_drawdown.png` は総ドローダウンに対する銘柄別寄与を積み上げ面グラフで可視化し、合計ドローダウン線を重ねています。
+- Risk-Returnグラフでは、個別資産に加えて `Optimized` / `Equal Weight` / `60/40 Mix` / `Inverse-Vol` / `Min Variance` / `Max Sharpe` / `Min Volatility` / `Min Drawdown` / `Max Kelly` / `WF#1` / `WF#2` を散布図上に表示。
+- 色設定は一元管理しており、US株→日本株→新興国株→債券→ゴールドの順で配色を固定（同じカテゴリは同色）。
+- レポート内の「期間別ポートフォリオ構成」は `<br>` 区切りで全ティッカーのウェイトを降順表示。

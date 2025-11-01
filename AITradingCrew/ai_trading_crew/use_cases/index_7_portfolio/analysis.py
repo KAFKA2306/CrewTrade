@@ -65,6 +65,7 @@ class Index7PortfolioAnalyzer:
         return {
             "portfolio": portfolio_df,
             "prices": prices,
+            "index_master": index_master,
             "portfolio_value": portfolio_value,
             "current_ltv": current_ltv,
             "loan_amount": self.config.loan_amount,

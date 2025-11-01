@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Iterable, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,35 +9,96 @@ from matplotlib.ticker import FuncFormatter
 
 
 class Index7PortfolioVisualizer:
+    CATEGORY_ORDER = ["us_equity", "jp_equity", "em_equity", "bonds", "gold", "other"]
+    CATEGORY_DISPLAY = {
+        "us_equity": "US Equity",
+        "jp_equity": "Japan Equity",
+        "em_equity": "Emerging Equity",
+        "bonds": "Bonds",
+        "gold": "Gold",
+        "other": "Other",
+    }
+    CATEGORY_PALETTE_NAMES = {
+        "us_equity": "Blues",
+        "jp_equity": "Reds",
+        "em_equity": "Greens",
+        "bonds": "Purples",
+        "gold": "Oranges",
+        "other": "Greys",
+    }
+    DEFAULT_COLOR = sns.color_palette("Greys", 3)[1]
+    TICKER_CATEGORY_OVERRIDES = {
+        "^GSPC": "us_equity",
+        "^NDX": "us_equity",
+        "SPY": "us_equity",
+        "1655.T": "us_equity",
+        "2840.T": "us_equity",
+        "^N225": "jp_equity",
+        "1364.T": "jp_equity",
+        "1478.T": "jp_equity",
+        "399A.T": "jp_equity",
+        "EEM": "em_equity",
+        "2520.T": "em_equity",
+        "TLT": "bonds",
+        "2511.T": "bonds",
+        "GC=F": "gold",
+        "314A.T": "gold",
+    }
     def __init__(self, output_dir: Path):
         self.graphs_dir = output_dir / "graphs"
         self.graphs_dir.mkdir(parents=True, exist_ok=True)
         plt.style.use("seaborn-v0_8-darkgrid")
         sns.set_palette("husl")
 
-    def generate_all_charts(self, analysis_payload: Dict, validator) -> Dict:
+    def generate_all_charts(
+        self,
+        analysis_payload: Dict,
+        validator,
+        walk_forward_results: Dict | None = None,
+    ) -> Dict:
         portfolio = analysis_payload["portfolio"]
         prices = analysis_payload["prices"]
+        index_master = analysis_payload.get("index_master")
         loan_amount = analysis_payload["loan_amount"]
         warning_ratio = analysis_payload["warning_ratio"]
         liquidation_ratio = analysis_payload["liquidation_ratio"]
 
+        if isinstance(prices, pd.DataFrame):
+            sorted_tickers = self._sort_tickers(prices.columns, index_master)
+            prices = prices.reindex(columns=sorted_tickers)
+        else:
+            sorted_tickers = list(portfolio["ticker"])
+
+        color_map = self._build_color_map(sorted_tickers, index_master)
+
+        reference_portfolios = self._build_reference_portfolios(
+            prices, portfolio, index_master, walk_forward_results
+        )
+
         chart_paths = {}
 
-        chart_paths["allocation"] = self._plot_allocation(portfolio)
+        chart_paths["allocation"] = self._plot_allocation(
+            portfolio, index_master, reference_portfolios, color_map
+        )
 
-        chart_paths["cumulative_returns"] = self._plot_cumulative_returns(prices, portfolio)
+        chart_paths["cumulative_returns"] = self._plot_cumulative_returns(
+            prices, portfolio, reference_portfolios
+        )
 
-        chart_paths["drawdown"] = self._plot_drawdown(prices, portfolio)
+        chart_paths["drawdown"] = self._plot_drawdown(prices, portfolio, index_master, color_map)
 
         stress_results = validator.stress_test()
         chart_paths["ltv_stress"] = self._plot_ltv_stress(
             prices, portfolio, loan_amount, warning_ratio, liquidation_ratio, stress_results
         )
 
-        chart_paths["asset_contribution"] = self._plot_asset_contribution(prices, portfolio)
+        chart_paths["asset_contribution"] = self._plot_asset_contribution(
+            prices, portfolio, index_master, color_map
+        )
 
-        chart_paths["risk_return"] = self._plot_risk_return_scatter(prices, portfolio)
+        chart_paths["risk_return"] = self._plot_risk_return_scatter(
+            prices, portfolio, index_master, reference_portfolios, color_map
+        )
 
         chart_paths["rolling_sharpe"] = self._plot_rolling_sharpe(prices, portfolio)
 
@@ -45,30 +106,101 @@ class Index7PortfolioVisualizer:
 
         return chart_paths
 
-    def _plot_allocation(self, portfolio: pd.DataFrame) -> Path:
-        fig, ax = plt.subplots(figsize=(10, 7))
+    def _plot_allocation(
+        self,
+        portfolio: pd.DataFrame,
+        index_master: pd.DataFrame | None = None,
+        reference_portfolios: Dict | None = None,
+        color_map: Dict | None = None,
+    ) -> Path:
+        if not reference_portfolios:
+            reference_portfolios = {
+                "Optimized": {
+                    "weights": portfolio.set_index("ticker")["weight"],
+                    "display": "Optimized (Latest)",
+                    "axis_label": "Optimized",
+                }
+            }
 
-        labels = [f"{row['ticker']}\n{row['name'][:15]}" for _, row in portfolio.iterrows()]
-        weights = portfolio["weight"].values
-        colors = sns.color_palette("Set3", len(portfolio))
+        tickers_order: list[str] = list(portfolio["ticker"])
+        for spec in reference_portfolios.values():
+            weights = spec["weights"]
+            for ticker in weights.index:
+                if ticker not in tickers_order:
+                    tickers_order.append(ticker)
 
-        wedges, texts, autotexts = ax.pie(
-            weights,
-            labels=labels,
-            autopct=lambda pct: f"{pct:.1f}%",
-            startangle=90,
-            colors=colors,
+        axis_label_to_weights: Dict[str, pd.Series] = {}
+        axis_label_display: Dict[str, str] = {}
+        axis_labels: list[str] = []
+        for key, spec in reference_portfolios.items():
+            axis_label = spec.get("axis_label", key)
+            axis_labels.append(axis_label)
+            axis_label_to_weights[axis_label] = spec["weights"]
+            axis_label_display[axis_label] = spec.get("display", axis_label)
+
+        weight_df = pd.DataFrame({
+            axis_label: axis_label_to_weights[axis_label].reindex(tickers_order).fillna(0.0)
+            for axis_label in axis_labels
+        })
+
+        weight_df = weight_df.clip(lower=0.0)
+        sorted_index = self._sort_tickers(weight_df.index, index_master)
+        weight_df = weight_df.loc[sorted_index]
+
+        asset_names: Dict[str, str] = {}
+        for _, row in portfolio.iterrows():
+            asset_names[row["ticker"]] = row.get("name", row["ticker"])
+        if index_master is not None:
+            for _, row in index_master.iterrows():
+                asset_names.setdefault(row["ticker"], row.get("name", row["ticker"]))
+
+        display_index = []
+        for ticker in weight_df.index:
+            category_key = self._resolve_category(ticker, index_master)
+            category_label = self.CATEGORY_DISPLAY.get(category_key, "Other")
+            display_index.append(f"{ticker}\n{category_label}")
+
+        fig, ax = plt.subplots(figsize=(12, 7))
+        plt.subplots_adjust(bottom=0.27)
+
+        colors = [self._color_for(ticker, color_map, index_master) for ticker in weight_df.index]
+        bottoms = np.zeros(len(axis_labels))
+        x_positions = np.arange(len(axis_labels))
+        formatted_labels = [axis_label_display[label] for label in axis_labels]
+
+        for idx, (ticker, display_label) in enumerate(zip(weight_df.index, display_index)):
+            heights = weight_df.loc[ticker].values * 100
+            ax.bar(
+                x_positions,
+                heights,
+                bottom=bottoms,
+                color=colors[idx % len(colors)],
+                label=display_label,
+                edgecolor="white",
+                linewidth=0.6,
+            )
+            bottoms += heights
+
+        ax.set_ylim(0, 100)
+        ax.set_ylabel("Weight (%)", fontsize=12)
+        ax.set_title("Portfolio Allocation (100% Stacked)", fontsize=14, weight="bold", pad=16)
+        ax.set_xticks(x_positions)
+        ax.set_xticklabels(formatted_labels, rotation=45, ha="right", fontsize=10)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.0f}%"))
+        ax.grid(axis="y", alpha=0.3, linestyle="--")
+        ax.set_axisbelow(True)
+
+        handles, labels = ax.get_legend_handles_labels()
+        legend_cols = min(max(len(labels) // 2, 3), 5)
+        ax.legend(
+            handles,
+            labels,
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.2),
+            fontsize=9,
+            frameon=False,
+            ncol=legend_cols,
         )
-
-        for autotext in autotexts:
-            autotext.set_color("white")
-            autotext.set_fontsize(10)
-            autotext.set_weight("bold")
-
-        for text in texts:
-            text.set_fontsize(9)
-
-        ax.set_title("Portfolio Allocation by Asset", fontsize=14, weight="bold", pad=20)
 
         plt.tight_layout()
         path = self.graphs_dir / "01_allocation.png"
@@ -77,33 +209,76 @@ class Index7PortfolioVisualizer:
 
         return path
 
-    def _plot_cumulative_returns(self, prices: pd.DataFrame, portfolio: pd.DataFrame) -> Path:
+    def _plot_cumulative_returns(
+        self,
+        prices: pd.DataFrame,
+        portfolio: pd.DataFrame,
+        reference_portfolios: Dict | None = None,
+    ) -> Path:
         fig, ax = plt.subplots(figsize=(14, 7))
 
-        weights_dict = portfolio.set_index("ticker")["weight"].to_dict()
-
         daily_returns = prices.pct_change().dropna()
-        portfolio_returns = daily_returns.apply(
-            lambda row: sum(weights_dict.get(ticker, 0) * row[ticker] for ticker in row.index),
-            axis=1,
+
+        strategy_order = [
+            "Optimized",
+            "Inverse-Vol",
+            "Max Sharpe",
+            "Min Variance",
+            "Min Volatility",
+            "Min Drawdown",
+            "Max Kelly",
+        ]
+
+        strategy_values: Dict[str, pd.Series] = {}
+
+        optimized_weights = portfolio.set_index("ticker")["weight"].reindex(daily_returns.columns).fillna(0.0)
+        optimized_returns = daily_returns.mul(optimized_weights, axis=1).sum(axis=1)
+        strategy_values["Optimized"] = (1 + optimized_returns).cumprod()
+
+        if reference_portfolios:
+            for key in strategy_order[1:]:
+                if key not in reference_portfolios:
+                    continue
+                weights = reference_portfolios[key]["weights"].reindex(daily_returns.columns).fillna(0.0)
+                strat_ret = daily_returns.mul(weights, axis=1).sum(axis=1)
+                strategy_values[key] = (1 + strat_ret).cumprod()
+
+        value_df = pd.DataFrame(strategy_values)
+        value_df = value_df.dropna()
+
+        share_df = value_df.div(value_df.sum(axis=1), axis=0) * 100.0
+
+        base_colors = sns.color_palette("Set2", len(value_df.columns))
+        area_colors = [
+            tuple(min(1.0, c + (1.0 - c) * 0.15) for c in color)
+            for color in base_colors
+        ]
+        line_colors = [
+            tuple(max(0.0, c * 0.9) for c in color)
+            for color in base_colors
+        ]
+        ax.stackplot(
+            value_df.index,
+            *[share_df[col].values for col in value_df.columns],
+            labels=value_df.columns,
+            colors=area_colors,
+            alpha=0.85,
         )
-        cumulative_optimized = (1 + portfolio_returns).cumprod()
 
-        equal_weights = {ticker: 1.0 / len(prices.columns) for ticker in prices.columns}
-        equal_returns = daily_returns.apply(
-            lambda row: sum(equal_weights.get(ticker, 0) * row[ticker] for ticker in row.index),
-            axis=1,
-        )
-        cumulative_equal = (1 + equal_returns).cumprod()
-
-        ax.plot(cumulative_optimized.index, cumulative_optimized.values, label="Optimized Portfolio", linewidth=2)
-        ax.plot(cumulative_equal.index, cumulative_equal.values, label="Equal Weight", linewidth=2, linestyle="--")
-
+        ax.set_ylabel("Share of Total (%)", fontsize=12)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.0f}%"))
         ax.set_xlabel("Date", fontsize=12)
-        ax.set_ylabel("Cumulative Return (Base=1)", fontsize=12)
-        ax.set_title("Cumulative Returns: Portfolio Strategies Comparison", fontsize=14, weight="bold")
-        ax.legend(loc="upper left", fontsize=11)
-        ax.grid(True, alpha=0.3)
+        ax.set_title("Cumulative Return Share by Strategy", fontsize=14, weight="bold")
+        ax.grid(True, axis="y", linestyle="--", alpha=0.3)
+
+        ax2 = ax.twinx()
+        for color, col in zip(line_colors, value_df.columns):
+            ax2.plot(value_df.index, value_df[col].values, color=color, linewidth=1.4, linestyle="-", alpha=0.95)
+        ax2.set_ylabel("Cumulative Return (Base=1)", fontsize=12)
+        ax2.set_yscale("log")
+        ax2.grid(False)
+
+        ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=min(4, len(value_df.columns)), fontsize=10, frameon=False)
 
         plt.tight_layout()
         path = self.graphs_dir / "02_cumulative_returns.png"
@@ -112,39 +287,64 @@ class Index7PortfolioVisualizer:
 
         return path
 
-    def _plot_drawdown(self, prices: pd.DataFrame, portfolio: pd.DataFrame) -> Path:
+    def _plot_drawdown(
+        self,
+        prices: pd.DataFrame,
+        portfolio: pd.DataFrame,
+        index_master: pd.DataFrame | None = None,
+        color_map: Dict | None = None,
+    ) -> Path:
         fig, ax = plt.subplots(figsize=(14, 7))
 
         weights_dict = portfolio.set_index("ticker")["weight"].to_dict()
-        daily_returns = prices.pct_change().dropna()
-        portfolio_returns = daily_returns.apply(
-            lambda row: sum(weights_dict.get(ticker, 0) * row[ticker] for ticker in row.index),
-            axis=1,
+        sorted_tickers = self._sort_tickers(prices.columns, index_master)
+
+        normalized_prices = prices[sorted_tickers] / prices[sorted_tickers].iloc[0]
+        asset_values = normalized_prices.mul(pd.Series(weights_dict))
+        portfolio_value = asset_values.sum(axis=1)
+
+        running_max = portfolio_value.cummax()
+
+        peak_asset_values = pd.DataFrame(index=asset_values.index, columns=asset_values.columns, dtype=float)
+        current_peak_value = portfolio_value.iloc[0]
+        current_peak_assets = asset_values.iloc[0]
+        peak_asset_values.iloc[0] = current_peak_assets
+
+        for idx in range(1, len(asset_values)):
+            date = asset_values.index[idx]
+            if portfolio_value.iloc[idx] >= current_peak_value - 1e-12:
+                current_peak_value = portfolio_value.iloc[idx]
+                current_peak_assets = asset_values.iloc[idx]
+            peak_asset_values.iloc[idx] = current_peak_assets
+
+        shortfall = (peak_asset_values - asset_values).clip(lower=0.0)
+        total_shortfall = shortfall.sum(axis=1)
+        peak_total = peak_asset_values.sum(axis=1)
+        shortfall_pct = pd.DataFrame(0.0, index=shortfall.index, columns=shortfall.columns)
+        mask = peak_total > 0
+        shortfall_pct.loc[mask] = shortfall.loc[mask].div(peak_total.loc[mask], axis=0) * 100.0
+
+        colors = [self._color_for(ticker, color_map, index_master) for ticker in shortfall_pct.columns]
+        ax.stackplot(
+            shortfall_pct.index,
+            *[shortfall_pct[col].values for col in shortfall_pct.columns],
+            labels=[f"{ticker}" for ticker in shortfall_pct.columns],
+            colors=colors,
+            alpha=0.85,
         )
-        cumulative = (1 + portfolio_returns).cumprod()
 
-        running_max = cumulative.expanding().max()
-        drawdown = (cumulative - running_max) / running_max
-
-        ax.fill_between(drawdown.index, drawdown.values, 0, alpha=0.4, color="red", label="Drawdown")
-        ax.plot(drawdown.index, drawdown.values, color="darkred", linewidth=1.5)
-
-        ax.axhline(y=drawdown.min(), color="black", linestyle="--", linewidth=1, alpha=0.7)
-        ax.text(
-            drawdown.index[len(drawdown) // 2],
-            drawdown.min() - 0.01,
-            f"Max DD: {drawdown.min()*100:.2f}%",
-            fontsize=10,
-            ha="center",
-        )
+        drawdown_pct = (total_shortfall / peak_total).fillna(0.0) * 100.0
+        ax.plot(drawdown_pct.index, drawdown_pct.values, color="black", linewidth=1.5, label="Total Drawdown")
 
         ax.set_xlabel("Date", fontsize=12)
-        ax.set_ylabel("Drawdown (%)", fontsize=12)
-        ax.set_title("Portfolio Drawdown Evolution", fontsize=14, weight="bold")
-        ax.legend(loc="lower left", fontsize=11)
+        ax.set_ylabel("Drawdown Contribution (%)", fontsize=12)
+        ax.set_title("Stacked Drawdown Contributions by Asset", fontsize=14, weight="bold")
+        ax.set_ylim(0, max(5, drawdown_pct.max() * 1.1))
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.0f}%"))
         ax.grid(True, alpha=0.3)
 
-        ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y*100:.0f}%"))
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles, labels, loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=10, frameon=False)
 
         plt.tight_layout()
         path = self.graphs_dir / "03_drawdown.png"
@@ -218,7 +418,13 @@ class Index7PortfolioVisualizer:
 
         return path
 
-    def _plot_asset_contribution(self, prices: pd.DataFrame, portfolio: pd.DataFrame) -> Path:
+    def _plot_asset_contribution(
+        self,
+        prices: pd.DataFrame,
+        portfolio: pd.DataFrame,
+        index_master: pd.DataFrame | None = None,
+        color_map: Dict | None = None,
+    ) -> Path:
         fig, ax = plt.subplots(figsize=(14, 7))
 
         weights_dict = portfolio.set_index("ticker")["weight"].to_dict()
@@ -232,12 +438,19 @@ class Index7PortfolioVisualizer:
                 asset_contributions[ticker] = cumulative_contribution
 
         contribution_df = pd.DataFrame(asset_contributions)
+        if not contribution_df.empty:
+            ordered_cols = self._sort_tickers(contribution_df.columns, index_master)
+            contribution_df = contribution_df[ordered_cols]
+            colors = [self._color_for(ticker, color_map, index_master) for ticker in contribution_df.columns]
+        else:
+            colors = None
 
         ax.stackplot(
             contribution_df.index,
             *[contribution_df[col].values for col in contribution_df.columns],
             labels=contribution_df.columns,
             alpha=0.7,
+            colors=colors,
         )
 
         ax.set_xlabel("Date", fontsize=12)
@@ -253,7 +466,14 @@ class Index7PortfolioVisualizer:
 
         return path
 
-    def _plot_risk_return_scatter(self, prices: pd.DataFrame, portfolio: pd.DataFrame) -> Path:
+    def _plot_risk_return_scatter(
+        self,
+        prices: pd.DataFrame,
+        portfolio: pd.DataFrame,
+        index_master: pd.DataFrame | None = None,
+        reference_portfolios: Dict | None = None,
+        color_map: Dict | None = None,
+    ) -> Path:
         fig, ax = plt.subplots(figsize=(10, 7))
 
         daily_returns = prices.pct_change().dropna()
@@ -268,24 +488,68 @@ class Index7PortfolioVisualizer:
                     "return": annual_return,
                     "volatility": annual_vol,
                 })
-
         metrics_df = pd.DataFrame(asset_metrics)
+        ticker_list = metrics_df["ticker"].tolist() if not metrics_df.empty else []
+        asset_colors = [
+            self._color_for(ticker, color_map, index_master) for ticker in ticker_list
+        ]
 
         weights_dict = portfolio.set_index("ticker")["weight"].to_dict()
-        portfolio_returns = daily_returns.apply(
-            lambda row: sum(weights_dict.get(ticker, 0) * row[ticker] for ticker in row.index),
-            axis=1,
-        )
-        portfolio_annual_return = portfolio_returns.mean() * 252
-        portfolio_annual_vol = portfolio_returns.std() * np.sqrt(252)
 
-        ax.scatter(
-            metrics_df["volatility"] * 100,
-            metrics_df["return"] * 100,
-            s=100,
-            alpha=0.7,
-            label="Individual Assets",
-        )
+        def compute_portfolio_stats(
+            weights: pd.Series,
+            label: str,
+            annotation: str | None = None,
+            style_key: str | None = None,
+        ) -> Dict[str, float]:
+            weights = weights.reindex(daily_returns.columns).fillna(0.0)
+            portfolio_returns = daily_returns.mul(weights, axis=1).sum(axis=1)
+            annual_return = portfolio_returns.mean() * 252
+            annual_vol = portfolio_returns.std() * np.sqrt(252)
+            sharpe = annual_return / annual_vol if annual_vol > 0 else 0
+            return {
+                "label": label,
+                "annotation": annotation or label,
+                "style_key": style_key or label,
+                "annual_return": annual_return,
+                "annual_volatility": annual_vol,
+                "sharpe": sharpe,
+            }
+
+        if reference_portfolios is None:
+            reference_portfolios = {}
+
+        portfolio_points = []
+        wf_styles: Dict[str, Dict] = {}
+        wf_keys = [key for key in reference_portfolios.keys() if key.startswith("WF#")]
+        if wf_keys:
+            palette = sns.color_palette("dark", len(wf_keys))
+            for idx, (key, color) in enumerate(zip(wf_keys, palette), start=1):
+                wf_styles[key] = {
+                    "marker": "o",
+                    "color": color,
+                    "offset": (14, 14 if idx % 2 else -18),
+                }
+
+        for key, spec in reference_portfolios.items():
+            legend_label = spec.get("legend", f"{key} Portfolio")
+            annotation = spec.get("annotation", legend_label)
+            style_key = spec.get("style_key", key)
+            weights_series = spec["weights"]
+            portfolio_points.append(
+                compute_portfolio_stats(weights_series, legend_label, annotation=annotation, style_key=style_key)
+            )
+
+        if not metrics_df.empty:
+            ax.scatter(
+                metrics_df["volatility"] * 100,
+                metrics_df["return"] * 100,
+                s=90,
+                alpha=0.6,
+                label="Individual Assets",
+                c=asset_colors,
+                edgecolors="none",
+            )
 
         for _, row in metrics_df.iterrows():
             ax.annotate(
@@ -296,22 +560,52 @@ class Index7PortfolioVisualizer:
                 textcoords="offset points",
             )
 
-        ax.scatter(
-            portfolio_annual_vol * 100,
-            portfolio_annual_return * 100,
-            s=300,
-            color="red",
-            marker="*",
-            label="Optimized Portfolio",
-            edgecolors="black",
-            linewidths=1.5,
-            zorder=5,
-        )
+        style_map = {
+            "Optimized": {"marker": "*", "color": "#e15759", "offset": (10, 12)},
+            "Inverse-Vol": {"marker": "X", "color": "#59a14f", "offset": (12, 10)},
+            "Min Variance": {"marker": "D", "color": "#f28e2c", "offset": (12, -16)},
+            "Max Sharpe": {"marker": "^", "color": "#edc948", "offset": (12, 12)},
+            "Min Volatility": {"marker": ">", "color": "#b07aa1", "offset": (12, -20)},
+            "Min Drawdown": {"marker": "<", "color": "#ff9da7", "offset": (12, -12)},
+            "Max Kelly": {"marker": "h", "color": "#9c755f", "offset": (12, 14)},
+        }
+        style_map.update(wf_styles)
+        fallback_markers = ["o", "v", "H", "p", "*"]
+        fallback_colors = sns.color_palette("tab10", len(fallback_markers))
+        for idx, point in enumerate(portfolio_points):
+            style_key = point.get("style_key", point["label"])
+            style = style_map.get(style_key, {})
+            marker = style.get("marker", fallback_markers[idx % len(fallback_markers)])
+            color = style.get("color", fallback_colors[idx % len(fallback_colors)])
+            offset = style.get("offset", (10, 10))
+            ax.scatter(
+                point["annual_volatility"] * 100,
+                point["annual_return"] * 100,
+                s=320,
+                color=color,
+                marker=marker,
+                label=point["label"],
+                edgecolors="#1f1f1f",
+                linewidths=1.2,
+                zorder=5 + idx,
+                alpha=0.9,
+            )
+            ax.annotate(
+                f"{point['annotation']} (Sharpe {point['sharpe']:.2f})",
+                (point["annual_volatility"] * 100, point["annual_return"] * 100),
+                fontsize=9,
+                xytext=offset,
+                textcoords="offset points",
+                bbox=dict(boxstyle="round,pad=0.25", facecolor="white", alpha=0.6, edgecolor=color),
+            )
 
         ax.set_xlabel("Annual Volatility (%)", fontsize=12)
         ax.set_ylabel("Annual Return (%)", fontsize=12)
         ax.set_title("Risk-Return Profile", fontsize=14, weight="bold")
-        ax.legend(loc="best", fontsize=11)
+        ax.set_facecolor("#f6f8fa")
+
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles, labels, loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=11, frameon=False)
         ax.grid(True, alpha=0.3)
 
         plt.tight_layout()
@@ -320,6 +614,181 @@ class Index7PortfolioVisualizer:
         plt.close()
 
         return path
+
+    def _build_reference_portfolios(
+        self,
+        prices: pd.DataFrame,
+        portfolio: pd.DataFrame,
+        index_master: pd.DataFrame | None,
+        walk_forward_results: Dict | None,
+    ) -> Dict[str, Dict]:
+        daily_returns = prices.pct_change().dropna()
+        asset_columns = daily_returns.columns if not daily_returns.empty else portfolio["ticker"]
+
+        base_weights = portfolio.set_index("ticker")["weight"]
+
+        portfolios: Dict[str, Dict] = {}
+        portfolios["Optimized"] = {
+            "weights": base_weights,
+            "legend": "Optimized",
+            "annotation": "Optimized (Latest)",
+            "display": "Optimized (Latest)",
+            "axis_label": "Optimized",
+            "style_key": "Optimized",
+        }
+
+        if index_master is not None and not index_master.empty:
+            equity_tickers = index_master[index_master["category"] == "equity"]["ticker"].tolist()
+            defensive_tickers = [
+                ticker for ticker in index_master["ticker"]
+                if ticker not in equity_tickers
+            ]
+        else:
+            equity_tickers = []
+            defensive_tickers = []
+
+        equity_tickers = [t for t in equity_tickers if t in asset_columns]
+        defensive_tickers = [t for t in defensive_tickers if t in asset_columns]
+
+        if not daily_returns.empty:
+            asset_vol = daily_returns.std()
+            inv_vol = 1 / asset_vol.replace(0, np.nan)
+            if inv_vol.notna().any():
+                inv_vol = inv_vol.fillna(0)
+                inv_vol_weight = inv_vol / inv_vol.sum()
+                portfolios["Inverse-Vol"] = {
+                    "weights": inv_vol_weight,
+                    "legend": "Inverse-Vol",
+                    "annotation": "Inverse-Vol",
+                    "display": "Inverse-Vol",
+                    "axis_label": "Inverse-Vol",
+                    "style_key": "Inverse-Vol",
+                }
+
+            mean_returns = daily_returns.mean()
+            cov_matrix = daily_returns.cov()
+
+            min_var_weights = self._solve_mean_variance_weights(mean_returns, cov_matrix, objective="min_variance")
+            if min_var_weights is not None:
+                portfolios["Min Variance"] = {
+                    "weights": min_var_weights,
+                    "legend": "Min Variance",
+                    "annotation": "Min Variance",
+                    "display": "Min Variance",
+                    "axis_label": "Min Variance",
+                    "style_key": "Min Variance",
+                }
+
+            max_sharpe_weights = self._solve_mean_variance_weights(mean_returns, cov_matrix, objective="max_sharpe")
+            if max_sharpe_weights is not None:
+                portfolios["Max Sharpe"] = {
+                    "weights": max_sharpe_weights,
+                    "legend": "Max Sharpe",
+                    "annotation": "Max Sharpe",
+                    "display": "Max Sharpe",
+                    "axis_label": "Max Sharpe",
+                    "style_key": "Max Sharpe",
+                }
+
+            extreme_candidates = self._random_extreme_portfolios(daily_returns, num_samples=5000)
+            for label, weights in extreme_candidates.items():
+                portfolios[label] = {
+                    "weights": weights,
+                    "legend": label,
+                    "annotation": label,
+                    "display": label,
+                    "axis_label": label,
+                    "style_key": label,
+                }
+
+        if walk_forward_results:
+            wf_entries = walk_forward_results.get("walk_forward_results", [])
+            for idx, period in enumerate(wf_entries, start=1):
+                weights = pd.Series(period["portfolio_weights"])
+                key = f"WF#{idx}"
+                annotation = f"WF#{idx}: {period['test_start'].date()}→{period['test_end'].date()}"
+                display = f"WF#{idx} ({period['test_start'].date().strftime('%Y-%m')}→{period['test_end'].date().strftime('%Y-%m')})"
+                axis_label = f"WF#{idx}\n{period['test_start'].date().strftime('%Y-%m')}→{period['test_end'].date().strftime('%Y-%m')}"
+                portfolios[key] = {
+                    "weights": weights,
+                    "legend": f"WF#{idx}",
+                    "annotation": annotation,
+                    "display": display,
+                    "axis_label": axis_label,
+                    "style_key": key,
+                }
+
+        return portfolios
+
+    def _solve_mean_variance_weights(
+        self,
+        mean_returns: pd.Series,
+        cov_matrix: pd.DataFrame,
+        objective: str,
+    ) -> pd.Series | None:
+        if cov_matrix.empty:
+            return None
+
+        cov_values = cov_matrix.values
+        inv_cov = np.linalg.pinv(cov_values)
+        ones = np.ones(len(mean_returns))
+
+        if objective == "min_variance":
+            raw = inv_cov @ ones
+        elif objective == "max_sharpe":
+            raw = inv_cov @ mean_returns.values
+        else:
+            return None
+
+        raw = np.clip(raw, 0, None)
+        if raw.sum() == 0:
+            raw = ones
+        weights = raw / raw.sum()
+        return pd.Series(weights, index=mean_returns.index)
+
+    def _random_extreme_portfolios(
+        self,
+        daily_returns: pd.DataFrame,
+        num_samples: int = 5000,
+    ) -> Dict[str, pd.Series]:
+        cols = daily_returns.columns
+        if len(cols) == 0:
+            return {}
+
+        rng = np.random.default_rng(42)
+        weight_samples = rng.dirichlet(np.ones(len(cols)), size=num_samples)
+
+        returns_matrix = daily_returns.values @ weight_samples.T
+
+        mean_returns = returns_matrix.mean(axis=0)
+        std_returns = returns_matrix.std(axis=0)
+
+        with np.errstate(divide="ignore", invalid="ignore"):
+            log_growth = np.log1p(returns_matrix)
+        log_growth_mean = np.nanmean(log_growth, axis=0)
+
+        cumulative = np.cumprod(1 + returns_matrix, axis=0)
+        running_max = np.maximum.accumulate(cumulative, axis=0)
+        drawdowns = (cumulative - running_max) / running_max
+        max_drawdowns = drawdowns.min(axis=0)
+
+        results: Dict[str, pd.Series] = {}
+
+        def add_candidate(idx: int | None, label: str):
+            if idx is None:
+                return
+            weights = pd.Series(weight_samples[idx], index=cols)
+            results[label] = weights
+
+        idx_min_vol = np.nanargmin(std_returns) if np.isfinite(std_returns).any() else None
+        idx_min_dd = np.nanargmax(max_drawdowns) if np.isfinite(max_drawdowns).any() else None
+        idx_max_kelly = np.nanargmax(log_growth_mean) if np.isfinite(log_growth_mean).any() else None
+
+        add_candidate(idx_min_vol, "Min Volatility")
+        add_candidate(idx_min_dd, "Min Drawdown")
+        add_candidate(idx_max_kelly, "Max Kelly")
+
+        return results
 
     def _plot_rolling_sharpe(self, prices: pd.DataFrame, portfolio: pd.DataFrame) -> Path:
         fig, ax = plt.subplots(figsize=(14, 7))
@@ -379,3 +848,85 @@ class Index7PortfolioVisualizer:
         plt.close()
 
         return path
+
+    def _resolve_category(self, ticker: str, index_master: pd.DataFrame | None = None) -> str:
+        if ticker in self.TICKER_CATEGORY_OVERRIDES:
+            return self.TICKER_CATEGORY_OVERRIDES[ticker]
+
+        if index_master is not None:
+            match = index_master[index_master["ticker"] == ticker]
+            if not match.empty:
+                base_category = match["category"].iloc[0]
+                base_category_map = {
+                    "commodity": "gold",
+                    "bonds": "bonds",
+                    "equity": "em_equity",
+                }
+                mapped = base_category_map.get(base_category.lower(), None)
+                if mapped:
+                    return mapped
+
+        return "other"
+
+    def _sort_tickers(
+        self,
+        tickers: Iterable[str],
+        index_master: pd.DataFrame | None = None,
+    ) -> List[str]:
+        def sort_key(ticker: str):
+            category = self._resolve_category(ticker, index_master)
+            if category in self.CATEGORY_ORDER:
+                order = self.CATEGORY_ORDER.index(category)
+            else:
+                order = len(self.CATEGORY_ORDER)
+            return (order, ticker)
+
+        return sorted(list(tickers), key=sort_key)
+
+    def _build_color_map(
+        self,
+        tickers: Iterable[str],
+        index_master: pd.DataFrame | None = None,
+    ) -> Dict[str, tuple]:
+        color_map: Dict[str, tuple] = {}
+        category_groups: Dict[str, List[str]] = {}
+
+        for ticker in tickers:
+            category = self._resolve_category(ticker, index_master)
+            category_groups.setdefault(category, []).append(ticker)
+
+        for category, cat_tickers in category_groups.items():
+            palette = self._palette_for_category(category, len(cat_tickers))
+            for idx, ticker in enumerate(sorted(cat_tickers)):
+                color_map[ticker] = palette[idx % len(palette)]
+
+        return color_map
+
+    def _palette_for_category(self, category: str, size: int) -> List[tuple]:
+        palette_name = self.CATEGORY_PALETTE_NAMES.get(category, "Greys")
+        total_colors = max(size + 4, 5)
+        palette = sns.color_palette(palette_name, total_colors)
+        if size >= total_colors:
+            return palette
+
+        start = max((total_colors - size) // 2, 0)
+        end = start + size
+        if end > len(palette):
+            end = len(palette)
+            start = end - size
+        return palette[start:end]
+
+    def _color_for(
+        self,
+        ticker: str,
+        color_map: Dict[str, tuple] | None,
+        index_master: pd.DataFrame | None = None,
+    ) -> tuple:
+        if color_map and ticker in color_map:
+            return color_map[ticker]
+
+        palette = self._palette_for_category(
+            self._resolve_category(ticker, index_master),
+            1,
+        )
+        return palette[0] if palette else self.DEFAULT_COLOR
