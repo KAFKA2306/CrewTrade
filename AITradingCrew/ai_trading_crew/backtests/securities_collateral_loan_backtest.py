@@ -79,10 +79,7 @@ class SecuritiesCollateralLoanBacktester:
 
             try:
                 analysis_payload = analyzer.evaluate(data_payload)
-            except Exception as e:
-                print(f"ERROR in analyze.evaluate: {e}")
-                import traceback
-                traceback.print_exc()
+            except Exception:
                 continue
 
             forward_test = self._compute_forward_test(anchor, analysis_payload, pipeline)

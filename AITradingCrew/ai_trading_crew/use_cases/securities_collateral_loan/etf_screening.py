@@ -90,12 +90,16 @@ def select_candidate_universe(
     correlation_matrix: pd.DataFrame,
     correlation_threshold: float,
     max_assets: int | None = None,
+    priority_indices: dict[str, list[str]] | None = None,
 ) -> pd.DataFrame:
     if ranked_metrics.empty:
         return ranked_metrics
 
     tickers: List[str] = ranked_metrics["ticker"].tolist()
     corr = correlation_matrix.reindex(index=tickers, columns=tickers).abs().fillna(0)
+
+    tier1_set = set(priority_indices.get("tier1", [])) if priority_indices else set()
+    tier2_set = set(priority_indices.get("tier2", [])) if priority_indices else set()
 
     visited: Set[str] = set()
     selected: List[str] = []
@@ -108,6 +112,16 @@ def select_candidate_universe(
         visited.update(component)
 
         component_df = ranked_metrics[ranked_metrics["ticker"].isin(component)].copy()
+
+        priority_in_component = component_df[component_df["ticker"].isin(tier1_set | tier2_set)]
+        if not priority_in_component.empty:
+            tier1_match = priority_in_component[priority_in_component["ticker"].isin(tier1_set)]
+            if not tier1_match.empty:
+                selected.append(tier1_match.iloc[0]["ticker"])
+                continue
+            selected.append(priority_in_component.iloc[0]["ticker"])
+            continue
+
         component_df["expense_ratio_filled"] = component_df["expense_ratio"].fillna(float("inf"))
         component_df = component_df.sort_values(
             by=["expense_ratio_filled", "composite_score", "sharpe_ratio"],

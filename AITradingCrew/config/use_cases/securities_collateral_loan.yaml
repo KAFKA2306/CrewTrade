@@ -47,15 +47,33 @@ optimization:
     max_asset_drawdown: 0.30
     max_portfolio_drawdown: 0.25
     asset_allocation:
-      bonds:
-        min: 0.15
-        max: 0.30
-      gold:
-        min: 0.15
-        max: 0.25
       equity:
-        min: 0.40
-        max: 0.60
+        min: 0.50
+        max: 1.00
+      bonds:
+        min: 0.00
+        max: 0.30
+      reit:
+        min: 0.00
+        max: 0.15
+      commodity:
+        min: 0.00
+        max: 0.20
+      other:
+        min: 0.00
+        max: 0.10
+  priority_indices:
+    tier1:
+      - 2568.T
+      - 1547.T
+    tier2:
+      - 1591.T
+      - 1348.T
+      - 1595.T
+      - 1540.T
+    tier3:
+      - 2511.T
+      - 1656.T
   core_satellite:
     enabled: true
     core_weight: 0.60
@@ -66,23 +84,24 @@ optimization:
     description: >
       Exclude ETFs solely when their trailing max drawdown exceeds the max_asset_drawdown
       constraint; other limits remain for portfolio construction, not asset gating.
-  sample_size: 20000
+  sample_size: 5000
   lookback: 5y
   history_window: 5y
   walkforward_years: 5
+  max_universe_size: 100
   profiles:
     - name: max_sharpe
       objective_weights:
         sharpe: 1.0
         volatility: 0.0
-      correlation_threshold: 0.8
+      correlation_threshold: 0.95
       max_portfolio_size: 20
       min_assets: 10
     - name: low_volatility
       objective_weights:
         sharpe: 0
         volatility: 1
-      correlation_threshold: 0.8
+      correlation_threshold: 0.95
       max_portfolio_size: 20
       min_assets: 10
       constraints_override:
@@ -93,7 +112,7 @@ optimization:
         sharpe: 0.5
         volatility: 0.2
         expense: 0.3
-      correlation_threshold: 0.8
+      correlation_threshold: 0.95
       max_portfolio_size: 10
       min_assets: 10
       constraints_override:

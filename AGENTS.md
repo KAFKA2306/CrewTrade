@@ -20,3 +20,9 @@ Write imperative, present-tense commit messages (e.g., `Add collateral optimizer
 
 ## Data & Credential Handling
 Never commit `.env` files or API keys. Use the cached parquet data already tracked in `AITradingCrew/resources/data/` and document any new external datasets in the README plus `config/use_cases/`. When introducing new credentials, reference environment variables in code and update `.env.example` instead of hardcoding secrets.
+
+
+if I request viewer, run this commands.
+```
+npx @kimuson/claude-code-viewer@latest
+```

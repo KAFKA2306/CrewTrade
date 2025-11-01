@@ -23,8 +23,107 @@ max: w1 × Sharpe Ratio - w2 × Volatility
 - 個別銘柄ウェイト: 5-35%
 - カテゴリ別ウェイト: ≤50%
 - ポートフォリオボラティリティ: ≤12%
+- アセットアロケーション: 債券15-30%、金15-25%、株式40-60%
 
-**最適化手法**: ランダムサーチ（20,000サンプル）
+**最適化手法**: HRP（階層的リスクパリティ）、フォールバック: ランダムサーチ（20,000サンプル）
+
+## コア・サテライト戦略
+
+### 概要
+
+年次リバランスにおいて、ポートフォリオをコア（安定保有）とサテライト（機動的入替）に分割し、長期的な資産保全と短期的な収益機会を両立。
+
+### 設定
+
+```yaml
+core_satellite:
+  enabled: true
+  core_weight: 0.60          # コア資産比率
+  satellite_weight: 0.40     # サテライト資産比率
+  core_rebalance_years: 2    # コア再構築サイクル（年）
+```
+
+### 実装ロジック (`analysis.py::_apply_core_satellite_strategy`)
+
+#### 初年度またはコア再構築年
+
+```python
+needs_core_rebalance = (
+    prev_portfolio is None or
+    prev_metadata is None or
+    prev_metadata.rebalance_year >= core_rebalance_years
+)
+```
+
+**処理フロー:**
+1. 最適化されたポートフォリオ全体をシャープレシオ順にソート
+2. 上位60%をコア、下位40%をサテライトに分類
+3. 各セグメントの重みを正規化（コア合計60%、サテライト合計40%）
+4. `PortfolioMetadata`作成（rebalance_year=0、valid_until=現在+2年）
+
+#### 2年目以降（コア維持年）
+
+**処理フロー:**
+1. 前年の`optimized_portfolio.parquet`と`portfolio_metadata.json`をロード
+2. 前年コアポートフォリオを抽出
+3. 価格データが無いETF（上場廃止等）を除外
+4. 新規最適化されたサテライトポートフォリオを生成
+5. コアとサテライトの重複ティッカーを除去（コア優先）
+6. 各セグメントの重みを再正規化
+7. `PortfolioMetadata`更新（rebalance_year += 1）
+
+#### データ永続化
+
+**処理済みデータ** (`resources/data/use_cases/securities_collateral_loan/processed_backtests/{YYYYMMDD}/`)
+
+- `optimized_portfolio.parquet`:
+  - カラム: `ticker`, `weight`, `portfolio_type` ("core" or "satellite"), `name`, `category`, etc.
+- `portfolio_metadata.json`:
+  ```json
+  {
+    "anchor_date": "2024-05-31T00:00:00",
+    "portfolio_type": "mixed",
+    "core_weight": 0.6,
+    "satellite_weight": 0.4,
+    "rebalance_year": 1,
+    "valid_until": "2026-05-31T00:00:00",
+    "optimization_method": "hrp"
+  }
+  ```
+
+### ウォークフォワードバックテスト
+
+**実行例:**
+
+```bash
+# 10年間のウォークフォワードバックテスト
+uv run python -m ai_trading_crew.backtests.securities_collateral_loan_backtest \
+  securities_collateral_loan \
+  --config config/use_cases/securities_collateral_loan.yaml \
+  --years 10
+```
+
+**年次フロー:**
+
+```
+2016: rebalance_year=0 → 新規コア作成
+2017: rebalance_year=1 → コア維持、サテライト再構築
+2018: rebalance_year=2 → コア維持、サテライト再構築
+2019: rebalance_year=0 → コア再構築（rebalance_year≥2でトリガー）
+2020: データ無し（スキップ）
+2021: rebalance_year=0 → 新規コア作成（前年データ無し）
+2022: rebalance_year=1 → コア維持
+2023: rebalance_year=2 → コア維持
+2024: rebalance_year=0 → コア再構築
+2025: rebalance_year=1 → コア維持
+```
+
+### 利点
+
+- **コア**: 高シャープレシオETFを長期保有→取引コスト削減、安定リターン
+- **サテライト**: 年次最適化で市場環境変化に対応→収益機会獲得
+- **税効率**: コア銘柄の保有継続で含み益課税を繰延
+- **リスク管理**: 毎年40%の入替により、新規リスク要因への対応が可能
 
 ## モジュール構成
 

@@ -81,14 +81,11 @@ class SecuritiesCollateralLoanReporter:
                 stored_paths["optimized_portfolio"] = opt_path
 
             metadata = analysis_payload.get("metadata")
-            print(f"    Reporting: Received metadata: {metadata}")
             if isinstance(metadata, PortfolioMetadata):
                 metadata_path = self.processed_dir / "portfolio_metadata.json"
-                print(f"    Reporting: Saving metadata with rebalance_year={metadata.rebalance_year}")
                 with open(metadata_path, 'w') as f:
                     json.dump(metadata.dict(), f, indent=2)
                 stored_paths["portfolio_metadata"] = metadata_path
-                print(f"    Reporting: Saved to {metadata_path}")
 
         report_path = self.report_dir / "securities_collateral_loan_report.md"
         report_path.write_text(

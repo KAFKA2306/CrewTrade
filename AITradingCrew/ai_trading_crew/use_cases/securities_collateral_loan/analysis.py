@@ -141,6 +141,7 @@ class SecuritiesCollateralLoanAnalyzer:
                 correlation_matrix,
                 profile_corr_threshold,
                 max_assets=profile_universe_cap,
+                priority_indices=self.config.optimization.priority_indices if self.config.optimization else None,
             )
 
             if candidate_universe.empty:
@@ -170,6 +171,7 @@ class SecuritiesCollateralLoanAnalyzer:
                     target_value=target_value,
                     max_assets=profile_portfolio_cap,
                     min_assets=profile_min_assets,
+                    priority_indices=self.config.optimization.priority_indices if self.config.optimization else None,
                 )
                 result["candidate_universe"] = candidate_universe
                 result["metadata_subset"] = metadata_subset
@@ -226,6 +228,7 @@ class SecuritiesCollateralLoanAnalyzer:
                         max_assets=max_assets_primary,
                         min_assets=min_assets_primary,
                         score_strategy=strategy_key,
+                        priority_indices=self.config.optimization.priority_indices if self.config.optimization else None,
                     )
                     variant_result["strategy"] = strategy_key
                     variant_result["strategy_label"] = strategy_label
@@ -592,12 +595,15 @@ class SecuritiesCollateralLoanAnalyzer:
 
         category_map = {
             "債券": "bonds",
-            "金": "gold",
-            "ゴールド": "gold",
-            "コモディティ": "gold",
+            "金": "commodity",
+            "ゴールド": "commodity",
+            "コモディティ": "commodity",
             "株式": "equity",
             "国内株式": "equity",
             "海外株式": "equity",
+            "国内セクター": "equity",
+            "REIT": "reit",
+            "その他": "other",
         }
 
         allocations = {}
@@ -612,6 +618,9 @@ class SecuritiesCollateralLoanAnalyzer:
                 allocation_key = category_map.get(category)
                 if allocation_key and allocation_key in allocations:
                     allocations[allocation_key] += weight
+                elif allocation_key is None and category:
+                    if "other" in allocations:
+                        allocations["other"] += weight
 
         violations = []
         for allocation_key, current_weight in allocations.items():
@@ -649,18 +658,15 @@ class SecuritiesCollateralLoanAnalyzer:
         cs_config: CoreSatelliteConfig,
         prices: pd.DataFrame
     ) -> tuple[pd.DataFrame, PortfolioMetadata]:
-        print(f"    Core-satellite: prev_portfolio={prev_portfolio.shape if prev_portfolio is not None else None}, prev_metadata.rebalance_year={prev_metadata.rebalance_year if prev_metadata else None}")
         needs_core_rebalance = (
             prev_portfolio is None or
             prev_metadata is None or
             prev_metadata.rebalance_year >= cs_config.core_rebalance_years
         )
-        print(f"    needs_core_rebalance={needs_core_rebalance}")
 
         anchor_date = prices.index.max()
 
         if needs_core_rebalance:
-            print(f"    Creating NEW core portfolio (full rebalance)")
             sorted_by_sharpe = optimized_portfolio.copy()
             if "sharpe_ratio" in sorted_by_sharpe.columns:
                 sorted_by_sharpe = sorted_by_sharpe.sort_values("sharpe_ratio", ascending=False)
@@ -670,10 +676,18 @@ class SecuritiesCollateralLoanAnalyzer:
             n_total = len(optimized_portfolio)
             n_core = max(1, int(n_total * cs_config.core_weight))
 
-            core_portfolio = sorted_by_sharpe.head(n_core).copy()
+            priority_indices = self.config.optimization.priority_indices if self.config.optimization else None
+            tier1_tickers = set(priority_indices.get("tier1", [])) if priority_indices else set()
+            tier2_tickers = set(priority_indices.get("tier2", [])) if priority_indices else set()
+
+            priority_core = sorted_by_sharpe[sorted_by_sharpe["ticker"].isin(tier1_tickers | tier2_tickers)]
+            other_core_candidates = sorted_by_sharpe[~sorted_by_sharpe["ticker"].isin(tier1_tickers | tier2_tickers)]
+
+            core_portfolio = pd.concat([priority_core, other_core_candidates]).head(n_core).copy()
             core_portfolio["portfolio_type"] = "core"
 
-            satellite_portfolio = sorted_by_sharpe.tail(n_total - n_core).copy()
+            core_tickers_set = set(core_portfolio["ticker"])
+            satellite_portfolio = sorted_by_sharpe[~sorted_by_sharpe["ticker"].isin(core_tickers_set)].copy()
             satellite_portfolio["portfolio_type"] = "satellite"
 
             core_total_weight = core_portfolio["weight"].sum() if len(core_portfolio) > 0 else 0
@@ -695,14 +709,19 @@ class SecuritiesCollateralLoanAnalyzer:
                 valid_until=(anchor_date + pd.DateOffset(years=cs_config.core_rebalance_years)).isoformat(),
                 optimization_method="hrp"
             )
-            print(f"    Created metadata: rebalance_year={metadata.rebalance_year}")
 
             return combined, metadata
         else:
-            print(f"    KEEPING previous core, rebalancing only satellite")
             core_portfolio = prev_portfolio[prev_portfolio["portfolio_type"] == "core"].copy()
+
+            available_tickers = set(prices.columns)
+            core_portfolio = core_portfolio[core_portfolio["ticker"].isin(available_tickers)]
+
             satellite_portfolio = optimized_portfolio.copy()
             satellite_portfolio["portfolio_type"] = "satellite"
+
+            core_tickers = set(core_portfolio["ticker"].tolist())
+            satellite_portfolio = satellite_portfolio[~satellite_portfolio["ticker"].isin(core_tickers)]
 
             core_total_weight = core_portfolio["weight"].sum() if len(core_portfolio) > 0 else 0
             satellite_total_weight = satellite_portfolio["weight"].sum() if len(satellite_portfolio) > 0 else 0
@@ -714,17 +733,14 @@ class SecuritiesCollateralLoanAnalyzer:
 
             combined = pd.concat([core_portfolio, satellite_portfolio], ignore_index=True)
 
-            new_rebalance_year = prev_metadata.rebalance_year + 1
-            print(f"    Incrementing rebalance_year: {prev_metadata.rebalance_year} -> {new_rebalance_year}")
             metadata = PortfolioMetadata(
                 anchor_date=anchor_date.isoformat(),
                 portfolio_type="mixed",
                 core_weight=cs_config.core_weight,
                 satellite_weight=cs_config.satellite_weight,
-                rebalance_year=new_rebalance_year,
+                rebalance_year=prev_metadata.rebalance_year + 1,
                 valid_until=prev_metadata.valid_until,
                 optimization_method="hrp"
             )
-            print(f"    Created metadata: rebalance_year={metadata.rebalance_year}, valid_until={metadata.valid_until}")
 
             return combined, metadata

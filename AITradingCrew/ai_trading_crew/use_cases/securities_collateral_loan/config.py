@@ -80,6 +80,10 @@ class OptimizationSettings(BaseModel):
     risk_policy: RiskPolicy | None = None
     profiles: Optional[List[OptimizationProfile]] = None
     core_satellite: CoreSatelliteConfig | None = None
+    priority_indices: Dict[str, List[str]] | None = Field(
+        default=None,
+        description="Priority tiers for ETF selection: tier1 (mandatory), tier2 (preferred), tier3 (supplementary)"
+    )
 
 
 class SecuritiesCollateralLoanConfig(UseCaseConfig):

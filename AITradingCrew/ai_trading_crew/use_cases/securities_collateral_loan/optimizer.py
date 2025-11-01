@@ -46,6 +46,38 @@ def _portfolio_expense(
     return float(sum(expense_values))
 
 
+def _priority_score_bonus(
+    weights: np.ndarray,
+    tickers: List[str],
+    priority_indices: Optional[Dict[str, List[str]]],
+) -> float:
+    if not priority_indices:
+        return 0.0
+
+    tier1 = set(priority_indices.get("tier1", []))
+    tier2 = set(priority_indices.get("tier2", []))
+    tier3 = set(priority_indices.get("tier3", []))
+
+    bonus = 0.0
+    tier1_weight = 0.0
+
+    for ticker, weight in zip(tickers, weights):
+        if weight <= 1e-4:
+            continue
+        if ticker in tier1:
+            tier1_weight += weight
+            bonus += weight * 2.0
+        elif ticker in tier2:
+            bonus += weight * 1.0
+        elif ticker in tier3:
+            bonus += weight * 0.3
+
+    if tier1 and tier1_weight < 0.15:
+        bonus -= 5.0
+
+    return bonus
+
+
 def optimize_collateral_portfolio(
     prices: pd.DataFrame,
     etf_master: pd.DataFrame,
@@ -56,7 +88,8 @@ def optimize_collateral_portfolio(
     max_assets: Optional[int] = None,
     min_assets: int = 3,
     score_strategy: Optional[str] = None,
-    use_hrp: bool = True,
+    use_hrp: bool = False,
+    priority_indices: Optional[Dict[str, List[str]]] = None,
 ) -> Dict:
     returns = prices.pct_change().dropna()
     tickers = list(prices.columns)
@@ -179,6 +212,9 @@ def optimize_collateral_portfolio(
                 score = _weighted_metric_score(metric_inputs, objective_weights)
                 if score == 0 and portfolio_volatility > 0:
                     score = sharpe / portfolio_volatility
+
+            priority_bonus = _priority_score_bonus(weights, tickers, priority_indices)
+            score += priority_bonus
 
             if score > best_score:
                 best_score = score
