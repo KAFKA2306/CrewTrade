@@ -1,6 +1,6 @@
 # Index 7-Portfolio Optimization Report
 
-**Generated:** 2025-11-01 09:51:53
+**Generated:** 2025-11-01 10:07:22
 
 ## 代替ETF対応表
 
@@ -20,19 +20,19 @@
 
 | Ticker | Name | Category | Weight |
 |--------|------|----------|--------|
-| 1655.T | ｉＳ米国株 | equity | 6.48% |
-| 2840.T | ｉＦＥナ百無 | equity | 15.89% |
-| 1364.T | ｉシェア４百 | equity | 7.67% |
-| 314A.T | ｉＳゴールド | commodity | 27.95% |
-| 2520.T | 野村新興国株 | equity | 5.87% |
-| 2511.T | 野村外国債券 | bonds | 20.64% |
-| 399A.T | 上場高配５０ | equity | 15.51% |
+| ^GSPC | S&P 500 Index | equity | 10.15% |
+| ^NDX | NASDAQ-100 Index | equity | 23.44% |
+| ^N225 | Nikkei 225 Index | equity | 13.73% |
+| GC=F | Gold Futures (COMEX) | commodity | 26.51% |
+| EEM | iShares MSCI Emerging Markets ETF | equity | 5.75% |
+| TLT | iShares 20+ Year Treasury Bond ETF | bonds | 9.90% |
+| 1478.T | iShares MSCI Japan High Dividend ETF | equity | 10.53% |
 
 ## Risk Metrics
 
-- **Portfolio Value:** ¥20,994,611
+- **Portfolio Value:** ¥20,929,966
 - **Loan Amount:** ¥10,000,000
-- **Current LTV:** 47.63%
+- **Current LTV:** 47.78%
 - **LTV Limit:** 60%
 - **Warning Ratio:** 70%
 - **Liquidation Ratio:** 85%

@@ -20,6 +20,7 @@ dependencies = [
     "crawl4ai>=0.6.3",
     "openpyxl>=3.0.0",
     "requests>=2.31.0",
+    "seaborn>=0.13.2",
 ]
 
 [project.scripts]

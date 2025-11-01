@@ -33,10 +33,12 @@ class Index7PortfolioUseCase(BaseUseCase):
 
     def produce_report(self, analysis_payload: Dict[str, Any]) -> Dict[str, Any]:
         print("\nStep 3/3: Generating reports...")
-        reporter = Index7PortfolioReporter(self.paths.report_dir)
+        reporter = Index7PortfolioReporter(self.paths.report_dir, self.config)
         report_payload = reporter.persist(analysis_payload)
         print(f"  ✓ Portfolio saved: {report_payload['portfolio_path']}")
         print(f"  ✓ Report saved: {report_payload['report_path']}")
+        if "chart_paths" in report_payload:
+            print(f"  ✓ Charts saved: {len(report_payload['chart_paths'])} visualizations")
         return report_payload
 
     def execute(self, config_path: Path | None = None) -> dict:
@@ -61,10 +63,12 @@ class Index7PortfolioUseCase(BaseUseCase):
         print(f"  ✓ Current LTV: {analysis_payload['current_ltv']*100:.2f}%")
 
         print("\nStep 3/3: Generating reports...")
-        reporter = Index7PortfolioReporter(output_dir)
+        reporter = Index7PortfolioReporter(output_dir, self.config)
         report_payload = reporter.persist(analysis_payload)
         print(f"  ✓ Portfolio saved: {report_payload['portfolio_path']}")
         print(f"  ✓ Report saved: {report_payload['report_path']}")
+        if "chart_paths" in report_payload:
+            print(f"  ✓ Charts saved: {len(report_payload['chart_paths'])} visualizations")
 
         print(f"\n{'='*60}")
         print("✅ Index 7-Portfolio analysis complete!")

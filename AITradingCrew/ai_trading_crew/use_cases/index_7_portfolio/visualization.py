@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib.ticker import FuncFormatter
 
 
 class Index7PortfolioVisualizer:
@@ -25,8 +26,7 @@ class Index7PortfolioVisualizer:
 
         chart_paths["allocation"] = self._plot_allocation(portfolio)
 
-        benchmark_results = validator.benchmark_comparison()
-        chart_paths["cumulative_returns"] = self._plot_cumulative_returns(prices, portfolio, benchmark_results)
+        chart_paths["cumulative_returns"] = self._plot_cumulative_returns(prices, portfolio)
 
         chart_paths["drawdown"] = self._plot_drawdown(prices, portfolio)
 
@@ -77,9 +77,7 @@ class Index7PortfolioVisualizer:
 
         return path
 
-    def _plot_cumulative_returns(
-        self, prices: pd.DataFrame, portfolio: pd.DataFrame, benchmark_results: Dict
-    ) -> Path:
+    def _plot_cumulative_returns(self, prices: pd.DataFrame, portfolio: pd.DataFrame) -> Path:
         fig, ax = plt.subplots(figsize=(14, 7))
 
         weights_dict = portfolio.set_index("ticker")["weight"].to_dict()
@@ -146,7 +144,7 @@ class Index7PortfolioVisualizer:
         ax.legend(loc="lower left", fontsize=11)
         ax.grid(True, alpha=0.3)
 
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f"{y*100:.0f}%"))
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y*100:.0f}%"))
 
         plt.tight_layout()
         path = self.graphs_dir / "03_drawdown.png"

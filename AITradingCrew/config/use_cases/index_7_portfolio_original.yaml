@@ -1,0 +1,44 @@
+name: index_7_portfolio_original
+period: max
+
+indices:
+  - ticker: ^GSPC
+    name: S&P 500 Index
+    category: equity
+  - ticker: ^NDX
+    name: NASDAQ-100 Index
+    category: equity
+  - ticker: ^N225
+    name: Nikkei 225 Index
+    category: equity
+  - ticker: GC=F
+    name: Gold Futures (COMEX)
+    category: commodity
+  - ticker: EEM
+    name: iShares MSCI Emerging Markets ETF
+    category: equity
+  - ticker: TLT
+    name: iShares 20+ Year Treasury Bond ETF
+    category: bonds
+  - ticker: 1478.T
+    name: iShares MSCI Japan High Dividend ETF
+    category: equity
+
+loan_amount: 10000000
+annual_interest_rate: 0.01875
+ltv_limit: 0.6
+warning_ratio: 0.7
+liquidation_ratio: 0.85
+
+optimization:
+  enabled: true
+  objective_weights:
+    sharpe: 0.6
+    volatility: 0.4
+  constraints:
+    min_weight: 0.05
+    max_weight: 0.30
+    max_volatility: 0.15
+  sample_size: 10000
+  lookback: 10y
+  max_drawdown_buffer: 0.2063
