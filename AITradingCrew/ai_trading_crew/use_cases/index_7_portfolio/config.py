@@ -25,6 +25,7 @@ class OptimizationSettings(BaseModel):
     )
     sample_size: int = Field(default=10000, gt=0)
     lookback: str = Field(default="10y")
+    max_drawdown_buffer: float = Field(default=0.0, description="Max drawdown buffer ratio (0.0-1.0)")
 
 
 class Index7PortfolioConfig(UseCaseConfig):

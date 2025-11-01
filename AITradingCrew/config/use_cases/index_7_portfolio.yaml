@@ -2,26 +2,26 @@ name: index_7_portfolio
 period: 20y
 
 indices:
-  - ticker: ^GSPC
-    name: S&P 500 Index
+  - ticker: 1655.T
+    name: ｉＳ米国株
     category: equity
-  - ticker: ^NDX
-    name: NASDAQ 100 Index
+  - ticker: 2840.T
+    name: ｉＦＥナ百無
     category: equity
-  - ticker: ^N225
-    name: Nikkei 225
+  - ticker: 1364.T
+    name: ｉシェア４百
     category: equity
-  - ticker: GC=F
-    name: Gold Futures
+  - ticker: 314A.T
+    name: ｉＳゴールド
     category: commodity
-  - ticker: EEM
-    name: MSCI Emerging Markets ETF
+  - ticker: 2520.T
+    name: 野村新興国株
     category: equity
-  - ticker: TLT
-    name: 20+ Year Treasury Bond ETF
+  - ticker: 2511.T
+    name: 野村外国債券
     category: bonds
-  - ticker: 1478.T
-    name: iShares MSCI Japan High Dividend ETF
+  - ticker: 399A.T
+    name: 上場高配５０
     category: equity
 
 loan_amount: 10000000
@@ -41,3 +41,4 @@ optimization:
     max_volatility: 0.15
   sample_size: 10000
   lookback: 10y
+  max_drawdown_buffer: 0.2063

@@ -24,6 +24,19 @@ class Index7PortfolioReporter:
         report_lines = []
         report_lines.append("# Index 7-Portfolio Optimization Report\n")
         report_lines.append(f"**Generated:** {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+
+        report_lines.append("## 代替ETF対応表\n")
+        report_lines.append("| 国内ETF | 代替指数 | オリジナル |")
+        report_lines.append("|---------|----------|-----------|")
+        report_lines.append("| 1655.T ｉＳ米国株 | S&P500指数 | ^GSPC |")
+        report_lines.append("| 2840.T ｉＦＥナ百無 | NASDAQ100 | ^NDX |")
+        report_lines.append("| 1364.T ｉシェア４百 | JPX日経400 | ^N225 |")
+        report_lines.append("| 314A.T ｉＳゴールド | LBMA Gold Price | GC=F |")
+        report_lines.append("| 2520.T 野村新興国株 | MSCIエマージング・マーケットIMI指数 | EEM |")
+        report_lines.append("| 2511.T 野村外国債券 | FTSE世界国債インデックス(除く日本) | TLT |")
+        report_lines.append("| 399A.T 上場高配５０ | 東証配当フォーカス100指数 | 1478.T |")
+        report_lines.append("\n**初期投資額:** ¥20,998,698（Max DD -20.63%バッファ込み、為替リスク排除、円建て運用）\n")
+
         report_lines.append("## Portfolio Allocation\n")
         report_lines.append("| Ticker | Name | Category | Weight |")
         report_lines.append("|--------|------|----------|--------|")
@@ -42,11 +55,11 @@ class Index7PortfolioReporter:
         report_lines.append(f"- **Liquidation Ratio:** {liquidation_ratio*100:.0f}%")
 
         if current_ltv >= liquidation_ratio:
-            report_lines.append(f"\n⚠️ **CRITICAL:** LTV exceeds liquidation threshold!")
+            report_lines.append("\n⚠️ **CRITICAL:** LTV exceeds liquidation threshold!")
         elif current_ltv >= warning_ratio:
-            report_lines.append(f"\n⚠️ **WARNING:** LTV exceeds warning threshold")
+            report_lines.append("\n⚠️ **WARNING:** LTV exceeds warning threshold")
         else:
-            report_lines.append(f"\n✅ **HEALTHY:** LTV within safe limits")
+            report_lines.append("\n✅ **HEALTHY:** LTV within safe limits")
 
         report_content = "\n".join(report_lines)
         report_path = self.output_dir / "index_7_portfolio_report.md"
