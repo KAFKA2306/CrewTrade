@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, Iterable, List
 
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -430,34 +431,67 @@ class Index7PortfolioVisualizer:
         weights_dict = portfolio.set_index("ticker")["weight"].to_dict()
         daily_returns = prices.pct_change().dropna()
 
-        asset_contributions = {}
-        for ticker in portfolio["ticker"]:
-            if ticker in daily_returns.columns:
-                contribution = daily_returns[ticker] * weights_dict[ticker]
-                cumulative_contribution = (1 + contribution).cumprod() - 1
-                asset_contributions[ticker] = cumulative_contribution
+        contribution_df = daily_returns.mul(pd.Series(weights_dict))
+        contribution_df = contribution_df[
+            [col for col in self._sort_tickers(contribution_df.columns, index_master) if col in contribution_df]
+        ]
 
-        contribution_df = pd.DataFrame(asset_contributions)
-        if not contribution_df.empty:
-            ordered_cols = self._sort_tickers(contribution_df.columns, index_master)
-            contribution_df = contribution_df[ordered_cols]
-            colors = [self._color_for(ticker, color_map, index_master) for ticker in contribution_df.columns]
-        else:
-            colors = None
+        monthly_df = contribution_df.resample("M").sum() * 100.0
+        colors = [self._color_for(ticker, color_map, index_master) for ticker in monthly_df.columns]
 
-        ax.stackplot(
-            contribution_df.index,
-            *[contribution_df[col].values for col in contribution_df.columns],
-            labels=contribution_df.columns,
-            alpha=0.7,
-            colors=colors,
-        )
+        ax.axhline(0, color="#444", linewidth=1, linestyle="--", alpha=0.3)
+
+        pos_base = np.zeros(len(monthly_df.index))
+        neg_base = np.zeros(len(monthly_df.index))
+        legend_handles = []
+
+        for ticker, color in zip(monthly_df.columns, colors):
+            values = monthly_df[ticker].values
+            pos = np.where(values > 0, values, 0)
+            neg = np.where(values < 0, values, 0)
+
+            if np.any(pos > 0):
+                ax.fill_between(
+                    monthly_df.index,
+                    pos_base,
+                    pos_base + pos,
+                    color=color,
+                    alpha=0.55,
+                )
+                pos_base += pos
+
+            if np.any(neg < 0):
+                ax.fill_between(
+                    monthly_df.index,
+                    neg_base,
+                    neg_base + neg,
+                    color=color,
+                    alpha=0.55,
+                )
+                neg_base += neg
+
+            legend_handles.append(plt.Line2D([0], [0], color=color, linewidth=6, label=ticker))
+
+        net_line = monthly_df.sum(axis=1)
+        ax.plot(monthly_df.index, net_line.values, color="black", linewidth=1.6, linestyle="-", label="Net")
 
         ax.set_xlabel("Date", fontsize=12)
-        ax.set_ylabel("Cumulative Contribution", fontsize=12)
-        ax.set_title("Asset Contribution to Portfolio Returns", fontsize=14, weight="bold")
-        ax.legend(loc="upper left", fontsize=9, ncol=2)
+        ax.set_ylabel("Monthly Contribution (%)", fontsize=12)
+        ax.set_title("Monthly Asset Contribution (Positive / Negative)", fontsize=14, weight="bold")
+        legend_handles.append(plt.Line2D([0], [0], color="black", linewidth=2, label="Net"))
+        if legend_handles:
+            ax.legend(
+                handles=legend_handles,
+                loc="upper center",
+                bbox_to_anchor=(0.5, -0.2),
+                ncol=min(4, len(legend_handles)),
+                fontsize=9,
+                frameon=False,
+            )
         ax.grid(True, alpha=0.3)
+        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=max(1, len(monthly_df.index) // 12)))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
 
         plt.tight_layout()
         path = self.graphs_dir / "05_asset_contribution.png"

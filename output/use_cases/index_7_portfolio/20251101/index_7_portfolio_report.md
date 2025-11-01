@@ -1,6 +1,6 @@
 # Index 7-Portfolio Optimization Report
 
-**Generated:** 2025-11-01 12:44:49
+**Generated:** 2025-11-01 14:27:21
 
 ## 代替ETF対応表
 
@@ -20,19 +20,19 @@
 
 | Ticker | Name | Category | Weight |
 |--------|------|----------|--------|
-| ^GSPC | S&P 500 Index | equity | 12.77% |
-| ^NDX | NASDAQ-100 Index | equity | 15.33% |
-| ^N225 | Nikkei 225 Index | equity | 7.25% |
-| GC=F | Gold Futures (COMEX) | commodity | 26.24% |
-| EEM | iShares MSCI Emerging Markets ETF | equity | 7.24% |
-| TLT | iShares 20+ Year Treasury Bond ETF | bonds | 10.79% |
-| 1478.T | iShares MSCI Japan High Dividend ETF | equity | 20.39% |
+| ^GSPC | S&P 500 Index | equity | 11.98% |
+| ^NDX | NASDAQ-100 Index | equity | 11.12% |
+| ^N225 | Nikkei 225 Index | equity | 9.20% |
+| GC=F | Gold Futures (COMEX) | commodity | 29.31% |
+| EEM | iShares MSCI Emerging Markets ETF | equity | 6.39% |
+| TLT | iShares 20+ Year Treasury Bond ETF | bonds | 9.31% |
+| 1478.T | iShares MSCI Japan High Dividend ETF | equity | 22.69% |
 
 ## Risk Metrics
 
-- **Portfolio Value:** ¥20,973,753
+- **Portfolio Value:** ¥20,934,117
 - **Loan Amount:** ¥10,000,000
-- **Current LTV:** 47.68%
+- **Current LTV:** 47.77%
 - **LTV Limit:** 60%
 - **Warning Ratio:** 70%
 - **Liquidation Ratio:** 85%
@@ -52,17 +52,17 @@
 ### ウォークフォワード検証サマリー
 
 - **評価期間数:** 2
-- **平均アウトオブサンプル Sharpe:** 1.098 ± 1.378
-- **平均年率リターン:** 10.01%
-- **平均最大ドローダウン:** -14.67%
-- **Stability Score:** 0.420
+- **平均アウトオブサンプル Sharpe:** 1.086 ± 1.515
+- **平均年率リターン:** 10.03%
+- **平均最大ドローダウン:** -14.87%
+- **Stability Score:** 0.398
 
 ### 期間別ポートフォリオ構成（降順ウェイト）
 
 | Period | 訓練期間 | テスト期間 | ウェイト構成 | Sharpe | Max DD |
 |--------|-----------|------------|--------------|--------|--------|
-| 1 | 2015-10-16〜2020-10-16 | 2020-10-16〜2022-10-16 | ^NDX 26.6%<br>TLT 22.5%<br>GC=F 16.2%<br>1478.T 16.0%<br>^N225 8.1%<br>^GSPC 5.4%<br>EEM 5.2% | -0.280 | -20.70% |
-| 2 | 2015-10-16〜2022-10-16 | 2022-10-16〜2024-10-16 | GC=F 28.8%<br>^GSPC 13.9%<br>1478.T 13.7%<br>TLT 13.7%<br>^N225 12.9%<br>^NDX 12.0%<br>EEM 5.0% | 2.476 | -8.63% |
+| 1 | 2015-10-16〜2020-10-16 | 2020-10-16〜2022-10-16 | TLT 25.6%<br>^NDX 22.4%<br>GC=F 20.3%<br>1478.T 14.2%<br>EEM 6.2%<br>^GSPC 5.9%<br>^N225 5.5% | -0.429 | -20.99% |
+| 2 | 2015-10-16〜2022-10-16 | 2022-10-16〜2024-10-16 | GC=F 25.3%<br>1478.T 22.0%<br>^NDX 18.0%<br>^GSPC 11.7%<br>TLT 11.5%<br>EEM 6.3%<br>^N225 5.1% | 2.600 | -8.74% |
 
 ## Visualizations
 
@@ -83,7 +83,7 @@ Loan-to-Value ratio during historical crisis periods (COVID-19, 2022 Inflation).
 ![LTV Stress](./graphs/04_ltv_stress.png)
 
 ### Asset Contribution to Returns
-Cumulative contribution of each asset to overall portfolio performance.
+Monthly positive/negative contribution by asset relative to category-colored baseline.
 ![Asset Contribution](./graphs/05_asset_contribution.png)
 
 ### Risk-Return Profile

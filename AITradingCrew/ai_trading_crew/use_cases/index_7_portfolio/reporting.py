@@ -153,7 +153,7 @@ class Index7PortfolioReporter:
             report_lines.append("![LTV Stress](./graphs/04_ltv_stress.png)\n")
 
             report_lines.append("### Asset Contribution to Returns")
-            report_lines.append("Cumulative contribution of each asset to overall portfolio performance.")
+            report_lines.append("Monthly positive/negative contribution by asset relative to category-colored baseline.")
             report_lines.append("![Asset Contribution](./graphs/05_asset_contribution.png)\n")
 
             report_lines.append("### Risk-Return Profile")
