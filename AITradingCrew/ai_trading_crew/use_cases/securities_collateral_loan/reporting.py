@@ -8,6 +8,9 @@ import pandas as pd
 
 from ai_trading_crew.use_cases.securities_collateral_loan.config import PortfolioMetadata, SecuritiesCollateralLoanConfig
 from ai_trading_crew.use_cases.securities_collateral_loan.insights import build_insight_markdown
+from ai_trading_crew.use_cases.securities_collateral_loan.visualization import (
+    SecuritiesCollateralLoanVisualizer,
+)
 
 
 class SecuritiesCollateralLoanReporter:
@@ -46,6 +49,23 @@ class SecuritiesCollateralLoanReporter:
         stored_paths["liquidation_events"] = self._save_parquet("liquidation_events", liquidation_events)
         stored_paths["asset_breakdown"] = self._save_parquet("asset_breakdown", asset_breakdown)
         stored_paths["scenarios"] = self._save_parquet("scenarios", pd.DataFrame(scenarios))
+
+        chart_paths: Dict[str, Path] = {}
+        try:
+            visualizer = SecuritiesCollateralLoanVisualizer(self.report_dir)
+            chart_paths = visualizer.generate_all_charts(
+                asset_breakdown=asset_breakdown,
+                loan_ratio_series=loan_ratio_series,
+                scenarios=scenarios,
+                portfolio_value=portfolio_value,
+                ltv_limit=self.config.ltv_limit,
+                warning_ratio=self.config.warning_ratio,
+                liquidation_ratio=self.config.liquidation_ratio,
+            )
+            if chart_paths:
+                stored_paths["charts"] = chart_paths
+        except Exception as exc:
+            print(f"[Reporter] Failed to generate collateral loan charts: {exc}")
 
         forward_test = analysis_payload.get("forward_test")
         if isinstance(forward_test, dict):
@@ -96,6 +116,7 @@ class SecuritiesCollateralLoanReporter:
                 warning_events,
                 liquidation_events,
                 analysis_payload,
+                chart_paths,
             )
         )
         stored_paths["report"] = report_path
@@ -166,7 +187,8 @@ class SecuritiesCollateralLoanReporter:
         scenarios: List[Dict[str, float]],
         warning_events: pd.DataFrame,
         liquidation_events: pd.DataFrame,
-        analysis_payload: Dict[str, object] = None,
+        analysis_payload: Dict[str, object] | None = None,
+        chart_paths: Dict[str, Path] | None = None,
     ) -> str:
         lines: List[str] = []
         lines.append("# Securities Collateral Loan Risk Report")
@@ -192,6 +214,31 @@ class SecuritiesCollateralLoanReporter:
             lines.append(f"- Buffer to forced liquidation: {summary['buffer_to_liquidation_pct'] * 100:.2f}% drop from current value")
         lines.append(f"- Historical max drawdown (portfolio): {summary['max_drawdown'] * 100:.2f}%")
         lines.append("")
+
+        if chart_paths:
+            lines.append("## Visual Highlights")
+            lines.append("Key diagnostics generated from the latest prices and risk thresholds.")
+            lines.append("")
+            if chart_paths.get("allocation"):
+                lines.append("### Collateral Allocation Mix")
+                lines.append("Relative weights for the top holdings in the optimized portfolio.")
+                lines.append("![Collateral Allocation](./graphs/01_collateral_allocation.png)")
+                lines.append("")
+            if chart_paths.get("loan_ratio"):
+                lines.append("### Loan Ratio vs Thresholds")
+                lines.append("Historical loan-to-value trajectory with Rakuten Securities' warning and liquidation lines.")
+                lines.append("![Loan Ratio History](./graphs/02_loan_ratio_history.png)")
+                lines.append("")
+            if chart_paths.get("scenarios"):
+                lines.append("### Stress Scenario Outcomes")
+                lines.append("Loan ratio impact under the configured -10% to -40% price shocks.")
+                lines.append("![Stress Scenarios](./graphs/03_stress_scenarios.png)")
+                lines.append("")
+            if chart_paths.get("portfolio_value"):
+                lines.append("### Portfolio Value Path")
+                lines.append("Mark-to-market collateral value expressed in millions of yen.")
+                lines.append("![Portfolio Value](./graphs/04_portfolio_value.png)")
+                lines.append("")
 
         if mode == "optimization" and analysis_payload:
             primary_profile = analysis_payload.get("primary_profile")
