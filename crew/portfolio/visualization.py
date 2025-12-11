@@ -341,8 +341,6 @@ class Index7PortfolioVisualizer:
         asset_values = normalized_prices.mul(pd.Series(weights_dict))
         portfolio_value = asset_values.sum(axis=1)
 
-        running_max = portfolio_value.cummax()
-
         peak_asset_values = pd.DataFrame(
             index=asset_values.index, columns=asset_values.columns, dtype=float
         )
@@ -351,7 +349,6 @@ class Index7PortfolioVisualizer:
         peak_asset_values.iloc[0] = current_peak_assets
 
         for idx in range(1, len(asset_values)):
-            date = asset_values.index[idx]
             if portfolio_value.iloc[idx] >= current_peak_value - 1e-12:
                 current_peak_value = portfolio_value.iloc[idx]
                 current_peak_assets = asset_values.iloc[idx]
@@ -651,8 +648,6 @@ class Index7PortfolioVisualizer:
             self._color_for(ticker, color_map, index_master) for ticker in ticker_list
         ]
 
-        weights_dict = portfolio.set_index("ticker")["weight"].to_dict()
-
         def compute_portfolio_stats(
             weights: pd.Series,
             label: str,
@@ -945,7 +940,6 @@ class Index7PortfolioVisualizer:
 
         returns_matrix = daily_returns.values @ weight_samples.T
 
-        mean_returns = returns_matrix.mean(axis=0)
         std_returns = returns_matrix.std(axis=0)
 
         with np.errstate(divide="ignore", invalid="ignore"):

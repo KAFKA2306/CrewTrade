@@ -9,13 +9,11 @@ import pandas_market_calendars as mcal
 from nixtla import NixtlaClient
 from pandas.tseries.offsets import CustomBusinessDay
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
-# Import settings from config
 from crew.config import AGENT_INPUTS_FOLDER, settings
 from crew.utils.dates import get_today_str_no_min
 from crew.utils.twelve_data_manager import twelve_data_manager
+
+logging.basicConfig(level=logging.INFO)
 
 
 def obtain_market_schedule(
@@ -292,7 +290,6 @@ class TwelveDataHandler:
                     data[col] = data[col].round(2)
 
             self.symbol_data[symbol] = data
-            missing_count = len(missing) if missing is not None else 0
 
     def run(self) -> pd.DataFrame:
         self.process_data()

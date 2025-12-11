@@ -154,7 +154,7 @@ async def extract_finviz_content(url):
 
                                         if article_content:
                                             break
-                                except:
+                                except Exception:
                                     continue
 
                     if not article_content and iframe_sources:
@@ -1059,9 +1059,8 @@ async def main(url_list_to_use=None):
         """,
     )
 
-    # SeekingAlpha-specific configuration with article targeting
-    seeking_alpha_config = CrawlerRunConfig(
-        wait_until="domcontentloaded",  # Changed to domcontentloaded to avoid timeout
+    CrawlerRunConfig(
+        wait_until="domcontentloaded",
         verbose=True,
         magic=True,
         simulate_user=True,
@@ -1487,7 +1486,7 @@ async def get_stock_news(ticker_symbol, file_path):
         company_name = get_company_name(ticker_symbol)
     except Exception as e:
         print(f"Error getting company name: {e}")
-        company_name = ticker_symbol  # Fallback to symbol if name lookup fails
+        company_name = ticker_symbol
 
     # Extract URLs from the file
     extracted_urls = []

@@ -1,8 +1,6 @@
 import pandas as pd
 from pathlib import Path
 import yaml
-import json
-from datetime import datetime
 from crew.securities_collateral_loan.config import (
     SecuritiesCollateralLoanConfig,
 )
@@ -48,11 +46,11 @@ for year in range(start_year, end_year + 1):
         data_payload = pipeline.collect(as_of=anchor_date)
 
         if data_payload.get("mode") != "optimization":
-            print(f"  SKIP: Not in optimization mode")
+            print("  SKIP: Not in optimization mode")
             continue
 
         if "prices" not in data_payload or data_payload["prices"].empty:
-            print(f"  SKIP: No price data available")
+            print("  SKIP: No price data available")
             continue
 
         analysis_payload = analyzer.evaluate(data_payload)

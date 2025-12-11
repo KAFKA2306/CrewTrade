@@ -91,12 +91,12 @@ class TwelveTI:
         upper, middle, lower = talib.BBANDS(
             close, timeperiod=tp, nbdevup=2.0, nbdevdn=2.0, matype=0
         )
-        u, m, l = upper[-1], middle[-1], lower[-1]
+        upper_band, mid_band, lower_band = upper[-1], middle[-1], lower[-1]
         last_date = self._get_latest_date()
         return (
             f"BBANDS with time_period of {tp} days, sd of 2.0 and ma_type sma "
-            f"has an upper_band value of {round(u, 4)}, middle_band value of {round(m, 4)}, "
-            f"and lower_band value of {round(l, 4)} on {last_date}."
+            f"has an upper_band value of {round(upper_band, 4)}, middle_band value of {round(mid_band, 4)}, "
+            f"and lower_band value of {round(lower_band, 4)} on {last_date}."
         )
 
     def fetch_ema(self, time_period: int = 9):
@@ -136,8 +136,8 @@ class TwelveTI:
             close_arr, timeperiod=tp, nbdevup=2.0, nbdevdn=2.0, matype=0
         )
         c = close_arr[-1]
-        u, l = upper[-1], lower[-1]
-        percent_b_value = (c - l) / (u - l)
+        upper_band, lower_band = upper[-1], lower[-1]
+        percent_b_value = (c - lower_band) / (upper_band - lower_band)
         last_date = self._get_latest_date()
         return (
             f"PERCENT_B with time_period of {tp} days, sd of 2.0 and ma_type sma "
@@ -251,7 +251,6 @@ class TwelveTI:
 
         high = data["High"].astype(float)
         low = data["Low"].astype(float)
-        close = data["Close"].astype(float)
         conv_line = (high.rolling(tp).max() + low.rolling(tp).min()) / 2
         base_line = (high.rolling(kp).max() + low.rolling(kp).min()) / 2
         senkou_a = ((conv_line + base_line) / 2).shift(kp)
@@ -593,7 +592,6 @@ class TwelveTI:
 
         high = data["High"].astype(float)
         low = data["Low"].astype(float)
-        close = data["Close"].astype(float)
         conv_line = (high.rolling(tp).max() + low.rolling(tp).min()) / 2
         base_line = (high.rolling(kp).max() + low.rolling(kp).min()) / 2
         senkou_a = ((conv_line + base_line) / 2).shift(kp)

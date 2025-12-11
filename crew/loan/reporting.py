@@ -108,7 +108,6 @@ class SecuritiesCollateralLoanReporter:
                 )
 
             profile_results = analysis_payload.get("optimization_profile_results", {})
-            primary_profile = analysis_payload.get("primary_profile")
             profile_paths: Dict[str, Path] = {}
             for name, result in profile_results.items():
                 portfolio = (
@@ -301,7 +300,6 @@ class SecuritiesCollateralLoanReporter:
             ranked_etfs = analysis_payload.get("ranked_etfs")
             candidate_universe = analysis_payload.get("candidate_universe")
             optimization_profiles = analysis_payload.get("optimization_profiles", {})
-            profile_results = analysis_payload.get("optimization_profile_results", {})
             etf_master = analysis_payload.get("etf_master")
             filter_thresholds = analysis_payload.get("asset_filter_thresholds") or {}
 

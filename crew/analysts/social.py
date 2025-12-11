@@ -48,7 +48,6 @@ def fetch_stocktwits_messages(symbol: str, desired_count: int, lower_bound: date
                 stop = True
                 break
             body = msg.get("body", "").strip()
-            username = msg.get("user", {}).get("username", "Unknown")
             formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S %Z")
 
             if not body:

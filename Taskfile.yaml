@@ -1,18 +1,17 @@
 version: "3"
 
 tasks:
-  # --- Global Workflow ---
   process:all:
     desc: Run all data pipelines then all analysis
     cmds:
       - task: fetch:all
       - task: analyze:all
-      - task: run:imura
-      - task: run:oracle
 
   fetch:all:
-    desc: Run all legacy data fetchers (excluding unified runners)
+    desc: Run all data fetchers
     cmds:
+      - task: fetch:imura
+      - task: fetch:oracle
       - task: fetch:credit
       - task: fetch:etf
       - task: fetch:loan
@@ -21,8 +20,14 @@ tasks:
       - task: fetch:yield
 
   analyze:all:
-    desc: Run all legacy use case analysis
+    desc: Run all analysis
+    aliases: [run]
     cmds:
+      - task: sync
+      - task: lint
+      - task: format
+      - task: analyze:imura
+      - task: analyze:oracle
       - task: analyze:credit
       - task: analyze:etf
       - task: analyze:loan
@@ -30,35 +35,25 @@ tasks:
       - task: analyze:portfolio
       - task: analyze:yield
 
-  # --- Dev Tools ---
-  # --- Dev Tools ---
   lint:
-    desc: Run ruff linter
-    cmd: uv run ruff check .
-
+    cmd: uv run ruff check . --fix
   format:
-    desc: Run ruff formatter
     cmd: uv run ruff format .
-
   test:
-    desc: Run unit tests
     cmd: uv run pytest
-
   sync:
-    desc: Sync dependencies
     cmd: uv sync
 
-  # --- Unified Runners (New Architecture) ---
-  # --- Unified Runners (New Architecture) ---
-  run:imura:
-    desc: Run Imura Fund Analysis (Full Pipeline)
-    cmd: uv run -m crew.use_case_runner imura --config config/use_cases/imura.yaml
+  fetch:imura:
+    cmd: uv run python crew/imura/data_pipeline.py
+  analyze:imura:
+    cmd: uv run python crew/imura/analysis.py
 
-  run:oracle:
-    desc: Run Oracle Earnings Simulation (Full Pipeline)
-    cmd: uv run -m crew.use_case_runner oracle --config config/use_cases/oracle.yaml
+  fetch:oracle:
+    cmd: uv run python crew/oracle/data_pipeline.py
+  analyze:oracle:
+    cmd: uv run python crew/oracle/analysis.py
 
-  # --- Legacy / Other Use Cases ---
   fetch:credit:
     cmd: uv run python crew/credit/data_pipeline.py
   analyze:credit:

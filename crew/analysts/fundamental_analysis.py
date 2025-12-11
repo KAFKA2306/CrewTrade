@@ -63,8 +63,8 @@ def _get_finviz_data(symbol: str) -> str:
                         company_part = parts[1].replace(" Stock Quote", "").strip()
                         if company_part:
                             company_name = company_part
-        except:
-            pass  # Keep fallback
+        except Exception:
+            pass
 
         # Find the table with fundamental data
         fundamentals = {}
@@ -111,8 +111,8 @@ def _get_finviz_data(symbol: str) -> str:
                                             and len(extracted_name) > len(label)
                                         ):
                                             full_name = extracted_name
-                                except:
-                                    pass  # Keep default
+                                except Exception:
+                                    pass
 
                             # Only include fundamental metrics - strict filtering
                             if (

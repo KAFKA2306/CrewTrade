@@ -246,11 +246,7 @@ async def process_stock_symbol(
     }
 
     # Run Day Trader Advisor Crew
-    day_trader_result = (
-        await DayTraderAdvisorCrew(symbol)
-        .crew()
-        .kickoff_async(inputs=day_trader_inputs)
-    )
+    await DayTraderAdvisorCrew(symbol).crew().kickoff_async(inputs=day_trader_inputs)
 
     return crew_result
 

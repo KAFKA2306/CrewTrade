@@ -38,7 +38,7 @@ async def run_async_execution():
     market_agent, market_task = market_analyst.get_agent_and_task()
 
     # Get TimeGPT forecasts (calls API once per day, uses cache thereafter)
-    timegpt_forecasts = get_timegpt_forecast()
+    get_timegpt_forecast()
 
     # Process market overview first
     await process_stock_symbol_async(

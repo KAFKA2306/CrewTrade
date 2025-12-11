@@ -1,0 +1,9 @@
+{
+  "anchor_date": "2015-05-29T00:00:00",
+  "portfolio_type": "mixed",
+  "core_weight": 0.6,
+  "satellite_weight": 0.4,
+  "rebalance_year": 1,
+  "valid_until": "2016-05-30T00:00:00",
+  "optimization_method": "hrp"
+}

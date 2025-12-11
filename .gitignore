@@ -5,19 +5,8 @@ __pycache__/
 *.so
 .Python
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
 *.egg
 
 # Virtual environments
@@ -27,46 +16,29 @@ env/
 
 # Environment variables
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
 
 # IDE
 .vscode/
 .cursor/
+.idea/
 .DS_Store
 
-# Test files and logs - DO NOT PUSH
-test_files/
+# Logs and output
 logs/
-output_files/
-
-# Temporary files
-*.tmp
 *.log
+
+# Lock files
 uv.lock
 
-# Reports and generated files
-
-!README.md
+# Generated files
 *.png
 *.html
-*.txt
+output/
 
-# Database files
+# Database
 *.sqlite3
-db/
 
-# Audio files
-*.m4a
-*.mp3
-*.wav
-
-# Other
-.editorconfig
-.pre-commit-config.yaml
-.cursorignore
-fin_agent/
-mcp-servers/
-resources/
+# Cache
+.ruff_cache/
+.pytest_cache/

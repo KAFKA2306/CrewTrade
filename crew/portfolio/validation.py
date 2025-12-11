@@ -227,7 +227,6 @@ class Index7PortfolioValidator:
     def stress_test(self) -> Dict:
         data_payload = self.pipeline.collect(as_of=None)
         prices = data_payload["prices"]
-        index_master = data_payload["index_master"]
 
         analyzer = Index7PortfolioAnalyzer(self.config)
         optimized_result = analyzer.evaluate(data_payload)

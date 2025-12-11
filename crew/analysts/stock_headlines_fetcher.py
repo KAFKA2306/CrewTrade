@@ -626,7 +626,7 @@ def fetch_marketwatch_news(
                                     pub_date = dateutil.parser.parse(
                                         time_tag["datetime"]
                                     )
-                                except:
+                                except Exception:
                                     pass
 
                             # Look for date in text
@@ -649,7 +649,7 @@ def fetch_marketwatch_news(
                                                 else date_str
                                             )
                                             break
-                                        except:
+                                        except Exception:
                                             continue
 
                             # Use current time as fallback
@@ -797,7 +797,7 @@ def fetch_marketwatch_news(
                     if time_tag and time_tag.has_attr("datetime"):
                         try:
                             pub_date = dateutil.parser.parse(time_tag["datetime"])
-                        except:
+                        except Exception:
                             pass
 
                     if not pub_date:
@@ -816,7 +816,7 @@ def fetch_marketwatch_news(
                                 pub_date = dateutil.parser.parse(
                                     date_tag.get_text(strip=True) + " ET"
                                 )
-                            except:
+                            except Exception:
                                 pass
 
                     if not pub_date:
