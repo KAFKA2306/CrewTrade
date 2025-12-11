@@ -1,0 +1,14 @@
+name: credit_spread
+period: 5y
+rolling_window: 30
+minimum_periods: 10
+z_score_threshold: 1.5
+pairs:
+  HYG_vs_IEF:
+    junk_ticker: HYG
+    treasury_ticker: IEF
+    description: US high yield vs 7-10Y Treasury
+  JNK_vs_TLT:
+    junk_ticker: JNK
+    treasury_ticker: TLT
+    description: US high yield vs 20Y Treasury

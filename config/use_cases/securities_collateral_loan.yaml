@@ -1,0 +1,120 @@
+name: securities_collateral_loan
+period: 3y
+loan_amount: 10000000
+annual_interest_rate: 0.01875
+ltv_limit: 0.6
+warning_ratio: 0.7
+liquidation_ratio: 0.85
+collateral_assets:
+  - ticker: 1306.T
+    quantity: 73
+    description: NEXT FUNDS TOPIX ETF
+  - ticker: 2568.T
+    quantity: 118
+    description: NASDAQ100 ETF (No Hedge)
+  - ticker: 2510.T
+    quantity: 19302
+    description: NEXT FUNDS Domestic Bond NOMURA-BPI
+  - ticker: 2622.T
+    quantity: 159
+    description: iShares USD Emerging Markets Bond Hedged
+  - ticker: 348A.T
+    quantity: 1004
+    description: MAXIS Yomiuri 333 ETF
+scenarios:
+  - drop_pct: 0.1
+    label: "-10%"
+  - drop_pct: 0.2
+    label: "-20%"
+  - drop_pct: 0.3
+    label: "-30%"
+  - drop_pct: 0.4
+    label: "-40%"
+interest_horizons_days:
+  - 30
+  - 90
+  - 180
+optimization:
+  enabled: true
+  objective_weights:
+    sharpe: 0.6
+    volatility: 0.4
+  constraints:
+    min_weight: 0.05
+    max_weight: 0.2
+    max_category_weight: 0.5
+    max_volatility: 0.12
+    max_asset_drawdown: 0.30
+    max_portfolio_drawdown: 0.25
+    asset_allocation:
+      equity:
+        min: 0.50
+        max: 1.00
+      bonds:
+        min: 0.00
+        max: 0.30
+      reit:
+        min: 0.00
+        max: 0.15
+      commodity:
+        min: 0.00
+        max: 0.20
+      other:
+        min: 0.00
+        max: 0.10
+  priority_indices:
+    tier1:
+      - 2568.T
+      - 1547.T
+    tier2:
+      - 1591.T
+      - 1348.T
+      - 1595.T
+      - 1540.T
+    tier3:
+      - 2511.T
+      - 1656.T
+  core_satellite:
+    enabled: true
+    core_weight: 0.60
+    satellite_weight: 0.40
+    core_rebalance_years: 2
+  risk_policy:
+    primary_metric: max_asset_drawdown
+    description: >
+      Exclude ETFs solely when their trailing max drawdown exceeds the max_asset_drawdown
+      constraint; other limits remain for portfolio construction, not asset gating.
+  sample_size: 5000
+  lookback: 5y
+  history_window: 5y
+  walkforward_years: 5
+  max_universe_size: 100
+  profiles:
+    - name: max_sharpe
+      objective_weights:
+        sharpe: 1.0
+        volatility: 0.0
+      correlation_threshold: 0.95
+      max_portfolio_size: 20
+      min_assets: 10
+    - name: low_volatility
+      objective_weights:
+        sharpe: 0
+        volatility: 1
+      correlation_threshold: 0.95
+      max_portfolio_size: 20
+      min_assets: 10
+      constraints_override:
+        max_weight: 0.2
+        min_weight: 0.05
+    - name: cost_focus
+      objective_weights:
+        sharpe: 0.5
+        volatility: 0.2
+        expense: 0.3
+      correlation_threshold: 0.95
+      max_portfolio_size: 10
+      min_assets: 10
+      constraints_override:
+        max_weight: 0.2
+        min_weight: 0.05

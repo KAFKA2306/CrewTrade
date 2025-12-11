@@ -1,0 +1,44 @@
+name: index_7_portfolio
+period: 20y
+
+indices:
+  - ticker: 1655.T
+    name: ｉＳ米国株
+    category: equity
+  - ticker: 2840.T
+    name: ｉＦＥナ百無
+    category: equity
+  - ticker: 1364.T
+    name: ｉシェア４百
+    category: equity
+  - ticker: 314A.T
+    name: ｉＳゴールド
+    category: commodity
+  - ticker: 2520.T
+    name: 野村新興国株
+    category: equity
+  - ticker: 2511.T
+    name: 野村外国債券
+    category: bonds
+  - ticker: 399A.T
+    name: 上場高配５０
+    category: equity
+
+loan_amount: 10000000
+annual_interest_rate: 0.01875
+ltv_limit: 0.6
+warning_ratio: 0.7
+liquidation_ratio: 0.85
+
+optimization:
+  enabled: true
+  objective_weights:
+    sharpe: 0.6
+    volatility: 0.4
+  constraints:
+    min_weight: 0.05
+    max_weight: 0.30
+    max_volatility: 0.15
+  sample_size: 10000
+  lookback: 10y
+  max_drawdown_buffer: 0.2063

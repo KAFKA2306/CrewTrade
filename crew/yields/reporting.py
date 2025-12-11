@@ -1,0 +1,208 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Dict
+
+import pandas as pd
+
+from crew.yields.config import YieldSpreadConfig
+from crew.yields.insights import build_insight_markdown
+
+
+class YieldSpreadReporter:
+    def __init__(
+        self, config: YieldSpreadConfig, processed_dir: Path, report_dir: Path
+    ) -> None:
+        self.config = config
+        self.processed_dir = processed_dir
+        self.report_dir = report_dir
+        self.processed_dir.mkdir(parents=True, exist_ok=True)
+        self.report_dir.mkdir(parents=True, exist_ok=True)
+
+    def persist(self, analysis_payload: Dict[str, object]) -> Dict[str, Path]:
+        series_frame = analysis_payload["series"]
+        metrics_frame = analysis_payload["metrics"]
+        edges_frame = analysis_payload["edges"]
+        snapshot_frame = analysis_payload["snapshot"]
+        asset_prices = analysis_payload.get("asset_prices")
+        allocation_payload = analysis_payload.get("allocation")
+
+        stored_paths: Dict[str, Path] = {}
+
+        series_path = self.processed_dir / "yield_series.parquet"
+        series_frame.to_parquet(series_path)
+        stored_paths["series"] = series_path
+
+        metrics_path = self.processed_dir / "metrics.parquet"
+        metrics_frame.to_parquet(metrics_path)
+        stored_paths["metrics"] = metrics_path
+
+        edges_path = self.processed_dir / "edges.parquet"
+        edges_frame.to_parquet(edges_path)
+        stored_paths["edges"] = edges_path
+
+        snapshot_path = self.processed_dir / "snapshot.parquet"
+        snapshot_frame.to_parquet(snapshot_path)
+        stored_paths["snapshot"] = snapshot_path
+
+        if isinstance(asset_prices, pd.DataFrame):
+            asset_price_path = self.processed_dir / "allocation_prices.parquet"
+            asset_prices.to_parquet(asset_price_path)
+            stored_paths["allocation_prices"] = asset_price_path
+
+        if allocation_payload is not None:
+            allocation_path = self.processed_dir / "allocation.json"
+            allocation_path.write_text(json.dumps(allocation_payload, indent=2))
+            stored_paths["allocation"] = allocation_path
+
+        report_path = self.report_dir / "yield_spread_report.md"
+        report_markdown = self._build_report(
+            snapshot_frame, edges_frame, allocation_payload
+        )
+        report_path.write_text(report_markdown)
+        stored_paths["report"] = report_path
+
+        insight_path = self.report_dir / "yield_spread_insights.md"
+        insight_markdown = build_insight_markdown(analysis_payload)
+        insight_path.write_text(insight_markdown)
+        stored_paths["insights"] = insight_path
+
+        return stored_paths
+
+    def _build_report(
+        self,
+        snapshot: pd.DataFrame,
+        edges: pd.DataFrame,
+        allocation: Dict[str, object] | None,
+    ) -> str:
+        lines = ["# Yield Spread Signal Report", ""]
+        if snapshot.empty:
+            lines.append(
+                "データが不足しているため、スナップショットを生成できませんでした。"
+            )
+            return "\n".join(lines)
+
+        if allocation is not None:
+            lines.append("## Risk Allocation Guidance")
+            lines.append(f"- Regime: **{allocation['regime']}**")
+            method = allocation.get("method", "static")
+            lines.append(f"- Method: {method.title()}")
+            lines.append(f"- Latest z-score: {allocation['z_score']:.2f}")
+            lines.append(f"- Spread: {allocation['spread_bp']:.1f} bp")
+            sharpe = allocation.get("sharpe")
+            if sharpe is not None:
+                lines.append(f"- Estimated Sharpe: {sharpe}")
+            lines.append("")
+            opt_meta = allocation.get("optimization_meta")
+            if opt_meta is not None:
+                lines.append("| Param | Value |")
+                lines.append("| --- | --- |")
+                lines.append(f"| Lookback | {opt_meta.get('lookback')} |")
+                lines.append(f"| Samples | {opt_meta.get('sample_size')} |")
+                lines.append(f"| Risk-free | {opt_meta.get('risk_free_rate')} |")
+                lines.append("")
+            metrics = allocation.get("metrics") or allocation.get("base_metrics")
+            if metrics:
+                lines.append("| Metric | Value |")
+                lines.append("| --- | --- |")
+                for key in [
+                    "annual_return",
+                    "annual_volatility",
+                    "sharpe",
+                    "max_drawdown",
+                    "total_return",
+                ]:
+                    value = metrics.get(key)
+                    if value is None:
+                        continue
+                    formatted = (
+                        f"{value:.4f}" if isinstance(value, (int, float)) else value
+                    )
+                    lines.append(f"| {key.replace('_', ' ').title()} | {formatted} |")
+                lines.append("")
+            if method == "optimized" and allocation.get("base_metrics"):
+                base_metrics = allocation["base_metrics"]
+                lines.append("| Base Metric | Value |")
+                lines.append("| --- | --- |")
+                for key in [
+                    "annual_return",
+                    "annual_volatility",
+                    "sharpe",
+                    "max_drawdown",
+                    "total_return",
+                ]:
+                    value = base_metrics.get(key)
+                    if value is None:
+                        continue
+                    formatted = (
+                        f"{value:.4f}" if isinstance(value, (int, float)) else value
+                    )
+                    lines.append(f"| {key.replace('_', ' ').title()} | {formatted} |")
+                lines.append("")
+            sensitivity = allocation.get("sensitivity")
+            if sensitivity:
+                lines.append("| Sample Size | Sharpe | Ann. Return | Ann. Vol |")
+                lines.append("| --- | --- | --- | --- |")
+                for row in sensitivity:
+                    sharpe_val = row.get("sharpe")
+                    ann_ret = row.get("annual_return")
+                    ann_vol = row.get("annual_volatility")
+                    sharpe_str = (
+                        f"{sharpe_val:.4f}"
+                        if isinstance(sharpe_val, (int, float))
+                        else sharpe_val
+                    )
+                    ann_ret_str = (
+                        f"{ann_ret:.4f}"
+                        if isinstance(ann_ret, (int, float))
+                        else ann_ret
+                    )
+                    ann_vol_str = (
+                        f"{ann_vol:.4f}"
+                        if isinstance(ann_vol, (int, float))
+                        else ann_vol
+                    )
+                    lines.append(
+                        f"| {row.get('sample_size')} | {sharpe_str} | {ann_ret_str} | {ann_vol_str} |"
+                    )
+                lines.append("")
+                lines.append("")
+            lines.append("| Asset | Weight |")
+            lines.append("| --- | --- |")
+            for asset, weight in allocation["weights"].items():
+                lines.append(f"| {asset} | {weight:.2%} |")
+            lines.append("")
+
+        lines.append("## Latest Snapshot")
+        lines.append("| Pair | Date | Spread (bp) | Z | Junk % | Treasury % |")
+        lines.append("| --- | --- | --- | --- | --- | --- |")
+        for _, row in snapshot.sort_values(
+            "z_score", key=lambda s: s.abs(), ascending=False
+        ).iterrows():
+            date_str = row["latest_date"].date()
+            lines.append(
+                f"| {row['pair']} | {date_str} | {row['spread_bp']:.1f} | {row['z_score']:.2f} | "
+                f"{row['junk_yield']:.2f} | {row['treasury_yield']:.2f} |"
+            )
+        lines.append("")
+
+        lines.append("## Triggered Signals")
+        if edges.empty:
+            lines.append(
+                "しきい値を超えるイールドスプレッドのイベントは検出されませんでした。"
+            )
+            return "\n".join(lines)
+
+        lines.append(
+            "| Date | Pair | Direction | Spread (bp) | Z | Junk % | Treasury % |"
+        )
+        lines.append("| --- | --- | --- | --- | --- | --- | --- |")
+        for _, row in edges.sort_values("date").iterrows():
+            date_str = row["date"].strftime("%Y-%m-%d")
+            lines.append(
+                f"| {date_str} | {row['pair']} | {row['direction']} | {row['spread_bp']:.1f} | "
+                f"{row['z_score']:.2f} | {row['junk_yield']:.2f} | {row['treasury_yield']:.2f} |"
+            )
+        lines.append("")
+        return "\n".join(lines)

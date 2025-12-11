@@ -2,42 +2,42 @@
 
 ## Optimization Summary
 - Total ETFs evaluated: 89
-- ETFs with sufficient data: 72
-- Candidate universe after filtering: 31
+- ETFs with sufficient data: 20
+- Candidate universe after filtering: 11
 - Risk gate metric: max_asset_drawdown — Exclude ETFs solely when their trailing max drawdown exceeds the max_asset_drawdown constraint; other limits remain for portfolio construction, not asset gating.
 
-- Selected ETFs (max_sharpe): 10
-- Excluded 12 ETF(s) with drawdown worse than -45.0%
-- Portfolio annual return: 7.65%
-- Portfolio annual volatility: 13.66%
-- Portfolio Sharpe ratio: 0.560
-- Weighted expense ratio: 0.23%
+- Selected ETFs (max_sharpe): 12
+- Excluded 64 ETF(s) with drawdown worse than -30.0%
+- Portfolio annual return: 6.80%
+- Portfolio annual volatility: 6.50%
+- Portfolio Sharpe ratio: 1.045
+- Weighted expense ratio: 0.14%
 
 | Profile | Return | Volatility | Sharpe | Expense | Selected |
 | --- | --- | --- | --- | --- | --- |
-| max_sharpe | 7.65% | 13.66% | 0.560 | 0.23% | Yes |
-| low_volatility | 6.73% | 12.48% | 0.539 | 0.25% |  |
-| cost_focus | 8.36% | 11.04% | 0.757 | 0.24% |  |
+| max_sharpe | 6.80% | 6.50% | 1.045 | 0.14% | Yes |
+| low_volatility | 6.80% | 6.50% | 1.045 | 0.14% |  |
+| cost_focus | 6.63% | 6.61% | 1.002 | 0.14% |  |
 
 ## Current Profile
 - Loan amount: ¥10,000,000.0
-- Current collateral value: ¥18238975
-- Current loan ratio: 0.548
-- Buffer to 70%: 21.67% drop
-- Buffer to 85%: 35.50% drop
-- Max drawdown (history): -31.26%
+- Current collateral value: ¥28982405
+- Current loan ratio: 0.345
+- Buffer to 70%: 50.71% drop
+- Buffer to 85%: 59.41% drop
+- Max drawdown (history): -13.62%
 
 ## Stress Scenarios
 | Scenario | Post Value | Loan Ratio | ≥70% | ≥85% |
 | --- | --- | --- | --- | --- |
-| -10% | ¥16,415,077 | 0.609 | No | No |
-| -20% | ¥14,591,180 | 0.685 | No | No |
-| -30% | ¥12,767,282 | 0.783 | Yes | No |
-| -40% | ¥10,943,385 | 0.914 | Yes | Yes |
+| -10% | ¥26,084,165 | 0.383 | No | No |
+| -20% | ¥23,185,924 | 0.431 | No | No |
+| -30% | ¥20,287,684 | 0.493 | No | No |
+| -40% | ¥17,389,443 | 0.575 | No | No |
 
 ## Historical Breach Counts
-- Margin call events: 466
-- Forced liquidation events: 10
+- Margin call events: 0
+- Forced liquidation events: 0
 
 ## Interest Projection (Simple)
 | Days | Interest (¥) |

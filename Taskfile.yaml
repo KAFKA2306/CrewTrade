@@ -1,0 +1,90 @@
+version: "3"
+
+tasks:
+  # --- Global Workflow ---
+  process:all:
+    desc: Run all data pipelines then all analysis
+    cmds:
+      - task: fetch:all
+      - task: analyze:all
+      - task: run:imura
+      - task: run:oracle
+
+  fetch:all:
+    desc: Run all legacy data fetchers (excluding unified runners)
+    cmds:
+      - task: fetch:credit
+      - task: fetch:etf
+      - task: fetch:loan
+      - task: fetch:metals
+      - task: fetch:portfolio
+      - task: fetch:yield
+
+  analyze:all:
+    desc: Run all legacy use case analysis
+    cmds:
+      - task: analyze:credit
+      - task: analyze:etf
+      - task: analyze:loan
+      - task: analyze:metals
+      - task: analyze:portfolio
+      - task: analyze:yield
+
+  # --- Dev Tools ---
+  # --- Dev Tools ---
+  lint:
+    desc: Run ruff linter
+    cmd: uv run ruff check .
+
+  format:
+    desc: Run ruff formatter
+    cmd: uv run ruff format .
+
+  test:
+    desc: Run unit tests
+    cmd: uv run pytest
+
+  sync:
+    desc: Sync dependencies
+    cmd: uv sync
+
+  # --- Unified Runners (New Architecture) ---
+  # --- Unified Runners (New Architecture) ---
+  run:imura:
+    desc: Run Imura Fund Analysis (Full Pipeline)
+    cmd: uv run -m crew.use_case_runner imura --config config/use_cases/imura.yaml
+
+  run:oracle:
+    desc: Run Oracle Earnings Simulation (Full Pipeline)
+    cmd: uv run -m crew.use_case_runner oracle --config config/use_cases/oracle.yaml
+
+  # --- Legacy / Other Use Cases ---
+  fetch:credit:
+    cmd: uv run python crew/credit/data_pipeline.py
+  analyze:credit:
+    cmd: uv run python crew/credit/analysis.py
+
+  fetch:etf:
+    cmd: uv run python crew/etf/data_pipeline.py
+  analyze:etf:
+    cmd: uv run python crew/etf/analysis.py
+
+  fetch:loan:
+    cmd: uv run python crew/loan/data_pipeline.py
+  analyze:loan:
+    cmd: uv run python crew/loan/analysis.py
+
+  fetch:metals:
+    cmd: uv run python crew/metals/data_pipeline.py
+  analyze:metals:
+    cmd: uv run python crew/metals/analysis.py
+
+  fetch:portfolio:
+    cmd: uv run python crew/portfolio/data_pipeline.py
+  analyze:portfolio:
+    cmd: uv run python crew/portfolio/analysis.py
+
+  fetch:yield:
+    cmd: uv run python crew/yields/data_pipeline.py
+  analyze:yield:
+    cmd: uv run python crew/yields/analysis.py

@@ -1,0 +1,49 @@
+name: yield_spread
+period: 5y
+rolling_window: 60
+minimum_periods: 20
+z_score_threshold: 1.5
+bp_alert_threshold: 0.0
+allocation:
+  upper_z: 1.0
+  lower_z: -1.0
+  optimization:
+    enabled: true
+    lookback: 1y
+    sample_size: 15000
+    min_weight: 0.0
+    max_weight: 0.6
+    risk_free_rate: 0.02
+  tightening:
+    label: Risk-On
+    weights:
+      SPY: 0.6
+      QQQ: 0.2
+      HYG: 0.2
+  neutral:
+    label: Neutral
+    weights:
+      SPY: 0.5
+      IEF: 0.3
+      HYG: 0.2
+  widening:
+    label: Defensive
+    weights:
+      IEF: 0.5
+      TLT: 0.3
+      BIL: 0.2
+pairs:
+  us_high_yield_vs_us10y:
+    description: US High Yield minus 10Y Treasury yield spread
+    junk:
+      source: fred
+      identifier: BAMLH0A0HYM2EY
+      scaling: 1.0
+      field: value
+      description: ICE BofA US High Yield Index Effective Yield (%)
+    treasury:
+      source: fred
+      identifier: DGS10
+      scaling: 1.0
+      field: value
+      description: US 10Y Treasury Constant Maturity Rate (%)

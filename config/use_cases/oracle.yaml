@@ -1,0 +1,33 @@
+base_quarter:
+  period: "FY2026 Q2"
+  revenue_B: 14.1
+  operating_income_B: 4.8
+  capex_last_4q_B: 7.2
+  current_capex_intensity: 0.55
+  rpo_B: 99.0
+  cloud_revenue_growth_yoy_pct: 34.0
+  software_revenue_growth_yoy_pct: 0.0
+  software_seasonality_factors: [0.95, 1.0, 0.98, 1.05]
+  cloud_cannibalization_ratio: 0.1
+
+projections:
+  quarters_to_project: 8
+  scenarios:
+    bull:
+      cloud_growth_decay_rate: 0.99
+      software_growth_rate: 1.0
+      operating_margin_improvement: 2.0
+      capex_intensity_target: 0.40
+      rpo_growth_yoy: 0.20
+    bear:
+      cloud_growth_decay_rate: 0.90
+      software_growth_rate: -2.0
+      operating_margin_improvement: 0.0
+      capex_intensity_target: 0.60
+      rpo_growth_yoy: 0.10
+    base:
+      cloud_growth_decay_rate: 0.95
+      software_growth_rate: -0.5
+      operating_margin_improvement: 0.5
+      capex_intensity_target: 0.50
+      rpo_growth_yoy: 0.15

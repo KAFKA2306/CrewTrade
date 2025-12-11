@@ -1,28 +1,34 @@
-# Repository Guidelines
+# リポジトリガイドライン
 
-## Project Structure & Module Organization
-The Python package lives under `AITradingCrew/ai_trading_crew/`, with subpackages for `use_cases/`, `backtests/`, and shared utilities. Configuration defaults sit in `AITradingCrew/config/`, while reusable data caches are stored in `AITradingCrew/resources/data/`. Generated artifacts (reports, parquet outputs, diagnostics) are written to `AITradingCrew/output/` and `AITradingCrew/resources/data/.../processed_backtests/`. Keep ad-hoc experiments inside `tmp_*` folders or a dedicated branch; do not mix them with the shipped package.
+## プロジェクト構造とモジュール構成
+- `ai_trading_crew/`: クルーのオーケストレーション、アナリスト、ユーティリティ、および各ユースケース（`imura`, `securities_collateral_loan`など）のパッケージ。
+- `config/`: 各ユースケースやプロジェクト全体設定用のYAMLファイル。
+- `resources/data/`: キャッシュされた生および処理済みデータセット（Parquet）。生成されたアーティファクトとして扱います。
+- `output/`: 実行ごとの人間が読めるレポート（Markdown）。
+- `README.md`, `AGENTS.md`: コントリビューター向けドキュメント。
 
-## Build, Test, and Development Commands
-- `uv sync` (or `poetry install`): create a Python 3.10+ environment with all project dependencies, including CrewAI.
-- `PYTHONPATH=AITradingCrew python3 AITradingCrew/ai_trading_crew/backtests/securities_collateral_loan_backtest.py securities_collateral_loan --config AITradingCrew/config/use_cases/securities_collateral_loan.yaml`: regenerate historical and forward reports for the collateral-loan workflow.
-- `python -m ai_trading_crew.use_case_runner securities_collateral_loan --config <path>`: run a single use case end-to-end, persisting outputs under `output/use_cases/`.
-- `pytest` (when adding unit tests under `tests/`): run the automated suite locally before submitting a PR.
+## ビルド、テスト、開発コマンド
+- `uv sync` / `poetry install` / `pip install -e .`: Pythonの依存関係をインストールします。
+- `uv run -m ai_trading_crew.use_case_runner imura --config config/use_cases/imura.yaml`: Imuraファンドユースケースを実行します。
+- `python3 -m compileall ai_trading_crew`: すべてのモジュールを対象とする軽量な構文チェック。
 
-## Coding Style & Naming Conventions
-Follow PEP 8 with four-space indentation and `black`-compatible formatting. Use `snake_case` for modules, functions, and variables; reserve `CamelCase` for classes and TypedDicts. Keep configuration keys lowercase with underscores, mirroring the patterns already in `config/use_cases/*.yaml`. Prefer explicit imports over wildcard usage, and co-locate helper functions within their owning module instead of adding new globals.
+## コーディングスタイルと命名規則
+- Python 3.10以降、標準ライブラリの `typing` とPydanticモデルを使用します。
+- 明示的で説明的な名前を優先します（例： `PreciousMetalsSpreadAnalyzer`）。不可欠でない限り、インラインコメントは使用しません。
+- ファイルとディレクトリは `snake_case` を使用し、クラスは `PascalCase` を使用し、関数は `snake_case` を使用します。
+- 生成されたテーブルはParquetとして、レポートはMarkdownとして永続化します。
 
-## Testing Guidelines
-Validate data-processing changes by re-running the relevant backtest scripts and confirming new parquet outputs land in the `processed_backtests/<anchor>/` directory. When feasible, cover deterministic logic with `pytest` cases named `test_<feature>_behavior.py`. Include sample fixtures under `tests/fixtures/` and assert both expected metrics and schema compatibility. For new agents or pipelines, document manual verification steps in the PR description.
+## テストガイドライン
+- 組み込みの `unittest` または `pytest` を使用します（ `tests/` の下に追加します）。
+- テストファイルには `test_<module>.py` という名前を付け、関数には `test_<behavior>()` という名前を付けます。
+- 新しいコードは最低でも `python3 -m compileall ai_trading_crew` で検証し、数値ロジックには対象を絞ったテストを追加します。
 
-## Commit & Pull Request Guidelines
-Write imperative, present-tense commit messages (e.g., `Add collateral optimizer score weighting`). Group related edits into a single commit where possible, and reference issue IDs using `Refs #123` in the footer. Pull requests should describe motivation, summarize key code paths touched, and link to generated reports (for example, `AITradingCrew/output/backtests/securities_collateral_loan/20250531/`). If UI or reporting artifacts change, attach screenshots or paste relevant metric tables. Request review from the domain owner responsible for the affected use case.
+## コミットとプルリクエストのガイドライン
+- コミットは小さく、命令形で、スコープを限定する必要があります（例： `Add cached metals data client`）。
+- 該当する場合は、コミット本文で関連するイシューを参照します。
+- プルリクエストでは、スコープ、実行したテスト、および新しい設定手順を説明する必要があります。関連する場合は、サンプル出力パスを含めます。
 
-## Data & Credential Handling
-Never commit `.env` files or API keys. Use the cached parquet data already tracked in `AITradingCrew/resources/data/` and document any new external datasets in the README plus `config/use_cases/`. When introducing new credentials, reference environment variables in code and update `.env.example` instead of hardcoding secrets.
-
-
-if I request viewer, run this commands.
-```
-npx @kimuson/claude-code-viewer@latest
-```
+## セキュリティと設定のヒント
+- APIキーは、 `config.py` で定義された名前を使用して `.env` に保存します（例： `TWELVE_API_KEY`）。
+- `resources/data` または `output` の下のアーティファクトはコミットしないでください。ランタイムプロダクトとして扱います。
+- 統合する前に、サードパーティのデータソースの可用性とライセンスを検証します。
