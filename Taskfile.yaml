@@ -43,41 +43,41 @@ tasks:
     cmd: uv sync
 
   fetch:imura:
-    cmd: uv run python crew/imura/data_pipeline.py
+    cmd: uv run python -m crew.imura.data_pipeline
   analyze:imura:
-    cmd: uv run python crew/imura/analysis.py
+    cmd: uv run python -m crew.imura.analysis
 
   fetch:oracle:
-    cmd: uv run python crew/oracle/data_pipeline.py
+    cmd: uv run python -m crew.oracle.data_pipeline
   analyze:oracle:
-    cmd: uv run python crew/oracle/analysis.py
+    cmd: uv run python -m crew.oracle.analysis
 
   fetch:credit:
-    cmd: uv run python crew/credit/data_pipeline.py
+    cmd: uv run python -m crew.credit.data_pipeline
   analyze:credit:
-    cmd: uv run python crew/credit/analysis.py
+    cmd: uv run python -m crew.credit.analysis
 
   fetch:etf:
-    cmd: uv run python crew/etf/data_pipeline.py
+    cmd: uv run python -m crew.etf.data_pipeline
   analyze:etf:
-    cmd: uv run python crew/etf/analysis.py
+    cmd: uv run python -m crew.etf.analysis
 
   fetch:loan:
-    cmd: uv run python crew/loan/data_pipeline.py
+    cmd: uv run python -m crew.loan.data_pipeline
   analyze:loan:
-    cmd: uv run python crew/loan/analysis.py
+    cmd: uv run python -m crew.loan.analysis
 
   fetch:metals:
-    cmd: uv run python crew/metals/data_pipeline.py
+    cmd: uv run python -m crew.metals.data_pipeline
   analyze:metals:
-    cmd: uv run python crew/metals/analysis.py
+    cmd: uv run python -m crew.metals.analysis
 
   fetch:portfolio:
-    cmd: uv run python crew/portfolio/data_pipeline.py
+    cmd: uv run python -m crew.portfolio.data_pipeline
   analyze:portfolio:
-    cmd: uv run python crew/portfolio/analysis.py
+    cmd: uv run python -m crew.portfolio.analysis
 
   fetch:yield:
-    cmd: uv run python crew/yields/data_pipeline.py
+    cmd: uv run python -m crew.yields.data_pipeline
   analyze:yield:
-    cmd: uv run python crew/yields/analysis.py
+    cmd: uv run python -m crew.yields.analysis

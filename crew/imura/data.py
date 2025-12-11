@@ -34,7 +34,9 @@ class ImuraFundDataPipeline:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
 
-        while True:
+        max_pages = days + 50
+        seen_dates = set()
+        while page <= max_pages:
             params = {"from": str_start, "to": str_to, "timeFrame": "d", "page": page}
             print(f"Fetching {symbol} page {page}...")
             resp = requests.get(url, params=params, headers=headers)
@@ -53,13 +55,15 @@ class ImuraFundDataPipeline:
                     price_idx = i
                     break
 
-            data_found = False
+            page_dates = []
             for row in rows[1:]:
                 cols = row.find_all(["td", "th"])
                 if len(cols) <= price_idx:
                     continue
                 date_str = cols[0].text.strip()
                 price_str = cols[price_idx].text.strip()
+                if not date_str or not price_str:
+                    continue
                 dt = (
                     datetime.datetime.strptime(date_str, "%Y年%m月%d日").date()
                     if "年" in date_str
@@ -68,9 +72,15 @@ class ImuraFundDataPipeline:
                 all_data.append(
                     {"Date": dt, "Price": float(price_str.replace(",", ""))}
                 )
-                data_found = True
+                page_dates.append(dt)
 
-            if not data_found:
+            if not page_dates:
+                break
+            new_dates = set(page_dates) - seen_dates
+            if not new_dates:
+                break
+            seen_dates.update(page_dates)
+            if max(page_dates) < start_date:
                 break
             page += 1
 
