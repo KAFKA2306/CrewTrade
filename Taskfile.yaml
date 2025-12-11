@@ -39,8 +39,6 @@ tasks:
     cmd: uv run ruff check . --fix
   format:
     cmd: uv run ruff format .
-  test:
-    cmd: uv run pytest
   sync:
     cmd: uv sync
 
