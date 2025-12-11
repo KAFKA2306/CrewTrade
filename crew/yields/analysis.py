@@ -15,6 +15,25 @@ class YieldSpreadAnalyzer:
     def evaluate(
         self, data_payload: Dict[str, pd.DataFrame]
     ) -> Dict[str, pd.DataFrame]:
+        # Load from disk if needed
+        if "series" not in data_payload or isinstance(data_payload.get("series"), str):
+            series_path = self.raw_data_dir / "series.csv"
+            if series_path.exists():
+                data_payload["series"] = pd.read_csv(
+                    series_path, index_col=0, parse_dates=True
+                )
+            else:
+                data_payload["series"] = pd.DataFrame()
+
+        if "asset_prices" not in data_payload or isinstance(
+            data_payload.get("asset_prices"), str
+        ):
+            prices_path = self.raw_data_dir / "asset_prices.csv"
+            if prices_path.exists():
+                data_payload["asset_prices"] = pd.read_csv(
+                    prices_path, index_col=0, parse_dates=True
+                )
+
         series_frame = data_payload["series"]
         asset_prices = data_payload.get("asset_prices")
         metrics = self._compute_pair_metrics(series_frame)

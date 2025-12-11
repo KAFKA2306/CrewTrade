@@ -1,0 +1,8 @@
+name: index_etf_comparison
+indices:
+  - "S&P500"
+  - "NASDAQ100"
+  - "MSCI ジャパン高配当"
+  - "FTSE世界国債"
+lookback: 5y
+min_data_points: 252

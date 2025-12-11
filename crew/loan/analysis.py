@@ -27,7 +27,43 @@ class SecuritiesCollateralLoanAnalyzer:
         self.config = config
 
     def evaluate(self, data_payload: Dict[str, pd.DataFrame]) -> Dict[str, object]:
+        # Infer mode if missing
+        if "mode" not in data_payload:
+            if self.config.optimization and self.config.optimization.enabled:
+                data_payload["mode"] = "optimization"
+            else:
+                data_payload["mode"] = "manual"
+
         mode = data_payload.get("mode", "manual")
+
+        # Load data from disk if needed
+        if "prices" not in data_payload or isinstance(data_payload.get("prices"), str):
+            prices_path = self.raw_data_dir / "prices.csv"
+            if prices_path.exists():
+                data_payload["prices"] = pd.read_csv(
+                    prices_path, index_col=0, parse_dates=True
+                )
+            else:
+                data_payload["prices"] = pd.DataFrame()
+
+        if mode == "optimization":
+            if "etf_master" not in data_payload or isinstance(
+                data_payload.get("etf_master"), str
+            ):
+                master_path = self.raw_data_dir / "etf_master.csv"
+                if master_path.exists():
+                    data_payload["etf_master"] = pd.read_csv(master_path)
+                else:
+                    data_payload["etf_master"] = pd.DataFrame()
+
+            if "prices_forward" not in data_payload or isinstance(
+                data_payload.get("prices_forward"), str
+            ):
+                fwd_path = self.raw_data_dir / "prices_forward.csv"
+                if fwd_path.exists():
+                    data_payload["prices_forward"] = pd.read_csv(
+                        fwd_path, index_col=0, parse_dates=True
+                    )
 
         if mode == "optimization":
             return self._evaluate_optimization_mode(data_payload)

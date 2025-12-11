@@ -15,10 +15,28 @@ class IndexETFComparisonAnalyzer:
         self.config = config
 
     def evaluate(self, data_payload: Dict[str, Any]) -> Dict[str, Any]:
-        mapping = data_payload["mapping"]
-        prices = data_payload["prices"]
-        etf_metadata = data_payload["etf_metadata"]
-        price_frames = data_payload["price_frames"]
+        # Handle loading from disk if payload contains paths or is empty
+        mapping = data_payload.get("mapping")
+        prices = data_payload.get("prices")
+        etf_metadata = data_payload.get("etf_metadata")
+        price_frames = data_payload.get("price_frames", {})
+
+        if isinstance(mapping, str) or mapping is None:
+            mapping = pd.read_csv(self.raw_data_dir / "mapping.csv")
+        if isinstance(prices, str) or prices is None:
+            prices = pd.read_csv(
+                self.raw_data_dir / "prices.csv", index_col=0, parse_dates=True
+            )
+        if isinstance(etf_metadata, str) or etf_metadata is None:
+            etf_metadata = pd.read_csv(self.raw_data_dir / "etf_metadata.csv")
+
+        # Load frames if not present
+        if not price_frames and (self.raw_data_dir / "frames").exists():
+            price_frames = {}
+            for f in (self.raw_data_dir / "frames").glob("*.csv"):
+                price_frames[f.stem] = pd.read_csv(f, index_col=0, parse_dates=True)
+
+        index_results = {}
 
         index_results = {}
 

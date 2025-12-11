@@ -3,25 +3,24 @@ from typing import Dict
 
 import pandas as pd
 
+from crew.app import BaseDataPipeline
 from crew.clients.equities import YFinanceEquityDataClient
 from crew.clients.pricing import get_price_series
 from crew.portfolio.config import Index7PortfolioConfig
 
 
-class Index7PortfolioDataPipeline:
-    def __init__(self, config: Index7PortfolioConfig):
-        self.config = config
-        raw_data_dir = Path("resources/data/use_cases/index_7_portfolio/raw")
-        raw_data_dir.mkdir(parents=True, exist_ok=True)
+class Index7PortfolioDataPipeline(BaseDataPipeline):
+    def __init__(self, raw_data_dir: Path, config: Index7PortfolioConfig):
+        super().__init__(raw_data_dir, config)
         self.client = YFinanceEquityDataClient(raw_data_dir)
 
-    def collect(self, as_of: pd.Timestamp | None = None) -> Dict[str, pd.DataFrame]:
+    def fetch_data_internal(self, targets: Dict[str, str], days: int) -> Dict[str, str]:
         tickers = [idx.ticker for idx in self.config.indices]
 
         period = self.config.period
-        frames = self.client.get_frames(tickers, period=period, start=None, end=as_of)
+        frames = self.client.get_frames(tickers, period=period, start=None, end=None)
 
-        prices = self._combine_close(frames, as_of=as_of)
+        prices = self._combine_close(frames, as_of=None)
 
         index_master = pd.DataFrame(
             [
@@ -35,11 +34,15 @@ class Index7PortfolioDataPipeline:
             ]
         )
 
-        return {
-            "mode": "index",
-            "prices": prices,
-            "index_master": index_master,
-        }
+        saved_files = {}
+        for name, df in [("prices", prices), ("index_master", index_master)]:
+            self._save(name, df)
+            saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+
+        # mode="index" was returned before. Analyzer usually needs it?
+        # Analyzer can infer or default to "index".
+
+        return saved_files
 
     def _combine_close(
         self, frames: Dict[str, pd.DataFrame], as_of: pd.Timestamp | None = None

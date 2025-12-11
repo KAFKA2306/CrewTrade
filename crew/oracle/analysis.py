@@ -5,7 +5,11 @@ from .models import ProjectedQuarter
 
 
 class OracleEarningsAnalyzer:
-    def analyze(self, config: OracleEarningsConfig) -> Dict[str, Any]:
+    def __init__(self, config: OracleEarningsConfig) -> None:
+        self.config = config
+
+    def evaluate(self, data_payload: Dict[str, Any] = None) -> Dict[str, Any]:
+        config = self.config
         base = config.base_quarter
         results = {}
 

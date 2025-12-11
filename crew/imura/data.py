@@ -1,46 +1,94 @@
+import asyncio
 import datetime
-from pathlib import Path
 from typing import Dict
 
 import pandas as pd
-import requests
+import yfinance as yf
 from bs4 import BeautifulSoup
+from crawl4ai import AsyncWebCrawler
+
+from crew.app import BaseDataPipeline
 
 
-class ImuraFundDataPipeline:
-    def __init__(self, raw_data_dir: Path):
-        self.raw_data_dir = raw_data_dir
-        self.raw_data_dir.mkdir(parents=True, exist_ok=True)
-
-    def fetch_data(self, targets: Dict[str, str], days: int) -> Dict[str, str]:
+class ImuraFundDataPipeline(BaseDataPipeline):
+    def fetch_data_internal(self, targets: Dict[str, str], days: int) -> Dict[str, str]:
         saved_files = {}
+
+        yfinance_targets = {}
+        crawl_targets = {}
+
         for name, symbol in targets.items():
-            df = self._get_historical_data(symbol, days)
-            file_path = self.raw_data_dir / f"{name}.csv"
-            df.to_csv(file_path, index=False)
-            saved_files[name] = str(file_path)
+            if symbol.endswith(".T") or symbol.endswith(".O") or len(symbol) <= 4:
+                yfinance_targets[name] = symbol
+            else:
+                crawl_targets[name] = symbol
+
+        for name, symbol in yfinance_targets.items():
+            print(f"[{name}] Fetching via yfinance ({symbol})...")
+            df = self._fetch_yfinance(symbol)
+            if not df.empty:
+                self._save(name, df)
+                saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+            else:
+                print(f"[{name}] yfinance failed/empty. Falling back to crawl.")
+                crawl_targets[name] = symbol
+
+        if crawl_targets:
+            print(f"Starting async crawl for: {list(crawl_targets.keys())}")
+            results = asyncio.run(self._fetch_all_crawl(crawl_targets, days))
+            for name, df in results.items():
+                self._save(name, df)
+                saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+
         return saved_files
 
-    def _get_historical_data(self, symbol: str, days: int) -> pd.DataFrame:
-        url = f"https://finance.yahoo.co.jp/quote/{symbol}/history"
+    def _fetch_yfinance(self, symbol: str) -> pd.DataFrame:
+        yf_data = yf.download(symbol, period="1y", progress=False)
+        if yf_data.empty:
+            return pd.DataFrame()
+
+        if isinstance(yf_data.columns, pd.MultiIndex):
+            yf_data.columns = yf_data.columns.get_level_values(0)
+
+        yf_data = yf_data.reset_index()
+        col_map = {"Close": "Price", "Adj Close": "Price"}
+        for k, v in col_map.items():
+            if k in yf_data.columns:
+                df = yf_data[["Date", k]].rename(columns={k: v})
+                df["Date"] = pd.to_datetime(df["Date"]).dt.date
+                return df
+        return pd.DataFrame()
+
+    async def _fetch_all_crawl(
+        self, targets: Dict[str, str], days: int
+    ) -> Dict[str, pd.DataFrame]:
+        results = {}
+
+        async with AsyncWebCrawler(verbose=True) as crawler:
+            for name, symbol in targets.items():
+                print(f"[{name}] Crawling {symbol}...")
+                df = await self._crawl_symbol(crawler, symbol, days)
+                results[name] = df
+        return results
+
+    async def _crawl_symbol(
+        self, crawler: AsyncWebCrawler, symbol: str, days: int
+    ) -> pd.DataFrame:
+        base_url = f"https://finance.yahoo.co.jp/quote/{symbol}/history"
         all_data = []
         page = 1
         end_date = datetime.date.today()
         start_date = end_date - datetime.timedelta(days=days)
-        str_start = start_date.strftime("%Y%m%d")
-        current_to_date = end_date
-        str_to = current_to_date.strftime("%Y%m%d")
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
 
-        max_pages = days + 50
-        seen_dates = set()
-        while page <= max_pages:
-            params = {"from": str_start, "to": str_to, "timeFrame": "d", "page": page}
-            print(f"Fetching {symbol} page {page}...")
-            resp = requests.get(url, params=params, headers=headers)
-            soup = BeautifulSoup(resp.content, "html.parser")
+        while True:
+            url = f"{base_url}?page={page}"
+            result = await crawler.arun(url=url)
+
+            if not result.success:
+                print(f"Failed to fetch page {page}")
+                break
+
+            soup = BeautifulSoup(result.html, "html.parser")
             table = soup.find("table")
             if not table:
                 break
@@ -51,38 +99,47 @@ class ImuraFundDataPipeline:
             header_cols = [th.text.strip() for th in rows[0].find_all("th")]
             price_idx = 1
             for i, h in enumerate(header_cols):
-                if "终値" in h or "基準価額" in h:
+                if "終値" in h or "基準価額" in h:
                     price_idx = i
                     break
 
-            page_dates = []
+            data_found = False
+            stop_fetching = False
+
             for row in rows[1:]:
                 cols = row.find_all(["td", "th"])
                 if len(cols) <= price_idx:
                     continue
                 date_str = cols[0].text.strip()
-                price_str = cols[price_idx].text.strip()
-                if not date_str or not price_str:
+                if not date_str:
                     continue
+                price_str = cols[price_idx].text.strip()
+
                 dt = (
                     datetime.datetime.strptime(date_str, "%Y年%m月%d日").date()
                     if "年" in date_str
                     else datetime.datetime.strptime(date_str, "%Y/%m/%d").date()
                 )
-                all_data.append(
-                    {"Date": dt, "Price": float(price_str.replace(",", ""))}
-                )
-                page_dates.append(dt)
 
-            if not page_dates:
+                if dt < start_date:
+                    stop_fetching = True
+                    break
+
+                price_val = float(price_str.replace(",", ""))
+                all_data.append({"Date": dt, "Price": price_val})
+                data_found = True
+
+            if not data_found:
                 break
-            new_dates = set(page_dates) - seen_dates
-            if not new_dates:
+
+            if stop_fetching:
                 break
-            seen_dates.update(page_dates)
-            if max(page_dates) < start_date:
+
+            if page > 50:
                 break
+
             page += 1
+            await asyncio.sleep(1)
 
         df = pd.DataFrame(all_data)
         if df.empty:
