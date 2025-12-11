@@ -1,7 +1,3 @@
-# Crew
-
-Python 3.11+ | crewAI
-
 ## 構造
 
 ```
@@ -21,8 +17,8 @@ uv sync
 
 ```bash
 task process:all          # 全実行
-task fetch:imura          # データ取得
-task analyze:imura        # 分析
+task fetch:all            # データ取得
+task run                  # 分析
 ```
 
 ## ユースケース
@@ -37,11 +33,3 @@ task analyze:imura        # 分析
 | metals | config/use_cases/metals.yaml |
 | portfolio | config/use_cases/portfolio.yaml |
 | yields | config/use_cases/yields.yaml |
-
-## 開発
-
-```bash
-task lint
-task format
-task test
-```

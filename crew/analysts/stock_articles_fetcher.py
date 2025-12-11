@@ -1481,9 +1481,8 @@ async def get_stock_news(ticker_symbol, file_path):
         str: A formatted string containing all the extracted articles with clear separations.
     """
 
-    company_name = ""
     try:
-        company_name = get_company_name(ticker_symbol)
+        get_company_name(ticker_symbol)
     except Exception as e:
         print(f"Error getting company name: {e}")
         pass
