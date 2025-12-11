@@ -71,7 +71,6 @@ def fetch_finviz_news(ticker: str, start_time: datetime.datetime) -> List[NewsIt
         results = []
         est = pytz.timezone("US/Eastern")
         current_date = datetime.datetime.now(est).date()
-        now = datetime.datetime.now(est)
         current_date_reference = None
         for row in rows:
             try:

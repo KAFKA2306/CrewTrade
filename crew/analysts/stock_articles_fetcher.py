@@ -1486,9 +1486,7 @@ async def get_stock_news(ticker_symbol, file_path):
         company_name = get_company_name(ticker_symbol)
     except Exception as e:
         print(f"Error getting company name: {e}")
-        company_name = ticker_symbol
-
-    # Extract URLs from the file
+        pass
     extracted_urls = []
 
     with open(file_path, "r") as file:

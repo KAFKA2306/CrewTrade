@@ -31,10 +31,7 @@ logs/
 # Lock files
 uv.lock
 
-# Generated files
-*.png
-*.html
-output/
+# !Generated files
 
 # Database
 *.sqlite3
