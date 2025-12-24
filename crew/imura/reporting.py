@@ -18,12 +18,13 @@ class ImuraFundReporter:
         for asset, m in metrics.items():
             report_md += f"| {asset} | {m['Total Return']:.2%} | {m['CAGR']:.2%} | {m['Volatility']:.2%} | {m['Sharpe']:.2f} | {m['MaxDD']:.2%} |\n"
 
-        fig, (ax1, ax2) = plt.subplots(
-            2, 1, figsize=(12, 10), gridspec_kw={"height_ratios": [3, 1]}
+        fig, (ax1, ax2, ax3) = plt.subplots(
+            3, 1, figsize=(12, 15), gridspec_kw={"height_ratios": [2, 2, 1]}
         )
 
+        # Plot 1: Linear Scale
         for col in analysis_payload["normalized_data"].columns:
-            is_fund = "BK311251" in col or "Fundnote" in col
+            is_fund = "Imura" in col
             ax1.plot(
                 analysis_payload["normalized_data"].index,
                 analysis_payload["normalized_data"][col],
@@ -31,21 +32,37 @@ class ImuraFundReporter:
                 linewidth=3.0 if is_fund else 1.5,
                 alpha=1.0 if is_fund else 0.7,
             )
-        ax1.set_title("Performance Comparison (Base=100)")
+        ax1.set_title("Performance Comparison (Linear Scale, Base=100)")
         ax1.legend()
         ax1.grid(True, linestyle="--", alpha=0.6)
 
-        for col in analysis_payload["drawdown_data"].columns:
-            is_fund = "BK311251" in col or "Fundnote" in col
+        # Plot 2: Log Scale
+        for col in analysis_payload["normalized_data"].columns:
+            is_fund = "Imura" in col
             ax2.plot(
+                analysis_payload["normalized_data"].index,
+                analysis_payload["normalized_data"][col],
+                label=col,
+                linewidth=3.0 if is_fund else 1.5,
+                alpha=1.0 if is_fund else 0.7,
+            )
+        ax2.set_yscale("log")
+        ax2.set_title("Performance Comparison (Log Scale, Base=100)")
+        ax2.legend()
+        ax2.grid(True, linestyle="--", alpha=0.6, which="both")
+
+        # Plot 3: Drawdown
+        for col in analysis_payload["drawdown_data"].columns:
+            is_fund = "Imura" in col
+            ax3.plot(
                 analysis_payload["drawdown_data"].index,
                 analysis_payload["drawdown_data"][col],
                 label=col,
                 linewidth=2.0 if is_fund else 1.0,
                 alpha=1.0 if is_fund else 0.5,
             )
-        ax2.set_title("Drawdown")
-        ax2.grid(True, linestyle="--", alpha=0.6)
+        ax3.set_title("Drawdown")
+        ax3.grid(True, linestyle="--", alpha=0.6)
 
         plt.tight_layout()
         plot_path = self.report_dir / "fund_comparison_quant.png"

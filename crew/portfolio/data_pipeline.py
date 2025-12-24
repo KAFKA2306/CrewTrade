@@ -44,6 +44,26 @@ class Index7PortfolioDataPipeline(BaseDataPipeline):
 
         return saved_files
 
+    def collect(self, as_of: pd.Timestamp | None = None) -> Dict:
+        tickers = [idx.ticker for idx in self.config.indices]
+        period = self.config.period
+        frames = self.client.get_frames(tickers, period=period, start=None, end=None)
+        prices = self._combine_close(frames, as_of=as_of)
+
+        index_master = pd.DataFrame(
+            [
+                {
+                    "ticker": idx.ticker,
+                    "name": idx.name,
+                    "category": idx.category,
+                    "expense_ratio": 0.0,
+                }
+                for idx in self.config.indices
+            ]
+        )
+
+        return {"prices": prices, "index_master": index_master}
+
     def _combine_close(
         self, frames: Dict[str, pd.DataFrame], as_of: pd.Timestamp | None = None
     ) -> pd.DataFrame:
@@ -62,5 +82,7 @@ class Index7PortfolioDataPipeline(BaseDataPipeline):
 
         combined = pd.concat(series_list.values(), axis=1).sort_index()
         combined = combined.ffill()
-        combined = combined.dropna(how="any")
+        # Use how='all' to keep history even if some new assets are NaN.
+        # This prevents truncating 20y history to 3mo (e.g. for 399A.T).
+        combined = combined.dropna(how="all")
         return combined

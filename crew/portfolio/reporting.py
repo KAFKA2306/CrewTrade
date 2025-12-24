@@ -9,10 +9,16 @@ from crew.portfolio.visualization import Index7PortfolioVisualizer
 
 
 class Index7PortfolioReporter:
-    def __init__(self, report_dir: Path, config: Index7PortfolioConfig = None):
+    def __init__(
+        self,
+        report_dir: Path,
+        config: Index7PortfolioConfig = None,
+        raw_data_dir: Path = None,
+    ):
         self.output_dir = report_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.config = config
+        self.raw_data_dir = raw_data_dir
 
     def persist(self, analysis_payload: Dict) -> Dict:
         portfolio = analysis_payload["portfolio"]
@@ -31,19 +37,30 @@ class Index7PortfolioReporter:
         walk_forward_error = None
         if self.config is not None:
             print("  Generating visualizations...")
-            validator = Index7PortfolioValidator(self.config)
+            validator = Index7PortfolioValidator(self.config, self.raw_data_dir)
             visualizer = Index7PortfolioVisualizer(self.output_dir)
             try:
                 walk_forward_results = validator.walk_forward_test(
                     train_years=5, test_years=2, rebalance_freq="Q"
                 )
             except Exception as exc:
+                print(f"  ⚠️ Walk-forward failed: {exc}")
                 walk_forward_error = str(exc)
                 walk_forward_results = None
+
+            if walk_forward_results:
+                print(
+                    f"  Walk-forward results count: {len(walk_forward_results.get('walk_forward_results', []))}"
+                )
+            else:
+                print("  Walk-forward results is None")
+
             chart_paths = visualizer.generate_all_charts(
                 analysis_payload, validator, walk_forward_results
             )
-            print(f"  ✓ Generated {len(chart_paths)} charts")
+            print(
+                f"  ✓ Generated {len(chart_paths)} charts: {list(chart_paths.keys())}"
+            )
 
         report_lines = []
         report_lines.append("# Index 7-Portfolio Optimization Report\n")
@@ -172,6 +189,14 @@ class Index7PortfolioReporter:
                 "Min/Max variants), and walk-forward periods."
             )
             report_lines.append("![Portfolio Allocation](./graphs/01_allocation.png)\n")
+
+            report_lines.append("### Historical Portfolio Allocation (Walk-Forward)")
+            report_lines.append(
+                "Evolution of portfolio weights over year-by-year out-of-sample periods."
+            )
+            report_lines.append(
+                "![Historical Allocation](./graphs/09_historical_allocation.png)\n"
+            )
 
             report_lines.append("### Cumulative Returns Comparison")
             report_lines.append(

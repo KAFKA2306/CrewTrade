@@ -50,3 +50,30 @@ class ImuraFundAnalyzer:
             "normalized_data": normalized,
             "drawdown_data": drawdown,
         }
+
+
+if __name__ == "__main__":
+    import datetime
+    import yaml
+
+    from crew.imura.reporting import ImuraFundReporter
+
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+    CONFIG_FILE = PROJECT_ROOT / "config" / "use_cases" / "imura.yaml"
+
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+
+    targets = config.get("targets", {})
+    raw_data_dir = PROJECT_ROOT / "data" / "imura"
+    today = datetime.date.today().strftime("%Y%m%d")
+    report_dir = PROJECT_ROOT / "output" / "use_cases" / "imura" / today
+
+    data_payload = {name: str(raw_data_dir / f"{name}.csv") for name in targets.keys()}
+
+    analyzer = ImuraFundAnalyzer(raw_data_dir)
+    analysis = analyzer.analyze(data_payload)
+
+    reporter = ImuraFundReporter(report_dir)
+    result = reporter.produce_report(analysis)
+    print(f"Report saved: {result['report_file']}")

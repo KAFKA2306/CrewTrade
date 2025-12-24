@@ -74,75 +74,89 @@ class ImuraFundDataPipeline(BaseDataPipeline):
     async def _crawl_symbol(
         self, crawler: AsyncWebCrawler, symbol: str, days: int
     ) -> pd.DataFrame:
+        from playwright.async_api import async_playwright
+
         base_url = f"https://finance.yahoo.co.jp/quote/{symbol}/history"
         all_data = []
-        page = 1
         end_date = datetime.date.today()
         start_date = end_date - datetime.timedelta(days=days)
 
-        while True:
-            url = f"{base_url}?page={page}"
-            result = await crawler.arun(url=url)
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            await page.goto(base_url, wait_until="networkidle")
 
-            if not result.success:
-                print(f"Failed to fetch page {page}")
-                break
+            page_num = 1
+            while page_num <= 50:
+                await page.wait_for_selector("table", timeout=10000)
+                html = await page.content()
+                soup = BeautifulSoup(html, "html.parser")
+                page_data = self._parse_table(soup, start_date, end_date)
 
-            soup = BeautifulSoup(result.html, "html.parser")
-            table = soup.find("table")
-            if not table:
-                break
-            rows = table.find_all("tr")
-            if len(rows) <= 1:
-                break
-
-            header_cols = [th.text.strip() for th in rows[0].find_all("th")]
-            price_idx = 1
-            for i, h in enumerate(header_cols):
-                if "終値" in h or "基準価額" in h:
-                    price_idx = i
+                if not page_data:
                     break
 
-            data_found = False
-            stop_fetching = False
-
-            for row in rows[1:]:
-                cols = row.find_all(["td", "th"])
-                if len(cols) <= price_idx:
-                    continue
-                date_str = cols[0].text.strip()
-                if not date_str:
-                    continue
-                price_str = cols[price_idx].text.strip()
-
-                dt = (
-                    datetime.datetime.strptime(date_str, "%Y年%m月%d日").date()
-                    if "年" in date_str
-                    else datetime.datetime.strptime(date_str, "%Y/%m/%d").date()
+                oldest_date = min(d["Date"] for d in page_data)
+                all_data.extend(page_data)
+                print(
+                    f"[{symbol}] Page {page_num}: {len(page_data)} items, oldest: {oldest_date}"
                 )
 
-                if dt < start_date:
-                    stop_fetching = True
+                if oldest_date <= start_date:
                     break
 
-                price_val = float(price_str.replace(",", ""))
-                all_data.append({"Date": dt, "Price": price_val})
-                data_found = True
+                await page.mouse.wheel(0, 2000)
+                await page.wait_for_timeout(500)
 
-            if not data_found:
-                break
+                next_btn = await page.query_selector('p.next__37Eo, [class*="next"]')
+                if not next_btn:
+                    break
 
-            if stop_fetching:
-                break
+                await next_btn.click()
+                await page.wait_for_timeout(1500)
+                page_num += 1
 
-            if page > 50:
-                break
-
-            page += 1
-            await asyncio.sleep(1)
+            await browser.close()
 
         df = pd.DataFrame(all_data)
         if df.empty:
             return df
         df = df.sort_values("Date").drop_duplicates(subset=["Date"])
         return df[(df["Date"] >= start_date) & (df["Date"] <= end_date)]
+
+    def _parse_table(self, soup: BeautifulSoup, start_date, end_date) -> list:
+        data = []
+        table = soup.find("table")
+        if not table:
+            return data
+
+        rows = table.find_all("tr")
+        if len(rows) <= 1:
+            return data
+
+        header_cols = [th.text.strip() for th in rows[0].find_all("th")]
+        price_idx = 1
+        for i, h in enumerate(header_cols):
+            if "終値" in h or "基準価額" in h:
+                price_idx = i
+                break
+
+        for row in rows[1:]:
+            cols = row.find_all(["td", "th"])
+            if len(cols) <= price_idx:
+                continue
+            date_str = cols[0].text.strip()
+            if not date_str:
+                continue
+            price_str = cols[price_idx].text.strip()
+
+            dt = (
+                datetime.datetime.strptime(date_str, "%Y年%m月%d日").date()
+                if "年" in date_str
+                else datetime.datetime.strptime(date_str, "%Y/%m/%d").date()
+            )
+
+            price_val = float(price_str.replace(",", ""))
+            data.append({"Date": dt, "Price": price_val})
+
+        return data

@@ -12,9 +12,9 @@ from crew.portfolio.data_pipeline import (
 
 
 class Index7PortfolioValidator:
-    def __init__(self, config: Index7PortfolioConfig):
+    def __init__(self, config: Index7PortfolioConfig, raw_data_dir: Path):
         self.config = config
-        self.pipeline = Index7PortfolioDataPipeline(config)
+        self.pipeline = Index7PortfolioDataPipeline(raw_data_dir, config)
 
     def walk_forward_test(
         self,
@@ -24,6 +24,10 @@ class Index7PortfolioValidator:
     ) -> Dict:
         data_payload = self.pipeline.collect(as_of=None)
         prices = data_payload["prices"]
+        prices.index = pd.to_datetime(prices.index, errors="coerce")
+        prices = prices[prices.index.notna()]
+        prices = prices.sort_index()
+
         index_master = data_payload["index_master"]
 
         start_date = prices.index.min()
@@ -86,7 +90,12 @@ class Index7PortfolioValidator:
         initial_weights: Dict[str, float],
         rebalance_freq: str = "Q",
     ) -> Dict:
-        daily_returns = prices.pct_change().dropna()
+        # Don't dropna, to preserve timeline even if some assets are NaN
+        daily_returns = prices.pct_change()
+
+        valid_index = prices.index[prices.index.notna()]
+        if valid_index.empty:
+            raise ValueError("No valid dates in simulation period")
 
         portfolio_value = [100.0]
         weights = {
@@ -94,8 +103,8 @@ class Index7PortfolioValidator:
         }
 
         rebalance_dates = pd.date_range(
-            daily_returns.index.min(),
-            daily_returns.index.max(),
+            valid_index.min(),
+            valid_index.max(),
             freq=rebalance_freq,
         )
         rebalance_set = set(rebalance_dates)
@@ -103,18 +112,31 @@ class Index7PortfolioValidator:
         ltv_breaches = {"warning": 0, "liquidation": 0}
         loan_amount = self.config.loan_amount
 
-        for date in daily_returns.index:
+        # Skip first date as it has no return
+        for date in valid_index[1:]:
             if date in rebalance_set:
                 weights = {
                     ticker: initial_weights.get(ticker, 0.0)
                     for ticker in prices.columns
                 }
 
-            day_return = sum(
-                weights.get(ticker, 0.0) * daily_returns.loc[date, ticker]
-                for ticker in daily_returns.columns
-                if ticker in weights
-            )
+            # Calculate day return, handling NaNs
+            current_day_allocations = []
+            for ticker in daily_returns.columns:
+                if ticker not in weights:
+                    continue
+
+                w = weights.get(ticker, 0.0)
+                ret = daily_returns.loc[date, ticker]
+
+                # If we hold weight but return is NaN, we treat it as flat (0.0)
+                # assuming price didn't move or missing data means no change.
+                if pd.isna(ret):
+                    ret = 0.0
+
+                current_day_allocations.append(w * ret)
+
+            day_return = sum(current_day_allocations)
             new_value = portfolio_value[-1] * (1 + day_return)
             portfolio_value.append(new_value)
 
@@ -124,7 +146,15 @@ class Index7PortfolioValidator:
             elif current_ltv >= self.config.warning_ratio:
                 ltv_breaches["warning"] += 1
 
-        portfolio_series = pd.Series(portfolio_value[1:], index=daily_returns.index)
+        # Use valid_index (excluding first day which was skipped in loop)
+        # portfolio_value has len = len(valid_index).
+        # portfolio_value[0] is initial 100.
+        # loop ran len(valid_index)-1 times.
+        # append happened len(valid_index)-1 times.
+        # Total portfolio_value len = len(valid_index).
+
+        # We want returns series to match dates
+        portfolio_series = pd.Series(portfolio_value, index=valid_index)
 
         total_return = (portfolio_series.iloc[-1] / portfolio_series.iloc[0]) - 1
         annual_return = (1 + total_return) ** (252 / len(portfolio_series)) - 1

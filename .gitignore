@@ -39,3 +39,7 @@ uv.lock
 # Cache
 .ruff_cache/
 .pytest_cache/
+
+# Data
+data/
+resources/data/

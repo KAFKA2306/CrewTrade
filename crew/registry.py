@@ -47,3 +47,9 @@ register_use_case("imura", ImuraFundUseCase, ImuraFundConfig)
 
 # Register Oracle Earnings Model -> "oracle"
 register_use_case("oracle", OracleEarningsUseCase, OracleEarningsConfig)
+
+from .portfolio.config import Index7PortfolioConfig
+from .portfolio.index_7_portfolio_case import Index7PortfolioUseCase
+
+# Register Index 7 Portfolio -> "index_7_portfolio"
+register_use_case("index_7_portfolio", Index7PortfolioUseCase, Index7PortfolioConfig)

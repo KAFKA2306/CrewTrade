@@ -1,7 +1,5 @@
 days: 365
 targets:
-  Fundnote_Kaihou: "BK311251"
-  Nikkei225_Proxy: "998407.O"
-  JPX400_ETF: "1591.T"
-  TSE_Growth250_ETF: "2516.T"
-  NASDAQ100_ETF: "1545.T"
+  Imura Fund: "BK311251"
+  TOPIX ETF: "1306.T"
+  S&P 500 ETF: "1655.T"

@@ -4,8 +4,8 @@ from pathlib import Path
 
 import yaml
 
-from crew.use_cases import get_use_case_class, get_use_case_config_model
-from crew.use_cases.base import UseCasePaths
+from crew.registry import get_use_case_class, get_use_case_config_model
+from crew.base import UseCasePaths
 
 
 def build_config(name: str, config_path: str | None):

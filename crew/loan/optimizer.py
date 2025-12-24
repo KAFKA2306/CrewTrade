@@ -93,20 +93,56 @@ def optimize_collateral_portfolio(
     use_hrp: bool = False,
     priority_indices: Optional[Dict[str, List[str]]] = None,
 ) -> Dict:
-    returns = prices.pct_change().dropna()
-    tickers = list(prices.columns)
+    # Filter out assets with insufficient data in this window
+    # This supports "dynamic universe" where some assets didn't exist yet.
+    # We require at least 50% valid data points to consider the asset "tradeable" in this window.
+    valid_tickers = [
+        col for col in prices.columns if prices[col].count() > len(prices) * 0.5
+    ]
+
+    if len(valid_tickers) < 3:
+        # If we decimated the universe too much, fallback to original behavior (which likely fails/raises)
+        # or raise specific error
+        if len(prices.columns) >= 3 and len(valid_tickers) < 3:
+            # Just use what we have if barely enough, or fail.
+            pass
+
+    # Use only valid tickers for calculation
+    prices_subset = prices[valid_tickers]
+    returns = prices_subset.pct_change().dropna()
+
+    # Tickers are now the subset
+    tickers = list(prices_subset.columns)
+
+    # Update n_assets based on filtered prices columns
     n_assets = len(tickers)
 
-    if n_assets < 3:
-        raise ValueError(f"At least 3 ETFs required for optimization, got {n_assets}")
+    if n_assets < 1:
+        raise ValueError("No assets available for optimization.")
 
     min_weight = constraints.get("min_weight", 0.0)
     max_weight = constraints.get("max_weight", 1.0)
     max_volatility = constraints.get("max_volatility", float("inf"))
     max_category_weight = constraints.get("max_category_weight")
 
-    cov_matrix = returns.cov() * 252
-    annual_returns = returns.mean() * 252
+    # If fewer than 3 assets (or whatever min_assets was), we cannot run detailed optimization (covariance etc might be unstable)
+    # We should fallback to Equal Weight or similar.
+    if n_assets < 3:
+        # Create a fallback weight vector directly
+        weights = np.ones(n_assets) / n_assets
+        best_portfolio = weights
+        best_score = 0.0  # Dummy score
+
+        # Skip the main optimization loop
+        sample_size = 0
+        use_hrp = False
+
+        # We need to set calculated metrics for the return below
+        annual_returns = returns.mean() * 252  # Re-calc on subset
+        cov_matrix = returns.cov() * 252
+    else:
+        cov_matrix = returns.cov() * 252
+        annual_returns = returns.mean() * 252
 
     category_lookup = (
         etf_master.set_index("ticker")["category"].to_dict()
@@ -253,6 +289,26 @@ def optimize_collateral_portfolio(
             )
         weights[:fallback_subset] = 1.0 / fallback_subset
         best_portfolio = weights
+
+    # If we filtered tickers at the start, we must map back to ORIGINAL universe
+    # best_portfolio currently corresponds to 'tickers' (the subset).
+    # We need to construct a full weight vector for prices.columns
+
+    final_weights_map = {t: 0.0 for t in prices.columns}
+    for t_idx, t_name in enumerate(tickers):
+        final_weights_map[t_name] = best_portfolio[t_idx]
+
+    # Re-order to match original output expectations if needed,
+    # but 'best_portfolio' is used right below for 'significant_indices'.
+    # We should let the rest of the function run on the subset 'best_portfolio'
+    # and then ensure the returned 'portfolio_df' covers the full universe or just the selected one.
+    # The function returns "portfolio" df. It's safer if that DF only contains selected assets.
+    # BUT the caller might expect all assets.
+    # Inspecting return: "portfolio" df has 'ticker', 'weight'.
+    # It does NOT list zero-weight assets usually unless we forced them.
+    # Let's keep logic as is: 'tickers' is now the subset. 'best_portfolio' aligns with 'tickers'.
+    # So 'selected_weights' will correct use the subset indices.
+    # The 'portfolio_df' will be created correctly for the subset.
 
     significant_indices = [
         i for i, weight in enumerate(best_portfolio) if weight > 1e-4

@@ -60,6 +60,12 @@ class Index7PortfolioVisualizer:
     ) -> Dict:
         portfolio = analysis_payload["portfolio"]
         prices = analysis_payload["prices"]
+
+        # Globally enforce DatetimeIndex and Sorting to prevent plotting artifacts
+        # and support resampling.
+        prices.index = pd.to_datetime(prices.index)
+        prices = prices.sort_index()
+
         index_master = analysis_payload.get("index_master")
         loan_amount = analysis_payload["loan_amount"]
         warning_ratio = analysis_payload["warning_ratio"]
@@ -113,7 +119,83 @@ class Index7PortfolioVisualizer:
 
         chart_paths["correlation"] = self._plot_correlation_heatmap(prices)
 
+        if walk_forward_results:
+            chart_paths["historical_allocation"] = self._plot_historical_allocation(
+                walk_forward_results, index_master, color_map
+            )
+
         return chart_paths
+
+    def _plot_historical_allocation(
+        self,
+        walk_forward_results: Dict,
+        index_master: pd.DataFrame | None = None,
+        color_map: Dict | None = None,
+    ) -> Path:
+        wf_entries = walk_forward_results.get("walk_forward_results", [])
+        if not wf_entries:
+            return Path("")
+
+        # Prepare Data for Stacked Bar
+        # X-axis: Period Label (e.g. 2005-2006)
+        # Y-axis: Weights (Stacked)
+
+        rows = []
+        all_tickers = set()
+
+        for entry in wf_entries:
+            period_label = f"{entry['test_start'].date().year}"  # Just Year for simplicity if annually
+            weights = entry.get("portfolio_weights", {})
+            row = {"Period": period_label}
+            for ticker, w in weights.items():
+                if w > 0.001:  # Filter tiny weights
+                    row[ticker] = w * 100
+                    all_tickers.add(ticker)
+            rows.append(row)
+
+        df = pd.DataFrame(rows).set_index("Period").fillna(0)
+
+        # Sort tickers by category
+        sorted_tickers = self._sort_tickers(list(all_tickers), index_master)
+        df = df.reindex(columns=sorted_tickers)
+
+        fig, ax = plt.subplots(figsize=(14, 8))
+
+        colors = [
+            self._color_for(ticker, color_map, index_master) for ticker in df.columns
+        ]
+
+        df.plot(
+            kind="bar",
+            stacked=True,
+            ax=ax,
+            color=colors,
+            width=0.8,
+            edgecolor="white",
+            linewidth=0.5,
+        )
+
+        ax.set_title(
+            "Historical Portfolio Allocation (Walk-Forward)", fontsize=16, weight="bold"
+        )
+        ax.set_ylabel("Weight (%)", fontsize=12)
+        ax.set_xlabel("Year (Out-of-Sample)", fontsize=12)
+        ax.set_ylim(0, 100)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.0f}%"))
+        ax.legend(
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.15),
+            ncol=min(6, len(df.columns)),
+            frameon=False,
+            fontsize=9,
+        )
+
+        plt.tight_layout()
+        path = self.graphs_dir / "09_historical_allocation.png"
+        plt.savefig(path, dpi=300, bbox_inches="tight")
+        plt.close()
+
+        return path
 
     def _plot_allocation(
         self,
@@ -423,18 +505,52 @@ class Index7PortfolioVisualizer:
     ) -> Path:
         fig, axes = plt.subplots(2, 1, figsize=(14, 10), sharex=False)
 
-        weights_dict = portfolio.set_index("ticker")["weight"].to_dict()
-        daily_returns = prices.pct_change().dropna()
-        portfolio_returns = daily_returns.apply(
-            lambda row: sum(
-                weights_dict.get(ticker, 0) * row[ticker] for ticker in row.index
-            ),
-            axis=1,
-        )
+        # Buy & Hold Logic for Stress Test
+        # Assume initial portfolio is constructed on the first available date of prices
+        # Quantity_i = (Initial Value * Weight_i) / Price_i_start
+        initial_value = loan_amount / 0.6  # Assuming entry LTV ~ 60% target as baseline
 
-        initial_value = loan_amount / 0.6
-        portfolio_value = initial_value * (1 + portfolio_returns).cumprod()
+        weights_dict = portfolio.set_index("ticker")["weight"].to_dict()
+
+        # Determine start prices (first valid index common to all assets if possible, or just fillna)
+        # Using the first row of 'prices' that aligns with our period.
+        # But 'prices' here is the full dataset passed to generate_all_charts.
+
+        # We process the entire price series as a Buy & Hold from day 0
+        # If weights are 0 for some assets, they won't contribute.
+
+        start_prices = prices.iloc[0]
+        initial_quantities = pd.Series(index=weights_dict.keys(), dtype=float)
+
+        for ticker, weight in weights_dict.items():
+            if (
+                ticker in start_prices
+                and not pd.isna(start_prices[ticker])
+                and start_prices[ticker] > 0
+            ):
+                initial_quantities[ticker] = (initial_value * weight) / start_prices[
+                    ticker
+                ]
+            else:
+                initial_quantities[ticker] = 0.0
+
+        # Portfolio Value values over time = Sum(Quantity_i * Price_i_t)
+        # We need to align quantities with prices columns
+        valid_tickers = [t for t in initial_quantities.index if t in prices.columns]
+
+        # Calculate daily value
+        # Make sure we only use columns that are in our portfolio
+        relevant_prices = prices[valid_tickers]
+        relevant_quantities = initial_quantities[valid_tickers]
+
+        portfolio_value = relevant_prices.mul(relevant_quantities).sum(axis=1)
         ltv_series = loan_amount / portfolio_value
+
+        # Ensure LTV Series has DatetimeIndex and is Sorted for slicing
+        ltv_series.index = pd.to_datetime(ltv_series.index, errors="coerce")
+        ltv_series = ltv_series[ltv_series.index.notna()]
+        ltv_series = ltv_series[~ltv_series.index.duplicated(keep="first")]
+        ltv_series = ltv_series.sort_index()
 
         stress_periods = [
             ("2020_covid_crash", "2020-02-01", "2020-04-30", "COVID-19 Crash"),
@@ -992,9 +1108,19 @@ class Index7PortfolioVisualizer:
         )
 
         window = 252
-        rolling_mean = portfolio_returns.rolling(window=window).mean() * 252
-        rolling_std = portfolio_returns.rolling(window=window).std() * np.sqrt(252)
-        rolling_sharpe = rolling_mean / rolling_std
+        # Use a reasonable min_periods to avoid empty early windows
+        min_periods = max(1, window // 2)
+
+        rolling_mean = (
+            portfolio_returns.rolling(window=window, min_periods=min_periods).mean()
+            * 252
+        )
+        rolling_std = portfolio_returns.rolling(
+            window=window, min_periods=min_periods
+        ).std() * np.sqrt(252)
+
+        # Handle division by zero
+        rolling_sharpe = rolling_mean / rolling_std.replace(0, np.nan)
 
         ax.plot(
             rolling_sharpe.index, rolling_sharpe.values, linewidth=2, color="purple"
