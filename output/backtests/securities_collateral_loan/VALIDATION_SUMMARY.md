@@ -17,9 +17,9 @@
 | **Failed** | 3 (18.8%) |
 | **Perfect Compliance Period** | 2012-2024 (13 consecutive years) |
 
-### ポートフォリオの動態とパフォーマンスの不安定性 (Dynamics & Performance Instability)
-- **高い回転率と感応度 (High Turnover & Sensitivity)**: 本モデルは市場データに対して極めて敏感に反応し、**2025年にはTurnover 89%**（外国債券・Goldの全売却、**JGBs [21%] & J-REITs [~24%]** への集中）というドラスティックな構成変更を行いました。
-- **予実乖離の大きさ (Large Ex-Post Spread)**: 実現リターンは年度により大きく変動します。2025年は入替が奏功し **年率40%超 (乖離 +31%)** の結果を得ましたが、**2024年には期待値を大きく下回る結果 (乖離 -14%)** となっており、最適化時点の予測精度には課題（不安定性）があることが確認されました。
+### ポートフォリオの動態とIS/OOSパフォーマンス分析 (Dynamics & IS/OOS Degradation)
+- **パフォーマンスの二面性 (Performance Duality)**: 本システムは、**2024年には過学習による失敗（IS Sharpe 1.44 → OOS Sharpe -0.21）**を経験しましたが、**2025年にはTurnover 89%**（外国債券・Gold → **JGBs [21%] & J-REITs [~24%]**）の抜本的リバランスにより、**OOS Sharpe 6.13（Alpha +5.14）** という驚異的な回復を見せました。
+- **市場適応の特性**: この結果は、本モデルが安定的な予測能力を持つというよりは、市場レジームの変化に極めて敏感に反応し、局面によっては爆発的な利益を生む一方で、読み違えによるダウンサイドリスクも内在していることを示唆しています。
 
 [Detailed Portfolio Turnover & Ex-Post Analysis](file:///home/kafka/projects/crewTrade/docs/insights/securities_collateral_loan_analysis.md)
 
