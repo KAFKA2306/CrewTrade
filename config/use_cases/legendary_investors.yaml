@@ -1,0 +1,17 @@
+period: "1y"
+benchmark: "SPY"
+soros_holdings:
+  - "AMZN"
+  - "SW"
+  - "GOOGL"
+  - "RSP"
+  - "TKO"
+druckenmiller_holdings:
+  - "NTRA"
+  - "INSM"
+  - "TEVA"
+  - "TSM"
+  - "WWD"
+  - "CPNG"
+  - "MELI"
+  - "DOCU"

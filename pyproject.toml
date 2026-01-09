@@ -20,6 +20,7 @@ dependencies = [
     "requests",
     "seaborn",
     "yahooquery",
+    "setuptools>=80.9.0",
 ]
 
 [project.scripts]

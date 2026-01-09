@@ -53,3 +53,15 @@ from .portfolio.index_7_portfolio_case import Index7PortfolioUseCase
 
 # Register Index 7 Portfolio -> "index_7_portfolio"
 register_use_case("index_7_portfolio", Index7PortfolioUseCase, Index7PortfolioConfig)
+
+from .semiconductors.config import SemiconductorsConfig
+from .semiconductors.semiconductors_case import SemiconductorsUseCase
+
+# Register Semiconductors -> "semiconductors"
+register_use_case("semiconductors", SemiconductorsUseCase, SemiconductorsConfig)
+
+from .legendary_investors.config import LegendaryInvestorsConfig
+from .legendary_investors.legendary_investors_case import LegendaryInvestorsUseCase
+
+# Register Legendary Investors -> "legendary_investors"
+register_use_case("legendary_investors", LegendaryInvestorsUseCase, LegendaryInvestorsConfig)

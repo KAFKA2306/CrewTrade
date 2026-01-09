@@ -18,6 +18,8 @@ tasks:
       - task: fetch:metals
       - task: fetch:portfolio
       - task: fetch:yield
+      - task: fetch:semiconductors
+      - task: fetch:legendary_investors
 
   analyze:all:
     desc: Run all analysis
@@ -34,6 +36,8 @@ tasks:
       - task: analyze:metals
       - task: analyze:portfolio
       - task: analyze:yield
+      - task: analyze:semiconductors
+      - task: analyze:legendary_investors
 
   lint:
     cmd: uv run ruff check . --fix
@@ -81,3 +85,13 @@ tasks:
     cmd: uv run python -m crew.yields.data_pipeline
   analyze:yield:
     cmd: uv run python -m crew.yields.analysis
+
+  fetch:semiconductors:
+    cmd: uv run python -m crew.semiconductors.data_pipeline
+  analyze:semiconductors:
+    cmd: uv run python -m crew.use_case_runner semiconductors --config config/use_cases/semiconductors.yaml
+
+  fetch:legendary_investors:
+    cmd: uv run python -m crew.legendary_investors.data_pipeline
+  analyze:legendary_investors:
+    cmd: uv run python -m crew.use_case_runner legendary_investors --config config/use_cases/legendary_investors.yaml

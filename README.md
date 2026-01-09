@@ -33,3 +33,4 @@ task run                  # 分析
 | metals | config/use_cases/metals.yaml |
 | portfolio | config/use_cases/portfolio.yaml |
 | yields | config/use_cases/yields.yaml |
+| semiconductors | config/use_cases/semiconductors.yaml |

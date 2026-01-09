@@ -1,0 +1,14 @@
+tickers:
+  - NVDA   # NVIDIA - AI GPUs, Data Centers
+  - TSM    # TSMC - Contract Chip Manufacturing
+  - AVGO   # Broadcom - Networking, Custom AI Silicon
+  - ASML   # ASML - Lithography Equipment
+  - QCOM   # Qualcomm - Mobile Processors, IoT
+  - AMD    # AMD - CPUs, GPUs
+  - INTC   # Intel - CPUs, Foundry Services
+  - LRCX   # Lam Research - Wafer Fab Equipment
+  - ADI    # Analog Devices - Industrial Semiconductors
+  - MU     # Micron - Memory (DRAM, HBM)
+
+period: "1y"
+benchmark: "SOXX"  # iShares Semiconductor ETF
