@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index 7 Portfolio - 20251224</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --accent: #58a6ff
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin-top: 1.5rem;
+            margin-bottom: .5rem
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto
+        }
+
+        .report {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 1rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: .5rem;
+            text-align: left
+        }
+
+        th {
+            background: var(--bg)
+        }
+
+        code {
+            background: var(--bg);
+            padding: .2rem .4rem;
+            border-radius: 4px
+        }
+
+        pre {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto
+        }
+
+        .nav {
+            margin-bottom: 1rem
+        }
+
+        .btn {
+            display: inline-block;
+            padding: .25rem .5rem;
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: 4px;
+            margin: .125rem;
+            font-size: .8rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="../index.html">← Dashboard</a> | <a href="index.html">Index 7 Portfolio</a>
+        </div>
+        <div class="nav">
+            <a href="20251224.html" class="btn" style="opacity:.5">20251224</a><a href="20251101.html" class="btn">20251101</a>
+        </div>
+        <div class="report"><h1>Index 7-Portfolio Optimization Report</h1>
+<p><strong>Generated:</strong> 2025-12-24 16:37:49</p>
+<h2>代替ETF対応表</h2>
+<table>
+<thead>
+<tr>
+<th>国内ETF</th>
+<th>代替指数</th>
+<th>オリジナル</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1655.T ｉＳ米国株</td>
+<td>S&amp;P500指数</td>
+<td>^GSPC</td>
+</tr>
+<tr>
+<td>2840.T ｉＦＥナ百無</td>
+<td>NASDAQ100</td>
+<td>^NDX</td>
+</tr>
+<tr>
+<td>1364.T ｉシェア４百</td>
+<td>JPX日経400</td>
+<td>^N225</td>
+</tr>
+<tr>
+<td>314A.T ｉＳゴールド</td>
+<td>LBMA Gold Price</td>
+<td>GC=F</td>
+</tr>
+<tr>
+<td>2520.T 野村新興国株</td>
+<td>MSCIエマージング・マーケットIMI指数</td>
+<td>EEM</td>
+</tr>
+<tr>
+<td>2511.T 野村外国債券</td>
+<td>FTSE世界国債インデックス(除く日本)</td>
+<td>TLT</td>
+</tr>
+<tr>
+<td>399A.T 上場高配５０</td>
+<td>東証配当フォーカス100指数</td>
+<td>1478.T</td>
+</tr>
+</tbody>
+</table>
+<p><strong>初期投資額:</strong> ¥20,998,698（Max DD -20.63%バッファ込み、為替リスク排除、円建て運用）</p>
+<h2>Portfolio Allocation</h2>
+<table>
+<thead>
+<tr>
+<th>Ticker</th>
+<th>Name</th>
+<th>Category</th>
+<th>Weight</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1364.T</td>
+<td>ｉシェア４百</td>
+<td>equity</td>
+<td>33.33%</td>
+</tr>
+<tr>
+<td>2520.T</td>
+<td>野村新興国株</td>
+<td>equity</td>
+<td>33.33%</td>
+</tr>
+<tr>
+<td>2511.T</td>
+<td>野村外国債券</td>
+<td>bonds</td>
+<td>33.33%</td>
+</tr>
+</tbody>
+</table>
+<h2>Risk Metrics</h2>
+<ul>
+<li><strong>Portfolio Value:</strong> ¥20,995,077</li>
+<li><strong>Loan Amount:</strong> ¥10,000,000</li>
+<li><strong>Current LTV:</strong> 47.63%</li>
+<li><strong>LTV Limit:</strong> 60%</li>
+<li><strong>Warning Ratio:</strong> 70%</li>
+<li><strong>Liquidation Ratio:</strong> 85%</li>
+</ul>
+<p>✅ <strong>HEALTHY:</strong> LTV within safe limits</p>
+<h2>トレーニング設定と検証概要</h2>
+<ul>
+<li><strong>最適化サンプル数:</strong> 10,000</li>
+<li><strong>最適化目的関数ウェイト:</strong> sharpe 60%, volatility 40%</li>
+<li><strong>制約条件:</strong> min_weight=0.05, max_weight=0.30, max_volatility=0.15</li>
+<li><strong>リバランス頻度（検証時）:</strong> 四半期（Q）</li>
+<li><strong>訓練期間 / テスト期間:</strong> 5年 / 2年（ローリング）</li>
+<li><strong>最適化ルックバック:</strong> 10y</li>
+<li><strong>最大ドローダウンバッファ:</strong> 20.63%</li>
+</ul>
+<h3>ウォークフォワード検証サマリー</h3>
+<ul>
+<li><strong>評価期間数:</strong> 2</li>
+<li><strong>平均アウトオブサンプル Sharpe:</strong> 0.427 ± 0.018</li>
+<li><strong>平均年率リターン:</strong> 49.41%</li>
+<li><strong>平均最大ドローダウン:</strong> -30.63%</li>
+<li><strong>Stability Score:</strong> 0.983</li>
+</ul>
+<h3>期間別ポートフォリオ構成（降順ウェイト）</h3>
+<table>
+<thead>
+<tr>
+<th>Period</th>
+<th>訓練期間</th>
+<th>テスト期間</th>
+<th>ウェイト構成</th>
+<th>Sharpe</th>
+<th>Max DD</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2014-11-28〜2019-11-28</td>
+<td>2019-11-28〜2021-11-28</td>
+<td>1364.T 100.0%</td>
+<td>0.444</td>
+<td>-27.84%</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2014-11-28〜2021-11-28</td>
+<td>2021-11-28〜2023-11-28</td>
+<td>1655.T 33.3%<br>1364.T 33.3%<br>2511.T 33.3%</td>
+<td>0.409</td>
+<td>-33.42%</td>
+</tr>
+</tbody>
+</table>
+<h2>Visualizations</h2>
+<h3>Portfolio Allocation</h3>
+<p>100% stacked bar chart comparing asset weights across the optimized portfolio, reference strategies (Equal Weight, 60/40 Mix, Inverse-Vol, Min/Max variants), and walk-forward periods.
+<img alt="Portfolio Allocation" src="./graphs/01_allocation.png" /></p>
+<h3>Historical Portfolio Allocation (Walk-Forward)</h3>
+<p>Evolution of portfolio weights over year-by-year out-of-sample periods.
+<img alt="Historical Allocation" src="./graphs/09_historical_allocation.png" /></p>
+<h3>Cumulative Returns Comparison</h3>
+<p>Stacked area view of strategy share (Optimized, Equal Weight, reference mixes) with cumulative return overlay.
+<img alt="Cumulative Returns" src="./graphs/02_cumulative_returns.png" /></p>
+<h3>Drawdown Evolution</h3>
+<p>Stacked drawdown contributions by asset category, with total drawdown overlay.
+<img alt="Drawdown" src="./graphs/03_drawdown.png" /></p>
+<h3>LTV Stress Tests</h3>
+<p>Loan-to-Value ratio during historical crisis periods (COVID-19, 2022 Inflation).
+<img alt="LTV Stress" src="./graphs/04_ltv_stress.png" /></p>
+<h3>Asset Contribution to Returns</h3>
+<p>Monthly positive/negative contribution by asset relative to category-colored baseline.
+<img alt="Asset Contribution" src="./graphs/05_asset_contribution.png" /></p>
+<h3>Risk-Return Profile</h3>
+<p>Scatter plot comparing individual assets with multiple allocation strategies (Optimized, Equal Weight, 60/40 Mix, Inverse-Vol, Min Variance, Max Sharpe, Min Volatility, Min Drawdown, Max Kelly, Walk-Forward portfolios WF#1/WF#2).
+<img alt="Risk-Return" src="./graphs/06_risk_return.png" /></p>
+<h3>Rolling Sharpe Ratio</h3>
+<p>252-day rolling Sharpe ratio showing risk-adjusted performance stability over time.
+<img alt="Rolling Sharpe" src="./graphs/07_rolling_sharpe.png" /></p>
+<h3>Asset Correlation Matrix</h3>
+<p>Correlation heatmap revealing diversification benefits between assets.
+<img alt="Correlation" src="./graphs/08_correlation.png" /></p></div>
+    </div>
+</body>
+
+</html>

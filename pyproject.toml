@@ -21,6 +21,8 @@ dependencies = [
     "seaborn",
     "yahooquery",
     "setuptools>=80.9.0",
+    "flask>=3.1.2",
+    "markdown>=3.10",
 ]
 
 [project.scripts]

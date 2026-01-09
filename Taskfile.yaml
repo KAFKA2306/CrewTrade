@@ -95,3 +95,7 @@ tasks:
     cmd: uv run python -m crew.legendary_investors.data_pipeline
   analyze:legendary_investors:
     cmd: uv run python -m crew.use_case_runner legendary_investors --config config/use_cases/legendary_investors.yaml
+
+  serve:
+    desc: Run the HTMX web dashboard
+    cmd: uv run python web/app.py

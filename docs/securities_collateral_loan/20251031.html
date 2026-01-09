@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Securities Collateral Loan - 20251031</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --accent: #58a6ff
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin-top: 1.5rem;
+            margin-bottom: .5rem
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto
+        }
+
+        .report {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 1rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: .5rem;
+            text-align: left
+        }
+
+        th {
+            background: var(--bg)
+        }
+
+        code {
+            background: var(--bg);
+            padding: .2rem .4rem;
+            border-radius: 4px
+        }
+
+        pre {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto
+        }
+
+        .nav {
+            margin-bottom: 1rem
+        }
+
+        .btn {
+            display: inline-block;
+            padding: .25rem .5rem;
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: 4px;
+            margin: .125rem;
+            font-size: .8rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="../index.html">← Dashboard</a> | <a href="index.html">Securities Collateral Loan</a>
+        </div>
+        <div class="nav">
+            <a href="20251101.html" class="btn">20251101</a><a href="20251031.html" class="btn" style="opacity:.5">20251031</a><a href="20251030.html" class="btn">20251030</a>
+        </div>
+        <div class="report"><h1>Securities Collateral Loan Insight</h1>
+<h2>Optimization Summary</h2>
+<ul>
+<li>Total ETFs evaluated: 70</li>
+<li>ETFs with sufficient data: 10</li>
+<li>Candidate universe after filtering: 10</li>
+<li>
+<p>Risk gate metric: max_asset_drawdown — Exclude ETFs solely when their trailing max drawdown exceeds the max_asset_drawdown constraint; other limits remain for portfolio construction, not asset gating.</p>
+</li>
+<li>
+<p>Selected ETFs (max_sharpe): 10</p>
+</li>
+<li>Excluded 58 ETF(s) with drawdown worse than -30.0%</li>
+<li>Portfolio annual return: 12.10%</li>
+<li>Portfolio annual volatility: 10.07%</li>
+<li>Portfolio Sharpe ratio: 1.202</li>
+<li>Weighted expense ratio: 0.17%</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>Return</th>
+<th>Volatility</th>
+<th>Sharpe</th>
+<th>Expense</th>
+<th>Selected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>max_sharpe</td>
+<td>12.10%</td>
+<td>10.07%</td>
+<td>1.202</td>
+<td>0.17%</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>low_volatility</td>
+<td>12.10%</td>
+<td>10.07%</td>
+<td>1.202</td>
+<td>0.17%</td>
+<td></td>
+</tr>
+<tr>
+<td>cost_focus</td>
+<td>12.10%</td>
+<td>10.07%</td>
+<td>1.202</td>
+<td>0.17%</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>Current Profile</h2>
+<ul>
+<li>Loan amount: ¥10,000,000.0</li>
+<li>Current collateral value: ¥18247381</li>
+<li>Current loan ratio: 0.548</li>
+<li>Buffer to 70%: 21.71% drop</li>
+<li>Buffer to 85%: 35.53% drop</li>
+<li>Max drawdown (history): -16.59%</li>
+</ul>
+<h2>Stress Scenarios</h2>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Post Value</th>
+<th>Loan Ratio</th>
+<th>≥70%</th>
+<th>≥85%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-10%</td>
+<td>¥16,422,643</td>
+<td>0.609</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>-20%</td>
+<td>¥14,597,905</td>
+<td>0.685</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>-30%</td>
+<td>¥12,773,167</td>
+<td>0.783</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>-40%</td>
+<td>¥10,948,429</td>
+<td>0.913</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<h2>Historical Breach Counts</h2>
+<ul>
+<li>Margin call events: 2488</li>
+<li>Forced liquidation events: 2273</li>
+</ul>
+<h2>Interest Projection (Simple)</h2>
+<table>
+<thead>
+<tr>
+<th>Days</th>
+<th>Interest (¥)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>30</td>
+<td>15,410.96</td>
+</tr>
+<tr>
+<td>90</td>
+<td>46,232.88</td>
+</tr>
+<tr>
+<td>180</td>
+<td>92,465.75</td>
+</tr>
+</tbody>
+</table></div>
+    </div>
+</body>
+
+</html>

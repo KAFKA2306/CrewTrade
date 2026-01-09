@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semiconductors - 20260108</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --accent: #58a6ff
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin-top: 1.5rem;
+            margin-bottom: .5rem
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto
+        }
+
+        .report {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 1rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: .5rem;
+            text-align: left
+        }
+
+        th {
+            background: var(--bg)
+        }
+
+        code {
+            background: var(--bg);
+            padding: .2rem .4rem;
+            border-radius: 4px
+        }
+
+        pre {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto
+        }
+
+        .nav {
+            margin-bottom: 1rem
+        }
+
+        .btn {
+            display: inline-block;
+            padding: .25rem .5rem;
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: 4px;
+            margin: .125rem;
+            font-size: .8rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="../index.html">← Dashboard</a> | <a href="index.html">Semiconductors</a>
+        </div>
+        <div class="nav">
+            <a href="20260108.html" class="btn" style="opacity:.5">20260108</a>
+        </div>
+        <div class="report"><h1>Top 10 Semiconductor Stocks Analysis Report</h1>
+<p><strong>Analysis Date:</strong> 2026-01-08
+<strong>Benchmark:</strong> SOXX (iShares Semiconductor ETF)</p>
+<h2>Executive Summary</h2>
+<p>This report analyzes the top 10 semiconductor stocks driving the AI and advanced computing revolution. 
+Key themes include: AI GPU dominance, advanced node manufacturing, HBM memory demand, and semiconductor equipment growth.</p>
+<h3>Sector Performance Snapshot</h3>
+<ul>
+<li><strong>Average 12M Return:</strong> 82.4%</li>
+<li><strong>Average Volatility:</strong> 48.6%</li>
+<li><strong>Average Sharpe Ratio:</strong> 1.53</li>
+</ul>
+<h2>Performance Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Symbol</th>
+<th>Company</th>
+<th>Price</th>
+<th>YTD</th>
+<th>3M</th>
+<th>6M</th>
+<th>12M</th>
+<th>Vol</th>
+<th>Sharpe</th>
+<th>Beta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>MU</strong></td>
+<td>Micron Technology, I</td>
+<td>$339.55</td>
+<td>+7.7%</td>
+<td>+72.8%</td>
+<td>+176.1%</td>
+<td>+243.2%</td>
+<td>60.3%</td>
+<td>3.96</td>
+<td>1.15</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>LRCX</strong></td>
+<td>Lam Research Corpora</td>
+<td>$203.08</td>
+<td>+9.7%</td>
+<td>+42.7%</td>
+<td>+101.7%</td>
+<td>+162.8%</td>
+<td>55.6%</td>
+<td>2.85</td>
+<td>1.15</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>INTC</strong></td>
+<td>Intel Corporation</td>
+<td>$42.63</td>
+<td>+8.3%</td>
+<td>+13.9%</td>
+<td>+79.0%</td>
+<td>+114.5%</td>
+<td>40.7%</td>
+<td>2.70</td>
+<td>0.83</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>AMD</strong></td>
+<td>Advanced Micro Devic</td>
+<td>$210.02</td>
+<td>-6.0%</td>
+<td>-10.8%</td>
+<td>+45.7%</td>
+<td>+62.1%</td>
+<td>59.1%</td>
+<td>0.97</td>
+<td>1.16</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>ASML</strong></td>
+<td>ASML Holding N.V.</td>
+<td>$1228.47</td>
+<td>+5.6%</td>
+<td>+24.6%</td>
+<td>+53.8%</td>
+<td>+61.4%</td>
+<td>48.1%</td>
+<td>1.18</td>
+<td>1.01</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>TSM</strong></td>
+<td>Taiwan Semiconductor</td>
+<td>$318.68</td>
+<td>-0.3%</td>
+<td>+4.9%</td>
+<td>+39.5%</td>
+<td>+46.8%</td>
+<td>43.6%</td>
+<td>0.97</td>
+<td>0.84</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>AVGO</strong></td>
+<td>Broadcom Inc.</td>
+<td>$343.50</td>
+<td>-1.2%</td>
+<td>-0.4%</td>
+<td>+25.2%</td>
+<td>+46.6%</td>
+<td>37.9%</td>
+<td>1.11</td>
+<td>0.96</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>ADI</strong></td>
+<td>Analog Devices, Inc.</td>
+<td>$292.89</td>
+<td>+7.0%</td>
+<td>+23.5%</td>
+<td>+20.4%</td>
+<td>+36.6%</td>
+<td>43.4%</td>
+<td>0.74</td>
+<td>0.91</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>NVDA</strong></td>
+<td>NVIDIA Corporation</td>
+<td>$189.11</td>
+<td>+0.1%</td>
+<td>+0.0%</td>
+<td>+15.3%</td>
+<td>+35.0%</td>
+<td>48.8%</td>
+<td>0.62</td>
+<td>0.96</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>QCOM</strong></td>
+<td>Qualcomm Incorporate</td>
+<td>$180.19</td>
+<td>+4.2%</td>
+<td>+8.0%</td>
+<td>+14.5%</td>
+<td>+15.2%</td>
+<td>48.2%</td>
+<td>0.22</td>
+<td>0.77</td>
+</tr>
+</tbody>
+</table>
+<h2>Rankings</h2>
+<h3>By Risk-Adjusted Return (Sharpe Ratio)</h3>
+<ol>
+<li><strong>MU</strong> - Sharpe: 3.96</li>
+<li><strong>LRCX</strong> - Sharpe: 2.85</li>
+<li><strong>INTC</strong> - Sharpe: 2.70</li>
+<li><strong>ASML</strong> - Sharpe: 1.18</li>
+<li><strong>AVGO</strong> - Sharpe: 1.11</li>
+</ol>
+<h3>By Lowest Volatility</h3>
+<ol>
+<li><strong>AVGO</strong> - Volatility: 37.9%</li>
+<li><strong>INTC</strong> - Volatility: 40.7%</li>
+<li><strong>ADI</strong> - Volatility: 43.4%</li>
+<li><strong>TSM</strong> - Volatility: 43.6%</li>
+<li><strong>ASML</strong> - Volatility: 48.1%</li>
+</ol>
+<h2>Individual Stock Analysis</h2>
+<h3>MU - Micron Technology, Inc.</h3>
+<p><strong>Focus:</strong> Memory (DRAM, HBM, NAND)
+<strong>AI Exposure:</strong> HIGH
+<strong>Analyst Rating:</strong> Strong Buy</p>
+<p><strong>Key Products:</strong>
+- HBM3E
+- HBM4 (development)
+- DDR5
+- NAND Flash</p>
+<p><strong>Growth Drivers:</strong>
+- HBM capacity sold out for 2025 and 2026
+- Core HBM supplier for NVIDIA RTX 50
+- Gross margin reached 68%
+- FY2026 revenue to nearly double vs FY2025</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- HBM Capacity: Sold out 2025-2026
+- Gross Margin: 68%
+- FY2026 Revenue: $70B+ forecast
+- Key Customer: NVIDIA (RTX 50 Blackwell)</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $339.55
+- 12M Return: +243.2%
+- Volatility: 60.3%
+- Max Drawdown: -98.2%
+- Beta vs SOXX: 1.15</p>
+<hr />
+<h3>LRCX - Lam Research Corporation</h3>
+<p><strong>Focus:</strong> Wafer Fabrication Equipment
+<strong>AI Exposure:</strong> HIGH
+<strong>Analyst Rating:</strong> Buy</p>
+<p><strong>Key Products:</strong>
+- Etch Systems
+- Deposition Systems
+- Clean Systems</p>
+<p><strong>Growth Drivers:</strong>
+- HBM and 3D NAND manufacturing demand
+- Strong China demand
+- AI chip production expansion
+- Equipment market to hit $133B in 2025</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- 2026-2028 Revenue CAGR: 10.39%
+- 2026 Revenue Forecast: $27.24B
+- Analyst Consensus: Moderate Buy
+- Key Driver: HBM/3D NAND demand</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $203.08
+- 12M Return: +162.8%
+- Volatility: 55.6%
+- Max Drawdown: -87.9%
+- Beta vs SOXX: 1.15</p>
+<hr />
+<h3>INTC - Intel Corporation</h3>
+<p><strong>Focus:</strong> CPUs, Foundry Services
+<strong>AI Exposure:</strong> MEDIUM
+<strong>Analyst Rating:</strong> Hold</p>
+<p><strong>Key Products:</strong>
+- Core Ultra CPUs
+- Xeon Data Center CPUs
+- Intel Foundry Services
+- Gaudi AI Accelerators</p>
+<p><strong>Growth Drivers:</strong>
+- IDM 2.0 foundry strategy
+- Intel 18A process development
+- Gaudi 3 AI accelerator
+- US CHIPS Act funding recipient</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- Strategy: IDM 2.0 Foundry
+- 2025 CapEx Change: -25% (reduced)
+- Key Risk: Execution on foundry
+- AI Product: Gaudi 3 accelerator</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $42.63
+- 12M Return: +114.5%
+- Volatility: 40.7%
+- Max Drawdown: -82.2%
+- Beta vs SOXX: 0.83</p>
+<hr />
+<h3>AMD - Advanced Micro Devices</h3>
+<p><strong>Focus:</strong> CPUs, GPUs, Data Center
+<strong>AI Exposure:</strong> HIGH
+<strong>Analyst Rating:</strong> Buy</p>
+<p><strong>Key Products:</strong>
+- EPYC Server CPUs
+- MI300X/MI325X AI GPUs
+- Ryzen CPUs
+- Radeon GPUs</p>
+<p><strong>Growth Drivers:</strong>
+- 2025 AI revenue forecast $9.5B (up from $5.2B)
+- Revenue +25% YoY projected for 2025
+- Data center market share gains
+- MI325X GPU competing with NVIDIA</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- 2025 AI Revenue: $9.5B forecast
+- 2025 Revenue Growth: +25% YoY
+- Stock Performance 2025: +70%
+- Analyst Rating Count: 16 Buy, 0 Sell</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $210.02
+- 12M Return: +62.1%
+- Volatility: 59.1%
+- Max Drawdown: -96.6%
+- Beta vs SOXX: 1.16</p>
+<hr />
+<h3>ASML - ASML Holding N.V.</h3>
+<p><strong>Focus:</strong> Lithography Equipment
+<strong>AI Exposure:</strong> HIGH
+<strong>Analyst Rating:</strong> Buy</p>
+<p><strong>Key Products:</strong>
+- EUV Lithography (Twinscan NXE)
+- High-NA EUV
+- DUV Systems</p>
+<p><strong>Growth Drivers:</strong>
+- Sole provider of advanced EUV equipment
+- 2025 earnings +28% on +15% revenue
+- TSMC capex boost drives demand
+- Chiplet adoption for AI increases EUV need</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- 2025 Earnings Growth: +28%
+- 2025 Revenue Growth: +15%
+- Price Target (Aletheia): $1,500
+- Market Position: Monopoly in EUV</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $1228.47
+- 12M Return: +61.4%
+- Volatility: 48.1%
+- Max Drawdown: -90.0%
+- Beta vs SOXX: 1.01</p>
+<hr />
+<h3>TSM - Taiwan Semiconductor Manufacturing</h3>
+<p><strong>Focus:</strong> Contract Chip Manufacturing
+<strong>AI Exposure:</strong> HIGH
+<strong>Analyst Rating:</strong> Strong Buy</p>
+<p><strong>Key Products:</strong>
+- 3nm Process (N3)
+- 2nm Process (N2)
+- Advanced Packaging (CoWoS)</p>
+<p><strong>Growth Drivers:</strong>
+- 2nm production started Q4 2025
+- 2nm capacity fully booked through late 2026
+- AI chip sales ~30% of 2025 revenue
+- Revenue growth 35-37% in 2025</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- 2025 Revenue Growth: +35-37%
+- AI Revenue Share: ~30%
+- 2026 Revenue Growth: +20.8% YoY forecast
+- 2025 CapEx: $40-42B</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $318.68
+- 12M Return: +46.8%
+- Volatility: 43.6%
+- Max Drawdown: -84.6%
+- Beta vs SOXX: 0.84</p>
+<hr />
+<h3>AVGO - Broadcom Inc.</h3>
+<p><strong>Focus:</strong> Networking, Custom AI Silicon
+<strong>AI Exposure:</strong> HIGH
+<strong>Analyst Rating:</strong> Strong Buy</p>
+<p><strong>Key Products:</strong>
+- Custom AI Accelerators (XPUs)
+- Networking ASICs
+- VMware Software</p>
+<p><strong>Growth Drivers:</strong>
+- AI semiconductor revenue +74% YoY to $6.5B
+- Next quarter AI revenue guidance $8.2B
+- Backlog surged to $162B
+- FY2026 revenue forecast 50% growth to $96B</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- AI Revenue (Q): $6.5B (+74% YoY)
+- Next Q AI Guidance: $8.2B
+- Total Backlog: $162B
+- FY2026 Revenue Forecast: $96B (+50%)</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $343.50
+- 12M Return: +46.6%
+- Volatility: 37.9%
+- Max Drawdown: -48.3%
+- Beta vs SOXX: 0.96</p>
+<hr />
+<h3>ADI - Analog Devices, Inc.</h3>
+<p><strong>Focus:</strong> Industrial Semiconductors
+<strong>AI Exposure:</strong> MEDIUM
+<strong>Analyst Rating:</strong> Buy</p>
+<p><strong>Key Products:</strong>
+- Analog ICs
+- Mixed-Signal ICs
+- Power Management
+- RF/Microwave</p>
+<p><strong>Growth Drivers:</strong>
+- FY2026 broad-based growth expected
+- Datacenter and industrial demand
+- FY2025 revenue +13% to $10.6B forecast
+- Recovery from 2024 cyclical downturn</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- FY2025 Revenue Forecast: $10.6B (+13%)
+- FY2025 EPS Forecast: $4.35
+- Earnings Growth: +12%
+- Q4 FY2025 Revenue: $3.08B</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $292.89
+- 12M Return: +36.6%
+- Volatility: 43.4%
+- Max Drawdown: -82.9%
+- Beta vs SOXX: 0.91</p>
+<hr />
+<h3>NVDA - NVIDIA Corporation</h3>
+<p><strong>Focus:</strong> AI GPUs, Data Centers
+<strong>AI Exposure:</strong> HIGH
+<strong>Analyst Rating:</strong> Strong Buy</p>
+<p><strong>Key Products:</strong>
+- Blackwell GPUs
+- Hopper GPUs
+- CUDA Platform
+- Rubin (announced)</p>
+<p><strong>Growth Drivers:</strong>
+- 92% discrete GPU market share
+- Data center revenue $51.2B in Q3 FY2026
+- FY2026 revenue projected to grow 63% YoY
+- AI capex expected to grow 50-60% in 2026</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- Q3 FY2026 Revenue: $57.0B
+- Data Center Revenue: $51.2B (90% of total)
+- FY2026 Revenue Growth: +63% YoY
+- 2026 Revenue Forecast: $321.2B</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $189.11
+- 12M Return: +35.0%
+- Volatility: 48.8%
+- Max Drawdown: -35.9%
+- Beta vs SOXX: 0.96</p>
+<hr />
+<h3>QCOM - Qualcomm Incorporated</h3>
+<p><strong>Focus:</strong> Mobile Processors, IoT, AI
+<strong>AI Exposure:</strong> MEDIUM
+<strong>Analyst Rating:</strong> Buy</p>
+<p><strong>Key Products:</strong>
+- Snapdragon Mobile Platforms
+- Snapdragon X Elite (PC)
+- Automotive Chips</p>
+<p><strong>Growth Drivers:</strong>
+- AI PC processors gaining traction
+- Automotive chip business expanding
+- IoT and edge AI applications
+- 5G modem leadership</p>
+<p><strong>Key Metrics (Fundamental):</strong>
+- Key Customer: Apple, Samsung
+- Growth Segment: Automotive, IoT
+- AI Strategy: On-device AI inference
+- Market Position: Mobile SoC leader</p>
+<p><strong>Technical Metrics:</strong>
+- Current Price: $180.19
+- 12M Return: +15.2%
+- Volatility: 48.2%
+- Max Drawdown: -86.8%
+- Beta vs SOXX: 0.77</p>
+<hr />
+<h2>Methodology</h2>
+<ul>
+<li><strong>Data Source:</strong> Yahoo Finance via yfinance</li>
+<li><strong>Period:</strong> 1 year historical data</li>
+<li><strong>Volatility:</strong> Annualized standard deviation of daily returns</li>
+<li><strong>Sharpe Ratio:</strong> (12M Return - Risk-Free Rate) / Volatility</li>
+<li><strong>Risk-Free Rate:</strong> 4.5% (approximate T-bill rate)</li>
+<li><strong>Beta:</strong> Covariance with SOXX / Variance of SOXX</li>
+</ul>
+<h2>Disclaimer</h2>
+<p>This report is for informational purposes only and does not constitute investment advice. 
+Past performance is not indicative of future results. 
+Investors should conduct their own due diligence before making investment decisions.</p></div>
+    </div>
+</body>
+
+</html>

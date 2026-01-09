@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>📊 CrewTrade Dashboard</h1>
+<p style="color: var(--muted); margin-bottom: 2rem;">Select a use case to view reports.</p>
+
+<div class="grid">
+    {% for uc in use_cases %}
+    <a href="/use_case/{{ uc }}" class="card">
+        <h3>{{ uc.replace('_', ' ').title() }}</h3>
+        <p style="color: var(--muted);">View analysis reports</p>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

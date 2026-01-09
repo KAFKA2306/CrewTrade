@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ name.replace('_', ' ').title() }}</h1>
+<p><a href="/">← Back to Dashboard</a></p>
+
+<div class="sidebar">
+    <h3>Reports</h3>
+    {% for date in dates %}
+    <div style="margin-bottom: 0.5rem;">
+        <button class="btn" hx-get="/report/{{ name }}/{{ date }}" hx-target="#report-content" hx-swap="innerHTML">
+            {{ date }}
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="main">
+    <div id="report-content" class="report-content">
+        <p style="color: var(--muted);">Select a date to view the report.</p>
+    </div>
+</div>
+{% endblock %}

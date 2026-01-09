@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrewTrade Dashboard</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --accent: #58a6ff
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin-bottom: 1rem
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: block
+        }
+
+        .card:hover {
+            border-color: var(--accent)
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📊 CrewTrade Dashboard</h1>
+        <p style="color:var(--muted);margin-bottom:2rem">Select a use case to view reports.</p>
+        <div class="grid">
+            
+            <a href="imura/index.html" class="card">
+                <h3>Imura</h3>
+                <p style="color:var(--muted)">View analysis reports</p>
+            </a>
+            
+            <a href="index_7_portfolio/index.html" class="card">
+                <h3>Index 7 Portfolio</h3>
+                <p style="color:var(--muted)">View analysis reports</p>
+            </a>
+            
+            <a href="index_etf_comparison/index.html" class="card">
+                <h3>Index Etf Comparison</h3>
+                <p style="color:var(--muted)">View analysis reports</p>
+            </a>
+            
+            <a href="legendary_investors/index.html" class="card">
+                <h3>Legendary Investors</h3>
+                <p style="color:var(--muted)">View analysis reports</p>
+            </a>
+            
+            <a href="oracle/index.html" class="card">
+                <h3>Oracle</h3>
+                <p style="color:var(--muted)">View analysis reports</p>
+            </a>
+            
+            <a href="precious_metals_spread/index.html" class="card">
+                <h3>Precious Metals Spread</h3>
+                <p style="color:var(--muted)">View analysis reports</p>
+            </a>
+            
+            <a href="securities_collateral_loan/index.html" class="card">
+                <h3>Securities Collateral Loan</h3>
+                <p style="color:var(--muted)">View analysis reports</p>
+            </a>
+            
+            <a href="semiconductors/index.html" class="card">
+                <h3>Semiconductors</h3>
+                <p style="color:var(--muted)">View analysis reports</p>
+            </a>
+            
+            <a href="yield_spread/index.html" class="card">
+                <h3>Yield Spread</h3>
+                <p style="color:var(--muted)">View analysis reports</p>
+            </a>
+            
+        </div>
+    </div>
+</body>
+
+</html>
