@@ -55,14 +55,14 @@ class IndexETFComparisonDataPipeline(BaseDataPipeline):
             ("etf_metadata", etf_metadata),
         ]:
             self._save(name, df)
-            saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+            saved_files[name] = str(self.raw_data_dir / f"{name}.parquet")
 
         # Save price_frames
         frames_dir = self.raw_data_dir / "frames"
         frames_dir.mkdir(exist_ok=True)
         for ticker, frame in price_frames.items():
-            frame_path = frames_dir / f"{ticker}.csv"
-            frame.to_csv(frame_path)
+            frame_path = frames_dir / f"{ticker}.parquet"
+            frame.to_parquet(frame_path)
             # We don't necessarily need to return every single frame path in saved_files,
             # or we can return the dir.
         saved_files["frames_dir"] = str(frames_dir)

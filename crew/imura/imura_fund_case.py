@@ -17,7 +17,28 @@ class ImuraFundUseCase(BaseUseCase):
 
     def analyze(self, data_payload: Dict[str, Any]) -> Dict[str, Any]:
         analyzer = ImuraFundAnalyzer(self.paths.raw_data_dir)
-        return analyzer.analyze(data_payload)
+        analysis_result = analyzer.analyze(data_payload)
+
+        # Add Kronos Forecasts
+        # Add Kronos Forecasts
+        import pandas as pd
+
+        price_frames = {}
+
+        for name, path in data_payload.items():
+            try:
+                if str(path).endswith(".parquet"):
+                    df = pd.read_parquet(path)
+                else:
+                    df = pd.read_csv(path, parse_dates=["Date"])
+                price_frames[name] = df
+            except Exception:
+                continue
+
+        forecasts = self.run_kronos_forecasts(price_frames, pred_len=30)
+        analysis_result["forecasts"] = forecasts
+
+        return analysis_result
 
     def produce_report(self, analysis_payload: Dict[str, Any]) -> Dict[str, Any]:
         reporter = ImuraFundReporter(self.paths.report_dir)

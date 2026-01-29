@@ -1,6 +1,4 @@
-import re
 import pandas as pd
-import sys
 
 
 def analyze_efficiency():

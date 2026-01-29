@@ -43,3 +43,6 @@ uv.lock
 # Data
 data/
 resources/data/
+
+# Submodules/External
+Kronos/

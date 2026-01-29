@@ -13,8 +13,29 @@ class PreciousMetalsSpreadAnalyzer:
         self.config = config
 
     def evaluate(
-        self, data_payload: Dict[str, pd.DataFrame]
+        self, data_payload: Dict[str, pd.DataFrame] = None
     ) -> Dict[str, pd.DataFrame]:
+        # Handle loading from disk
+        if not data_payload:
+            data_payload = {}
+            for name in ["etf", "metal", "fx"]:
+                p = self.raw_data_dir / f"{name}.parquet"
+                if p.exists():
+                    df = pd.read_parquet(p)
+                    # Fix date column
+                    if "Date" in df.columns:
+                        df = df.set_index("Date")
+                    elif "index" in df.columns:
+                        df = df.set_index("index")
+                    data_payload[name] = df
+                else:
+                    # Try csv
+                    c = self.raw_data_dir / f"{name}.csv"
+                    if c.exists():
+                        data_payload[name] = pd.read_csv(
+                            c, index_col=0, parse_dates=True
+                        )
+
         aligned_frames = self._align_frames(data_payload)
         theoretical_prices = self._compute_theoretical_prices(
             aligned_frames, self.config.etf_instruments.values()
@@ -108,4 +129,88 @@ class PreciousMetalsSpreadAnalyzer:
             )
         edges_frame = pd.DataFrame.from_records(records)
         edges_frame = edges_frame.sort_values("date")
+        edges_frame = edges_frame.sort_values("date")
         return edges_frame
+
+
+if __name__ == "__main__":
+    import yaml
+    from pathlib import Path
+    import datetime
+    from crew.metals.config import PreciousMetalsSpreadConfig
+    from crew.metals.reporting import PreciousMetalsSpreadReporter
+    from crew.utils.kronos_utils import get_kronos_forecast
+
+    # Setup paths
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+    CONFIG_FILE = PROJECT_ROOT / "config" / "use_cases" / "metals.yaml"
+    DATA_DIR = PROJECT_ROOT / "data" / "metals"
+    today = datetime.date.today().strftime("%Y%m%d")
+    REPORT_DIR = PROJECT_ROOT / "output" / "use_cases" / "metals" / today
+
+    # Load config
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        config_data = yaml.safe_load(f)
+    config = PreciousMetalsSpreadConfig(**config_data)
+
+    # Analyze
+    analyzer = PreciousMetalsSpreadAnalyzer(config)
+    analyzer.raw_data_dir = DATA_DIR
+
+    # Empty payload -> load from disk
+    analysis_payload = {}
+    results = analyzer.evaluate(analysis_payload)
+
+    # Kronos Integration
+    # Forecast tickers (etf tickers + metals?)
+    # Metrics frame has columns for tickers (etf - theoretical).
+    # But for forecasting we probably want raw price?
+    # Or just ETF price.
+    # We can access aligned frames.
+
+    aligned = results["aligned"]
+    etf_frame = aligned["etf"]  # DataFrame with tickers as columns
+
+    forecasts = {}
+    # Iterate columns (tickers)
+    for ticker in etf_frame.columns:
+        series = etf_frame[ticker].dropna()
+        if len(series) > 30:
+            # Create DF for Kronos
+            df = series.to_frame(name="close")
+            df["open"] = df["close"]
+            df["high"] = df["close"]
+            df["low"] = df["close"]
+            df["volume"] = 0.0
+            df = df.reset_index()
+            # index was likely Date
+            df.columns = ["date", "close", "open", "high", "low", "volume"]
+            df["Date"] = pd.to_datetime(df["date"])
+
+            try:
+                x_timestamp = df["Date"]
+                pred_len = 30
+                last_date = df["Date"].iloc[-1]
+                future_dates = [
+                    last_date + pd.Timedelta(days=i + 1) for i in range(pred_len)
+                ]
+                y_timestamp = pd.Series(future_dates)
+
+                pred_df = get_kronos_forecast(
+                    df=df,
+                    x_timestamp=x_timestamp,
+                    y_timestamp=y_timestamp,
+                    pred_len=pred_len,
+                )
+                forecasts[ticker] = pred_df.to_dict(orient="records")
+            except Exception as e:
+                print(f"Kronos forecast failed for {ticker}: {e}")
+                forecasts[ticker] = {"error": str(e)}
+
+    # Add forecasts to payload
+    results["forecasts"] = forecasts
+
+    # Report
+    reporter = PreciousMetalsSpreadReporter(config, DATA_DIR / "processed", REPORT_DIR)
+    reporter.persist(results)
+    print(f"Report produced in {REPORT_DIR}")

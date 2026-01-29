@@ -246,6 +246,27 @@ class Index7PortfolioReporter:
             )
             report_lines.append("![Correlation](./graphs/08_correlation.png)\n")
 
+        # Kronos Forecasts
+        forecasts = analysis_payload.get("forecasts")
+        if forecasts:
+            report_lines.append("## Kronos Forecasts (Portfolio Assets)\n")
+            for ticker, forecast_data in forecasts.items():
+                if isinstance(forecast_data, dict) and "error" in forecast_data:
+                    report_lines.append(
+                        f"### {ticker} Error: {forecast_data['error']}\n"
+                    )
+                    continue
+                if not forecast_data:
+                    continue
+                last_forecast = forecast_data[-1]
+                report_lines.append(f"### {ticker}\n")
+                report_lines.append(
+                    f"- Prediction End: {last_forecast.get('date', 'N/A')}"
+                )
+                report_lines.append(
+                    f"- Predicted Close: {last_forecast.get('close', 'N/A'):.2f}\n"
+                )
+
         report_content = "\n".join(report_lines)
         report_path = self.output_dir / "index_7_portfolio_report.md"
         with open(report_path, "w", encoding="utf-8") as f:

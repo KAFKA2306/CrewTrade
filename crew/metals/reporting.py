@@ -67,4 +67,21 @@ class PreciousMetalsSpreadReporter:
                     f"| {date_str} | {gap_str} | {gap_pct_str} | {z_score_str} | {direction_str} |"
                 )
             lines.append("")
+        forecasts = analysis_payload.get("forecasts")
+        if forecasts:
+            lines.append("## Kronos Forecasts")
+            for ticker, forecast_data in forecasts.items():
+                if isinstance(forecast_data, dict) and "error" in forecast_data:
+                    lines.append(f"### {ticker} Error: {forecast_data['error']}")
+                    continue
+                if not forecast_data:
+                    continue
+                last_forecast = forecast_data[-1]
+                lines.append(f"### {ticker}")
+                lines.append(f"Prediction End: {last_forecast.get('date', 'N/A')}")
+                lines.append(
+                    f"Predicted Close: {last_forecast.get('close', 'N/A'):.2f}"
+                )
+                lines.append("")
+
         return "\n".join(lines)

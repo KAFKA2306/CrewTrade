@@ -44,6 +44,27 @@ class CreditSpreadReporter:
 
         report_path = self.report_dir / "spread_signals.md"
         report_content = self._format_report(edges, snapshot)
+
+        # Add Kronos Forecasts
+        if "forecasts" in analysis_payload:
+            report_content += "\n## Kronos Forecasts (Next 30 Days)\n"
+            for asset, forecast_data in analysis_payload["forecasts"].items():
+                if isinstance(forecast_data, dict) and "error" in forecast_data:
+                    report_content += f"### {asset}\nError: {forecast_data['error']}\n"
+                    continue
+
+                if not forecast_data:
+                    continue
+
+                last_forecast = forecast_data[-1]
+                report_content += f"### {asset}\n"
+                report_content += (
+                    f"Prediction End: {last_forecast.get('date', 'N/A')}\n"
+                )
+                report_content += (
+                    f"Predicted Close: {last_forecast.get('close', 'N/A'):.2f}\n"
+                )
+
         report_path.write_text(report_content)
         stored_paths["report"] = report_path
 

@@ -33,12 +33,23 @@ class SemiconductorsAnalyzer:
 
     RISK_FREE_RATE = 0.045  # ~4.5% risk-free rate
 
-    def __init__(self, config: SemiconductorsConfig) -> None:
+    def __init__(self, config: SemiconductorsConfig, raw_data_dir: Any = None) -> None:
         self.config = config
+        self.raw_data_dir = raw_data_dir
 
     def analyze(self, data_payload: Dict[str, Any]) -> Dict[str, Any]:
         """Run analysis on price data."""
         price_frames: Dict[str, pd.DataFrame] = data_payload.get("price_frames", {})
+
+        if not price_frames and self.raw_data_dir:
+            # Try load from disk
+            from pathlib import Path
+
+            raw_path = Path(self.raw_data_dir)
+            for symbol in self.config.tickers + [self.config.benchmark]:
+                p = raw_path / f"{symbol}.parquet"
+                if p.exists():
+                    price_frames[symbol] = pd.read_parquet(p)
 
         if not price_frames:
             return {"error": "No price data available"}
@@ -63,9 +74,15 @@ class SemiconductorsAnalyzer:
         by_volatility = sorted(stock_metrics, key=lambda x: x.volatility)
 
         # Calculate sector averages
-        avg_return_12m = np.mean([m.return_12m for m in stock_metrics]) if stock_metrics else 0
-        avg_volatility = np.mean([m.volatility for m in stock_metrics]) if stock_metrics else 0
-        avg_sharpe = np.mean([m.sharpe_ratio for m in stock_metrics]) if stock_metrics else 0
+        avg_return_12m = (
+            np.mean([m.return_12m for m in stock_metrics]) if stock_metrics else 0
+        )
+        avg_volatility = (
+            np.mean([m.volatility for m in stock_metrics]) if stock_metrics else 0
+        )
+        avg_sharpe = (
+            np.mean([m.sharpe_ratio for m in stock_metrics]) if stock_metrics else 0
+        )
 
         return {
             "stock_metrics": stock_metrics,
@@ -117,7 +134,11 @@ class SemiconductorsAnalyzer:
             sharpe_ratio = excess_return / volatility if volatility > 0 else 0
 
             # Beta vs benchmark
-            beta = self._calculate_beta(returns, benchmark_frame) if benchmark_frame is not None else 1.0
+            beta = (
+                self._calculate_beta(returns, benchmark_frame)
+                if benchmark_frame is not None
+                else 1.0
+            )
 
             # Max drawdown
             max_drawdown = self._calculate_max_drawdown(prices)
@@ -160,10 +181,14 @@ class SemiconductorsAnalyzer:
         end_price = float(ytd_prices.iloc[-1])
         return (end_price - start_price) / start_price if start_price > 0 else 0
 
-    def _calculate_beta(self, stock_returns: pd.Series, benchmark_frame: pd.DataFrame) -> float:
+    def _calculate_beta(
+        self, stock_returns: pd.Series, benchmark_frame: pd.DataFrame
+    ) -> float:
         """Calculate beta relative to benchmark."""
         try:
-            price_col = "Adj Close" if "Adj Close" in benchmark_frame.columns else "Close"
+            price_col = (
+                "Adj Close" if "Adj Close" in benchmark_frame.columns else "Close"
+            )
             benchmark_prices = benchmark_frame[price_col].dropna()
             benchmark_returns = benchmark_prices.pct_change().dropna()
 
@@ -190,8 +215,6 @@ class SemiconductorsAnalyzer:
 
 if __name__ == "__main__":
     # Standalone analysis runner
-    from pathlib import Path
-    from crew.base import UseCasePaths
     from crew.use_case_runner import build_config, build_paths
 
     config = build_config("semiconductors", "config/use_cases/semiconductors.yaml")

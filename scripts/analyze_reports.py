@@ -1,6 +1,5 @@
 import os
 import re
-import pandas as pd
 
 base_dir = "/home/kafka/projects/crewTrade/output/backtests/securities_collateral_loan"
 years = range(2021, 2026)

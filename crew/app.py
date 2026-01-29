@@ -26,7 +26,7 @@ class BaseDataPipeline(ABC):
                 manual_file = manual_dir / f"{name}.csv"
                 if manual_file.exists():
                     self._merge_manual_data(name, manual_file)
-                    saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+                    saved_files[name] = str(self.raw_data_dir / f"{name}.parquet")
 
         return saved_files
 
@@ -40,10 +40,13 @@ class BaseDataPipeline(ABC):
         if "Date" in manual_df.columns and "Price" in manual_df.columns:
             manual_df["Date"] = pd.to_datetime(manual_df["Date"]).dt.date
 
-            auto_file = self.raw_data_dir / f"{name}.csv"
+            auto_file = self.raw_data_dir / f"{name}.parquet"
             if auto_file.exists():
-                auto_df = pd.read_csv(auto_file)
-                auto_df["Date"] = pd.to_datetime(auto_df["Date"]).dt.date
+                auto_df = pd.read_parquet(auto_file)
+                # Ensure Date is comparable
+                if not pd.api.types.is_datetime64_any_dtype(auto_df["Date"]):
+                    auto_df["Date"] = pd.to_datetime(auto_df["Date"]).dt.date
+
                 combined_df = pd.concat([auto_df, manual_df])
             else:
                 combined_df = manual_df
@@ -54,8 +57,8 @@ class BaseDataPipeline(ABC):
             self._save(name, combined_df)
 
     def _save(self, name: str, df: pd.DataFrame):
-        path = self.raw_data_dir / f"{name}.csv"
-        df.to_csv(path, index=False)
+        path = self.raw_data_dir / f"{name}.parquet"
+        df.to_parquet(path, index=False)
 
 
 class GenericUseCase:

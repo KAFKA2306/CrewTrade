@@ -45,7 +45,7 @@ class PreciousMetalsSpreadDataPipeline(BaseDataPipeline):
             # _combine_close: pd.concat(series_list, axis=1) -> DataFrame index is Date.
             # reset_index makes 'Date' a column.
             self._save(name, df)
-            saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+            saved_files[name] = str(self.raw_data_dir / f"{name}.parquet")
 
         return saved_files
 

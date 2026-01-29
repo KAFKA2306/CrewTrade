@@ -21,8 +21,15 @@ class SemiconductorsReporter:
         benchmark = analysis_payload.get("benchmark_symbol", "SOXX")
         analysis_date = analysis_payload.get("analysis_date", "")
 
+        forecasts = analysis_payload.get("forecasts")
+
         report = self._build_report(
-            stock_metrics, rankings, sector_averages, benchmark, analysis_date
+            stock_metrics,
+            rankings,
+            sector_averages,
+            benchmark,
+            analysis_date,
+            forecasts,
         )
 
         output_path = self.report_dir / "semiconductor_analysis_report.md"
@@ -38,6 +45,7 @@ class SemiconductorsReporter:
         sector_averages: Dict[str, float],
         benchmark: str,
         analysis_date: str,
+        forecasts: Dict[str, Any] = None,
     ) -> str:
         """Build the markdown report content."""
         lines = []
@@ -49,23 +57,37 @@ class SemiconductorsReporter:
         # Executive Summary
         lines.append("## Executive Summary")
         lines.append("")
-        lines.append("This report analyzes the top 10 semiconductor stocks driving the AI and advanced computing revolution. ")
-        lines.append("Key themes include: AI GPU dominance, advanced node manufacturing, HBM memory demand, and semiconductor equipment growth.")
+        lines.append(
+            "This report analyzes the top 10 semiconductor stocks driving the AI and advanced computing revolution. "
+        )
+        lines.append(
+            "Key themes include: AI GPU dominance, advanced node manufacturing, HBM memory demand, and semiconductor equipment growth."
+        )
         lines.append("")
 
         # Sector Averages
         lines.append("### Sector Performance Snapshot")
         lines.append("")
-        lines.append(f"- **Average 12M Return:** {sector_averages.get('return_12m', 0):.1%}")
-        lines.append(f"- **Average Volatility:** {sector_averages.get('volatility', 0):.1%}")
-        lines.append(f"- **Average Sharpe Ratio:** {sector_averages.get('sharpe_ratio', 0):.2f}")
+        lines.append(
+            f"- **Average 12M Return:** {sector_averages.get('return_12m', 0):.1%}"
+        )
+        lines.append(
+            f"- **Average Volatility:** {sector_averages.get('volatility', 0):.1%}"
+        )
+        lines.append(
+            f"- **Average Sharpe Ratio:** {sector_averages.get('sharpe_ratio', 0):.2f}"
+        )
         lines.append("")
 
         # Performance Summary Table
         lines.append("## Performance Summary")
         lines.append("")
-        lines.append("| Rank | Symbol | Company | Price | YTD | 3M | 6M | 12M | Vol | Sharpe | Beta |")
-        lines.append("|------|--------|---------|-------|-----|----|----|-----|-----|--------|------|")
+        lines.append(
+            "| Rank | Symbol | Company | Price | YTD | 3M | 6M | 12M | Vol | Sharpe | Beta |"
+        )
+        lines.append(
+            "|------|--------|---------|-------|-----|----|----|-----|-----|--------|------|"
+        )
 
         by_return = rankings.get("by_return", stock_metrics)
         for i, m in enumerate(by_return, 1):
@@ -147,9 +169,33 @@ class SemiconductorsReporter:
         # Disclaimer
         lines.append("## Disclaimer")
         lines.append("")
-        lines.append("This report is for informational purposes only and does not constitute investment advice. ")
+        lines.append(
+            "This report is for informational purposes only and does not constitute investment advice. "
+        )
         lines.append("Past performance is not indicative of future results. ")
-        lines.append("Investors should conduct their own due diligence before making investment decisions.")
+        lines.append(
+            "Investors should conduct their own due diligence before making investment decisions."
+        )
         lines.append("")
+
+        lines.append("")
+
+        # Kronos Forecasts
+        if forecasts:
+            lines.append("## Kronos Forecasts")
+            lines.append("")
+            for ticker, forecast_data in forecasts.items():
+                if isinstance(forecast_data, dict) and "error" in forecast_data:
+                    lines.append(f"### {ticker} Error: {forecast_data['error']}")
+                    continue
+                if not forecast_data:
+                    continue
+                last_forecast = forecast_data[-1]
+                lines.append(f"### {ticker}")
+                lines.append(f"- Prediction End: {last_forecast.get('date', 'N/A')}")
+                lines.append(
+                    f"- Predicted Close: {last_forecast.get('close', 'N/A'):.2f}"
+                )
+                lines.append("")
 
         return "\n".join(lines)

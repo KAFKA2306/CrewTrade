@@ -1,14 +1,3 @@
-## 構造
-
-```
-crew/          # メインパッケージ
-config/        # YAML設定
-output/        # レポート出力
-resources/     # データキャッシュ
-```
-
-## セットアップ
-
 ```bash
 uv sync
 ```

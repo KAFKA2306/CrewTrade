@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     targets = config.get("targets", {})
     raw_data_dir = PROJECT_ROOT / "data" / "imura"
-    today = datetime.date.today().strftime("%Y%m%d")
+    today = datetime.date.today().strftime("%SAME%m%d")
     report_dir = PROJECT_ROOT / "output" / "use_cases" / "imura" / today
 
     data_payload = {name: str(raw_data_dir / f"{name}.csv") for name in targets.keys()}

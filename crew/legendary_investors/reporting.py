@@ -14,9 +14,9 @@ class LegendaryInvestorsReporter:
         self.report_dir.mkdir(parents=True, exist_ok=True)
 
     def produce_report(self, analysis_payload: Dict[str, Any]) -> Dict[str, Any]:
-        soros = analysis_payload.get("soros_metrics", [])
         druckenmiller = analysis_payload.get("druckenmiller_metrics", [])
         date = analysis_payload.get("analysis_date", "Unknown Date")
+        forecasts = analysis_payload.get("forecasts", {})
 
         md_lines = [
             f"# Legendary Investors Portfolio Tracking - {date}",
@@ -30,6 +30,8 @@ class LegendaryInvestorsReporter:
             "Top holdings based on recent 13F filings.",
             "",
             self._make_detailed_section(druckenmiller),
+            "",
+            self._make_forecast_section(forecasts),
             "",
         ]
 
@@ -70,8 +72,26 @@ class LegendaryInvestorsReporter:
                 "#### Recent News",
                 m.news_summary if m.news_summary else "No recent news.",
                 "",
-                "---"
+                "---",
             ]
             sections.append("\n".join(section))
-        
+
         return "\n".join(sections)
+
+    def _make_forecast_section(self, forecasts: Dict[str, Any]) -> str:
+        if not forecasts:
+            return ""
+
+        lines = ["## Kronos Forecasts", ""]
+        for ticker, data in forecasts.items():
+            if isinstance(data, dict) and "error" in data:
+                lines.append(f"### {ticker} Error: {data['error']}")
+                continue
+            if not data:
+                continue
+            last = data[-1]
+            lines.append(f"### {ticker}")
+            lines.append(f"- Prediction End: {last.get('date', 'N/A')}")
+            lines.append(f"- Predicted Close: {last.get('close', 'N/A'):.2f}")
+            lines.append("")
+        return "\n".join(lines)

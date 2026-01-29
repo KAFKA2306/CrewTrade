@@ -24,7 +24,7 @@ class CreditSpreadDataPipeline(BaseDataPipeline):
         name = "prices"
         df = prices.reset_index()
         self._save(name, df)
-        saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+        saved_files[name] = str(self.raw_data_dir / f"{name}.parquet")
         return saved_files
 
     def _combine_close(self, frames: Dict[str, pd.DataFrame]) -> pd.DataFrame:

@@ -86,7 +86,7 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
         .groupby(level=1)
         .agg(["mean", "std", "max"])
         .reset_index()
-        .rename(columns={"level_1": "pair"})
+        .rename(columns={"level_1": "pair", "index": "pair"})
     )
     if not vol_stats.empty:
         vol_stats["mean"] = vol_stats["mean"].round(2)

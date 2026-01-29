@@ -64,4 +64,6 @@ from .legendary_investors.config import LegendaryInvestorsConfig
 from .legendary_investors.legendary_investors_case import LegendaryInvestorsUseCase
 
 # Register Legendary Investors -> "legendary_investors"
-register_use_case("legendary_investors", LegendaryInvestorsUseCase, LegendaryInvestorsConfig)
+register_use_case(
+    "legendary_investors", LegendaryInvestorsUseCase, LegendaryInvestorsConfig
+)

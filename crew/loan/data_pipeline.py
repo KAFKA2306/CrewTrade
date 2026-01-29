@@ -39,7 +39,7 @@ class SecuritiesCollateralLoanDataPipeline(BaseDataPipeline):
         for name, data in result.items():
             if isinstance(data, pd.DataFrame):
                 self._save(name, data)
-                saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+                saved_files[name] = str(self.raw_data_dir / f"{name}.parquet")
             # If string (like mode), maybe dont save or save as metadata?
             # Analyzer might need 'mode'.
             # We can return it in saved_files if generic use case supports it,

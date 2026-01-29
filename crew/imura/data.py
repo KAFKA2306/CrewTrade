@@ -28,7 +28,7 @@ class ImuraFundDataPipeline(BaseDataPipeline):
             df = self._fetch_yfinance(symbol)
             if not df.empty:
                 self._save(name, df)
-                saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+                saved_files[name] = str(self.raw_data_dir / f"{name}.parquet")
             else:
                 print(f"[{name}] yfinance failed/empty. Falling back to crawl.")
                 crawl_targets[name] = symbol
@@ -38,7 +38,7 @@ class ImuraFundDataPipeline(BaseDataPipeline):
             results = asyncio.run(self._fetch_all_crawl(crawl_targets, days))
             for name, df in results.items():
                 self._save(name, df)
-                saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+                saved_files[name] = str(self.raw_data_dir / f"{name}.parquet")
 
         return saved_files
 
@@ -47,17 +47,40 @@ class ImuraFundDataPipeline(BaseDataPipeline):
         if yf_data.empty:
             return pd.DataFrame()
 
+        # Handle MultiIndex columns if present
         if isinstance(yf_data.columns, pd.MultiIndex):
             yf_data.columns = yf_data.columns.get_level_values(0)
 
         yf_data = yf_data.reset_index()
-        col_map = {"Close": "Price", "Adj Close": "Price"}
-        for k, v in col_map.items():
-            if k in yf_data.columns:
-                df = yf_data[["Date", k]].rename(columns={k: v})
-                df["Date"] = pd.to_datetime(df["Date"]).dt.date
-                return df
-        return pd.DataFrame()
+
+        # Standardize columns
+        col_map = {
+            "Open": "open",
+            "High": "high",
+            "Low": "low",
+            "Close": "close",
+            "Volume": "volume",
+            "Date": "Date",
+        }
+
+        # Check if we have the required columns
+        available_cols = [c for c in col_map.keys() if c in yf_data.columns]
+        if "Close" not in available_cols and "Adj Close" in yf_data.columns:
+            # Use Adj Close as Close if needed, but preferably Close
+            yf_data["Close"] = yf_data["Adj Close"]
+            available_cols.append("Close")
+
+        if not available_cols:
+            return pd.DataFrame()
+
+        df = yf_data[available_cols].rename(columns=col_map)
+
+        # Ensure Price column for compatibility
+        if "close" in df.columns:
+            df["Price"] = df["close"]
+
+        df["Date"] = pd.to_datetime(df["Date"]).dt.date
+        return df
 
     async def _fetch_all_crawl(
         self, targets: Dict[str, str], days: int
@@ -91,13 +114,24 @@ class ImuraFundDataPipeline(BaseDataPipeline):
                 await page.wait_for_selector("table", timeout=10000)
                 html = await page.content()
                 soup = BeautifulSoup(html, "html.parser")
-                page_data = self._parse_table(soup, start_date, end_date)
+                page_data = self._parse_table(soup)
 
                 if not page_data:
                     break
 
-                oldest_date = min(d["Date"] for d in page_data)
-                all_data.extend(page_data)
+                # Filter by date range
+                valid_data = []
+                for d in page_data:
+                    if start_date <= d["Date"] <= end_date:
+                        valid_data.append(d)
+
+                # Check bounds based on oldest item in PAGE (not just valid ones)
+                if not page_data:
+                    oldest_date = start_date  # benign fallback
+                else:
+                    oldest_date = min(d["Date"] for d in page_data)
+
+                all_data.extend(valid_data)
                 print(
                     f"[{symbol}] Page {page_num}: {len(page_data)} items, oldest: {oldest_date}"
                 )
@@ -124,7 +158,7 @@ class ImuraFundDataPipeline(BaseDataPipeline):
         df = df.sort_values("Date").drop_duplicates(subset=["Date"])
         return df[(df["Date"] >= start_date) & (df["Date"] <= end_date)]
 
-    def _parse_table(self, soup: BeautifulSoup, start_date, end_date) -> list:
+    def _parse_table(self, soup: BeautifulSoup) -> list:
         data = []
         table = soup.find("table")
         if not table:
@@ -135,28 +169,73 @@ class ImuraFundDataPipeline(BaseDataPipeline):
             return data
 
         header_cols = [th.text.strip() for th in rows[0].find_all("th")]
-        price_idx = 1
+
+        # Map headers to indices
+        col_indices = {}
         for i, h in enumerate(header_cols):
-            if "終値" in h or "基準価額" in h:
-                price_idx = i
-                break
+            if "日付" in h:
+                col_indices["Date"] = i
+            elif "始値" in h:
+                col_indices["open"] = i
+            elif "高値" in h:
+                col_indices["high"] = i
+            elif "安値" in h:
+                col_indices["low"] = i
+            elif "終値" in h or "基準価額" in h:
+                col_indices["close"] = i
+            elif "出来高" in h:
+                col_indices["volume"] = i
+
+        if "Date" not in col_indices or "close" not in col_indices:
+            return data
 
         for row in rows[1:]:
             cols = row.find_all(["td", "th"])
-            if len(cols) <= price_idx:
+
+            row_data = {}
+            # Date
+            date_col_idx = col_indices["Date"]
+            if len(cols) <= date_col_idx:
                 continue
-            date_str = cols[0].text.strip()
+            date_str = cols[date_col_idx].text.strip()
             if not date_str:
                 continue
-            price_str = cols[price_idx].text.strip()
 
-            dt = (
-                datetime.datetime.strptime(date_str, "%Y年%m月%d日").date()
-                if "年" in date_str
-                else datetime.datetime.strptime(date_str, "%Y/%m/%d").date()
-            )
+            try:
+                dt = (
+                    datetime.datetime.strptime(date_str, "%Y年%m月%d日").date()
+                    if "年" in date_str
+                    else datetime.datetime.strptime(date_str, "%Y/%m/%d").date()
+                )
+                row_data["Date"] = dt
+            except ValueError:
+                continue
 
-            price_val = float(price_str.replace(",", ""))
-            data.append({"Date": dt, "Price": price_val})
+            # Parse other columns
+            for key, idx in col_indices.items():
+                if key == "Date":
+                    continue
+                if len(cols) <= idx:
+                    continue
+                val_str = cols[idx].text.strip().replace(",", "")
+                try:
+                    val = float(val_str) if val_str and val_str != "-" else 0.0
+                    row_data[key] = val
+                except ValueError:
+                    row_data[key] = 0.0
+
+            # Ensure Price compatibility
+            if "close" in row_data:
+                row_data["Price"] = row_data["close"]
+
+            # If we missed OHLC, fill with close
+            if "close" in row_data:
+                for req in ["open", "high", "low"]:
+                    if req not in row_data:
+                        row_data[req] = row_data["close"]
+                if "volume" not in row_data:
+                    row_data["volume"] = 0.0
+
+            data.append(row_data)
 
         return data

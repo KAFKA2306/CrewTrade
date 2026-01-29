@@ -22,8 +22,16 @@ if __name__ == "__main__":
 
     # Default tickers
     tickers = [
-        "NVDA", "TSM", "AVGO", "ASML", "QCOM",
-        "AMD", "INTC", "LRCX", "ADI", "MU",
+        "NVDA",
+        "TSM",
+        "AVGO",
+        "ASML",
+        "QCOM",
+        "AMD",
+        "INTC",
+        "LRCX",
+        "ADI",
+        "MU",
         "SOXX",  # Benchmark
     ]
 

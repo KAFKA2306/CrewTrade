@@ -38,32 +38,44 @@ class SecuritiesCollateralLoanAnalyzer:
 
         # Load data from disk if needed
         if "prices" not in data_payload or isinstance(data_payload.get("prices"), str):
-            prices_path = self.raw_data_dir / "prices.csv"
-            if prices_path.exists():
-                data_payload["prices"] = pd.read_csv(
-                    prices_path, index_col=0, parse_dates=True
-                )
+            p = self.raw_data_dir / "prices.parquet"
+            if p.exists():
+                data_payload["prices"] = pd.read_parquet(p)
             else:
-                data_payload["prices"] = pd.DataFrame()
+                prices_path = self.raw_data_dir / "prices.csv"
+                if prices_path.exists():
+                    data_payload["prices"] = pd.read_csv(
+                        prices_path, index_col=0, parse_dates=True
+                    )
+                else:
+                    data_payload["prices"] = pd.DataFrame()
 
         if mode == "optimization":
             if "etf_master" not in data_payload or isinstance(
                 data_payload.get("etf_master"), str
             ):
-                master_path = self.raw_data_dir / "etf_master.csv"
-                if master_path.exists():
-                    data_payload["etf_master"] = pd.read_csv(master_path)
+                p = self.raw_data_dir / "etf_master.parquet"
+                if p.exists():
+                    data_payload["etf_master"] = pd.read_parquet(p)
                 else:
-                    data_payload["etf_master"] = pd.DataFrame()
+                    master_path = self.raw_data_dir / "etf_master.csv"
+                    if master_path.exists():
+                        data_payload["etf_master"] = pd.read_csv(master_path)
+                    else:
+                        data_payload["etf_master"] = pd.DataFrame()
 
             if "prices_forward" not in data_payload or isinstance(
                 data_payload.get("prices_forward"), str
             ):
-                fwd_path = self.raw_data_dir / "prices_forward.csv"
-                if fwd_path.exists():
-                    data_payload["prices_forward"] = pd.read_csv(
-                        fwd_path, index_col=0, parse_dates=True
-                    )
+                p = self.raw_data_dir / "prices_forward.parquet"
+                if p.exists():
+                    data_payload["prices_forward"] = pd.read_parquet(p)
+                else:
+                    fwd_path = self.raw_data_dir / "prices_forward.csv"
+                    if fwd_path.exists():
+                        data_payload["prices_forward"] = pd.read_csv(
+                            fwd_path, index_col=0, parse_dates=True
+                        )
 
         if mode == "optimization":
             return self._evaluate_optimization_mode(data_payload)
@@ -990,3 +1002,116 @@ class SecuritiesCollateralLoanAnalyzer:
             )
 
             return combined, metadata
+
+
+if __name__ == "__main__":
+    import yaml
+    from pathlib import Path
+    import datetime
+    from crew.loan.config import SecuritiesCollateralLoanConfig
+    from crew.loan.reporting import SecuritiesCollateralLoanReporter
+    from crew.utils.kronos_utils import get_kronos_forecast
+
+    # Setup paths
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+    CONFIG_FILE = PROJECT_ROOT / "config" / "use_cases" / "loan.yaml"
+    DATA_DIR = PROJECT_ROOT / "data" / "loan"
+
+    today = datetime.date.today().strftime("%Y%m%d")
+    REPORT_DIR = PROJECT_ROOT / "output" / "use_cases" / "loan" / today
+
+    # Load config
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        config_data = yaml.safe_load(f)
+    config = SecuritiesCollateralLoanConfig(**config_data)
+
+    # Analyze
+    analyzer = SecuritiesCollateralLoanAnalyzer(config)
+    analyzer.raw_data_dir = DATA_DIR
+
+    # Empty payload -> load from disk
+    analysis_payload = {}
+    if config.optimization and config.optimization.enabled:
+        analysis_payload["mode"] = "optimization"
+    else:
+        analysis_payload["mode"] = "manual"
+
+    results = analyzer.evaluate(analysis_payload)
+
+    # Kronos Integration
+    tickers_to_forecast = []
+    mode = results.get("mode")
+    if mode == "optimization":
+        opt_port = results.get("optimized_portfolio")
+        if isinstance(opt_port, pd.DataFrame) and not opt_port.empty:
+            tickers_to_forecast = opt_port["ticker"].tolist()
+    else:
+        asset_breakdown = results.get("asset_breakdown")
+        if isinstance(asset_breakdown, pd.DataFrame):
+            tickers_to_forecast = asset_breakdown["ticker"].tolist()
+
+    forecasts = {}
+    for ticker in tickers_to_forecast:
+        p_path = DATA_DIR / f"{ticker}.parquet"
+        c_path = DATA_DIR / f"{ticker}.csv"
+
+        df = None
+        if p_path.exists():
+            df = pd.read_parquet(p_path)
+        elif c_path.exists():
+            df = pd.read_csv(c_path, index_col=0, parse_dates=True)
+
+        if df is not None:
+            try:
+                # Normalize
+                df.columns = [str(c).lower() for c in df.columns]
+                if "close" in df.columns and "open" not in df.columns:
+                    df["open"] = df["close"]
+                    df["high"] = df["close"]
+                    df["low"] = df["close"]
+                    df["volume"] = 0.0
+
+                # Ensure Date
+                if "date" in df.columns:
+                    df["Date"] = pd.to_datetime(df["date"])
+                elif df.index.name and df.index.name.lower() == "date":
+                    df = df.reset_index()
+                    df["Date"] = pd.to_datetime(df["Date"])
+                else:
+                    # check first col
+                    df = df.reset_index()
+                    df.columns.values[0] = "Date"  # assume
+                    df["Date"] = pd.to_datetime(df.iloc[:, 0])
+
+                if "Date" in df.columns:
+                    df = df.sort_values("Date").reset_index(drop=True)
+                    if len(df) > 30:
+                        x_timestamp = df["Date"]
+                        pred_len = 30
+                        last_date = df["Date"].iloc[-1]
+                        future_dates = [
+                            last_date + pd.Timedelta(days=i + 1)
+                            for i in range(pred_len)
+                        ]
+                        y_timestamp = pd.Series(future_dates)
+
+                        pred_df = get_kronos_forecast(
+                            df=df,
+                            x_timestamp=x_timestamp,
+                            y_timestamp=y_timestamp,
+                            pred_len=pred_len,
+                        )
+                        forecasts[ticker] = pred_df.to_dict(orient="records")
+            except Exception as e:
+                print(f"Kronos forecast error for {ticker}: {e}")
+                forecasts[ticker] = {"error": str(e)}
+
+    if forecasts:
+        results["forecasts"] = forecasts
+
+    # Report
+    reporter = SecuritiesCollateralLoanReporter(
+        config, DATA_DIR / "processed", REPORT_DIR
+    )
+    reporter.persist(results)
+    print(f"Report produced in {REPORT_DIR}")

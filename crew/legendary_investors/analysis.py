@@ -36,12 +36,34 @@ class LegendaryInvestorsAnalyzer:
 
     RISK_FREE_RATE = 0.045
 
-    def __init__(self, config: LegendaryInvestorsConfig) -> None:
+    def __init__(
+        self, config: LegendaryInvestorsConfig, raw_data_dir: Any = None
+    ) -> None:
         self.config = config
         self.researcher = LegendaryInvestorsResearcher()
+        self.raw_data_dir = raw_data_dir
 
     def analyze(self, data_payload: Dict[str, Any]) -> Dict[str, Any]:
         price_frames = data_payload.get("price_frames", {})
+
+        if not price_frames and self.raw_data_dir:
+            # Try load from disk
+            from pathlib import Path
+
+            raw = Path(self.raw_data_dir)
+            # Determine tickers from config
+            tickers = list(
+                set(
+                    self.config.soros_holdings
+                    + self.config.druckenmiller_holdings
+                    + [self.config.benchmark]
+                )
+            )
+            for t in tickers:
+                p = raw / f"{t}.parquet"
+                if p.exists():
+                    price_frames[t] = pd.read_parquet(p)
+
         if not price_frames:
             return {"error": "No price data available"}
 
@@ -70,26 +92,26 @@ class LegendaryInvestorsAnalyzer:
             # Use Adj Close if available
             col = "Adj Close" if "Adj Close" in df.columns else "Close"
             prices = df[col].dropna()
-            
+
             if len(prices) < 20:
                 continue
 
             current_price = float(prices.iloc[-1])
-            
+
             # Returns
             ret_1m = self._calc_period_return(prices, 21)
             ret_3m = self._calc_period_return(prices, 63)
             ret_6m = self._calc_period_return(prices, 126)
             ret_12m = self._calc_period_return(prices, 252)
             ytd = self._calc_ytd_return(prices)
-            
+
             # Risk
             returns = prices.pct_change().dropna()
             vol = float(returns.std() * np.sqrt(252))
-            
+
             excess_return = ret_12m - self.RISK_FREE_RATE
             sharpe = excess_return / vol if vol > 0 else 0.0
-            
+
             # Drawdown
             cummax = prices.cummax()
             drawdown = (prices - cummax) / cummax
@@ -119,7 +141,7 @@ class LegendaryInvestorsAnalyzer:
                     alpha=research_data.get("alpha", ""),
                 )
             )
-        
+
         # Sort by 12m return descending
         metrics_list.sort(key=lambda x: x.return_12m, reverse=True)
         return metrics_list

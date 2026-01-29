@@ -22,14 +22,12 @@ if __name__ == "__main__":
     from crew.legendary_investors.config import LegendaryInvestorsConfig
 
     config = LegendaryInvestorsConfig(name="legendary_investors")
-    
+
     # Combine all unique tickers
-    all_tickers = list(set(
-        config.soros_holdings + 
-        config.druckenmiller_holdings + 
-        [config.benchmark]
-    ))
-    
+    all_tickers = list(
+        set(config.soros_holdings + config.druckenmiller_holdings + [config.benchmark])
+    )
+
     raw_dir = Path("resources") / "data" / "use_cases" / "legendary_investors" / "raw"
     print(f"Fetching data for {len(all_tickers)} tickers...")
     frames = fetch_investor_data(all_tickers, raw_dir, config.period)

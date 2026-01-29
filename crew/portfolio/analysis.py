@@ -13,22 +13,30 @@ class Index7PortfolioAnalyzer:
     def evaluate(self, data_payload: Dict) -> Dict:
         # Load data from disk if needed
         if "prices" not in data_payload or isinstance(data_payload.get("prices"), str):
-            prices_path = self.raw_data_dir / "prices.csv"
-            if prices_path.exists():
-                data_payload["prices"] = pd.read_csv(
-                    prices_path, index_col=0, parse_dates=True
-                )
+            p = self.raw_data_dir / "prices.parquet"
+            if p.exists():
+                data_payload["prices"] = pd.read_parquet(p)
             else:
-                data_payload["prices"] = pd.DataFrame()
+                prices_path = self.raw_data_dir / "prices.csv"
+                if prices_path.exists():
+                    data_payload["prices"] = pd.read_csv(
+                        prices_path, index_col=0, parse_dates=True
+                    )
+                else:
+                    data_payload["prices"] = pd.DataFrame()
 
         if "index_master" not in data_payload or isinstance(
             data_payload.get("index_master"), str
         ):
-            master_path = self.raw_data_dir / "index_master.csv"
-            if master_path.exists():
-                data_payload["index_master"] = pd.read_csv(master_path)
+            p = self.raw_data_dir / "index_master.parquet"
+            if p.exists():
+                data_payload["index_master"] = pd.read_parquet(p)
             else:
-                data_payload["index_master"] = pd.DataFrame()
+                master_path = self.raw_data_dir / "index_master.csv"
+                if master_path.exists():
+                    data_payload["index_master"] = pd.read_csv(master_path)
+                else:
+                    data_payload["index_master"] = pd.DataFrame()
 
         prices = data_payload["prices"]
         index_master = data_payload["index_master"]

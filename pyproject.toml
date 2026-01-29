@@ -3,14 +3,15 @@ name = "crew"
 version = "0.1.0"
 description = "ai-trading-crew using crewAI"
 authors = [{ name = "Antigravity", email = "antigravity@gemini.google.com" }]
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "crewai[tools]",
     "onnxruntime",
-    "numpy",
+    "numpy<2",
     "yfinance",
     "pandas-datareader",
     "pandas-market-calendars",
+    "pandas<2.0.0",
     "nixtla",
     "matplotlib",
     "ta-lib",
@@ -20,9 +21,14 @@ dependencies = [
     "requests",
     "seaborn",
     "yahooquery",
-    "setuptools>=80.9.0",
-    "flask>=3.1.2",
-    "markdown>=3.10",
+    "setuptools",
+    "flask",
+    "markdown",
+    "torch",
+    "einops",
+    "huggingface_hub",
+    "safetensors",
+    "pyarrow",
 ]
 
 [project.scripts]

@@ -32,7 +32,7 @@ class YieldSpreadDataPipeline(BaseDataPipeline):
 
         saved_files = {}
         self._save("series", frame)
-        saved_files["series"] = str(self.raw_data_dir / "series.csv")
+        saved_files["series"] = str(self.raw_data_dir / "series.parquet")
 
         allocation_cfg = self.config.allocation
         if allocation_cfg is not None and allocation_cfg.optimization.enabled:
@@ -40,7 +40,7 @@ class YieldSpreadDataPipeline(BaseDataPipeline):
             if asset_prices is not None:
                 self._save("asset_prices", asset_prices)
                 saved_files["asset_prices"] = str(
-                    self.raw_data_dir / "asset_prices.csv"
+                    self.raw_data_dir / "asset_prices.parquet"
                 )
 
         return saved_files

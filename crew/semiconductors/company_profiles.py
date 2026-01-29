@@ -26,7 +26,12 @@ COMPANY_PROFILES: Dict[str, CompanyProfile] = {
         focus_area="AI GPUs, Data Centers",
         market_cap_tier="mega",
         ai_exposure="high",
-        key_products=["Blackwell GPUs", "Hopper GPUs", "CUDA Platform", "Rubin (announced)"],
+        key_products=[
+            "Blackwell GPUs",
+            "Hopper GPUs",
+            "CUDA Platform",
+            "Rubin (announced)",
+        ],
         growth_drivers=[
             "92% discrete GPU market share",
             "Data center revenue $51.2B in Q3 FY2026",
@@ -47,7 +52,11 @@ COMPANY_PROFILES: Dict[str, CompanyProfile] = {
         focus_area="Contract Chip Manufacturing",
         market_cap_tier="mega",
         ai_exposure="high",
-        key_products=["3nm Process (N3)", "2nm Process (N2)", "Advanced Packaging (CoWoS)"],
+        key_products=[
+            "3nm Process (N3)",
+            "2nm Process (N2)",
+            "Advanced Packaging (CoWoS)",
+        ],
         growth_drivers=[
             "2nm production started Q4 2025",
             "2nm capacity fully booked by Apple/Nvidia through 2026",
@@ -68,7 +77,11 @@ COMPANY_PROFILES: Dict[str, CompanyProfile] = {
         focus_area="Networking, Custom AI Silicon",
         market_cap_tier="mega",
         ai_exposure="high",
-        key_products=["Custom AI Accelerators (XPUs)", "Networking ASICs", "VMware Software"],
+        key_products=[
+            "Custom AI Accelerators (XPUs)",
+            "Networking ASICs",
+            "VMware Software",
+        ],
         growth_drivers=[
             "AI semiconductor revenue +74% YoY to $6.5B (Q4 Earnings)",
             "Next quarter AI revenue guidance $8.2B",
@@ -110,7 +123,11 @@ COMPANY_PROFILES: Dict[str, CompanyProfile] = {
         focus_area="Mobile Processors, IoT, AI",
         market_cap_tier="large",
         ai_exposure="medium",
-        key_products=["Snapdragon Mobile Platforms", "Snapdragon X Elite (PC)", "Automotive Chips"],
+        key_products=[
+            "Snapdragon Mobile Platforms",
+            "Snapdragon X Elite (PC)",
+            "Automotive Chips",
+        ],
         growth_drivers=[
             "AI PC processors gaining traction",
             "Automotive chip business expanding",
@@ -131,7 +148,12 @@ COMPANY_PROFILES: Dict[str, CompanyProfile] = {
         focus_area="CPUs, GPUs, Data Center",
         market_cap_tier="large",
         ai_exposure="high",
-        key_products=["EPYC Server CPUs", "MI300X/MI325X AI GPUs", "Ryzen CPUs", "Radeon GPUs"],
+        key_products=[
+            "EPYC Server CPUs",
+            "MI300X/MI325X AI GPUs",
+            "Ryzen CPUs",
+            "Radeon GPUs",
+        ],
         growth_drivers=[
             "2025 AI revenue forecast $9.5B (up from $5.2B)",
             "Revenue +25% YoY projected for 2025",
@@ -152,7 +174,12 @@ COMPANY_PROFILES: Dict[str, CompanyProfile] = {
         focus_area="CPUs, Foundry Services",
         market_cap_tier="large",
         ai_exposure="medium",
-        key_products=["Core Ultra CPUs", "Xeon Data Center CPUs", "Intel Foundry Services", "Gaudi AI Accelerators"],
+        key_products=[
+            "Core Ultra CPUs",
+            "Xeon Data Center CPUs",
+            "Intel Foundry Services",
+            "Gaudi AI Accelerators",
+        ],
         growth_drivers=[
             "IDM 2.0 foundry strategy",
             "Intel 18A process development",
@@ -194,7 +221,12 @@ COMPANY_PROFILES: Dict[str, CompanyProfile] = {
         focus_area="Industrial Semiconductors",
         market_cap_tier="large",
         ai_exposure="medium",
-        key_products=["Analog ICs", "Mixed-Signal ICs", "Power Management", "RF/Microwave"],
+        key_products=[
+            "Analog ICs",
+            "Mixed-Signal ICs",
+            "Power Management",
+            "RF/Microwave",
+        ],
         growth_drivers=[
             "FY2026 broad-based growth expected",
             "Datacenter and industrial demand",

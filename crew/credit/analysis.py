@@ -134,3 +134,108 @@ class CreditSpreadAnalyzer:
                 ]
             )
         return pd.DataFrame(snapshot_rows)
+
+
+if __name__ == "__main__":
+    import yaml
+    from pathlib import Path
+    from crew.credit.config import CreditSpreadConfig
+    from crew.credit.reporting import CreditSpreadReporter
+    from crew.utils.kronos_utils import get_kronos_forecast
+
+    # Setup paths
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+    CONFIG_FILE = PROJECT_ROOT / "config" / "use_cases" / "credit.yaml"
+    DATA_DIR = PROJECT_ROOT / "data" / "credit_spread"
+
+    # Use today for report dir
+    import datetime
+
+    today = datetime.date.today().strftime("%Y%m%d")
+    REPORT_DIR = PROJECT_ROOT / "output" / "use_cases" / "credit" / today
+
+    # Load config
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        config_data = yaml.safe_load(f)
+    config = CreditSpreadConfig(**config_data)
+
+    # Load combined prices
+    prices_path = DATA_DIR / "prices.parquet"
+    if not prices_path.exists():
+        print(f"Warning: {prices_path} not found. Trying CSV fallback.")
+        prices_path = DATA_DIR / "prices.csv"
+
+    if str(prices_path).endswith(".parquet") and prices_path.exists():
+        prices = pd.read_parquet(prices_path)
+    elif prices_path.exists():
+        prices = pd.read_csv(prices_path, parse_dates=["Date"])
+    else:
+        print("Error: No price data found.")
+        exit(1)
+
+    # Reconstruct data_payload
+    # Analyzer expects 'prices'
+    data_payload = {"prices": prices.set_index("Date")}
+
+    # Analyze
+    analyzer = CreditSpreadAnalyzer(config)
+    analysis_results = analyzer.evaluate(data_payload)
+
+    # Kronos Integration (Forecasting individual tickers)
+    forecasts = {}
+    for ticker in config.tickers:
+        # Check for individual parquet file
+        ticker_path = DATA_DIR / f"{ticker}.parquet"
+        if ticker_path.exists():
+            try:
+                df = pd.read_parquet(ticker_path)
+                # Ensure standard columns (lower case)
+                # FixedIncomeDataClient might save as is from yfinance
+                # Check columns
+                df.columns = [str(c).lower() for c in df.columns]
+
+                # Map if needed. Kronos needs 'close', 'open', 'high', 'low'
+                # If we only have 'close', fill others
+                if "close" in df.columns and "open" not in df.columns:
+                    df["open"] = df["close"]
+                    df["high"] = df["close"]
+                    df["low"] = df["close"]
+                    df["volume"] = 0.0
+
+                if "date" in df.columns:
+                    df["Date"] = pd.to_datetime(df["date"])
+                elif df.index.name and df.index.name.lower() == "date":
+                    df = df.reset_index()
+                    df["Date"] = pd.to_datetime(
+                        df["Date"] if "Date" in df.columns else df["date"]
+                    )
+
+                if "Date" in df.columns:
+                    df = df.sort_values("Date").reset_index(drop=True)
+                    x_timestamp = df["Date"]
+                    pred_len = 30
+                    last_date = df["Date"].iloc[-1]
+                    future_dates = [
+                        last_date + pd.Timedelta(days=i + 1) for i in range(pred_len)
+                    ]
+                    y_timestamp = pd.Series(future_dates)
+
+                    pred_df = get_kronos_forecast(
+                        df=df,
+                        x_timestamp=x_timestamp,
+                        y_timestamp=y_timestamp,
+                        pred_len=pred_len,
+                    )
+                    forecasts[ticker] = pred_df.to_dict(orient="records")
+
+            except Exception as e:
+                print(f"Kronos forecast failed for {ticker}: {e}")
+                forecasts[ticker] = {"error": str(e)}
+
+    # Add forecasts to results (so reporter handles it)
+    analysis_results["forecasts"] = forecasts
+
+    # Report
+    reporter = CreditSpreadReporter(config, DATA_DIR / "processed", REPORT_DIR)
+    reporter.persist(analysis_results)
+    print(f"Report produced in {REPORT_DIR}")

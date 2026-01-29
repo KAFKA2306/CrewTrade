@@ -37,7 +37,7 @@ class Index7PortfolioDataPipeline(BaseDataPipeline):
         saved_files = {}
         for name, df in [("prices", prices), ("index_master", index_master)]:
             self._save(name, df)
-            saved_files[name] = str(self.raw_data_dir / f"{name}.csv")
+            saved_files[name] = str(self.raw_data_dir / f"{name}.parquet")
 
         # mode="index" was returned before. Analyzer usually needs it?
         # Analyzer can infer or default to "index".

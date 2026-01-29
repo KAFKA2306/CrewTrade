@@ -14,7 +14,11 @@ def get_use_cases():
 
 def get_report_dates(use_case: str):
     case_dir = OUTPUT_DIR / use_case
-    return sorted([d.name for d in case_dir.iterdir() if d.is_dir()], reverse=True) if case_dir.exists() else []
+    return (
+        sorted([d.name for d in case_dir.iterdir() if d.is_dir()], reverse=True)
+        if case_dir.exists()
+        else []
+    )
 
 
 def get_report_content(use_case: str, date: str):
@@ -38,20 +42,22 @@ def build():
         uc_dir = DOCS_DIR / uc
         uc_dir.mkdir(exist_ok=True)
         dates = get_report_dates(uc)
-        
+
         for date in dates:
             content = get_report_content(uc, date)
             if content:
-                html_content = markdown.markdown(content, extensions=["tables", "fenced_code"])
+                html_content = markdown.markdown(
+                    content, extensions=["tables", "fenced_code"]
+                )
                 page = env.get_template("static_report.html").render(
                     name=uc, date=date, content=html_content, dates=dates
                 )
                 (uc_dir / f"{date}.html").write_text(page, encoding="utf-8")
-        
+
         if dates:
             (uc_dir / "index.html").write_text(
                 env.get_template("static_use_case.html").render(name=uc, dates=dates),
-                encoding="utf-8"
+                encoding="utf-8",
             )
 
     print(f"Built static site in {DOCS_DIR}")

@@ -70,6 +70,31 @@ class ImuraFundReporter:
         plt.close(fig)
 
         report_md += f"\n![Performance Chart]({plot_path.name})\n"
+
+        # Add Kronos Forecasts
+        if "forecasts" in analysis_payload:
+            report_md += "\n## Kronos Forecasts (Next 30 Days)\n"
+            for asset, forecast_data in analysis_payload["forecasts"].items():
+                if isinstance(forecast_data, dict) and "error" in forecast_data:
+                    report_md += f"### {asset}\nError: {forecast_data['error']}\n"
+                    continue
+
+                # Assume list of records
+                if not forecast_data:
+                    continue
+
+                # Get last forecast
+                last_forecast = forecast_data[-1]
+                # Forecast data has OHLCV, we show close
+                # Or show a small table of first/last
+
+                report_md += f"### {asset}\n"
+                # Simple table of end prediction
+                report_md += f"Prediction End: {last_forecast.get('date', 'N/A')}\n"
+                report_md += (
+                    f"Predicted Close: {last_forecast.get('close', 'N/A'):.2f}\n"
+                )
+
         report_file = self.report_dir / "report.md"
         with open(report_file, "w") as f:
             f.write(report_md)

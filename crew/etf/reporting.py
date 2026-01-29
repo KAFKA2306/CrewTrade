@@ -36,7 +36,8 @@ class IndexETFComparisonReporter:
             stored_paths[f"{index_id}_metrics"] = metrics_path
 
             report_path = self.report_dir / f"index_{index_id}_report.md"
-            report_path.write_text(self._build_report(index_name, metrics))
+            forecasts = result.get("forecasts", {})
+            report_path.write_text(self._build_report(index_name, metrics, forecasts))
             stored_paths[f"{index_id}_report"] = report_path
 
         summary_path = self.report_dir / "index_etf_comparison_summary.md"
@@ -52,7 +53,9 @@ class IndexETFComparisonReporter:
         sanitized = sanitized.replace("・", "_").replace("®", "").replace("　", "_")
         return sanitized
 
-    def _build_report(self, index_name: str, metrics: pd.DataFrame) -> str:
+    def _build_report(
+        self, index_name: str, metrics: pd.DataFrame, forecasts: Dict[str, Any] = None
+    ) -> str:
         lines = []
         lines.append(f"# {index_name} - ETF比較レポート")
         lines.append("")
@@ -112,6 +115,25 @@ class IndexETFComparisonReporter:
         if not metrics["expense_ratio"].isna().all():
             lines.append(f"- 平均経費率: {metrics['expense_ratio'].mean() * 100:.2f}%")
         lines.append("")
+
+        if forecasts:
+            lines.append("## Kronos Forecasts (Top Tickers)")
+            for ticker, forecast_data in forecasts.items():
+                if isinstance(forecast_data, dict) and "error" in forecast_data:
+                    lines.append(f"### {ticker} Forecast Error")
+                    lines.append(f"Error: {forecast_data['error']}")
+                    continue
+
+                if not forecast_data:
+                    continue
+
+                last_forecast = forecast_data[-1]
+                lines.append(f"### {ticker} Prediction")
+                lines.append(f"- Prediction End: {last_forecast.get('date', 'N/A')}")
+                lines.append(
+                    f"- Predicted Close: {last_forecast.get('close', 'N/A'):.2f}"
+                )
+                lines.append("")
 
         return "\n".join(lines)
 

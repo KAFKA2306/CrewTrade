@@ -205,4 +205,21 @@ class YieldSpreadReporter:
                 f"{row['z_score']:.2f} | {row['junk_yield']:.2f} | {row['treasury_yield']:.2f} |"
             )
         lines.append("")
+        forecasts = analysis_payload.get("forecasts")
+        if forecasts:
+            lines.append("## Kronos Forecasts (Spreads)")
+            for pair, forecast_data in forecasts.items():
+                if isinstance(forecast_data, dict) and "error" in forecast_data:
+                    lines.append(f"### {pair} Error: {forecast_data['error']}")
+                    continue
+                if not forecast_data:
+                    continue
+                last_forecast = forecast_data[-1]
+                lines.append(f"### {pair}")
+                lines.append(f"Prediction End: {last_forecast.get('date', 'N/A')}")
+                lines.append(
+                    f"Predicted Spread: {last_forecast.get('close', 'N/A'):.2f}"
+                )
+                lines.append("")
+
         return "\n".join(lines)
