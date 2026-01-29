@@ -45,4 +45,4 @@ data/
 resources/data/
 
 # Submodules/External
-Kronos/
+Kronos/*.png

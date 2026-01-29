@@ -29,6 +29,9 @@ dependencies = [
     "huggingface_hub",
     "safetensors",
     "pyarrow",
+    "chronos-forecasting",
+    "transformers",
+    "accelerate",
 ]
 
 [project.scripts]

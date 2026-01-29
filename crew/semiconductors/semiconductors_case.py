@@ -36,7 +36,7 @@ class SemiconductorsUseCase(BaseUseCase):
                 if p.exists():
                     price_frames[symbol] = pd.read_parquet(p)
 
-        forecasts = self.run_kronos_forecasts(price_frames, pred_len=30)
+        forecasts = self.run_kronos_forecasts(price_frames, pred_len=91)
 
         if forecasts:
             results["forecasts"] = forecasts

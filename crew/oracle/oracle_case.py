@@ -31,7 +31,7 @@ class OracleEarningsUseCase(BaseUseCase):
         # Add Kronos Forecasts
         price_frames = data_payload.get("price_frames", {})
         if price_frames:
-            forecasts = self.run_kronos_forecasts(price_frames, pred_len=30)
+            forecasts = self.run_kronos_forecasts(price_frames, pred_len=91)
             results["forecasts"] = forecasts
 
         return results

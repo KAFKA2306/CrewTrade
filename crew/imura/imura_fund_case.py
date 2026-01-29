@@ -35,7 +35,7 @@ class ImuraFundUseCase(BaseUseCase):
             except Exception:
                 continue
 
-        forecasts = self.run_kronos_forecasts(price_frames, pred_len=30)
+        forecasts = self.run_kronos_forecasts(price_frames, pred_len=91)
         analysis_result["forecasts"] = forecasts
 
         return analysis_result
