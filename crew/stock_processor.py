@@ -1,10 +1,7 @@
-#!/usr/bin/env python
 import asyncio
 import os
 import pickle
-
 import pandas as pd
-
 from crew.analysts.fundamental_analysis import get_fundamental_context
 from crew.analysts.social import get_stocktwits_context
 from crew.analysts.stock_articles_fetcher import get_stock_news
@@ -29,8 +26,6 @@ from crew.utils.dates import (
     get_yesterday_18_est,
     get_yesterday_str,
 )
-
-
 def load_timegpt_forecasts():
     """
     Load TimeGPT forecasts from pickle file in agents_inputs folder with current date.
@@ -39,18 +34,14 @@ def load_timegpt_forecasts():
     today_str_no_min = get_today_str_no_min()
     input_dir = os.path.join(AGENT_INPUTS_FOLDER, today_str_no_min)
     pickle_file = os.path.join(input_dir, "timegpt_forecasts.pkl")
-
     if os.path.exists(pickle_file):
         with open(pickle_file, "rb") as f:
             return pickle.load(f)
     else:
-        # Return empty DataFrame if no cached forecasts available
         print(
             f"Warning: {pickle_file} not found. TimeGPT forecasts will not be available."
         )
         return pd.DataFrame()
-
-
 async def process_stock_symbol(
     symbol,
     vix_data={},
@@ -60,7 +51,6 @@ async def process_stock_symbol(
 ):
     """
     Process a stock symbol by gathering all necessary data and running the analysis crews.
-
     Args:
         symbol: Stock symbol to process
         vix_data: VIX data (optional, for market overview)
@@ -71,24 +61,16 @@ async def process_stock_symbol(
     today_str = get_today_str()
     today_str_no_min = get_today_str_no_min()
     yesterday_str = get_yesterday_str()
-    YESTERDAY_HOUR = "18:00"  # 6 PM EST
+    YESTERDAY_HOUR = "18:00"
     HISTORICAL_DAYS = 30
-
-    # Create directories if they don't exist
     input_dir = os.path.join(AGENT_INPUTS_FOLDER, today_str_no_min)
     output_dir = os.path.join(AGENT_OUTPUTS_FOLDER, today_str_no_min, symbol)
     os.makedirs(input_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
-
-    # Get company name
     company_name = get_company_name(symbol)
-
-    # Get stock headlines
     stock_headlines = get_news_context(
         symbol=symbol, start_time=f"{yesterday_str} {YESTERDAY_HOUR}"
     )
-
-    # Save market headlines to file
     with open(
         os.path.join(
             AGENT_INPUTS_FOLDER, today_str_no_min, f"{symbol}_market_headlines.txt"
@@ -96,18 +78,13 @@ async def process_stock_symbol(
         "w",
     ) as f:
         f.write(stock_headlines)
-
-    # Run AiArticlesPickerCrew
     inputs = {
         "company_name": company_name,
         "stocktwits_data": {},
         "stock_headlines": stock_headlines,
         "today_str": today_str,
     }
-
     await AiArticlesPickerCrew(symbol).crew().kickoff_async(inputs=inputs)
-
-    # Get and save stock news
     stock_news = await get_stock_news(
         symbol,
         os.path.join(
@@ -119,10 +96,7 @@ async def process_stock_symbol(
         "w",
     ) as f:
         f.write(stock_news)
-
-    # Get and save technical indicators
     ti_data = get_ti_context(symbol=symbol)
-
     with open(
         os.path.join(
             AGENT_INPUTS_FOLDER, today_str_no_min, f"{symbol}_technical_indicators.txt"
@@ -130,9 +104,7 @@ async def process_stock_symbol(
         "w",
     ) as f:
         f.write(ti_data)
-
     fundamental_data = get_fundamental_context(symbol=symbol)
-
     with open(
         os.path.join(
             AGENT_INPUTS_FOLDER, today_str_no_min, f"{symbol}_fundamental_analysis.txt"
@@ -140,8 +112,6 @@ async def process_stock_symbol(
         "w",
     ) as f:
         f.write(fundamental_data)
-
-    # Get and save stocktwits data
     stocktwits_data = get_stocktwits_context(
         symbol, settings.SOCIAL_FETCH_LIMIT, get_yesterday_18_est()
     )
@@ -150,13 +120,8 @@ async def process_stock_symbol(
         "w",
     ) as f:
         f.write(stocktwits_data)
-
-    # Load real TimeGPT forecasts from pickle file
     timegpt_forecasts = load_timegpt_forecasts()
-
-    # Get formatted TimeGPT forecast for this symbol
     timegpt_forecast = format_timegpt_forecast(timegpt_forecasts, symbol, company_name)
-
     with open(
         os.path.join(
             AGENT_INPUTS_FOLDER, today_str_no_min, f"{symbol}_timegpt_forecast.txt"
@@ -164,8 +129,6 @@ async def process_stock_symbol(
         "w",
     ) as f:
         f.write(timegpt_forecast)
-
-    # Prepare final inputs
     final_inputs = {
         "company_name": company_name,
         "stocktwits_data": stocktwits_data,
@@ -179,8 +142,6 @@ async def process_stock_symbol(
         "today_str": today_str,
         "historical_days": HISTORICAL_DAYS,
     }
-
-    # Run StockComponentsSummarizeCrew
     crew_result = (
         await StockComponentsSummarizeCrew(
             symbol,
@@ -190,19 +151,13 @@ async def process_stock_symbol(
         .crew()
         .kickoff_async(inputs=final_inputs)
     )
-
-    # After summaries are complete, run the Day Trader Advisor
-    # Read the generated summary files
     def read_summary_file(symbol_folder, filename):
         """Helper function to read summary files safely"""
         file_path = os.path.join(
             AGENT_OUTPUTS_FOLDER, today_str_no_min, symbol_folder, filename
         )
-
         with open(file_path, "r", encoding="utf-8") as f:
             return f.read()
-
-    # Read individual stock summaries
     news_summary = read_summary_file(symbol, "news_summary_report.md")
     sentiment_summary = read_summary_file(symbol, "sentiment_summary_report.md")
     technical_summary = read_summary_file(
@@ -212,8 +167,6 @@ async def process_stock_symbol(
         symbol, "fundamental_analysis_summary_report.md"
     )
     timegpt_summary = read_summary_file(symbol, "timegpt_forecast_summary_report.md")
-
-    # Read market analysis summaries (using the market overview symbol)
     market_news_summary = read_summary_file(
         settings.STOCK_MARKET_OVERVIEW_SYMBOL, "news_summary_report.md"
     )
@@ -229,8 +182,6 @@ async def process_stock_symbol(
     market_overview_summary = read_summary_file(
         settings.STOCK_MARKET_OVERVIEW_SYMBOL, "market_overview_summary_report.md"
     )
-
-    # Prepare inputs for Day Trader Advisor
     day_trader_inputs = {
         "company_name": company_name,
         "news_summary": news_summary,
@@ -244,13 +195,8 @@ async def process_stock_symbol(
         "market_timegpt_summary": market_timegpt_summary,
         "market_overview_summary": market_overview_summary,
     }
-
-    # Run Day Trader Advisor Crew
     await DayTraderAdvisorCrew(symbol).crew().kickoff_async(inputs=day_trader_inputs)
-
     return crew_result
-
-
 def process_stock_symbol_sync(
     symbol,
     vix_data={},
@@ -260,7 +206,6 @@ def process_stock_symbol_sync(
 ):
     """
     Synchronous wrapper for process_stock_symbol that maintains backward compatibility.
-
     Args:
         symbol: Stock symbol to process
         vix_data: VIX data (optional, for market overview)

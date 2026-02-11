@@ -1,19 +1,13 @@
 from __future__ import annotations
-
 from pathlib import Path
 from typing import Dict, Iterable
-
 import pandas as pd
 import yfinance as yf
-
-
 class AllocationAssetClient:
     """Cache-aware price downloader for allocation assets via yfinance."""
-
     def __init__(self, raw_data_dir: Path) -> None:
         self.base_dir = raw_data_dir / "allocation_assets"
         self.base_dir.mkdir(parents=True, exist_ok=True)
-
     def get_prices(self, tickers: Iterable[str], period: str) -> pd.DataFrame:
         tickers = list(dict.fromkeys(tickers))
         frames: Dict[str, pd.Series] = {}
@@ -46,15 +40,12 @@ class AllocationAssetClient:
         combined = combined.sort_index().ffill()
         combined.columns = list(frames.keys())
         return combined
-
     def _path(self, ticker: str) -> Path:
         safe = ticker.replace("/", "-")
         return self.base_dir / f"{safe}.parquet"
-
     def _store(self, ticker: str, frame: pd.DataFrame) -> None:
         path = self._path(ticker)
         frame.to_parquet(path)
-
     def _extract_close(self, frame: pd.DataFrame) -> pd.Series:
         if isinstance(frame, pd.Series):
             series = frame.sort_index()

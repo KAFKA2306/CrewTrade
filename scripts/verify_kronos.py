@@ -1,8 +1,6 @@
 import sys
-
 try:
     from model import Kronos
-
     print("SUCCESS: Successfully imported Kronos from model module.")
 except ImportError as e:
     print(f"FAILURE: Could not import Kronos. {e}")

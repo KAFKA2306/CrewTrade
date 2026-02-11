@@ -1,11 +1,8 @@
-#!/usr/bin/env python
 import asyncio
 import datetime
 import sys
 import warnings
-
 import pytz
-
 from crew.analysts.market_overview import HistoricalMarketFetcher
 from crew.analysts.timegpt import get_timegpt_forecast
 from crew.config import settings
@@ -14,33 +11,21 @@ from crew.market_overview_agents import MarketOverviewAnalyst
 from crew.stock_processor import (
     process_stock_symbol as process_stock_symbol_async,
 )
-
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
-
-
 def run():
     """
     Run the crew using async for maximum performance.
     """
     asyncio.run(run_async_execution())
-
-
 async def run_async_execution():
     """
     Run the crew asynchronously with concurrent processing.
     """
-
     vix_data = HistoricalMarketFetcher().get_vix(days=30)
     global_market_data = HistoricalMarketFetcher().get_global_market(days=30)
-
-    # Create market overview analyst for additional agents/tasks
     market_analyst = MarketOverviewAnalyst()
     market_agent, market_task = market_analyst.get_agent_and_task()
-
-    # Get TimeGPT forecasts (calls API once per day, uses cache thereafter)
     get_timegpt_forecast()
-
-    # Process market overview first
     await process_stock_symbol_async(
         settings.STOCK_MARKET_OVERVIEW_SYMBOL,
         vix_data=vix_data,
@@ -48,31 +33,19 @@ async def run_async_execution():
         additional_agents=[market_agent],
         additional_tasks=[market_task],
     )
-
-    # Process individual symbols concurrently for maximum performance
     tasks = []
     for symbol in settings.SYMBOLS:
         task = process_stock_symbol_async(symbol)
         tasks.append(task)
-
-    # Wait for all symbol processing to complete
     await asyncio.gather(*tasks)
-
-
 async def run_async():
     """
     Run the crew asynchronously for better performance.
     """
-
-    # Keep only essential data as requested
     vix_data = HistoricalMarketFetcher().get_vix(days=30)
     global_market_data = HistoricalMarketFetcher().get_global_market(days=30)
-
-    # Create market overview analyst for additional agents/tasks
     market_analyst = MarketOverviewAnalyst()
     market_agent, market_task = market_analyst.get_agent_and_task()
-
-    # Process market overview symbol first
     await process_stock_symbol_async(
         settings.STOCK_MARKET_OVERVIEW_SYMBOL,
         vix_data=vix_data,
@@ -80,17 +53,11 @@ async def run_async():
         additional_agents=[market_agent],
         additional_tasks=[market_task],
     )
-
-    # Process individual symbols concurrently for maximum performance
     tasks = []
     for symbol in settings.SYMBOLS:
         task = process_stock_symbol_async(symbol)
         tasks.append(task)
-
-    # Wait for all symbol processing to complete
     await asyncio.gather(*tasks)
-
-
 def train():
     """
     Train the crew for a given number of iterations.
@@ -101,19 +68,14 @@ def train():
             "%Y-%m-%d %H:%M:%S"
         ),
     }
-
     StockComponentsSummarizeCrew().crew().train(
         n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs
     )
-
-
 def replay():
     """
     Replay the crew execution from a specific task.
     """
     StockComponentsSummarizeCrew().crew().replay(task_id=sys.argv[1])
-
-
 def test():
     """
     Test the crew execution and returns the results.
@@ -122,8 +84,6 @@ def test():
     StockComponentsSummarizeCrew().crew().test(
         n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs
     )
-
-
 def run_fast():
     """
     Run the crew using async for maximum performance.

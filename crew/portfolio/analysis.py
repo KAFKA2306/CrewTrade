@@ -1,17 +1,11 @@
 from typing import Dict
-
 import pandas as pd
-
 from crew.loan import optimizer
 from crew.portfolio.config import Index7PortfolioConfig
-
-
 class Index7PortfolioAnalyzer:
     def __init__(self, config: Index7PortfolioConfig):
         self.config = config
-
     def evaluate(self, data_payload: Dict) -> Dict:
-        # Load data from disk if needed
         if "prices" not in data_payload or isinstance(data_payload.get("prices"), str):
             p = self.raw_data_dir / "prices.parquet"
             if p.exists():
@@ -24,7 +18,6 @@ class Index7PortfolioAnalyzer:
                     )
                 else:
                     data_payload["prices"] = pd.DataFrame()
-
         if "index_master" not in data_payload or isinstance(
             data_payload.get("index_master"), str
         ):
@@ -37,19 +30,15 @@ class Index7PortfolioAnalyzer:
                     data_payload["index_master"] = pd.read_csv(master_path)
                 else:
                     data_payload["index_master"] = pd.DataFrame()
-
         prices = data_payload["prices"]
         index_master = data_payload["index_master"]
-
         if self.config.optimization.enabled:
             base_target = self.config.loan_amount / self.config.ltv_limit
-
             if self.config.optimization.max_drawdown_buffer > 0:
                 safety_factor = 1.0 / (1 - self.config.optimization.max_drawdown_buffer)
                 target_value = base_target * safety_factor
             else:
                 target_value = base_target
-
             optimization_result = optimizer.optimize_collateral_portfolio(
                 prices=prices,
                 etf_master=index_master,
@@ -61,7 +50,6 @@ class Index7PortfolioAnalyzer:
                 min_assets=len(self.config.indices),
                 use_hrp=False,
             )
-
             portfolio_df = optimization_result["portfolio"]
             if (
                 "name" not in portfolio_df.columns
@@ -82,7 +70,6 @@ class Index7PortfolioAnalyzer:
                     "weight": [equal_weight] * len(self.config.indices),
                 }
             )
-
         if "allocation_value" in portfolio_df.columns:
             portfolio_value = portfolio_df["allocation_value"].sum()
         else:
@@ -93,13 +80,11 @@ class Index7PortfolioAnalyzer:
                 for _, row in portfolio_df.iterrows()
                 if row["ticker"] in latest_prices.index
             )
-
         current_ltv = (
             self.config.loan_amount / portfolio_value
             if portfolio_value > 0
             else float("inf")
         )
-
         return {
             "portfolio": portfolio_df,
             "prices": prices,

@@ -1,21 +1,14 @@
 from __future__ import annotations
-
 from typing import Dict, List
-
 import pandas as pd
-
 from crew.yields.allocation import compute_allocation
 from crew.yields.config import YieldSpreadConfig
-
-
 class YieldSpreadAnalyzer:
     def __init__(self, config: YieldSpreadConfig) -> None:
         self.config = config
-
     def evaluate(
         self, data_payload: Dict[str, pd.DataFrame]
     ) -> Dict[str, pd.DataFrame]:
-        # Load from disk if needed
         if "series" not in data_payload or isinstance(data_payload.get("series"), str):
             p = self.raw_data_dir / "series.parquet"
             if p.exists():
@@ -28,7 +21,6 @@ class YieldSpreadAnalyzer:
                     )
                 else:
                     data_payload["series"] = pd.DataFrame()
-
         if "asset_prices" not in data_payload or isinstance(
             data_payload.get("asset_prices"), str
         ):
@@ -41,7 +33,6 @@ class YieldSpreadAnalyzer:
                     data_payload["asset_prices"] = pd.read_csv(
                         prices_path, index_col=0, parse_dates=True
                     )
-
         series_frame = data_payload["series"]
         asset_prices = data_payload.get("asset_prices")
         metrics = self._compute_pair_metrics(series_frame)
@@ -63,7 +54,6 @@ class YieldSpreadAnalyzer:
         if allocation is not None:
             payload["allocation"] = allocation
         return payload
-
     def _compute_pair_metrics(self, series_frame: pd.DataFrame) -> pd.DataFrame:
         metrics_store: Dict[str, pd.DataFrame] = {}
         for label, pair in self.config.pairs.items():
@@ -94,7 +84,6 @@ class YieldSpreadAnalyzer:
             )
         metrics_frame = pd.concat(metrics_store, axis=1)
         return metrics_frame
-
     def _detect_edges(self, metrics_frame: pd.DataFrame) -> pd.DataFrame:
         records: List[Dict[str, object]] = []
         for label, pair in self.config.pairs.items():
@@ -146,7 +135,6 @@ class YieldSpreadAnalyzer:
         edges_frame = pd.DataFrame.from_records(records)
         edges_frame = edges_frame.sort_values("date")
         return edges_frame
-
     def _build_snapshot(self, metrics_frame: pd.DataFrame) -> pd.DataFrame:
         rows: List[Dict[str, object]] = []
         for label, pair in self.config.pairs.items():
@@ -178,8 +166,6 @@ class YieldSpreadAnalyzer:
                 ]
             )
         return pd.DataFrame(rows)
-
-
 if __name__ == "__main__":
     import yaml
     from pathlib import Path
@@ -187,51 +173,33 @@ if __name__ == "__main__":
     from crew.yields.config import YieldSpreadConfig
     from crew.yields.reporting import YieldSpreadReporter
     from crew.utils.kronos_utils import get_kronos_forecast
-
-    # Setup paths
     PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
     CONFIG_FILE = PROJECT_ROOT / "config" / "use_cases" / "yields.yaml"
     DATA_DIR = PROJECT_ROOT / "data" / "yields"
-
     today = datetime.date.today().strftime("%Y%m%d")
     REPORT_DIR = PROJECT_ROOT / "output" / "use_cases" / "yields" / today
-
-    # Load config
     with open(CONFIG_FILE, "r", encoding="utf-8") as f:
         config_data = yaml.safe_load(f)
     config = YieldSpreadConfig(**config_data)
-
-    # Analyze
     analyzer = YieldSpreadAnalyzer(config)
     analyzer.raw_data_dir = DATA_DIR
-
-    # Empty payload -> load from disk
     analysis_payload = {}
     results = analyzer.evaluate(analysis_payload)
-
-    # Kronos Integration
-    # Forecast spreads
     forecasts = {}
     metrics = results.get("metrics")
     if isinstance(metrics, pd.DataFrame):
-        # MultiIndex columns: (pair, metric)
         pairs = metrics.columns.levels[0]
         for pair in pairs:
-            # Get spread series
             spread_series = metrics[pair]["spread"].dropna()
-
             if len(spread_series) > 30:
-                # Create DF for Kronos
                 df = spread_series.to_frame(name="close")
                 df["open"] = df["close"]
                 df["high"] = df["close"]
                 df["low"] = df["close"]
                 df["volume"] = 0.0
                 df = df.reset_index()
-                # Index handling
                 df.columns = ["date", "close", "open", "high", "low", "volume"]
                 df["Date"] = pd.to_datetime(df["date"])
-
                 try:
                     x_timestamp = df["Date"]
                     pred_len = 30
@@ -240,7 +208,6 @@ if __name__ == "__main__":
                         last_date + pd.Timedelta(days=i + 1) for i in range(pred_len)
                     ]
                     y_timestamp = pd.Series(future_dates)
-
                     pred_df = get_kronos_forecast(
                         df=df,
                         x_timestamp=x_timestamp,
@@ -251,10 +218,7 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(f"Kronos forecast failed for {pair}: {e}")
                     forecasts[pair] = {"error": str(e)}
-
     results["forecasts"] = forecasts
-
-    # Report
     reporter = YieldSpreadReporter(config, DATA_DIR / "processed", REPORT_DIR)
     reporter.persist(results)
     print(f"Report produced in {REPORT_DIR}")

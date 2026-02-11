@@ -1,24 +1,17 @@
 """Company profiles and fundamental data for semiconductor stocks."""
-
 from typing import Dict, List
 from pydantic import BaseModel
-
-
 class CompanyProfile(BaseModel):
     """Profile information for a semiconductor company."""
-
     symbol: str
     name: str
     focus_area: str
-    market_cap_tier: str  # "mega", "large", "mid"
-    ai_exposure: str  # "high", "medium", "low"
+    market_cap_tier: str
+    ai_exposure: str
     key_products: List[str]
     growth_drivers: List[str]
-    analyst_rating: str  # "Strong Buy", "Buy", "Hold", "Sell"
+    analyst_rating: str
     key_metrics: Dict[str, str]
-
-
-# Deep research compiled from web search as of January 2026
 COMPANY_PROFILES: Dict[str, CompanyProfile] = {
     "NVDA": CompanyProfile(
         symbol="NVDA",
@@ -263,13 +256,9 @@ COMPANY_PROFILES: Dict[str, CompanyProfile] = {
         },
     ),
 }
-
-
 def get_company_profile(symbol: str) -> CompanyProfile | None:
     """Get the profile for a given stock symbol."""
     return COMPANY_PROFILES.get(symbol.upper())
-
-
 def get_all_profiles() -> Dict[str, CompanyProfile]:
     """Get all company profiles."""
     return COMPANY_PROFILES

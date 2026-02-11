@@ -1,11 +1,8 @@
 from __future__ import annotations
-
 import json
 from pathlib import Path
 from typing import Dict, List
-
 import pandas as pd
-
 from crew.loan.config import (
     PortfolioMetadata,
     SecuritiesCollateralLoanConfig,
@@ -14,8 +11,6 @@ from crew.loan.insights import build_insight_markdown
 from crew.loan.visualization import (
     SecuritiesCollateralLoanVisualizer,
 )
-
-
 class SecuritiesCollateralLoanReporter:
     def __init__(
         self,
@@ -28,14 +23,12 @@ class SecuritiesCollateralLoanReporter:
         self.report_dir = report_dir
         self.processed_dir.mkdir(parents=True, exist_ok=True)
         self.report_dir.mkdir(parents=True, exist_ok=True)
-
     def _save_parquet(self, name: str, data: pd.DataFrame | pd.Series) -> Path:
         path = self.processed_dir / f"{name}.parquet"
         if isinstance(data, pd.Series):
             data = data.to_frame(name=data.name or "value")
         data.to_parquet(path)
         return path
-
     def persist(self, analysis_payload: Dict[str, object]) -> Dict[str, Path]:
         prices: pd.DataFrame = analysis_payload["prices"]
         positions: pd.DataFrame = analysis_payload["positions"]
@@ -46,9 +39,7 @@ class SecuritiesCollateralLoanReporter:
         scenarios: List[Dict[str, float]] = analysis_payload["scenarios"]
         summary: Dict[str, object] = analysis_payload["summary"]
         asset_breakdown: pd.DataFrame = analysis_payload["asset_breakdown"]
-
         stored_paths: Dict[str, Path] = {}
-
         stored_paths["prices"] = self._save_parquet("prices", prices)
         stored_paths["positions"] = self._save_parquet("positions", positions)
         stored_paths["portfolio_value"] = self._save_parquet(
@@ -67,7 +58,6 @@ class SecuritiesCollateralLoanReporter:
         stored_paths["scenarios"] = self._save_parquet(
             "scenarios", pd.DataFrame(scenarios)
         )
-
         chart_paths: Dict[str, Path] = {}
         try:
             visualizer = SecuritiesCollateralLoanVisualizer(self.report_dir)
@@ -84,7 +74,6 @@ class SecuritiesCollateralLoanReporter:
                 stored_paths["charts"] = chart_paths
         except Exception as exc:
             print(f"[Reporter] Failed to generate collateral loan charts: {exc}")
-
         forward_test = analysis_payload.get("forward_test")
         if isinstance(forward_test, dict):
             series = forward_test.get("series")
@@ -92,7 +81,6 @@ class SecuritiesCollateralLoanReporter:
                 stored_paths["forward_performance"] = self._save_parquet(
                     "forward_performance", series
                 )
-
         mode = analysis_payload.get("mode", "manual")
         if mode == "optimization":
             risk_metrics = analysis_payload.get("risk_metrics")
@@ -100,13 +88,11 @@ class SecuritiesCollateralLoanReporter:
                 stored_paths["etf_risk_metrics"] = self._save_parquet(
                     "etf_risk_metrics", risk_metrics
                 )
-
             candidate_universe = analysis_payload.get("candidate_universe")
             if isinstance(candidate_universe, pd.DataFrame):
                 stored_paths["candidate_universe"] = self._save_parquet(
                     "candidate_universe", candidate_universe
                 )
-
             profile_results = analysis_payload.get("optimization_profile_results", {})
             profile_paths: Dict[str, Path] = {}
             for name, result in profile_results.items():
@@ -118,20 +104,17 @@ class SecuritiesCollateralLoanReporter:
                     portfolio.to_parquet(path)
                     stored_paths[f"optimized_portfolio_{name}"] = path
                     profile_paths[name] = path
-
             optimized_portfolio = analysis_payload.get("optimized_portfolio")
             if isinstance(optimized_portfolio, pd.DataFrame):
                 opt_path = self.processed_dir / "optimized_portfolio.parquet"
                 optimized_portfolio.to_parquet(opt_path)
                 stored_paths["optimized_portfolio"] = opt_path
-
             metadata = analysis_payload.get("metadata")
             if isinstance(metadata, PortfolioMetadata):
                 metadata_path = self.processed_dir / "portfolio_metadata.json"
                 with open(metadata_path, "w") as f:
                     json.dump(metadata.dict(), f, indent=2)
                 stored_paths["portfolio_metadata"] = metadata_path
-
         report_path = self.report_dir / "securities_collateral_loan_report.md"
         report_path.write_text(
             self._build_report(
@@ -145,13 +128,10 @@ class SecuritiesCollateralLoanReporter:
             )
         )
         stored_paths["report"] = report_path
-
         insight_path = self.report_dir / "securities_collateral_loan_insights.md"
         insight_path.write_text(build_insight_markdown(analysis_payload))
         stored_paths["insights"] = insight_path
-
         return stored_paths
-
     def _format_backtest_vs_forward_comparison(
         self,
         backtest_metrics: Dict[str, float],
@@ -160,13 +140,12 @@ class SecuritiesCollateralLoanReporter:
     ) -> List[str]:
         lines = []
         lines.append("")
-        lines.append("### Backtest vs Forward Comparison")
+        lines.append("
         lines.append("")
         lines.append(
             "| Metric | Backtest Period | Forward Period | Difference | Status |"
         )
         lines.append("| --- | --- | --- | --- | --- |")
-
         bt_return = backtest_metrics.get("annual_return", 0)
         fw_return = forward_metrics.get("annualized_return", 0)
         if fw_return != 0:
@@ -175,7 +154,6 @@ class SecuritiesCollateralLoanReporter:
                 f"| Annual Return | {bt_return * 100:.2f}% | {fw_return * 100:.2f}% | "
                 f"{diff_return * 100:+.2f}% | {'⚠️' if abs(diff_return) > 0.05 else '✓'} |"
             )
-
         bt_vol = backtest_metrics.get("annual_volatility", 0)
         fw_vol = forward_metrics.get("annualized_volatility", 0)
         max_vol = constraints.get("max_volatility", 0.15)
@@ -186,7 +164,6 @@ class SecuritiesCollateralLoanReporter:
                 f"| Annual Volatility | {bt_vol * 100:.2f}% | {fw_vol * 100:.2f}% | "
                 f"{diff_vol * 100:+.2f}% | {status} |"
             )
-
         bt_sharpe = backtest_metrics.get("sharpe_ratio", 0)
         fw_sharpe = forward_metrics.get("sharpe_ratio", 0)
         if fw_sharpe != 0:
@@ -195,7 +172,6 @@ class SecuritiesCollateralLoanReporter:
                 f"| Sharpe Ratio | {bt_sharpe:.3f} | {fw_sharpe:.3f} | "
                 f"{diff_sharpe:+.3f} | {'⚠️' if diff_sharpe < -0.5 else '✓'} |"
             )
-
         bt_dd = backtest_metrics.get("max_drawdown", 0)
         fw_dd = forward_metrics.get("max_drawdown", 0)
         if fw_dd != 0:
@@ -204,9 +180,7 @@ class SecuritiesCollateralLoanReporter:
                 f"| Max Drawdown | {bt_dd * 100:.2f}% | {fw_dd * 100:.2f}% | "
                 f"{diff_dd * 100:+.2f}% | {'⚠️' if abs(diff_dd) > 0.10 else '✓'} |"
             )
-
         return lines
-
     def _build_report(
         self,
         summary: Dict[str, object],
@@ -218,15 +192,13 @@ class SecuritiesCollateralLoanReporter:
         chart_paths: Dict[str, Path] | None = None,
     ) -> str:
         lines: List[str] = []
-        lines.append("# Securities Collateral Loan Risk Report")
+        lines.append("
         lines.append("")
-
         mode = analysis_payload.get("mode", "manual") if analysis_payload else "manual"
         if mode == "optimization":
             lines.append("*Generated via automated portfolio optimization*")
             lines.append("")
-
-        lines.append("## Overview")
+        lines.append("
         lines.append(f"- Loan amount: ¥{summary['loan_amount']:,}")
         lines.append(
             f"- Annual interest rate: {self.config.annual_interest_rate * 100:.3f}%"
@@ -255,15 +227,14 @@ class SecuritiesCollateralLoanReporter:
             f"- Historical max drawdown (portfolio): {summary['max_drawdown'] * 100:.2f}%"
         )
         lines.append("")
-
         if chart_paths:
-            lines.append("## Visual Highlights")
+            lines.append("
             lines.append(
                 "Key diagnostics generated from the latest prices and risk thresholds."
             )
             lines.append("")
             if chart_paths.get("allocation"):
-                lines.append("### Collateral Allocation Mix")
+                lines.append("
                 lines.append(
                     "Relative weights for the top holdings in the optimized portfolio."
                 )
@@ -272,7 +243,7 @@ class SecuritiesCollateralLoanReporter:
                 )
                 lines.append("")
             if chart_paths.get("loan_ratio"):
-                lines.append("### Loan Ratio vs Thresholds")
+                lines.append("
                 lines.append(
                     "Historical loan-to-value trajectory with Rakuten Securities' warning and liquidation lines."
                 )
@@ -281,20 +252,19 @@ class SecuritiesCollateralLoanReporter:
                 )
                 lines.append("")
             if chart_paths.get("scenarios"):
-                lines.append("### Stress Scenario Outcomes")
+                lines.append("
                 lines.append(
                     "Loan ratio impact under the configured -10% to -40% price shocks."
                 )
                 lines.append("![Stress Scenarios](./graphs/03_stress_scenarios.png)")
                 lines.append("")
             if chart_paths.get("portfolio_value"):
-                lines.append("### Portfolio Value Path")
+                lines.append("
                 lines.append(
                     "Mark-to-market collateral value expressed in millions of yen."
                 )
                 lines.append("![Portfolio Value](./graphs/04_portfolio_value.png)")
                 lines.append("")
-
         if mode == "optimization" and analysis_payload:
             primary_profile = analysis_payload.get("primary_profile")
             ranked_etfs = analysis_payload.get("ranked_etfs")
@@ -302,8 +272,7 @@ class SecuritiesCollateralLoanReporter:
             optimization_profiles = analysis_payload.get("optimization_profiles", {})
             etf_master = analysis_payload.get("etf_master")
             filter_thresholds = analysis_payload.get("asset_filter_thresholds") or {}
-
-            lines.append("## Optimization Summary")
+            lines.append("
             if isinstance(etf_master, pd.DataFrame):
                 lines.append(f"- Total ETFs evaluated: {len(etf_master)}")
             if isinstance(ranked_etfs, pd.DataFrame):
@@ -321,7 +290,6 @@ class SecuritiesCollateralLoanReporter:
             hedged_excluded = analysis_payload.get("hedged_excluded") or []
             volatility_excluded = analysis_payload.get("volatility_excluded") or []
             drawdown_excluded = analysis_payload.get("drawdown_excluded") or []
-
             lines.append(
                 f"- Excluded ETFs: {len(hedged_excluded)} hedged, {len(volatility_excluded)} high-volatility, {len(drawdown_excluded)} deep-drawdown"
             )
@@ -330,7 +298,6 @@ class SecuritiesCollateralLoanReporter:
             )
             if primary_profile:
                 lines.append(f"- Selected profile: {primary_profile}")
-
             variant_portfolios = analysis_payload.get("variant_portfolios") or {}
             if variant_portfolios:
                 strategy_labels = [
@@ -338,17 +305,13 @@ class SecuritiesCollateralLoanReporter:
                     ("min_variance", "Minimum-Variance Portfolio"),
                     ("max_kelly", "Max Kelly Criterion Portfolio"),
                 ]
-
                 table_rows: List[str] = []
                 holdings_blocks: List[str] = []
                 errors: List[str] = []
-
                 def _fmt_pct(value: float | None) -> str:
                     return f"{value * 100:.2f}%" if value is not None else "N/A"
-
                 def _fmt_ratio(value: float | None) -> str:
                     return f"{value:.3f}" if value is not None else "N/A"
-
                 for strategy_key, label in strategy_labels:
                     variant = variant_portfolios.get(strategy_key)
                     if not isinstance(variant, dict):
@@ -356,7 +319,6 @@ class SecuritiesCollateralLoanReporter:
                     if "error" in variant and "metrics" not in variant:
                         errors.append(f"- {label}: {variant['error']}")
                         continue
-
                     metrics = variant.get("metrics", {})
                     portfolio_df = (
                         variant.get("portfolio")
@@ -364,7 +326,6 @@ class SecuritiesCollateralLoanReporter:
                         else None
                     )
                     method_display = variant.get("strategy", strategy_key)
-
                     table_rows.append(
                         f"| {label} | {method_display} | "
                         f"{_fmt_pct(metrics.get('annual_return'))} | "
@@ -372,7 +333,6 @@ class SecuritiesCollateralLoanReporter:
                         f"{_fmt_ratio(metrics.get('sharpe_ratio'))} | "
                         f"{_fmt_ratio(metrics.get('kelly_ratio'))} |"
                     )
-
                     if (
                         isinstance(portfolio_df, pd.DataFrame)
                         and not portfolio_df.empty
@@ -401,10 +361,9 @@ class SecuritiesCollateralLoanReporter:
                             holdings_blocks.append(header)
                             holdings_blocks.extend(formatted_rows)
                             holdings_blocks.append("")
-
                 if table_rows or errors:
                     lines.append("")
-                    lines.append("### Portfolio Variants")
+                    lines.append("
                     if table_rows:
                         lines.append(
                             "| Variant | Optimization Strategy | Annual Return | Annual Volatility | Sharpe | Kelly (r/σ²) |"
@@ -418,9 +377,8 @@ class SecuritiesCollateralLoanReporter:
                         lines.append("**Variant Optimization Notes**")
                         lines.extend(errors)
                         lines.append("")
-
             if hedged_excluded or volatility_excluded or drawdown_excluded:
-                lines.append("### Filter Diagnostics")
+                lines.append("
                 threshold_notes: List[str] = []
                 max_vol_threshold = filter_thresholds.get("max_asset_volatility")
                 max_dd_threshold = filter_thresholds.get("max_asset_drawdown")
@@ -464,17 +422,14 @@ class SecuritiesCollateralLoanReporter:
                             f"| {item.get('ticker', '')} | {item.get('name', '')} |"
                         )
                 lines.append("")
-
             opt_metrics = analysis_payload.get("optimization_metrics") or {}
-
             prices_df = analysis_payload.get("prices") if analysis_payload else None
             backtest_start = None
             backtest_end = None
             if isinstance(prices_df, pd.DataFrame) and not prices_df.empty:
                 backtest_start = prices_df.index.min()
                 backtest_end = prices_df.index.max()
-
-            lines.append("## Part 1: BACKTEST PERIOD ANALYSIS")
+            lines.append("
             lines.append("")
             lines.append(
                 "**Purpose**: Portfolio construction and constraint validation"
@@ -492,15 +447,12 @@ class SecuritiesCollateralLoanReporter:
             )
             lines.append("They do NOT guarantee future performance.")
             lines.append("")
-
             if opt_metrics:
-                lines.append("### Backtest Period Metrics")
+                lines.append("
                 lines.append("| Metric | Value | Constraint | Status |")
                 lines.append("| --- | --- | --- | --- |")
-
                 ann_return = opt_metrics.get("annual_return", 0)
                 lines.append(f"| Annual Return | {ann_return * 100:.2f}% | - | - |")
-
                 ann_vol = opt_metrics.get("annual_volatility", 0)
                 constraints = (
                     self.config.optimization.constraints
@@ -512,22 +464,18 @@ class SecuritiesCollateralLoanReporter:
                 lines.append(
                     f"| Annual Volatility | {ann_vol * 100:.2f}% | ≤ {max_vol * 100:.0f}% | {vol_status} |"
                 )
-
                 sharpe = opt_metrics.get("sharpe_ratio", 0)
                 lines.append(f"| Sharpe Ratio | {sharpe:.3f} | - | - |")
-
                 expense_value = opt_metrics.get("expense_ratio")
                 if expense_value is not None:
                     exp_status = "✅" if expense_value < 0.004 else "❌"
                     lines.append(
                         f"| Weighted Expense Ratio | {expense_value * 100:.2f}% | < 0.40% | {exp_status} |"
                     )
-
                 lines.append("")
             lines.append("")
-
             if optimization_profiles:
-                lines.append("### Profile Metrics")
+                lines.append("
                 lines.append(
                     "| Profile | Annual Return | Volatility | Sharpe | Expense Ratio | Selected |"
                 )
@@ -548,9 +496,8 @@ class SecuritiesCollateralLoanReporter:
                         f"{'Yes' if name == primary_profile else ''} |"
                     )
                 lines.append("")
-
             if isinstance(ranked_etfs, pd.DataFrame) and not ranked_etfs.empty:
-                lines.append("### Top 10 ETFs by Composite Score")
+                lines.append("
                 lines.append(
                     "| Rank | Ticker | Name | Return | Volatility | Sharpe | Expense | Score |"
                 )
@@ -568,18 +515,16 @@ class SecuritiesCollateralLoanReporter:
                         f"{row['sharpe_ratio']:.3f} | {expense_display} | {row['composite_score']:.3f} |"
                     )
                 lines.append("")
-
-        lines.append("## Part 2: PORTFOLIO CONSTRUCTION")
+        lines.append("
         lines.append("")
         lines.append(
             "**Purpose**: Selected ETFs and portfolio composition at anchor date"
         )
         lines.append("")
-        lines.append("### Collateral Breakdown")
+        lines.append("
         asset_breakdown_sorted = asset_breakdown.sort_values(
             "market_value", ascending=False
         )
-
         if mode == "optimization" and "category" in asset_breakdown.columns:
             category_summary = asset_breakdown.groupby("category").agg(
                 market_value=("market_value", "sum"),
@@ -592,8 +537,7 @@ class SecuritiesCollateralLoanReporter:
             category_summary = category_summary.sort_values(
                 "market_value", ascending=False
             )
-
-            lines.append("### By Category")
+            lines.append("
             lines.append("| Category | ETF Count | Market Value | Weight |")
             lines.append("| --- | --- | --- | --- |")
             for cat, row in category_summary.iterrows():
@@ -601,14 +545,11 @@ class SecuritiesCollateralLoanReporter:
                     f"| {cat} | {int(row['count'])} | ¥{row['market_value']:,.0f} | {row['weight'] * 100:.1f}% |"
                 )
             lines.append("")
-
-            lines.append(f"### Top Holdings (out of {len(asset_breakdown)} ETFs)")
-
+            lines.append(f"
         lines.append(
             "| Ticker | Name | Quantity | Price | Market Value | Weight | Expense | Return | Volatility | Sharpe |"
         )
         lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
-
         display_count = min(20, len(asset_breakdown_sorted))
         for _, row in asset_breakdown_sorted.head(display_count).iterrows():
             weight = row.get("weight_realized", row.get("weight"))
@@ -641,17 +582,15 @@ class SecuritiesCollateralLoanReporter:
                 f"¥{row['latest_price']:.2f} | ¥{row['market_value']:.0f} | "
                 f"{weight_display} | {expense_display} | {ret_display} | {vol_display} | {sharpe_display} |"
             )
-
         total_value = asset_breakdown["market_value"].sum()
         lines.append("")
         lines.append(
             f"*Total: {len(asset_breakdown)} ETFs, Portfolio value: ¥{total_value:,.0f}*"
         )
         lines.append("")
-
         annual_asset_returns = analysis_payload.get("annual_asset_returns") or []
         if annual_asset_returns:
-            lines.append("### Annual Performance by ETF")
+            lines.append("
             lines.append("| Year | Ticker | Name | Return | Volatility | Sharpe |")
             lines.append("| --- | --- | --- | --- | --- | --- |")
             for row in annual_asset_returns:
@@ -669,12 +608,11 @@ class SecuritiesCollateralLoanReporter:
                     f"| {row['year']} | {row['ticker']} | {row.get('name', '')[:40]} | {ret_display} | {vol_display} | {sharpe_display} |"
                 )
             lines.append("")
-
         annual_portfolio_returns = (
             analysis_payload.get("annual_portfolio_returns") or []
         )
         if annual_portfolio_returns:
-            lines.append("### Annual Portfolio Performance")
+            lines.append("
             lines.append("| Year | Return | Volatility | Sharpe |")
             lines.append("| --- | --- | --- | --- |")
             for row in annual_portfolio_returns:
@@ -692,7 +630,6 @@ class SecuritiesCollateralLoanReporter:
                     f"| {row['year']} | {ret_display} | {vol_display} | {sharpe_display} |"
                 )
             lines.append("")
-
         forward_test = (
             analysis_payload.get("forward_test") if analysis_payload else None
         )
@@ -700,8 +637,7 @@ class SecuritiesCollateralLoanReporter:
             summary_forward = forward_test.get("summary", {})
             start = summary_forward.get("start")
             end = summary_forward.get("end")
-
-            lines.append("## Part 3: FORWARD PERIOD PERFORMANCE ⭐")
+            lines.append("
             lines.append("")
             lines.append(
                 "**Purpose**: Actual realized risk and return during holding period"
@@ -716,8 +652,7 @@ class SecuritiesCollateralLoanReporter:
                 "**Important**: This is the **ACTUAL PERFORMANCE** after portfolio construction."
             )
             lines.append("")
-
-            lines.append("### Forward Period Metrics")
+            lines.append("
             lines.append("| Metric | Value |")
             lines.append("| --- | --- |")
             if summary_forward.get("cumulative_return") is not None:
@@ -749,7 +684,6 @@ class SecuritiesCollateralLoanReporter:
                     f"| Sharpe Ratio | {summary_forward['sharpe_ratio']:.3f} |"
                 )
             lines.append("")
-
             opt_metrics = (
                 analysis_payload.get("optimization_metrics") if analysis_payload else {}
             )
@@ -764,12 +698,11 @@ class SecuritiesCollateralLoanReporter:
                 )
                 lines.extend(comparison_lines)
                 lines.append("")
-
                 fw_vol = summary_forward.get("annualized_volatility", 0)
                 bt_vol = opt_metrics.get("annual_volatility", 0)
                 max_vol = constraints.get("max_volatility", 0.15)
                 if fw_vol > max_vol or abs(fw_vol - bt_vol) > 0.03:
-                    lines.append("### ⚠️ Forward-Looking Bias Warning")
+                    lines.append("
                     lines.append("")
                     if fw_vol > max_vol:
                         lines.append(
@@ -789,17 +722,14 @@ class SecuritiesCollateralLoanReporter:
                         "Market regime changes can significantly alter risk characteristics."
                     )
                     lines.append("")
-
             lines.append("")
-
-        lines.append("## Interest Projection")
+        lines.append("
         lines.append("| Days | Interest (¥) |")
         lines.append("| --- | --- |")
         for horizon in summary["interest_projection"]:
             lines.append(f"| {horizon['days']} | ¥{horizon['interest']:.2f} |")
         lines.append("")
-
-        lines.append("## Stress Scenarios")
+        lines.append("
         lines.append(
             "| Scenario | Post Value (¥) | Loan Ratio | Margin Call? | Liquidation? |"
         )
@@ -812,11 +742,10 @@ class SecuritiesCollateralLoanReporter:
                 f"{warning_flag} | {liquidation_flag} |"
             )
         lines.append("")
-
         if len(warning_events) > 0 or len(liquidation_events) > 0:
-            lines.append("## Historical Breaches")
+            lines.append("
             if len(warning_events) > 0:
-                lines.append("### Margin Call Summary (>= 70%)")
+                lines.append("
                 lines.append(f"- Total events: {len(warning_events)} days")
                 lines.append(f"- First breach: {warning_events['date'].min().date()}")
                 lines.append(f"- Last breach: {warning_events['date'].max().date()}")
@@ -834,30 +763,25 @@ class SecuritiesCollateralLoanReporter:
                 for _, row in warning_events.tail(5).iterrows():
                     lines.append(f"| {row['date'].date()} | {row['loan_ratio']:.3f} |")
                 lines.append("")
-
             if len(liquidation_events) > 0:
-                lines.append("### Forced Liquidation Summary (>= 85%)")
+                lines.append("
                 lines.append(f"- Total events: {len(liquidation_events)} days")
                 lines.append("")
-
         forecasts = analysis_payload.get("forecasts")
         if forecasts:
-            lines.append("## Kronos Forecasts (Portfolio Assets)")
+            lines.append("
             for ticker, forecast_data in forecasts.items():
                 if isinstance(forecast_data, dict) and "error" in forecast_data:
-                    lines.append(f"### {ticker} Forecast Error")
+                    lines.append(f"
                     lines.append(f"Error: {forecast_data['error']}")
                     continue
-
                 if not forecast_data:
                     continue
-
                 last_forecast = forecast_data[-1]
-                lines.append(f"### {ticker} Prediction")
+                lines.append(f"
                 lines.append(f"- Prediction End: {last_forecast.get('date', 'N/A')}")
                 lines.append(
                     f"- Predicted Close: {last_forecast.get('close', 'N/A'):.2f}"
                 )
                 lines.append("")
-
         return "\n".join(lines)

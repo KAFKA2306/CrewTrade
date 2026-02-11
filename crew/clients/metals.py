@@ -1,15 +1,11 @@
 from pathlib import Path
 from typing import Dict, List, Tuple
-
 import pandas as pd
 import yfinance as yf
-
-
 class PreciousMetalsDataClient:
     def __init__(self, raw_data_dir: Path) -> None:
         self.raw_data_dir = raw_data_dir
         self.raw_data_dir.mkdir(parents=True, exist_ok=True)
-
     def get_frames(
         self, tickers: List[str], suffix: str, period: str
     ) -> Dict[str, pd.DataFrame]:
@@ -19,10 +15,8 @@ class PreciousMetalsDataClient:
             self._store_frames(downloaded, suffix)
             cached_frames.update(downloaded)
         return cached_frames
-
     def _build_path(self, ticker: str, suffix: str) -> Path:
         return self.raw_data_dir / f"{ticker}_{suffix}.parquet"
-
     def _load_cached_frames(
         self, tickers: List[str], suffix: str
     ) -> Tuple[Dict[str, pd.DataFrame], List[str]]:
@@ -35,7 +29,6 @@ class PreciousMetalsDataClient:
             else:
                 missing.append(ticker)
         return frames, missing
-
     def _download_price_frames(
         self, tickers: List[str], period: str
     ) -> Dict[str, pd.DataFrame]:
@@ -54,7 +47,6 @@ class PreciousMetalsDataClient:
         for ticker in tickers:
             frames[ticker] = frame.copy()
         return frames
-
     def _store_frames(
         self, frames: Dict[str, pd.DataFrame], suffix: str
     ) -> Dict[str, Path]:

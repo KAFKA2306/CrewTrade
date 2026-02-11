@@ -1,8 +1,5 @@
 from typing import Dict, List
-
 import pandas as pd
-
-
 def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
     edges = analysis_payload["edges"].copy()
     metrics = analysis_payload["metrics"].copy()
@@ -12,9 +9,9 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
     date_end = edges["date"].max()
     total_signals = len(edges)
     lines: List[str] = []
-    lines.append("# Precious Metals Spread Insight Report")
+    lines.append("
     lines.append("")
-    lines.append("## Signal Coverage")
+    lines.append("
     lines.append(f"- Date range: {date_start.date()} to {date_end.date()}")
     lines.append(f"- Total signals: {total_signals}")
     lines.append("")
@@ -23,7 +20,7 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
         _format_table(signal_counts, ["ticker", "signals"], ["Ticker", "Signals"])
     )
     lines.append("")
-    lines.append("## Gap Magnitude")
+    lines.append("
     abs_stats = (
         edges.groupby("ticker")["abs_gap_pct"]
         .agg(["count", "mean", "median", "max"])
@@ -54,7 +51,7 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
         )
     )
     lines.append("")
-    lines.append("## Recent 90-Day Signals")
+    lines.append("
     last_90_start = edges["date"].max() - pd.Timedelta(days=90)
     recent = edges[edges["date"] >= last_90_start]
     if not recent.empty:
@@ -80,7 +77,7 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
     else:
         lines.append("No signals in the last 90 days.")
     lines.append("")
-    lines.append("## Consecutive Signal Durations")
+    lines.append("
     streak_summary = _compute_streak_summary(edges)
     lines.append(
         _format_table(
@@ -90,10 +87,10 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
         )
     )
     lines.append("")
-    lines.append("## Reversion Durations")
+    lines.append("
     threshold_tables = _compute_reversion_tables(metrics)
     for threshold, table in threshold_tables.items():
-        lines.append(f"### |z| → < {threshold}")
+        lines.append(f"
         if table.empty:
             lines.append("No reversion within data horizon.")
         else:
@@ -105,7 +102,7 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
                 )
             )
         lines.append("")
-    lines.append("## Next Signal Dynamics")
+    lines.append("
     next_signal = _compute_next_signal_stats(edges)
     if next_signal.empty:
         lines.append("Not enough sequential signals per ticker.")
@@ -118,10 +115,10 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
             )
         )
     lines.append("")
-    lines.append("## Gap Threshold Reversion (8/10/12%)")
+    lines.append("
     threshold_tables = _compute_gap_threshold_stats(metrics)
     for threshold, table in threshold_tables.items():
-        lines.append(f"### ≥ {int(threshold * 100)}% → < {int(threshold * 50)}%")
+        lines.append(f"
         if table.empty:
             lines.append("No qualifying events.")
         else:
@@ -150,8 +147,6 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
             )
         lines.append("")
     return "\n".join(lines)
-
-
 def _format_table(df: pd.DataFrame, columns: List[str], headers: List[str]) -> str:
     table_lines: List[str] = []
     table_lines.append("| " + " | ".join(headers) + " |")
@@ -166,8 +161,6 @@ def _format_table(df: pd.DataFrame, columns: List[str], headers: List[str]) -> s
                 formatted.append(str(value))
         table_lines.append("| " + " | ".join(formatted) + " |")
     return "\n".join(table_lines)
-
-
 def _compute_streak_summary(edges: pd.DataFrame) -> pd.DataFrame:
     summary_records: List[Dict[str, object]] = []
     for ticker, group in edges.sort_values("date").groupby("ticker"):
@@ -214,8 +207,6 @@ def _compute_streak_summary(edges: pd.DataFrame) -> pd.DataFrame:
                 }
             )
     return pd.DataFrame(summary_records)
-
-
 def _compute_reversion_tables(metrics: pd.DataFrame) -> Dict[float, pd.DataFrame]:
     thresholds = [2.0, 1.5, 1.0, 0.5]
     records: List[Dict[str, object]] = []
@@ -251,8 +242,6 @@ def _compute_reversion_tables(metrics: pd.DataFrame) -> Dict[float, pd.DataFrame
             )
             tables[threshold] = stats
     return tables
-
-
 def _compute_next_signal_stats(edges: pd.DataFrame) -> pd.DataFrame:
     rows: List[Dict[str, object]] = []
     for ticker, group in edges.sort_values("date").groupby("ticker"):
@@ -277,8 +266,6 @@ def _compute_next_signal_stats(edges: pd.DataFrame) -> pd.DataFrame:
                 }
             )
     return pd.DataFrame(rows)
-
-
 def _compute_gap_threshold_stats(metrics: pd.DataFrame) -> Dict[float, pd.DataFrame]:
     thresholds = [0.08, 0.10, 0.12]
     records: List[Dict[str, object]] = []

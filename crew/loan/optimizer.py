@@ -1,13 +1,8 @@
 from __future__ import annotations
-
 from typing import Dict, List, Optional, Tuple
-
 import numpy as np
 import pandas as pd
-
 from crew.loan.hrp_optimizer import HierarchicalRiskParity
-
-
 def _weighted_metric_score(
     metrics: Dict[str, float], objective_weights: Dict[str, float]
 ) -> float:
@@ -25,8 +20,6 @@ def _weighted_metric_score(
         weights = weights / total
     values = np.array([item[1] for item in active], dtype=float)
     return float(values @ weights)
-
-
 def _portfolio_expense(
     weights: np.ndarray,
     tickers: List[str],
@@ -46,8 +39,6 @@ def _portfolio_expense(
     if not expense_values:
         return None
     return float(sum(expense_values))
-
-
 def _priority_score_bonus(
     weights: np.ndarray,
     tickers: List[str],
@@ -55,14 +46,11 @@ def _priority_score_bonus(
 ) -> float:
     if not priority_indices:
         return 0.0
-
     tier1 = set(priority_indices.get("tier1", []))
     tier2 = set(priority_indices.get("tier2", []))
     tier3 = set(priority_indices.get("tier3", []))
-
     bonus = 0.0
     tier1_weight = 0.0
-
     for ticker, weight in zip(tickers, weights):
         if weight <= 1e-4:
             continue
@@ -73,13 +61,9 @@ def _priority_score_bonus(
             bonus += weight * 1.0
         elif ticker in tier3:
             bonus += weight * 0.3
-
     if tier1 and tier1_weight < 0.15:
         bonus -= 5.0
-
     return bonus
-
-
 def optimize_collateral_portfolio(
     prices: pd.DataFrame,
     etf_master: pd.DataFrame,
@@ -93,57 +77,33 @@ def optimize_collateral_portfolio(
     use_hrp: bool = False,
     priority_indices: Optional[Dict[str, List[str]]] = None,
 ) -> Dict:
-    # Filter out assets with insufficient data in this window
-    # This supports "dynamic universe" where some assets didn't exist yet.
-    # We require at least 50% valid data points to consider the asset "tradeable" in this window.
     valid_tickers = [
         col for col in prices.columns if prices[col].count() > len(prices) * 0.5
     ]
-
     if len(valid_tickers) < 3:
-        # If we decimated the universe too much, fallback to original behavior (which likely fails/raises)
-        # or raise specific error
         if len(prices.columns) >= 3 and len(valid_tickers) < 3:
-            # Just use what we have if barely enough, or fail.
             pass
-
-    # Use only valid tickers for calculation
     prices_subset = prices[valid_tickers]
     returns = prices_subset.pct_change().dropna()
-
-    # Tickers are now the subset
     tickers = list(prices_subset.columns)
-
-    # Update n_assets based on filtered prices columns
     n_assets = len(tickers)
-
     if n_assets < 1:
         raise ValueError("No assets available for optimization.")
-
     min_weight = constraints.get("min_weight", 0.0)
     max_weight = constraints.get("max_weight", 1.0)
     max_volatility = constraints.get("max_volatility", float("inf"))
     max_category_weight = constraints.get("max_category_weight")
-
-    # If fewer than 3 assets (or whatever min_assets was), we cannot run detailed optimization (covariance etc might be unstable)
-    # We should fallback to Equal Weight or similar.
     if n_assets < 3:
-        # Create a fallback weight vector directly
         weights = np.ones(n_assets) / n_assets
         best_portfolio = weights
-        best_score = 0.0  # Dummy score
-
-        # Skip the main optimization loop
+        best_score = 0.0
         sample_size = 0
         use_hrp = False
-
-        # We need to set calculated metrics for the return below
-        annual_returns = returns.mean() * 252  # Re-calc on subset
+        annual_returns = returns.mean() * 252
         cov_matrix = returns.cov() * 252
     else:
         cov_matrix = returns.cov() * 252
         annual_returns = returns.mean() * 252
-
     category_lookup = (
         etf_master.set_index("ticker")["category"].to_dict()
         if not etf_master.empty
@@ -160,21 +120,17 @@ def optimize_collateral_portfolio(
         if value is not None and not np.isnan(value)
     ]
     default_expense = float(np.mean(expense_values_all)) if expense_values_all else 0.0
-
     subset_capacity = n_assets
     if max_assets is not None:
         subset_capacity = min(subset_capacity, max_assets)
     if min_weight > 0:
         subset_capacity = min(subset_capacity, int(1.0 / min_weight))
     subset_capacity = max(subset_capacity, min_assets)
-
     best_portfolio = None
     best_score = -np.inf
-
     if use_hrp:
         hrp = HierarchicalRiskParity(prices, constraints)
         hrp_result = hrp.optimize()
-
         hrp_weights = np.zeros(n_assets)
         for _, row in hrp_result.iterrows():
             ticker = row["ticker"]
@@ -182,24 +138,20 @@ def optimize_collateral_portfolio(
             if ticker in tickers:
                 idx = tickers.index(ticker)
                 hrp_weights[idx] = weight
-
         if max_assets is not None and np.sum(hrp_weights > 1e-4) > max_assets:
             top_indices = np.argsort(hrp_weights)[-max_assets:]
             filtered_weights = np.zeros(n_assets)
             filtered_weights[top_indices] = hrp_weights[top_indices]
             filtered_weights = filtered_weights / filtered_weights.sum()
             hrp_weights = filtered_weights
-
         portfolio_return = float(np.dot(annual_returns.values, hrp_weights))
         portfolio_volatility = float(
             np.sqrt(np.dot(hrp_weights, cov_matrix @ hrp_weights))
         )
-
         if portfolio_volatility <= max_volatility and portfolio_volatility > 0:
             sharpe = portfolio_return / portfolio_volatility
             best_portfolio = hrp_weights
             best_score = sharpe
-
     if best_portfolio is None:
         for _ in range(sample_size):
             if subset_capacity < n_assets:
@@ -210,15 +162,12 @@ def optimize_collateral_portfolio(
             else:
                 subset_indices = np.arange(n_assets)
             candidate_weights = np.random.dirichlet(np.ones(len(subset_indices)))
-
             if min_weight > 0 and np.any(candidate_weights < min_weight):
                 continue
             if np.any(candidate_weights > max_weight):
                 continue
-
             weights = np.zeros(n_assets)
             weights[subset_indices] = candidate_weights
-
             if max_category_weight is not None and category_lookup:
                 category_weights: Dict[str, float] = {}
                 for idx, weight in zip(subset_indices, candidate_weights):
@@ -231,23 +180,18 @@ def optimize_collateral_portfolio(
                     weight > max_category_weight for weight in category_weights.values()
                 ):
                     continue
-
             portfolio_return = float(np.dot(annual_returns.values, weights))
             portfolio_volatility = float(np.sqrt(np.dot(weights, cov_matrix @ weights)))
-
             if portfolio_volatility > max_volatility or portfolio_volatility == 0:
                 continue
-
             sharpe = (
                 portfolio_return / portfolio_volatility
                 if portfolio_volatility > 0
                 else 0
             )
-
             candidate_expense = _portfolio_expense(
                 weights, tickers, expense_lookup, default_expense
             )
-
             if score_strategy:
                 strategy = score_strategy.lower()
                 if strategy == "min_variance":
@@ -272,14 +216,11 @@ def optimize_collateral_portfolio(
                 score = _weighted_metric_score(metric_inputs, objective_weights)
                 if score == 0 and portfolio_volatility > 0:
                     score = sharpe / portfolio_volatility
-
             priority_bonus = _priority_score_bonus(weights, tickers, priority_indices)
             score += priority_bonus
-
             if score > best_score:
                 best_score = score
                 best_portfolio = weights
-
     if best_portfolio is None:
         fallback_subset = min(subset_capacity, n_assets)
         weights = np.zeros(n_assets)
@@ -289,37 +230,17 @@ def optimize_collateral_portfolio(
             )
         weights[:fallback_subset] = 1.0 / fallback_subset
         best_portfolio = weights
-
-    # If we filtered tickers at the start, we must map back to ORIGINAL universe
-    # best_portfolio currently corresponds to 'tickers' (the subset).
-    # We need to construct a full weight vector for prices.columns
-
     final_weights_map = {t: 0.0 for t in prices.columns}
     for t_idx, t_name in enumerate(tickers):
         final_weights_map[t_name] = best_portfolio[t_idx]
-
-    # Re-order to match original output expectations if needed,
-    # but 'best_portfolio' is used right below for 'significant_indices'.
-    # We should let the rest of the function run on the subset 'best_portfolio'
-    # and then ensure the returned 'portfolio_df' covers the full universe or just the selected one.
-    # The function returns "portfolio" df. It's safer if that DF only contains selected assets.
-    # BUT the caller might expect all assets.
-    # Inspecting return: "portfolio" df has 'ticker', 'weight'.
-    # It does NOT list zero-weight assets usually unless we forced them.
-    # Let's keep logic as is: 'tickers' is now the subset. 'best_portfolio' aligns with 'tickers'.
-    # So 'selected_weights' will correct use the subset indices.
-    # The 'portfolio_df' will be created correctly for the subset.
-
     significant_indices = [
         i for i, weight in enumerate(best_portfolio) if weight > 1e-4
     ]
     if not significant_indices:
         significant_indices = [int(np.argmax(best_portfolio))]
-
     selected_weights = best_portfolio[significant_indices]
     selected_weights = selected_weights / selected_weights.sum()
     selected_tickers = [tickers[i] for i in significant_indices]
-
     latest_prices = prices.iloc[-1]
     quantities: List[int] = []
     for weight, ticker in zip(selected_weights, selected_tickers):
@@ -329,7 +250,6 @@ def optimize_collateral_portfolio(
         if qty <= 0:
             qty = 1
         quantities.append(qty)
-
     portfolio_df = pd.DataFrame(
         {
             "ticker": selected_tickers,
@@ -338,7 +258,6 @@ def optimize_collateral_portfolio(
             "latest_price": latest_prices[selected_tickers].values,
         }
     )
-
     portfolio_df["allocation_value"] = (
         portfolio_df["quantity"] * portfolio_df["latest_price"]
     )
@@ -349,7 +268,6 @@ def optimize_collateral_portfolio(
         )
     else:
         portfolio_df["weight_realized"] = portfolio_df["weight"]
-
     merge_cols = [
         col
         for col in ["ticker", "name", "provider", "category", "expense_ratio"]
@@ -359,7 +277,6 @@ def optimize_collateral_portfolio(
         portfolio_df = portfolio_df.merge(
             etf_master[merge_cols], on="ticker", how="left"
         )
-
     portfolio_return = float(np.dot(annual_returns.values, best_portfolio))
     portfolio_volatility = float(
         np.sqrt(np.dot(best_portfolio, cov_matrix @ best_portfolio))
@@ -367,7 +284,6 @@ def optimize_collateral_portfolio(
     sharpe_ratio = (
         portfolio_return / portfolio_volatility if portfolio_volatility > 0 else 0
     )
-
     weighted_expense_ratio = None
     expense = _portfolio_expense(
         best_portfolio, tickers, expense_lookup, default_expense
@@ -376,11 +292,9 @@ def optimize_collateral_portfolio(
         weighted_expense_ratio = expense
     elif not expense_lookup:
         weighted_expense_ratio = 0.0
-
     kelly_ratio = None
     if portfolio_volatility > 0:
         kelly_ratio = portfolio_return / (portfolio_volatility**2)
-
     return {
         "portfolio": portfolio_df,
         "weights": best_portfolio,

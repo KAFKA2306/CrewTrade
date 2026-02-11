@@ -1,12 +1,8 @@
 from pathlib import Path
 from typing import Dict
-
 import pandas as pd
-
 from crew.metals.config import PreciousMetalsSpreadConfig
 from crew.metals.insights import build_insight_markdown
-
-
 class PreciousMetalsSpreadReporter:
     def __init__(
         self, config: PreciousMetalsSpreadConfig, processed_dir: Path, report_dir: Path
@@ -16,7 +12,6 @@ class PreciousMetalsSpreadReporter:
         self.report_dir = report_dir
         self.processed_dir.mkdir(parents=True, exist_ok=True)
         self.report_dir.mkdir(parents=True, exist_ok=True)
-
     def persist(self, analysis_payload: Dict[str, pd.DataFrame]) -> Dict[str, Path]:
         aligned_frames = analysis_payload["aligned"]
         theoretical_frame = analysis_payload["theoretical"]
@@ -45,15 +40,14 @@ class PreciousMetalsSpreadReporter:
         insight_path.write_text(insight_markdown)
         stored_paths["insights"] = insight_path
         return stored_paths
-
     def _format_report(self, edges_frame: pd.DataFrame) -> str:
-        lines = ["# Precious Metals Spread Edge Report", ""]
+        lines = ["
         if len(edges_frame) == 0:
             lines.append("検出された乖離シグナルはありません。")
             return "\n".join(lines)
         grouped = edges_frame.groupby("ticker")
         for ticker, frame in grouped:
-            lines.append(f"## {ticker}")
+            lines.append(f"
             lines.append("")
             lines.append("| date | gap | gap_pct | z_score | direction |")
             lines.append("| --- | --- | --- | --- | --- |")
@@ -69,19 +63,18 @@ class PreciousMetalsSpreadReporter:
             lines.append("")
         forecasts = analysis_payload.get("forecasts")
         if forecasts:
-            lines.append("## Kronos Forecasts")
+            lines.append("
             for ticker, forecast_data in forecasts.items():
                 if isinstance(forecast_data, dict) and "error" in forecast_data:
-                    lines.append(f"### {ticker} Error: {forecast_data['error']}")
+                    lines.append(f"
                     continue
                 if not forecast_data:
                     continue
                 last_forecast = forecast_data[-1]
-                lines.append(f"### {ticker}")
+                lines.append(f"
                 lines.append(f"Prediction End: {last_forecast.get('date', 'N/A')}")
                 lines.append(
                     f"Predicted Close: {last_forecast.get('close', 'N/A'):.2f}"
                 )
                 lines.append("")
-
         return "\n".join(lines)

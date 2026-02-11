@@ -1,18 +1,11 @@
 from __future__ import annotations
-
 from typing import Dict, List, Set
-
 from pydantic import BaseModel, Field
-
 from crew.base import UseCaseConfig
-
-
 class CreditSpreadPair(BaseModel):
     junk_ticker: str
     treasury_ticker: str
     description: str | None = None
-
-
 class CreditSpreadConfig(UseCaseConfig):
     period: str = Field(default="5y")
     rolling_window: int = Field(default=30)
@@ -32,7 +25,6 @@ class CreditSpreadConfig(UseCaseConfig):
             ),
         }
     )
-
     @property
     def tickers(self) -> List[str]:
         seen: Set[str] = set()
@@ -45,6 +37,4 @@ class CreditSpreadConfig(UseCaseConfig):
                 ordered.append(pair.treasury_ticker)
                 seen.add(pair.treasury_ticker)
         return ordered
-
-
 DEFAULT_CONFIG = CreditSpreadConfig(name="credit_spread")

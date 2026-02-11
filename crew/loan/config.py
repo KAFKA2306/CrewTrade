@@ -1,25 +1,16 @@
 from __future__ import annotations
-
 from typing import Any, Dict, List, Optional
-
 from pydantic import BaseModel, Field, validator
-
 from crew.base import UseCaseConfig
-
-
 class CollateralAsset(BaseModel):
     ticker: str
     quantity: float = Field(gt=0)
     description: str | None = None
-
-
 class LoanScenario(BaseModel):
     drop_pct: float = Field(
         gt=0, lt=1, description="Price drop ratio (e.g., 0.2 for -20%)."
     )
     label: str | None = None
-
-
 class OptimizationProfile(BaseModel):
     name: str = Field(description="Identifier for the optimization profile.")
     objective_weights: Dict[str, float]
@@ -29,8 +20,6 @@ class OptimizationProfile(BaseModel):
     max_portfolio_size: int | None = Field(default=None, ge=1)
     min_assets: int | None = Field(default=None, ge=1)
     sample_size: int | None = Field(default=None, gt=0)
-
-
 class RiskPolicy(BaseModel):
     primary_metric: str = Field(
         description="Metric used as the primary gate for asset inclusion.", min_length=1
@@ -39,15 +28,11 @@ class RiskPolicy(BaseModel):
         default=None,
         description="Short note explaining how the metric governs inclusion/exclusion.",
     )
-
-
 class CoreSatelliteConfig(BaseModel):
     enabled: bool = Field(default=False)
     core_weight: float = Field(default=0.60, ge=0, le=1)
     satellite_weight: float = Field(default=0.40, ge=0, le=1)
     core_rebalance_years: int = Field(default=2, ge=1)
-
-
 class PortfolioMetadata(BaseModel):
     anchor_date: str
     portfolio_type: str
@@ -56,8 +41,6 @@ class PortfolioMetadata(BaseModel):
     rebalance_year: int
     valid_until: str | None = None
     optimization_method: str
-
-
 class OptimizationSettings(BaseModel):
     enabled: bool = Field(default=False)
     objective_weights: Dict[str, float] = Field(
@@ -91,8 +74,6 @@ class OptimizationSettings(BaseModel):
         default=None,
         description="Priority tiers for ETF selection: tier1 (mandatory), tier2 (preferred), tier3 (supplementary)",
     )
-
-
 class SecuritiesCollateralLoanConfig(UseCaseConfig):
     period: str = Field(default="3y")
     loan_amount: float = Field(default=10_000_000, gt=0)
@@ -118,7 +99,6 @@ class SecuritiesCollateralLoanConfig(UseCaseConfig):
     )
     interest_horizons_days: List[int] = Field(default_factory=lambda: [30, 90, 180])
     optimization: OptimizationSettings | None = None
-
     @validator("period")
     def _validate_period(cls, value: str) -> str:
         value = value.strip().lower()
@@ -126,8 +106,6 @@ class SecuritiesCollateralLoanConfig(UseCaseConfig):
             raise ValueError("period must end with 'y', 'm', or 'd' (e.g., '3y').")
         int(value[:-1])
         return value
-
-
 DEFAULT_CONFIG = SecuritiesCollateralLoanConfig(
     name="securities_collateral_loan",
     collateral_assets=[

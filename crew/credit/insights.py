@@ -1,37 +1,29 @@
 from __future__ import annotations
-
 from typing import Dict, List
-
 import pandas as pd
-
-
 def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
     prices = analysis_payload["prices"]
     metrics = analysis_payload["metrics"]
     snapshot = analysis_payload["snapshot"]
     edges = analysis_payload["edges"]
-
     date_start = prices.index.min()
     date_end = prices.index.max()
-
     lines: List[str] = []
-    lines.append("# Credit Spread Insight Report")
+    lines.append("
     lines.append("")
-    lines.append("## Data Coverage")
+    lines.append("
     lines.append(f"- Price range: {date_start.date()} → {date_end.date()}")
     lines.append(f"- Pairs analysed: {len(snapshot)}")
     lines.append("")
-
     if snapshot.empty:
         lines.append("No sufficient data to compute spreads.")
         return "\n".join(lines)
-
     snapshot_table = snapshot.copy()
     snapshot_table["latest_date"] = snapshot_table["latest_date"].dt.date
     snapshot_table["z_score"] = snapshot_table["z_score"].round(2)
     snapshot_table["ratio"] = snapshot_table["ratio"].round(4)
     snapshot_table["return_gap"] = (snapshot_table["return_gap"] * 100).round(2)
-    lines.append("## Latest Snapshot")
+    lines.append("
     lines.append(
         _format_table(
             snapshot_table,
@@ -40,13 +32,11 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
         )
     )
     lines.append("")
-
     if edges.empty:
-        lines.append("## Signals")
+        lines.append("
         lines.append("No |z|-score breaches within the sampled horizon.")
         return "\n".join(lines)
-
-    lines.append("## Signals")
+    lines.append("
     lines.append(f"- Total signals: {len(edges)}")
     lines.append("")
     counts = edges.groupby(["pair", "signal"]).size().reset_index(name="signals")
@@ -56,10 +46,9 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
         )
     )
     lines.append("")
-
     recent_start = edges["date"].max() - pd.Timedelta(days=90)
     recent_edges = edges[edges["date"] >= recent_start]
-    lines.append("## 90-Day Activity")
+    lines.append("
     if recent_edges.empty:
         lines.append("No breaches recorded in the last 90 days.")
     else:
@@ -79,7 +68,6 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
             )
         )
     lines.append("")
-
     vol_stats = (
         metrics.stack(level=0)["z_score"]
         .dropna()
@@ -92,7 +80,7 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
         vol_stats["mean"] = vol_stats["mean"].round(2)
         vol_stats["std"] = vol_stats["std"].round(2)
         vol_stats["max"] = vol_stats["max"].round(2)
-        lines.append("## Z-Score Distribution")
+        lines.append("
         lines.append(
             _format_table(
                 vol_stats,
@@ -101,10 +89,7 @@ def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
             )
         )
         lines.append("")
-
     return "\n".join(lines)
-
-
 def _format_table(df: pd.DataFrame, columns: List[str], headers: List[str]) -> str:
     table_lines: List[str] = []
     table_lines.append("| " + " | ".join(headers) + " |")

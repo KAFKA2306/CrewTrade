@@ -1,11 +1,7 @@
 from typing import List
-
 from crew.base import UseCaseConfig
-
-
 class LegendaryInvestorsConfig(UseCaseConfig):
     """Configuration for legendary investors portfolio tracking."""
-
     soros_holdings: List[str] = [
         "AMZN",
         "SW",

@@ -1,42 +1,32 @@
 from __future__ import annotations
-
 from typing import Dict, List
-
 import numpy as np
 import pandas as pd
-
-
 def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
     summary: Dict[str, object] = analysis_payload["summary"]
     scenarios: List[Dict[str, float]] = analysis_payload["scenarios"]
     warning_events: pd.DataFrame = analysis_payload["warning_events"]
     liquidation_events: pd.DataFrame = analysis_payload["liquidation_events"]
-
     lines: List[str] = []
-    lines.append("# Securities Collateral Loan Insight")
+    lines.append("
     lines.append("")
-
     mode = analysis_payload.get("mode", "manual")
     if mode == "optimization":
-        lines.append("## Optimization Summary")
+        lines.append("
         opt_metrics = analysis_payload.get("optimization_metrics", {}) or {}
         etf_master = analysis_payload.get("etf_master")
         ranked_etfs = analysis_payload.get("ranked_etfs")
         candidate_universe = analysis_payload.get("candidate_universe")
         optimization_profiles = analysis_payload.get("optimization_profiles", {})
         primary_profile = analysis_payload.get("primary_profile")
-
         if etf_master is not None:
             lines.append(f"- Total ETFs evaluated: {len(etf_master)}")
-
         if ranked_etfs is not None and len(ranked_etfs) > 0:
             lines.append(f"- ETFs with sufficient data: {len(ranked_etfs)}")
-
         if candidate_universe is not None and len(candidate_universe) > 0:
             lines.append(
                 f"- Candidate universe after filtering: {len(candidate_universe)}"
             )
-
         risk_policy = analysis_payload.get("risk_policy") or {}
         if risk_policy:
             primary_metric = risk_policy.get("primary_metric", "N/A")
@@ -45,7 +35,6 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
             if description:
                 bullet += f" — {description}"
             lines.append(bullet)
-
         optimized_portfolio = analysis_payload.get("optimized_portfolio")
         if optimized_portfolio is not None:
             if primary_profile:
@@ -54,7 +43,6 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
                 )
             else:
                 lines.append(f"- Selected ETFs: {len(optimized_portfolio)}")
-
         thresholds = analysis_payload.get("asset_filter_thresholds") or {}
         volatility_excluded = analysis_payload.get("volatility_excluded") or []
         if volatility_excluded:
@@ -78,7 +66,6 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
                 lines.append(
                     f"- Excluded {len(drawdown_excluded)} ETF(s) failing drawdown constraint"
                 )
-
         lines.append(
             f"- Portfolio annual return: {opt_metrics.get('annual_return', 0) * 100:.2f}%"
         )
@@ -92,7 +79,6 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
             lines.append(
                 f"- Weighted expense ratio: {opt_metrics['expense_ratio'] * 100:.2f}%"
             )
-
         if optimization_profiles:
             profile_rows: List[Dict[str, object]] = []
             for name, metrics in optimization_profiles.items():
@@ -136,8 +122,7 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
                     )
                 )
         lines.append("")
-
-    lines.append("## Current Profile")
+    lines.append("
     lines.append(f"- Loan amount: ¥{summary['loan_amount']:,}")
     lines.append(
         f"- Current collateral value: ¥{summary['current_collateral_value']:.0f}"
@@ -155,8 +140,7 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
     )
     lines.append(f"- Max drawdown (history): {summary['max_drawdown'] * 100:.2f}%")
     lines.append("")
-
-    lines.append("## Stress Scenarios")
+    lines.append("
     scenario_table = pd.DataFrame(scenarios)
     if not scenario_table.empty:
         scenario_table["post_value"] = scenario_table["post_value"].map(
@@ -185,13 +169,11 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
         )
     )
     lines.append("")
-
-    lines.append("## Historical Breach Counts")
+    lines.append("
     lines.append(f"- Margin call events: {len(warning_events)}")
     lines.append(f"- Forced liquidation events: {len(liquidation_events)}")
     lines.append("")
-
-    lines.append("## Interest Projection (Simple)")
+    lines.append("
     interest_rows = []
     for entry in summary["interest_projection"]:
         interest_rows.append({"Days": entry["days"], "Interest": entry["interest"]})
@@ -202,10 +184,7 @@ def build_insight_markdown(analysis_payload: Dict[str, object]) -> str:
         _format_table(interest_df, ["Days", "Interest"], ["Days", "Interest (¥)"])
     )
     lines.append("")
-
     return "\n".join(lines)
-
-
 def _format_table(df: pd.DataFrame, columns: List[str], headers: List[str]) -> str:
     if df.empty:
         return "No data available."

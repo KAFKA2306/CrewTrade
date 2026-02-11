@@ -1,13 +1,9 @@
 import argparse
 from datetime import datetime
 from pathlib import Path
-
 import yaml
-
 from crew.registry import get_use_case_class, get_use_case_config_model
 from crew.base import UseCasePaths
-
-
 def build_config(name: str, config_path: str | None):
     config_model = get_use_case_config_model(name)
     if config_path is None:
@@ -18,8 +14,6 @@ def build_config(name: str, config_path: str | None):
         payload = {}
     payload["name"] = name
     return config_model(**payload)
-
-
 def build_paths(name: str) -> UseCasePaths:
     base_data_dir_local = Path("resources") / "data" / "use_cases" / name
     base_data_dir_repo = (
@@ -51,23 +45,17 @@ def build_paths(name: str) -> UseCasePaths:
         processed_data_dir=processed_data_dir,
         report_dir=report_dir,
     )
-
-
 def run_use_case(name: str, config_path: str | None):
     config = build_config(name, config_path)
     paths = build_paths(name)
     use_case_cls = get_use_case_class(name)
     use_case = use_case_cls(config, paths)
     return use_case.run()
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("name")
     parser.add_argument("--config", dest="config_path")
     args = parser.parse_args()
     run_use_case(args.name, args.config_path)
-
-
 if __name__ == "__main__":
     main()

@@ -1,16 +1,10 @@
 from typing import Dict, List
-
 from pydantic import BaseModel, Field
-
 from crew.base import UseCaseConfig
-
-
 class IndexAsset(BaseModel):
     ticker: str = Field(description="Yahoo Finance ticker symbol for the index")
     name: str = Field(description="Human-readable index name")
     category: str = Field(description="Asset category: equity, bonds, commodity, reit")
-
-
 class OptimizationSettings(BaseModel):
     enabled: bool = Field(default=True)
     objective_weights: Dict[str, float] = Field(
@@ -28,8 +22,6 @@ class OptimizationSettings(BaseModel):
     max_drawdown_buffer: float = Field(
         default=0.0, description="Max drawdown buffer ratio (0.0-1.0)"
     )
-
-
 class Index7PortfolioConfig(UseCaseConfig):
     period: str = Field(default="20y", description="Historical data period")
     indices: List[IndexAsset] = Field(description="List of 7 index assets")

@@ -2,10 +2,7 @@ import datetime
 import http.client
 import json
 import os
-
 import pytz
-
-
 def fetch_stocktwits_messages(symbol: str, desired_count: int, lower_bound: datetime):
     messages = []
     bullish_count = 0
@@ -18,7 +15,6 @@ def fetch_stocktwits_messages(symbol: str, desired_count: int, lower_bound: date
         "x-rapidapi-key": os.getenv("RAPID_API_KEY"),
         "x-rapidapi-host": "stocktwits.p.rapidapi.com",
     }
-
     while len(messages) < desired_count:
         endpoint = f"/streams/symbol/{symbol}.json?limit={desired_count}"
         if pagination_max:
@@ -31,11 +27,9 @@ def fetch_stocktwits_messages(symbol: str, desired_count: int, lower_bound: date
         except Exception as e:
             print("Error decoding StockTwits JSON:", e)
             break
-
         page_msgs = json_data.get("messages", [])
         if not page_msgs:
             break
-
         stop = False
         for msg in page_msgs:
             created_at_str = msg.get("created_at")
@@ -49,11 +43,9 @@ def fetch_stocktwits_messages(symbol: str, desired_count: int, lower_bound: date
                 break
             body = msg.get("body", "").strip()
             formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S %Z")
-
             if not body:
                 empty_count += 1
             else:
-                # Check sentiment from the entities field
                 sentiment_info = msg.get("entities", {}).get("sentiment")
                 if sentiment_info and isinstance(sentiment_info, dict):
                     sentiment_value = sentiment_info.get("basic")
@@ -69,20 +61,16 @@ def fetch_stocktwits_messages(symbol: str, desired_count: int, lower_bound: date
                         neutral_count += 1
                 else:
                     neutral_count += 1
-
             messages.append(f"- {formatted_time}: {body}\n")
             if len(messages) >= desired_count:
                 break
         if len(messages) >= desired_count or stop:
             break
-
         cursor = json_data.get("cursor", {})
         pagination_max = cursor.get("max")
         if not (cursor.get("more") and pagination_max):
             break
     return messages, bullish_count, bearish_count, neutral_count
-
-
 def format_stocktwits_data(
     symbol: str, messages: list, bullish: int, bearish: int, neutral: int
 ) -> str:
@@ -92,8 +80,6 @@ def format_stocktwits_data(
         f"Bullish: {bullish}, Bearish: {bearish}, Neutral: {neutral}\n"
         f"Messages:\n" + "\n".join(messages) + "\n"
     )
-
-
 def get_stocktwits_context(symbol: str, fetch_limit: int, since_date: datetime) -> str:
     """Get formatted StockTwits data for a symbol."""
     messages, bullish, bearish, neutral = fetch_stocktwits_messages(

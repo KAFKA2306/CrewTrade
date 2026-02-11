@@ -1,9 +1,7 @@
 import os
-
 import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-
 from crew.config import (
     AGENT_INPUTS_FOLDER,
     AGENT_OUTPUTS_FOLDER,
@@ -19,26 +17,20 @@ from crew.utils.dates import (
     get_today_str_no_min,
     get_yesterday_str,
 )
-
 today_str = get_today_str()
 yesterday_str = get_yesterday_str()
 today_str_no_min = get_today_str_no_min()
 yesterday_str = get_yesterday_str()
-YESTERDAY_HOUR = "18:00"  # 6 PM EST
+YESTERDAY_HOUR = "18:00"
 HISTORICAL_DAYS = 30
-
-
 def ensure_log_date_folder():
     """Ensure the log folder for today's date exists"""
     log_date_folder = os.path.join(LOG_FOLDER, today_str_no_min)
     if not os.path.exists(log_date_folder):
         os.makedirs(log_date_folder)
     return log_date_folder
-
-
 class BaseCrewClass:
     """Base class for all AI trading crews"""
-
     def __init__(
         self,
         symbol,
@@ -48,15 +40,11 @@ class BaseCrewClass:
         self.symbol = symbol
         self.stocktwit_llm = stocktwit_llm
         self.technical_ind_llm = technical_ind_llm
-
-
 @CrewBase
 class AiArticlesPickerCrew(BaseCrewClass):
     """AiTradingCrew crew base"""
-
     agents_config = "config/agents_article.yaml"
     tasks_config = "config/tasks_article.yaml"
-
     def __init__(
         self,
         symbol,
@@ -64,7 +52,6 @@ class AiArticlesPickerCrew(BaseCrewClass):
         technical_ind_llm=DEFAULT_TI_LLM,
     ):
         super().__init__(symbol, stocktwit_llm, technical_ind_llm)
-
     @agent
     def relevant_news_filter_agent(self) -> Agent:
         return Agent(
@@ -72,11 +59,9 @@ class AiArticlesPickerCrew(BaseCrewClass):
             verbose=True,
             llm=DEEPSEEK_OPENROUTER_LLM,
         )
-
-    @task  # UN-commented but kept inactive through crew configuration
+    @task
     def relevant_news_filter_task(self) -> Task:
         config = self.tasks_config["relevant_news_filter_task"].copy()
-
         return Task(
             config=config,
             output_file=os.path.join(
@@ -86,7 +71,6 @@ class AiArticlesPickerCrew(BaseCrewClass):
             ),
             verbose=True,
         )
-
     @crew
     def crew(self) -> Crew:
         """Creates the AiTradingCrew crew"""
@@ -102,15 +86,11 @@ class AiArticlesPickerCrew(BaseCrewClass):
                 f"ai_articles_picker_{self.symbol}_{today_str_no_min}.log",
             ),
         )
-
-
 @CrewBase
 class StockComponentsSummarizeCrew(BaseCrewClass):
     """AiTradingCrew crew"""
-
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-
     def __init__(
         self,
         symbol,
@@ -122,7 +102,6 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
         super().__init__(symbol, stocktwit_llm, technical_ind_llm)
         self.additional_agents = additional_agents or []
         self.additional_tasks = additional_tasks or []
-
     @agent
     def news_summarizer_agent(self) -> Agent:
         return Agent(
@@ -130,15 +109,13 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             verbose=True,
             llm=DEEPSEEK_OPENROUTER_LLM,
         )
-
-    @agent  # UN-commented but kept inactive through crew configuration
+    @agent
     def sentiment_summarizer_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["sentiment_summarizer_agent"],
             verbose=True,
             llm=self.stocktwit_llm,
         )
-
     @agent
     def technical_indicator_summarizer_agent(self) -> Agent:
         return Agent(
@@ -146,7 +123,6 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             verbose=True,
             llm=self.technical_ind_llm,
         )
-
     @agent
     def fundamental_analysis_agent(self) -> Agent:
         return Agent(
@@ -154,7 +130,6 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             verbose=True,
             llm=PROJECT_LLM,
         )
-
     @agent
     def timegpt_analyst_agent(self) -> Agent:
         return Agent(
@@ -162,7 +137,6 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             verbose=True,
             llm=PROJECT_LLM,
         )
-
     @task
     def news_summarization_task(self) -> Task:
         return Task(
@@ -175,11 +149,9 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             ),
             verbose=True,
         )
-
-    @task  # UN-commented but kept inactive through crew configuration
+    @task
     def sentiment_summarization_task(self) -> Task:
         config = self.tasks_config["sentiment_summarization_task"].copy()
-
         return Task(
             config=config,
             output_file=os.path.join(
@@ -191,7 +163,6 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             llm=self.stocktwit_llm,
             verbose=True,
         )
-
     @task
     def technical_indicator_summarization_task(self) -> Task:
         config = self.tasks_config["technical_indicator_summarization_task"].copy()
@@ -206,7 +177,6 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             llm=self.technical_ind_llm,
             verbose=True,
         )
-
     @task
     def fundamental_analysis_task(self) -> Task:
         config = self.tasks_config["fundamental_analysis_task"].copy()
@@ -221,7 +191,6 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             llm=PROJECT_LLM,
             verbose=True,
         )
-
     @task
     def timegpt_forecast_task(self) -> Task:
         config = self.tasks_config["timegpt_forecast_task"].copy()
@@ -235,12 +204,10 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             ),
             verbose=True,
         )
-
     @crew
     def crew(self) -> Crew:
         """Creates the AiTradingCrew crew"""
         ensure_log_date_folder()
-        # Combine main agents/tasks with additional ones
         main_agents = [
             self.news_summarizer_agent(),
             self.sentiment_summarizer_agent(),
@@ -255,14 +222,12 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
             self.fundamental_analysis_task(),
             self.timegpt_forecast_task(),
         ]
-
         all_agents = main_agents + self.additional_agents
         all_tasks = main_tasks + self.additional_tasks
-
         return Crew(
             agents=all_agents,
             tasks=all_tasks,
-            process=Process.sequential,  # Keep sequential for proper dependency handling
+            process=Process.sequential,
             verbose=True,
             output_log_file=os.path.join(
                 LOG_FOLDER,
@@ -270,29 +235,21 @@ class StockComponentsSummarizeCrew(BaseCrewClass):
                 f"stock_components_summarize_{self.symbol}_{today_str_no_min}.log",
             ),
         )
-
-
 class DayTraderAdvisorCrew:
     """Day Trader Advisor crew for making trading recommendations based on summaries"""
-
     def __init__(self, symbol):
         self.symbol = symbol
-        # Load configurations
         config_dir = os.path.join(os.path.dirname(__file__), "config")
-
         with open(os.path.join(config_dir, "agents_day_trader.yaml"), "r") as f:
             self.agents_config = yaml.safe_load(f)
-
         with open(os.path.join(config_dir, "tasks_day_trader.yaml"), "r") as f:
             self.tasks_config = yaml.safe_load(f)
-
     def day_trader_advisor_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["day_trader_advisor_agent"],
             verbose=True,
             llm=DEEPSEEK_OPENROUTER_LLM,
         )
-
     def day_trader_recommendation_task(self) -> Task:
         task_config = self.tasks_config["day_trader_recommendation_task"]
         return Task(
@@ -307,7 +264,6 @@ class DayTraderAdvisorCrew:
             ),
             verbose=True,
         )
-
     def crew(self) -> Crew:
         """Creates the Day Trader Advisor crew"""
         ensure_log_date_folder()

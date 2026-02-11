@@ -4,27 +4,20 @@ import os
 import re
 from dataclasses import dataclass
 from typing import List, Union
-
 import dateutil.parser
 import pytz
 import requests
 from bs4 import BeautifulSoup
-
 from crew.utils.company_info import get_company_name
-
-
 @dataclass
 class NewsItem:
     headline: str
     url: str
     source: str
     published_at: datetime.datetime
-
-
 def parse_time_input(time_input: Union[str, int]) -> datetime.datetime:
     """Convert input time to datetime object in UTC"""
     est = pytz.timezone("US/Eastern")
-
     if isinstance(time_input, str):
         try:
             dt = datetime.datetime.strptime(time_input, "%Y-%m-%d %H:%M")
@@ -39,8 +32,6 @@ def parse_time_input(time_input: Union[str, int]) -> datetime.datetime:
         raise ValueError(
             "Time input must be a string in format 'YYYY-MM-DD HH:MM' or a Unix timestamp"
         )
-
-
 def fetch_finviz_news(ticker: str, start_time: datetime.datetime) -> List[NewsItem]:
     """Fetch news from Finviz"""
     url = f"https://finviz.com/quote.ashx?t={ticker}&p=d"
@@ -61,7 +52,6 @@ def fetch_finviz_news(ticker: str, start_time: datetime.datetime) -> List[NewsIt
         soup = BeautifulSoup(response.text, "html.parser")
         news_table = soup.find("table", class_="fullview-news-outer")
         if not news_table:
-            # Clean up the debug file
             try:
                 os.remove("finviz_response.html")
             except OSError:
@@ -246,23 +236,17 @@ def fetch_finviz_news(ticker: str, start_time: datetime.datetime) -> List[NewsIt
                     )
             except Exception:
                 continue
-
-        # Clean up the debug file after processing
         try:
             os.remove("finviz_response.html")
         except OSError:
             pass
-
         return results
     except Exception:
-        # Clean up the debug file on exception
         try:
             os.remove("finviz_response.html")
         except OSError:
             pass
         return []
-
-
 def fetch_tipranks_news(ticker: str, start_time: datetime.datetime) -> List[NewsItem]:
     """Fetch news from TipRanks website specifically from the All News tab"""
     results = []
@@ -291,7 +275,7 @@ def fetch_tipranks_news(ticker: str, start_time: datetime.datetime) -> List[News
                             "/search",
                             "/topic/",
                             "/category/",
-                            "#",
+                            "
                             "javascript:",
                         ]
                     ):
@@ -444,8 +428,6 @@ def fetch_tipranks_news(ticker: str, start_time: datetime.datetime) -> List[News
         return results
     except Exception:
         return []
-
-
 def fetch_seeking_alpha_news(
     ticker: str, start_time: datetime.datetime
 ) -> List[NewsItem]:
@@ -511,22 +493,16 @@ def fetch_seeking_alpha_news(
     except Exception:
         pass
     return results
-
-
 def fetch_marketwatch_news(
     ticker: str, start_time: datetime.datetime
 ) -> List[NewsItem]:
     url = f"https://www.marketwatch.com/investing/stock/{ticker.lower()}"
-
-    # List of user agents to try
     user_agents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
         "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
     ]
-
-    # Try with different user agents
     for user_agent in user_agents:
         headers = {
             "User-Agent": user_agent,
@@ -542,24 +518,13 @@ def fetch_marketwatch_news(
             "Sec-Fetch-Site": "none",
             "Sec-Fetch-User": "?1",
         }
-
         try:
             response = requests.get(url, headers=headers, timeout=30)
-
             if response.status_code == 200:
-                # Save the HTML for debugging (commented out)
-                # with open("marketwatch_response.html", "w", encoding="utf-8") as f:
-                #     f.write(response.text)
-
                 soup = BeautifulSoup(response.text, "html.parser")
                 est = pytz.timezone("US/Eastern")
                 results: List[NewsItem] = []
-
-                # Try to directly access known structure for news items
-                # First check for "Other News" or "Other Sources" sections
                 news_sections = []
-
-                # Look for section headings first
                 for heading_text in [
                     "other news",
                     "other sources",
@@ -572,13 +537,10 @@ def fetch_marketwatch_news(
                     for heading in heading_elements:
                         parent = heading.parent
                         if parent:
-                            # Try to find the nearest container holding news items
                             container = parent
-                            # Navigate up to find a suitable container
                             for _ in range(5):
                                 if container.parent:
                                     container = container.parent
-                                    # Check if this contains list items or links
                                     news_items = container.find_all(
                                         ["li", "div", "article"],
                                         class_=lambda c: c
@@ -592,32 +554,23 @@ def fetch_marketwatch_news(
                                             (heading.strip(), container, news_items)
                                         )
                                         break
-
-                # Process each news section
                 for section_name, container, items in news_sections:
                     source_name = "MarketWatch - Other Sources"
                     if "press release" in section_name.lower():
                         source_name = "MarketWatch - Press Releases"
-
                     for item in items:
                         try:
-                            # Find the link
                             link = item.find("a", href=True)
                             if not link:
                                 continue
-
                             article_url = link["href"]
                             if article_url.startswith("/"):
                                 article_url = (
                                     f"https://www.marketwatch.com{article_url}"
                                 )
-
-                            # Get the headline
                             headline = link.get_text(strip=True)
                             if not headline or len(headline) < 5:
                                 continue
-
-                            # Find the date
                             pub_date = None
                             time_tag = item.find("time")
                             if time_tag and time_tag.has_attr("datetime"):
@@ -627,8 +580,6 @@ def fetch_marketwatch_news(
                                     )
                                 except Exception:
                                     pass
-
-                            # Look for date in text
                             if not pub_date:
                                 text = item.get_text(" ", strip=True)
                                 date_patterns = [
@@ -636,7 +587,6 @@ def fetch_marketwatch_news(
                                     r"([A-Z][a-z]{2,8}\s\d{1,2},\s\d{4}\s+at\s+[\d:]+\s[ap]\.m\.)",
                                     r"(\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}\s*[ap]\.?m\.?)",
                                 ]
-
                                 for pattern in date_patterns:
                                     match = re.search(pattern, text)
                                     if match:
@@ -650,19 +600,13 @@ def fetch_marketwatch_news(
                                             break
                                         except Exception:
                                             continue
-
-                            # Use current time as fallback
                             if not pub_date:
-                                # For debugging purposes, use current time minus 1 day to ensure inclusion
                                 pub_date = datetime.datetime.now(
                                     est
                                 ) - datetime.timedelta(days=1)
-
                             if pub_date.tzinfo is None:
                                 pub_date = est.localize(pub_date)
-
                             pub_date_utc = pub_date.astimezone(pytz.UTC)
-
                             if pub_date_utc >= start_time:
                                 results.append(
                                     NewsItem(
@@ -674,10 +618,7 @@ def fetch_marketwatch_news(
                                 )
                         except Exception:
                             pass
-
-                # If we didn't find proper sections, try a more general approach
                 if not results:
-                    # Look for any divs that might contain news items
                     news_containers = soup.find_all(
                         ["div", "ul", "section"],
                         class_=lambda c: c
@@ -692,36 +633,28 @@ def fetch_marketwatch_news(
                             ]
                         ),
                     )
-
                     for container in news_containers:
-                        # Find links directly
                         links = container.find_all("a", href=True)
                         for link in links:
                             try:
                                 url = link["href"]
                                 if (
                                     not url
-                                    or url.startswith("#")
+                                    or url.startswith("
                                     or "javascript:" in url
                                 ):
                                     continue
-
                                 headline = link.get_text(strip=True)
                                 if not headline or len(headline) < 10:
                                     continue
-
                                 if url.startswith("/"):
                                     url = f"https://www.marketwatch.com{url}"
-
-                                # Use current time minus 1 day as fallback date
                                 pub_date = datetime.datetime.now(
                                     est
                                 ) - datetime.timedelta(days=1)
                                 if pub_date.tzinfo is None:
                                     pub_date = est.localize(pub_date)
-
                                 pub_date_utc = pub_date.astimezone(pytz.UTC)
-
                                 if pub_date_utc >= start_time:
                                     results.append(
                                         NewsItem(
@@ -733,17 +666,12 @@ def fetch_marketwatch_news(
                                     )
                             except Exception:
                                 pass
-
-                # If we found results, break the loop
                 if results:
                     return results
         except Exception:
             pass
-
-    # Try an alternative URL structure as a fallback
     try:
         alt_url = f"https://www.marketwatch.com/search?q={ticker}&ts=0&tab=All%20News"
-
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -751,46 +679,36 @@ def fetch_marketwatch_news(
             "Referer": "https://www.google.com/",
             "Cache-Control": "no-cache",
         }
-
         response = requests.get(alt_url, headers=headers, timeout=30)
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, "html.parser")
             est = pytz.timezone("US/Eastern")
             results = []
-
-            # Search results typically have a consistent structure
             articles = soup.find_all(
                 ["div", "li"],
                 class_=lambda c: c
                 and ("article" in str(c).lower() or "search-result" in str(c).lower()),
             )
-
             for article in articles:
                 try:
                     link = article.find("a", href=True)
                     if not link:
                         continue
-
                     headline = None
                     headline_tag = article.find(
                         ["h2", "h3", "h4", "div"],
                         class_=lambda c: c
                         and ("title" in str(c).lower() or "headline" in str(c).lower()),
                     )
-
                     if headline_tag:
                         headline = headline_tag.get_text(strip=True)
                     elif link.get_text(strip=True):
                         headline = link.get_text(strip=True)
-
                     if not headline or len(headline) < 5:
                         continue
-
                     url = link["href"]
                     if url.startswith("/"):
                         url = f"https://www.marketwatch.com{url}"
-
-                    # Get date
                     pub_date = None
                     time_tag = article.find("time")
                     if time_tag and time_tag.has_attr("datetime"):
@@ -798,9 +716,7 @@ def fetch_marketwatch_news(
                             pub_date = dateutil.parser.parse(time_tag["datetime"])
                         except Exception:
                             pass
-
                     if not pub_date:
-                        # Look for date text
                         date_tag = article.find(
                             ["span", "div"],
                             class_=lambda c: c
@@ -817,18 +733,13 @@ def fetch_marketwatch_news(
                                 )
                             except Exception:
                                 pass
-
                     if not pub_date:
-                        # Fallback date
                         pub_date = datetime.datetime.now(est) - datetime.timedelta(
                             days=1
                         )
-
                     if pub_date.tzinfo is None:
                         pub_date = est.localize(pub_date)
-
                     pub_date_utc = pub_date.astimezone(pytz.UTC)
-
                     if pub_date_utc >= start_time:
                         results.append(
                             NewsItem(
@@ -840,15 +751,10 @@ def fetch_marketwatch_news(
                         )
                 except Exception:
                     pass
-
             return results
     except Exception:
         pass
-
-    # Return empty list if all attempts failed
     return []
-
-
 def fetch_stock_news(ticker: str, start_time: Union[str, int]) -> List[NewsItem]:
     """
     Fetch stock news from multiple sources including MarketWatch
@@ -858,15 +764,12 @@ def fetch_stock_news(ticker: str, start_time: Union[str, int]) -> List[NewsItem]
     tipranks_news = fetch_tipranks_news(ticker, start_datetime)
     seeking_alpha_news = fetch_seeking_alpha_news(ticker, start_datetime)
     marketwatch_news = fetch_marketwatch_news(ticker, start_datetime)
-
-    # Remove duplicates from MarketWatch news (they sometimes appear twice in the same section)
     unique_mw_urls = {}
     deduplicated_mw_news = []
     for item in marketwatch_news:
         if item.url not in unique_mw_urls:
             unique_mw_urls[item.url] = item
             deduplicated_mw_news.append(item)
-
     all_news = finviz_news + tipranks_news + seeking_alpha_news + deduplicated_mw_news
     filtered_news = []
     for news_item in all_news:
@@ -896,27 +799,19 @@ def fetch_stock_news(ticker: str, start_time: Union[str, int]) -> List[NewsItem]
                             news_item.headline = clean_headline
                             break
         filtered_news.append(news_item)
-
-    # Simple deduplication - only exact headline matches and URL matches
     seen_urls = set()
     seen_exact_headlines = set()
     deduplicated_news = []
-
     for news_item in filtered_news:
-        # Only deduplicate exact same headlines or same URLs
         if news_item.url in seen_urls:
             continue
         if news_item.headline in seen_exact_headlines:
             continue
-
         seen_exact_headlines.add(news_item.headline)
         seen_urls.add(news_item.url)
         deduplicated_news.append(news_item)
-
     deduplicated_news.sort(key=lambda x: x.published_at, reverse=True)
     return deduplicated_news
-
-
 def get_news_context(symbol: str, start_time: str) -> str:
     """
     Get formatted news context for a stock symbol since a specific time.
@@ -925,49 +820,31 @@ def get_news_context(symbol: str, start_time: str) -> str:
     company_name = get_company_name(symbol)
     if not news_items:
         return f"No news found for {company_name} since {start_time}"
-
-    # Create the formatted news content with consistent line breaks
     result = f"News for {company_name} since {start_time}:\n\n"
     for i, item in enumerate(news_items):
         est = pytz.timezone("US/Eastern")
         published_at_est = item.published_at.astimezone(est)
         formatted_date = published_at_est.strftime("%Y-%m-%d %H:%M:%S %Z")
-
-        # Clean up the headline text - replace problematic Unicode characters
         headline = item.headline
-        # Fix curly single quotes
         headline = headline.replace("\u2019", "'").replace("\u2018", "'")
         headline = headline.replace("\u2032", "'").replace("\u02bc", "'")
         headline = headline.replace("â\x80\x99", "'")
-
-        # Fix curly double quotes
         headline = headline.replace("\u201c", '"').replace("\u201d", '"')
         headline = headline.replace("â\x80\x9c", '"').replace("â\x80\x9d", '"')
-
-        # Fix other common problematic characters
         headline = headline.replace("\u2013", "-").replace(
             "\u2014", "--"
-        )  # en/em dashes
+        )
         headline = headline.replace("\u2026", "...").replace(
             "\u00a0", " "
-        )  # ellipsis, non-breaking space
-        headline = headline.replace("\u00ad", "")  # soft hyphen
-
-        # Remove any remaining non-ascii characters
+        )
+        headline = headline.replace("\u00ad", "")
         headline = "".join(c if ord(c) < 128 else " " for c in headline)
         headline = (
             headline.replace("   ", " ").replace("  ", " ").strip()
-        )  # Clean up extra spaces
-
-        # Ensure proper formatting with normalized line breaks
+        )
         result += f"{i + 1}. [{item.source}] {headline}\n"
         result += f"   Published: {formatted_date}\n"
         result += f"   URL: {item.url}\n\n"
-
-    # Ensure consistent encoding and line endings
     result = result.replace("\r\n", "\n").replace("\r", "\n")
-
-    # Make a final pass to ensure only ASCII characters remain
     result = result.encode("ascii", "replace").decode("ascii")
-
     return result

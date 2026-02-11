@@ -1,9 +1,6 @@
 from __future__ import annotations
-
 from typing import Iterable, Sequence
-
 import pandas as pd
-
 _ADJUSTED_ALIASES: Sequence[str] = (
     "adj close",
     "adj_close",
@@ -12,14 +9,11 @@ _ADJUSTED_ALIASES: Sequence[str] = (
     "adjclose",
     "adjusted",
 )
-
 _UNADJUSTED_ALIASES: Sequence[str] = (
     "close",
     "last",
     "price",
 )
-
-
 def get_price_series(
     frame: pd.DataFrame,
     *,
@@ -32,15 +26,12 @@ def get_price_series(
     so that splits/dividends do not introduce artificial gaps.
     Falls back to unadjusted closes when adjusted data is unavailable.
     """
-
     if frame is None or frame.empty:
         raise ValueError("Frame is empty; cannot select price series.")
-
     search_order = []
     if prefer_adjusted:
         search_order.extend(adjusted_aliases)
     search_order.extend(unadjusted_aliases)
-
     normalized = frame
     if isinstance(frame.columns, pd.MultiIndex):
         normalized = frame.copy()
@@ -48,9 +39,7 @@ def get_price_series(
             "|".join(str(level) for level in col if level is not None)
             for col in frame.columns
         ]
-
     columns = {str(col).lower(): col for col in normalized.columns}
-
     for alias in search_order:
         key = alias.lower()
         if key in columns:
@@ -61,7 +50,6 @@ def get_price_series(
             if tz_info is not None:
                 series = series.tz_convert(None)
             return series.astype(float)
-
     raise KeyError(
         "No recognized price column found; expected adjusted or close prices."
     )

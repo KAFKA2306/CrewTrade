@@ -1,16 +1,10 @@
 from typing import Dict, List
-
 from pydantic import BaseModel, Field
-
 from crew.base import UseCaseConfig
-
-
 class ETFInstrument(BaseModel):
     ticker: str
     metal_symbol: str
     grams_per_unit: float
-
-
 class PreciousMetalsSpreadConfig(UseCaseConfig):
     period: str = Field(default="2y")
     fx_symbol: str = Field(default="USDJPY=X")
@@ -32,14 +26,10 @@ class PreciousMetalsSpreadConfig(UseCaseConfig):
             ),
         }
     )
-
     @property
     def etf_tickers(self) -> List[str]:
         return [instrument.ticker for instrument in self.etf_instruments.values()]
-
     @property
     def metal_tickers(self) -> List[str]:
         return [instrument.metal_symbol for instrument in self.etf_instruments.values()]
-
-
 DEFAULT_CONFIG = PreciousMetalsSpreadConfig(name="precious_metals_spread")

@@ -1,15 +1,10 @@
 from __future__ import annotations
-
 import json
 from pathlib import Path
 from typing import Dict
-
 import pandas as pd
-
 from crew.yields.config import YieldSpreadConfig
 from crew.yields.insights import build_insight_markdown
-
-
 class YieldSpreadReporter:
     def __init__(
         self, config: YieldSpreadConfig, processed_dir: Path, report_dir: Path
@@ -19,7 +14,6 @@ class YieldSpreadReporter:
         self.report_dir = report_dir
         self.processed_dir.mkdir(parents=True, exist_ok=True)
         self.report_dir.mkdir(parents=True, exist_ok=True)
-
     def persist(self, analysis_payload: Dict[str, object]) -> Dict[str, Path]:
         series_frame = analysis_payload["series"]
         metrics_frame = analysis_payload["metrics"]
@@ -27,64 +21,52 @@ class YieldSpreadReporter:
         snapshot_frame = analysis_payload["snapshot"]
         asset_prices = analysis_payload.get("asset_prices")
         allocation_payload = analysis_payload.get("allocation")
-
         stored_paths: Dict[str, Path] = {}
-
         series_path = self.processed_dir / "yield_series.parquet"
         series_frame.to_parquet(series_path)
         stored_paths["series"] = series_path
-
         metrics_path = self.processed_dir / "metrics.parquet"
         metrics_frame.to_parquet(metrics_path)
         stored_paths["metrics"] = metrics_path
-
         edges_path = self.processed_dir / "edges.parquet"
         edges_frame.to_parquet(edges_path)
         stored_paths["edges"] = edges_path
-
         snapshot_path = self.processed_dir / "snapshot.parquet"
         snapshot_frame.to_parquet(snapshot_path)
         stored_paths["snapshot"] = snapshot_path
-
         if isinstance(asset_prices, pd.DataFrame):
             asset_price_path = self.processed_dir / "allocation_prices.parquet"
             asset_prices.to_parquet(asset_price_path)
             stored_paths["allocation_prices"] = asset_price_path
-
         if allocation_payload is not None:
             allocation_path = self.processed_dir / "allocation.json"
             allocation_path.write_text(json.dumps(allocation_payload, indent=2))
             stored_paths["allocation"] = allocation_path
-
         report_path = self.report_dir / "yield_spread_report.md"
         report_markdown = self._build_report(
             snapshot_frame, edges_frame, allocation_payload
         )
         report_path.write_text(report_markdown)
         stored_paths["report"] = report_path
-
         insight_path = self.report_dir / "yield_spread_insights.md"
         insight_markdown = build_insight_markdown(analysis_payload)
         insight_path.write_text(insight_markdown)
         stored_paths["insights"] = insight_path
-
         return stored_paths
-
     def _build_report(
         self,
         snapshot: pd.DataFrame,
         edges: pd.DataFrame,
         allocation: Dict[str, object] | None,
     ) -> str:
-        lines = ["# Yield Spread Signal Report", ""]
+        lines = ["
         if snapshot.empty:
             lines.append(
                 "データが不足しているため、スナップショットを生成できませんでした。"
             )
             return "\n".join(lines)
-
         if allocation is not None:
-            lines.append("## Risk Allocation Guidance")
+            lines.append("
             lines.append(f"- Regime: **{allocation['regime']}**")
             method = allocation.get("method", "static")
             lines.append(f"- Method: {method.title()}")
@@ -173,8 +155,7 @@ class YieldSpreadReporter:
             for asset, weight in allocation["weights"].items():
                 lines.append(f"| {asset} | {weight:.2%} |")
             lines.append("")
-
-        lines.append("## Latest Snapshot")
+        lines.append("
         lines.append("| Pair | Date | Spread (bp) | Z | Junk % | Treasury % |")
         lines.append("| --- | --- | --- | --- | --- | --- |")
         for _, row in snapshot.sort_values(
@@ -186,14 +167,12 @@ class YieldSpreadReporter:
                 f"{row['junk_yield']:.2f} | {row['treasury_yield']:.2f} |"
             )
         lines.append("")
-
-        lines.append("## Triggered Signals")
+        lines.append("
         if edges.empty:
             lines.append(
                 "しきい値を超えるイールドスプレッドのイベントは検出されませんでした。"
             )
             return "\n".join(lines)
-
         lines.append(
             "| Date | Pair | Direction | Spread (bp) | Z | Junk % | Treasury % |"
         )
@@ -207,19 +186,18 @@ class YieldSpreadReporter:
         lines.append("")
         forecasts = analysis_payload.get("forecasts")
         if forecasts:
-            lines.append("## Kronos Forecasts (Spreads)")
+            lines.append("
             for pair, forecast_data in forecasts.items():
                 if isinstance(forecast_data, dict) and "error" in forecast_data:
-                    lines.append(f"### {pair} Error: {forecast_data['error']}")
+                    lines.append(f"
                     continue
                 if not forecast_data:
                     continue
                 last_forecast = forecast_data[-1]
-                lines.append(f"### {pair}")
+                lines.append(f"
                 lines.append(f"Prediction End: {last_forecast.get('date', 'N/A')}")
                 lines.append(
                     f"Predicted Spread: {last_forecast.get('close', 'N/A'):.2f}"
                 )
                 lines.append("")
-
         return "\n".join(lines)

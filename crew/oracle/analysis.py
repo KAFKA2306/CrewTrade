@@ -1,18 +1,13 @@
 from typing import Any, Dict
-
 from .config import OracleEarningsConfig
 from .models import ProjectedQuarter
-
-
 class OracleEarningsAnalyzer:
     def __init__(self, config: OracleEarningsConfig) -> None:
         self.config = config
-
     def evaluate(self, data_payload: Dict[str, Any] = None) -> Dict[str, Any]:
         config = self.config
         base = config.base_quarter
         results = {}
-
         for scenario_name, scenario in config.projections.scenarios.items():
             quarterly_data = []
             cloud_rev = 7.0
@@ -23,9 +18,7 @@ class OracleEarningsAnalyzer:
                 else [1.0] * 4
             )
             normalized_software_runrate = other_rev / seasonality[1]
-
             current_margin = base.operating_income_B / base.revenue_B
-
             for i in range(1, config.projections.quarters_to_project + 1):
                 cloud_growth = (
                     base.cloud_revenue_growth_yoy_pct
@@ -34,19 +27,15 @@ class OracleEarningsAnalyzer:
                 )
                 prev_cloud = cloud_rev
                 cloud_rev *= 1 + cloud_growth / 4
-
                 normalized_software_runrate *= (
                     1 + (scenario.software_growth_rate * i) / 100.0 / 4
                 )
                 normalized_software_runrate -= (
                     cloud_rev - prev_cloud
                 ) * base.cloud_cannibalization_ratio
-
                 software_rev = normalized_software_runrate * seasonality[(1 + i) % 4]
                 total_rev = cloud_rev + software_rev
-
                 current_margin += scenario.operating_margin_improvement / 100.0
-
                 target_intensity = scenario.capex_intensity_target
                 start_intensity = base.current_capex_intensity or 0.55
                 capex = total_rev * (
@@ -54,7 +43,6 @@ class OracleEarningsAnalyzer:
                     + (target_intensity - start_intensity)
                     * (i / config.projections.quarters_to_project)
                 )
-
                 quarterly_data.append(
                     ProjectedQuarter(
                         quarter_index=i,
@@ -68,5 +56,4 @@ class OracleEarningsAnalyzer:
                     )
                 )
             results[scenario_name] = quarterly_data
-
         return {"projections": results, "base_quarter": base}

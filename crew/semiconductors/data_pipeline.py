@@ -1,10 +1,6 @@
 """Data pipeline for semiconductor stock data fetching."""
-
 from pathlib import Path
-
 from crew.clients.equities import YFinanceEquityDataClient
-
-
 def fetch_semiconductor_data(
     tickers: list[str],
     raw_data_dir: Path,
@@ -15,12 +11,8 @@ def fetch_semiconductor_data(
     client = YFinanceEquityDataClient(raw_data_dir)
     frames = client.get_frames(tickers, period=period)
     return frames
-
-
 if __name__ == "__main__":
     from pathlib import Path
-
-    # Default tickers
     tickers = [
         "NVDA",
         "TSM",
@@ -32,9 +24,8 @@ if __name__ == "__main__":
         "LRCX",
         "ADI",
         "MU",
-        "SOXX",  # Benchmark
+        "SOXX",
     ]
-
     raw_dir = Path("resources") / "data" / "use_cases" / "semiconductors" / "raw"
     print(f"Fetching data for {len(tickers)} tickers...")
     frames = fetch_semiconductor_data(tickers, raw_dir)

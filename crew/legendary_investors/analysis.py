@@ -1,15 +1,10 @@
 """Analysis module for legendary investors portfolios."""
-
 from dataclasses import dataclass
 from typing import Any, Dict, List
-
 import numpy as np
 import pandas as pd
-
 from .config import LegendaryInvestorsConfig
 from .deep_research import LegendaryInvestorsResearcher
-
-
 @dataclass
 class HoldingMetrics:
     symbol: str
@@ -29,29 +24,20 @@ class HoldingMetrics:
     rumor: str = ""
     earnings: str = ""
     alpha: str = ""
-
-
 class LegendaryInvestorsAnalyzer:
     """Analyzer for legendary investors' top holdings."""
-
     RISK_FREE_RATE = 0.045
-
     def __init__(
         self, config: LegendaryInvestorsConfig, raw_data_dir: Any = None
     ) -> None:
         self.config = config
         self.researcher = LegendaryInvestorsResearcher()
         self.raw_data_dir = raw_data_dir
-
     def analyze(self, data_payload: Dict[str, Any]) -> Dict[str, Any]:
         price_frames = data_payload.get("price_frames", {})
-
         if not price_frames and self.raw_data_dir:
-            # Try load from disk
             from pathlib import Path
-
             raw = Path(self.raw_data_dir)
-            # Determine tickers from config
             tickers = list(
                 set(
                     self.config.soros_holdings
@@ -63,23 +49,19 @@ class LegendaryInvestorsAnalyzer:
                 p = raw / f"{t}.parquet"
                 if p.exists():
                     price_frames[t] = pd.read_parquet(p)
-
         if not price_frames:
             return {"error": "No price data available"}
-
         soros_metrics = self._analyze_portfolio(
             self.config.soros_holdings, price_frames
         )
         druckenmiller_metrics = self._analyze_portfolio(
             self.config.druckenmiller_holdings, price_frames
         )
-
         return {
             "soros_metrics": soros_metrics,
             "druckenmiller_metrics": druckenmiller_metrics,
             "analysis_date": pd.Timestamp.now().strftime("%Y-%m-%d"),
         }
-
     def _analyze_portfolio(
         self, tickers: List[str], frames: Dict[str, pd.DataFrame]
     ) -> List[HoldingMetrics]:
@@ -88,38 +70,24 @@ class LegendaryInvestorsAnalyzer:
             df = frames.get(ticker)
             if df is None or df.empty:
                 continue
-
-            # Use Adj Close if available
             col = "Adj Close" if "Adj Close" in df.columns else "Close"
             prices = df[col].dropna()
-
             if len(prices) < 20:
                 continue
-
             current_price = float(prices.iloc[-1])
-
-            # Returns
             ret_1m = self._calc_period_return(prices, 21)
             ret_3m = self._calc_period_return(prices, 63)
             ret_6m = self._calc_period_return(prices, 126)
             ret_12m = self._calc_period_return(prices, 252)
             ytd = self._calc_ytd_return(prices)
-
-            # Risk
             returns = prices.pct_change().dropna()
             vol = float(returns.std() * np.sqrt(252))
-
             excess_return = ret_12m - self.RISK_FREE_RATE
             sharpe = excess_return / vol if vol > 0 else 0.0
-
-            # Drawdown
             cummax = prices.cummax()
             drawdown = (prices - cummax) / cummax
             max_dd = float(drawdown.min())
-
-            # Get deep research
             research_data = self.researcher.get_research_for_ticker(ticker)
-
             metrics_list.append(
                 HoldingMetrics(
                     symbol=ticker,
@@ -141,18 +109,14 @@ class LegendaryInvestorsAnalyzer:
                     alpha=research_data.get("alpha", ""),
                 )
             )
-
-        # Sort by 12m return descending
         metrics_list.sort(key=lambda x: x.return_12m, reverse=True)
         return metrics_list
-
     def _calc_period_return(self, prices: pd.Series, days: int) -> float:
         if len(prices) < days:
             days = len(prices)
         start = float(prices.iloc[-days])
         end = float(prices.iloc[-1])
         return (end - start) / start if start > 0 else 0.0
-
     def _calc_ytd_return(self, prices: pd.Series) -> float:
         current_year = pd.Timestamp.now().year
         ytd = prices[prices.index.year == current_year]

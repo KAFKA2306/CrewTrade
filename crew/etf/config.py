@@ -1,11 +1,7 @@
 from __future__ import annotations
-
 from typing import Any, Dict, List
-
 from pydantic import Field
-
 from crew.base import UseCaseConfig
-
 INDEX_KEYWORDS: Dict[str, Dict[str, Any]] = {
     "JPX/S&P 設備・人材投資指数": {
         "keywords": ["設備", "人材投資", "capex"],
@@ -124,14 +120,10 @@ INDEX_KEYWORDS: Dict[str, Dict[str, Any]] = {
         "exclude_keywords": ["株式", "株", "equity", "reit"],
     },
 }
-
-
 class IndexETFComparisonConfig(UseCaseConfig):
     indices: List[str] = Field(default_factory=lambda: list(INDEX_KEYWORDS.keys()))
     lookback: str = Field(default="max")
     min_data_points: int = Field(default=252, gt=0)
-
-
 DEFAULT_CONFIG = IndexETFComparisonConfig(
     name="index_etf_comparison",
 )

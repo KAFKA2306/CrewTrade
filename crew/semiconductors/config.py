@@ -1,11 +1,7 @@
 from typing import List
-
 from crew.base import UseCaseConfig
-
-
 class SemiconductorsConfig(UseCaseConfig):
     """Configuration for semiconductor stock analysis."""
-
     tickers: List[str] = [
         "NVDA",
         "TSM",

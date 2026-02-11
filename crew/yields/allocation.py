@@ -1,13 +1,8 @@
 from __future__ import annotations
-
 from typing import Dict, Iterable, Optional
-
 import numpy as np
 import pandas as pd
-
 from crew.yields.config import AllocationConfig, OptimizationConfig
-
-
 def compute_allocation(
     allocation_config: AllocationConfig,
     snapshot: pd.DataFrame,
@@ -15,11 +10,9 @@ def compute_allocation(
 ) -> Dict[str, object] | None:
     if allocation_config is None or snapshot.empty:
         return None
-
     latest = snapshot.iloc[-1]
     z_score = float(latest.get("z_score", 0.0))
     spread_bp = float(latest.get("spread_bp", 0.0))
-
     if z_score >= allocation_config.upper_z:
         profile = allocation_config.widening
         regime = profile.label
@@ -29,7 +22,6 @@ def compute_allocation(
     else:
         profile = allocation_config.neutral
         regime = profile.label
-
     normalized_weights = _normalize_weights(profile.weights)
     payload: Dict[str, object] = {
         "regime": regime,
@@ -38,7 +30,6 @@ def compute_allocation(
         "weights": normalized_weights,
         "method": "static",
     }
-
     available_returns: pd.DataFrame | None = None
     available_tickers: Iterable[str] = []
     if asset_prices is not None and not asset_prices.empty:
@@ -49,9 +40,7 @@ def compute_allocation(
             available_returns = (
                 asset_prices[list(available_tickers)].pct_change().dropna()
             )
-
     opt_cfg = allocation_config.optimization
-
     if available_returns is not None and not available_returns.empty:
         base_weights = _filter_and_normalize_weights(
             normalized_weights, available_returns.columns
@@ -62,7 +51,6 @@ def compute_allocation(
             )
             if base_metrics is not None:
                 payload["base_metrics"] = base_metrics
-
     if (
         opt_cfg.enabled
         and available_returns is not None
@@ -81,17 +69,12 @@ def compute_allocation(
             sensitivity = optimized.get("sensitivity")
             if sensitivity:
                 payload["sensitivity"] = sensitivity
-
     return payload
-
-
 def _normalize_weights(weights: Dict[str, float]) -> Dict[str, float]:
     total = sum(weights.values())
     if total <= 0:
         return weights
     return {asset: round(weight / total, 4) for asset, weight in weights.items()}
-
-
 def _filter_and_normalize_weights(
     weights: Dict[str, float], columns: Iterable[str]
 ) -> Dict[str, float]:
@@ -104,8 +87,6 @@ def _filter_and_normalize_weights(
     if total <= 0:
         return {}
     return {ticker: round(weight / total, 4) for ticker, weight in filtered.items()}
-
-
 def _merge_weights(
     base_weights: Dict[str, float], optimized_weights: Dict[str, float]
 ) -> Dict[str, float]:
@@ -116,8 +97,6 @@ def _merge_weights(
     if total > 0:
         merged = {ticker: round(weight / total, 4) for ticker, weight in merged.items()}
     return merged
-
-
 def _optimize_weights(
     returns: pd.DataFrame,
     opt_cfg: OptimizationConfig,
@@ -125,19 +104,16 @@ def _optimize_weights(
     tickers = list(returns.columns)
     if len(tickers) == 0:
         return None
-
     primary_result = _run_random_search(
         returns, tickers, opt_cfg.sample_size, opt_cfg, seed=42
     )
     if primary_result is None:
         return None
-
     metrics = _compute_performance_metrics(
         returns, primary_result["weights"], opt_cfg.risk_free_rate
     )
     if metrics is None:
         return None
-
     sensitivity_results = []
     for sample_size in opt_cfg.sensitivity_sample_sizes:
         if sample_size == opt_cfg.sample_size:
@@ -160,7 +136,6 @@ def _optimize_weights(
                 "annual_volatility": sensitivity_metrics.get("annual_volatility"),
             }
         )
-
     return {
         "weights": primary_result["weights"],
         "metrics": metrics,
@@ -171,8 +146,6 @@ def _optimize_weights(
         },
         "sensitivity": sensitivity_results,
     }
-
-
 def _run_random_search(
     returns: pd.DataFrame,
     tickers: list[str],
@@ -186,7 +159,6 @@ def _run_random_search(
     mu = returns.mean() * 252.0
     if (cov.values == 0).all():
         return None
-
     rng = np.random.default_rng(seed)
     best_sharpe = -np.inf
     best_weights: Optional[np.ndarray] = None
@@ -194,7 +166,6 @@ def _run_random_search(
     mu_vector = mu.to_numpy()
     min_w = opt_cfg.min_weight
     max_w = opt_cfg.max_weight
-
     for _ in range(sample_size):
         weights = rng.dirichlet(np.ones(len(tickers)))
         if np.any(weights < min_w) or np.any(weights > max_w):
@@ -209,10 +180,8 @@ def _run_random_search(
         if sharpe > best_sharpe:
             best_sharpe = sharpe
             best_weights = weights
-
     if best_weights is None or best_sharpe == -np.inf:
         return None
-
     weights_dict = {
         ticker: float(weight) for ticker, weight in zip(tickers, best_weights)
     }
@@ -226,8 +195,6 @@ def _run_random_search(
         "weights": weights_dict,
         "sharpe": float(round(best_sharpe, 4)),
     }
-
-
 def _compute_performance_metrics(
     returns: pd.DataFrame,
     weights: Dict[str, float],

@@ -1,11 +1,8 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Dict, List
-
 import numpy as np
 import pandas as pd
-
 from crew.loan import etf_screening, optimizer
 from crew.loan.config import (
     CollateralAsset,
@@ -14,29 +11,20 @@ from crew.loan.config import (
     PortfolioMetadata,
     SecuritiesCollateralLoanConfig,
 )
-
-
 @dataclass
 class ThresholdStats:
     ratio: float
     label: str
-
-
 class SecuritiesCollateralLoanAnalyzer:
     def __init__(self, config: SecuritiesCollateralLoanConfig) -> None:
         self.config = config
-
     def evaluate(self, data_payload: Dict[str, pd.DataFrame]) -> Dict[str, object]:
-        # Infer mode if missing
         if "mode" not in data_payload:
             if self.config.optimization and self.config.optimization.enabled:
                 data_payload["mode"] = "optimization"
             else:
                 data_payload["mode"] = "manual"
-
         mode = data_payload.get("mode", "manual")
-
-        # Load data from disk if needed
         if "prices" not in data_payload or isinstance(data_payload.get("prices"), str):
             p = self.raw_data_dir / "prices.parquet"
             if p.exists():
@@ -49,7 +37,6 @@ class SecuritiesCollateralLoanAnalyzer:
                     )
                 else:
                     data_payload["prices"] = pd.DataFrame()
-
         if mode == "optimization":
             if "etf_master" not in data_payload or isinstance(
                 data_payload.get("etf_master"), str
@@ -63,7 +50,6 @@ class SecuritiesCollateralLoanAnalyzer:
                         data_payload["etf_master"] = pd.read_csv(master_path)
                     else:
                         data_payload["etf_master"] = pd.DataFrame()
-
             if "prices_forward" not in data_payload or isinstance(
                 data_payload.get("prices_forward"), str
             ):
@@ -76,21 +62,17 @@ class SecuritiesCollateralLoanAnalyzer:
                         data_payload["prices_forward"] = pd.read_csv(
                             fwd_path, index_col=0, parse_dates=True
                         )
-
         if mode == "optimization":
             return self._evaluate_optimization_mode(data_payload)
         else:
             return self._evaluate_manual_mode(data_payload)
-
     def _evaluate_optimization_mode(
         self, data_payload: Dict[str, pd.DataFrame]
     ) -> Dict[str, object]:
         prices = data_payload["prices"]
         etf_master = data_payload["etf_master"]
-
         if prices.empty:
             raise ValueError("Price data is empty")
-
         cs_config = (
             self.config.optimization.core_satellite
             if self.config.optimization
@@ -98,10 +80,8 @@ class SecuritiesCollateralLoanAnalyzer:
         )
         prev_portfolio = data_payload.get("previous_portfolio")
         prev_metadata = data_payload.get("previous_metadata")
-
         risk_metrics = etf_screening.compute_risk_metrics(prices, etf_master)
         correlation_matrix = etf_screening.compute_correlation_matrix(prices)
-
         def _is_hedged_label(value: str) -> bool:
             text = (value or "").strip()
             if not text:
@@ -126,7 +106,6 @@ class SecuritiesCollateralLoanAnalyzer:
                     return False
                 return True
             return False
-
         hedged_mask = pd.Series(False, index=etf_master.index)
         for column in ("name", "description"):
             if column in etf_master.columns:
@@ -134,7 +113,6 @@ class SecuritiesCollateralLoanAnalyzer:
                     _is_hedged_label
                 )
         hedged_tickers = set(etf_master.loc[hedged_mask, "ticker"].tolist())
-
         hedged_assets: List[Dict[str, str]] = []
         if hedged_tickers:
             risk_metrics = risk_metrics[~risk_metrics["ticker"].isin(hedged_tickers)]
@@ -150,12 +128,10 @@ class SecuritiesCollateralLoanAnalyzer:
                 .drop_duplicates(subset=["ticker"])
                 .to_dict("records")
             )
-
         if risk_metrics.empty:
             raise ValueError(
                 "No ETFs remain after removing hedged products. Adjust filters or allow hedged ETFs."
             )
-
         objective_weights = self.config.optimization.objective_weights
         constraints = self.config.optimization.constraints
         sample_size = self.config.optimization.sample_size
@@ -164,13 +140,10 @@ class SecuritiesCollateralLoanAnalyzer:
         base_portfolio_cap = self.config.optimization.max_portfolio_size
         base_min_assets = min(self.config.optimization.min_assets, len(prices.columns))
         base_min_assets = max(base_min_assets, 3)
-
         volatility_excluded: List[Dict[str, str]] = []
         drawdown_excluded: List[Dict[str, str]] = []
-
         max_asset_volatility = constraints.get("max_asset_volatility")
         max_asset_drawdown = constraints.get("max_asset_drawdown")
-
         if (
             max_asset_volatility is not None
             and "annual_volatility" in risk_metrics.columns
@@ -188,7 +161,6 @@ class SecuritiesCollateralLoanAnalyzer:
                     index=drop_tickers, columns=drop_tickers, errors="ignore"
                 )
             risk_metrics = risk_metrics.loc[mask_volatility]
-
         if max_asset_drawdown is not None and "max_drawdown" in risk_metrics.columns:
             mask_drawdown = (
                 risk_metrics["max_drawdown"].abs() <= max_asset_drawdown
@@ -203,14 +175,11 @@ class SecuritiesCollateralLoanAnalyzer:
                     index=drop_tickers, columns=drop_tickers, errors="ignore"
                 )
             risk_metrics = risk_metrics.loc[mask_drawdown]
-
         if risk_metrics.empty:
             raise ValueError(
                 "No ETFs remain after applying volatility/drawdown filters. Adjust thresholds or review data."
             )
-
         ranked_etfs = etf_screening.rank_etfs(risk_metrics, objective_weights)
-
         profile_configs: List[OptimizationProfile]
         if self.config.optimization.profiles:
             profile_configs = self.config.optimization.profiles
@@ -228,16 +197,13 @@ class SecuritiesCollateralLoanAnalyzer:
                     objective_weights={"sharpe": 0.0, "volatility": 1.0},
                 ),
             ]
-
         profile_results: Dict[str, Dict[str, object]] = {}
         target_value = (self.config.loan_amount / self.config.ltv_limit) * 1.10
-
         for profile in profile_configs:
             profile_corr_threshold = (
                 profile.correlation_threshold or base_correlation_threshold
             )
             profile_universe_cap = profile.max_universe_size or base_universe_cap
-
             candidate_universe = etf_screening.select_candidate_universe(
                 ranked_etfs,
                 correlation_matrix,
@@ -247,29 +213,24 @@ class SecuritiesCollateralLoanAnalyzer:
                 if self.config.optimization
                 else None,
             )
-
             if candidate_universe.empty:
                 profile_results[profile.name] = {
                     "error": "No ETFs after correlation filtering."
                 }
                 continue
-
             candidate_tickers = candidate_universe["ticker"].tolist()
             prices_subset = prices[candidate_tickers]
             metadata_subset = etf_master[
                 etf_master["ticker"].isin(candidate_tickers)
             ].copy()
-
             try:
                 profile_constraints = constraints.copy()
                 if profile.constraints_override:
                     profile_constraints.update(profile.constraints_override)
-
                 profile_portfolio_cap = profile.max_portfolio_size or base_portfolio_cap
                 profile_min_assets = profile.min_assets or base_min_assets
                 profile_min_assets = min(profile_min_assets, len(candidate_tickers))
                 profile_min_assets = max(profile_min_assets, 3)
-
                 result = optimizer.optimize_collateral_portfolio(
                     prices_subset,
                     metadata_subset,
@@ -299,7 +260,6 @@ class SecuritiesCollateralLoanAnalyzer:
                     "candidate_universe": candidate_universe,
                     "metadata_subset": metadata_subset,
                 }
-
         primary_profile_name = None
         for profile in profile_configs:
             result = profile_results.get(profile.name)
@@ -308,10 +268,8 @@ class SecuritiesCollateralLoanAnalyzer:
                 break
         if primary_profile_name is None:
             raise RuntimeError("Optimization failed for all configured profiles.")
-
         optimized = profile_results[primary_profile_name]
         optimized_portfolio = optimized["portfolio"]
-
         variant_portfolios: Dict[str, Dict[str, object]] = {}
         candidate_tickers_primary = optimized.get("candidate_tickers")
         metadata_subset_primary = optimized.get("metadata_subset", etf_master)
@@ -352,7 +310,6 @@ class SecuritiesCollateralLoanAnalyzer:
                         "strategy_label": strategy_label,
                         "error": str(exc),
                     }
-
         if cs_config and cs_config.enabled:
             optimized_portfolio, portfolio_metadata = (
                 self._apply_core_satellite_strategy(
@@ -365,7 +322,6 @@ class SecuritiesCollateralLoanAnalyzer:
             )
         else:
             portfolio_metadata = None
-
         self.config.collateral_assets = [
             CollateralAsset(
                 ticker=row["ticker"],
@@ -374,10 +330,8 @@ class SecuritiesCollateralLoanAnalyzer:
             )
             for _, row in optimized_portfolio.iterrows()
         ]
-
         selected_prices = prices[optimized_portfolio["ticker"].tolist()]
         manual_result = self._evaluate_manual_mode({"prices": selected_prices})
-
         asset_breakdown = manual_result["asset_breakdown"]
         metadata_subset_primary = optimized.get("metadata_subset", etf_master)
         merge_cols = [
@@ -403,7 +357,6 @@ class SecuritiesCollateralLoanAnalyzer:
                 optimized_portfolio[portfolio_merge_cols], on="ticker", how="left"
             )
         asset_breakdown["category"] = asset_breakdown["category"].fillna("その他")
-
         risk_merge_cols = [
             col
             for col in ["ticker", "annual_return", "annual_volatility", "sharpe_ratio"]
@@ -416,20 +369,16 @@ class SecuritiesCollateralLoanAnalyzer:
             asset_breakdown = asset_breakdown.merge(
                 risk_enriched, on="ticker", how="left"
             )
-
         manual_result["asset_breakdown"] = asset_breakdown
-
         portfolio_returns = manual_result["portfolio_value"].pct_change().dropna()
         drawdown_validation = self._validate_portfolio_drawdown(portfolio_returns)
         allocation_validation = self._validate_asset_allocation(asset_breakdown)
-
         prices_forward = data_payload.get("prices_forward")
         forward_test = None
         if isinstance(prices_forward, pd.DataFrame) and not prices_forward.empty:
             forward_test = self._compute_forward_test(
                 prices_forward, optimized_portfolio
             )
-
         manual_result.update(
             {
                 "mode": "optimization",
@@ -465,18 +414,13 @@ class SecuritiesCollateralLoanAnalyzer:
                 "allocation_validation": allocation_validation,
             }
         )
-
         if portfolio_metadata is not None:
             manual_result["metadata"] = portfolio_metadata
-
         if self.config.optimization and self.config.optimization.risk_policy:
             manual_result["risk_policy"] = self.config.optimization.risk_policy.dict()
-
         if forward_test is not None:
             manual_result["forward_test"] = forward_test
-
         return manual_result
-
     def _evaluate_manual_mode(
         self, data_payload: Dict[str, pd.DataFrame]
     ) -> Dict[str, object]:
@@ -495,7 +439,6 @@ class SecuritiesCollateralLoanAnalyzer:
             loan_ratio_series, self.config.liquidation_ratio, "liquidation"
         )
         scenarios = self._run_scenarios(portfolio_value.iloc[-1])
-
         summary = {
             "current_collateral_value": float(portfolio_value.iloc[-1]),
             "current_loan_ratio": float(loan_ratio_series.iloc[-1]),
@@ -517,7 +460,6 @@ class SecuritiesCollateralLoanAnalyzer:
             "drawdown_series": drawdown_series,
             "interest_projection": interest_projection,
         }
-
         asset_breakdown = pd.DataFrame(
             {
                 "ticker": [asset.ticker for asset in self.config.collateral_assets],
@@ -534,7 +476,6 @@ class SecuritiesCollateralLoanAnalyzer:
         asset_breakdown["market_value"] = (
             asset_breakdown["latest_price"] * asset_breakdown["quantity"]
         )
-
         return {
             "prices": prices,
             "positions": positions,
@@ -546,7 +487,6 @@ class SecuritiesCollateralLoanAnalyzer:
             "scenarios": scenarios,
             "asset_breakdown": asset_breakdown,
         }
-
     def _build_position_value(self, prices: pd.DataFrame) -> pd.DataFrame:
         holdings: Dict[str, pd.Series] = {}
         for asset in self.config.collateral_assets:
@@ -556,7 +496,6 @@ class SecuritiesCollateralLoanAnalyzer:
         if not holdings:
             raise ValueError("No matching price columns for collateral assets.")
         return pd.DataFrame(holdings)
-
     def _compute_interest_projection(self) -> List[Dict[str, float]]:
         rate = self.config.annual_interest_rate
         projections: List[Dict[str, float]] = []
@@ -569,13 +508,11 @@ class SecuritiesCollateralLoanAnalyzer:
                 }
             )
         return projections
-
     def _compute_drawdown(self, portfolio_value: pd.Series) -> tuple[pd.Series, float]:
         rolling_peak = portfolio_value.cummax()
         drawdown = portfolio_value / rolling_peak - 1.0
         max_drawdown = float(drawdown.min())
         return drawdown, max_drawdown
-
     def _extract_events(
         self, ratio_series: pd.Series, threshold: float, label: str
     ) -> pd.DataFrame:
@@ -590,7 +527,6 @@ class SecuritiesCollateralLoanAnalyzer:
             }
         )
         return events
-
     def _run_scenarios(self, latest_value: float) -> List[Dict[str, float]]:
         scenarios: List[Dict[str, float]] = []
         for scenario in self.config.scenarios:
@@ -611,7 +547,6 @@ class SecuritiesCollateralLoanAnalyzer:
                 }
             )
         return scenarios
-
     def _buffer_to_ratio(
         self, value: float, loan: float, threshold: float
     ) -> float | None:
@@ -622,7 +557,6 @@ class SecuritiesCollateralLoanAnalyzer:
             return None
         cushion = 1 - target_collateral / value
         return round(float(cushion), 4)
-
     def _compute_annual_asset_returns(
         self, prices: pd.DataFrame, asset_breakdown: pd.DataFrame
     ) -> List[Dict[str, float]]:
@@ -663,7 +597,6 @@ class SecuritiesCollateralLoanAnalyzer:
                     }
                 )
         return sorted(annual_rows, key=lambda row: (row["year"], row["ticker"]))
-
     def _compute_annual_portfolio_returns(
         self, portfolio_value: pd.Series
     ) -> List[Dict[str, float]]:
@@ -689,7 +622,6 @@ class SecuritiesCollateralLoanAnalyzer:
                 }
             )
         return sorted(annual_rows, key=lambda row: row["year"])
-
     def _compute_forward_test(
         self, prices_forward: pd.DataFrame, optimized_portfolio: pd.DataFrame
     ) -> Dict[str, object]:
@@ -697,51 +629,38 @@ class SecuritiesCollateralLoanAnalyzer:
         available_tickers = [
             t for t in portfolio_tickers if t in prices_forward.columns
         ]
-
         if not available_tickers:
             return {}
-
         prices_subset = prices_forward[available_tickers].copy()
-
         if prices_subset.empty:
             return {}
-
         weights_map = optimized_portfolio.set_index("ticker")[
             "weight_realized"
         ].to_dict()
         weights = np.array([weights_map.get(t, 0) for t in available_tickers])
         weights = weights / weights.sum()
-
         returns = prices_subset.pct_change().dropna()
-
         if returns.empty:
             return {}
-
         portfolio_returns = (returns * weights).sum(axis=1)
         portfolio_value = (1 + portfolio_returns).cumprod()
-
         cumulative_return = (
             float(portfolio_value.iloc[-1] - 1) if len(portfolio_value) > 0 else 0.0
         )
-
         n_days = len(portfolio_returns)
         n_years = n_days / 252.0
         annualized_return = (
             (1 + cumulative_return) ** (1 / n_years) - 1 if n_years > 0 else 0.0
         )
-
         annualized_volatility = float(portfolio_returns.std() * np.sqrt(252))
-
         sharpe_ratio = (
             annualized_return / annualized_volatility
             if annualized_volatility > 0
             else 0.0
         )
-
         running_max = portfolio_value.cummax()
         drawdown = (portfolio_value - running_max) / running_max
         max_drawdown = float(drawdown.min())
-
         return {
             "series": portfolio_value.to_frame(name="portfolio_value"),
             "summary": {
@@ -754,7 +673,6 @@ class SecuritiesCollateralLoanAnalyzer:
                 "max_drawdown": max_drawdown,
             },
         }
-
     def _validate_portfolio_drawdown(
         self, portfolio_returns: pd.Series
     ) -> Dict[str, object]:
@@ -762,13 +680,11 @@ class SecuritiesCollateralLoanAnalyzer:
         peak = cumulative.cummax()
         drawdown = (cumulative - peak) / peak
         max_drawdown = float(drawdown.min())
-
         max_dd_constraint = self.config.optimization.constraints.get(
             "max_portfolio_drawdown"
         )
         if max_dd_constraint is None:
             return {"max_drawdown": max_drawdown, "constraint": None, "compliant": True}
-
         compliant = abs(max_drawdown) <= max_dd_constraint
         return {
             "max_drawdown": max_drawdown,
@@ -778,14 +694,12 @@ class SecuritiesCollateralLoanAnalyzer:
             if not compliant
             else 0.0,
         }
-
     def _validate_asset_allocation(
         self, asset_breakdown: pd.DataFrame
     ) -> Dict[str, object]:
         allocation_config = self.config.optimization.constraints.get("asset_allocation")
         if not allocation_config:
             return {"compliant": True, "allocations": {}, "constraints": {}}
-
         category_map = {
             "債券": "bonds",
             "金": "commodity",
@@ -798,11 +712,9 @@ class SecuritiesCollateralLoanAnalyzer:
             "REIT": "reit",
             "その他": "other",
         }
-
         allocations = {}
         for allocation_key in allocation_config.keys():
             allocations[allocation_key] = 0.0
-
         if (
             "category" in asset_breakdown.columns
             and "weight" in asset_breakdown.columns
@@ -812,20 +724,17 @@ class SecuritiesCollateralLoanAnalyzer:
                     str(row["category"]).strip() if pd.notna(row["category"]) else ""
                 )
                 weight = float(row["weight"]) if pd.notna(row["weight"]) else 0.0
-
                 allocation_key = category_map.get(category)
                 if allocation_key and allocation_key in allocations:
                     allocations[allocation_key] += weight
                 elif allocation_key is None and category:
                     if "other" in allocations:
                         allocations["other"] += weight
-
         violations = []
         for allocation_key, current_weight in allocations.items():
             constraint = allocation_config.get(allocation_key, {})
             min_weight = constraint.get("min", 0.0)
             max_weight = constraint.get("max", 1.0)
-
             if current_weight < min_weight:
                 violations.append(
                     {
@@ -844,14 +753,12 @@ class SecuritiesCollateralLoanAnalyzer:
                         "breach": current_weight - max_weight,
                     }
                 )
-
         return {
             "compliant": len(violations) == 0,
             "allocations": allocations,
             "constraints": allocation_config,
             "violations": violations,
         }
-
     def _apply_core_satellite_strategy(
         self,
         optimized_portfolio: pd.DataFrame,
@@ -865,9 +772,7 @@ class SecuritiesCollateralLoanAnalyzer:
             or prev_metadata is None
             or prev_metadata.rebalance_year >= cs_config.core_rebalance_years
         )
-
         anchor_date = prices.index.max()
-
         if needs_core_rebalance:
             sorted_by_sharpe = optimized_portfolio.copy()
             if "sharpe_ratio" in sorted_by_sharpe.columns:
@@ -878,10 +783,8 @@ class SecuritiesCollateralLoanAnalyzer:
                 sorted_by_sharpe = sorted_by_sharpe.sort_values(
                     "weight", ascending=False
                 )
-
             n_total = len(optimized_portfolio)
             n_core = max(1, int(n_total * cs_config.core_weight))
-
             priority_indices = (
                 self.config.optimization.priority_indices
                 if self.config.optimization
@@ -893,25 +796,21 @@ class SecuritiesCollateralLoanAnalyzer:
             tier2_tickers = (
                 set(priority_indices.get("tier2", [])) if priority_indices else set()
             )
-
             priority_core = sorted_by_sharpe[
                 sorted_by_sharpe["ticker"].isin(tier1_tickers | tier2_tickers)
             ]
             other_core_candidates = sorted_by_sharpe[
                 ~sorted_by_sharpe["ticker"].isin(tier1_tickers | tier2_tickers)
             ]
-
             core_portfolio = (
                 pd.concat([priority_core, other_core_candidates]).head(n_core).copy()
             )
             core_portfolio["portfolio_type"] = "core"
-
             core_tickers_set = set(core_portfolio["ticker"])
             satellite_portfolio = sorted_by_sharpe[
                 ~sorted_by_sharpe["ticker"].isin(core_tickers_set)
             ].copy()
             satellite_portfolio["portfolio_type"] = "satellite"
-
             core_total_weight = (
                 core_portfolio["weight"].sum() if len(core_portfolio) > 0 else 0
             )
@@ -920,7 +819,6 @@ class SecuritiesCollateralLoanAnalyzer:
                 if len(satellite_portfolio) > 0
                 else 0
             )
-
             if core_total_weight > 0:
                 core_portfolio["weight"] = (
                     core_portfolio["weight"] / core_total_weight * cs_config.core_weight
@@ -931,11 +829,9 @@ class SecuritiesCollateralLoanAnalyzer:
                     / satellite_total_weight
                     * cs_config.satellite_weight
                 )
-
             combined = pd.concat(
                 [core_portfolio, satellite_portfolio], ignore_index=True
             )
-
             metadata = PortfolioMetadata(
                 anchor_date=anchor_date.isoformat(),
                 portfolio_type="mixed",
@@ -947,26 +843,21 @@ class SecuritiesCollateralLoanAnalyzer:
                 ).isoformat(),
                 optimization_method="hrp",
             )
-
             return combined, metadata
         else:
             core_portfolio = prev_portfolio[
                 prev_portfolio["portfolio_type"] == "core"
             ].copy()
-
             available_tickers = set(prices.columns)
             core_portfolio = core_portfolio[
                 core_portfolio["ticker"].isin(available_tickers)
             ]
-
             satellite_portfolio = optimized_portfolio.copy()
             satellite_portfolio["portfolio_type"] = "satellite"
-
             core_tickers = set(core_portfolio["ticker"].tolist())
             satellite_portfolio = satellite_portfolio[
                 ~satellite_portfolio["ticker"].isin(core_tickers)
             ]
-
             core_total_weight = (
                 core_portfolio["weight"].sum() if len(core_portfolio) > 0 else 0
             )
@@ -975,7 +866,6 @@ class SecuritiesCollateralLoanAnalyzer:
                 if len(satellite_portfolio) > 0
                 else 0
             )
-
             if core_total_weight > 0:
                 core_portfolio["weight"] = (
                     core_portfolio["weight"] / core_total_weight * cs_config.core_weight
@@ -986,11 +876,9 @@ class SecuritiesCollateralLoanAnalyzer:
                     / satellite_total_weight
                     * cs_config.satellite_weight
                 )
-
             combined = pd.concat(
                 [core_portfolio, satellite_portfolio], ignore_index=True
             )
-
             metadata = PortfolioMetadata(
                 anchor_date=anchor_date.isoformat(),
                 portfolio_type="mixed",
@@ -1000,10 +888,7 @@ class SecuritiesCollateralLoanAnalyzer:
                 valid_until=prev_metadata.valid_until,
                 optimization_method="hrp",
             )
-
             return combined, metadata
-
-
 if __name__ == "__main__":
     import yaml
     from pathlib import Path
@@ -1011,34 +896,22 @@ if __name__ == "__main__":
     from crew.loan.config import SecuritiesCollateralLoanConfig
     from crew.loan.reporting import SecuritiesCollateralLoanReporter
     from crew.utils.kronos_utils import get_kronos_forecast
-
-    # Setup paths
     PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
     CONFIG_FILE = PROJECT_ROOT / "config" / "use_cases" / "loan.yaml"
     DATA_DIR = PROJECT_ROOT / "data" / "loan"
-
     today = datetime.date.today().strftime("%Y%m%d")
     REPORT_DIR = PROJECT_ROOT / "output" / "use_cases" / "loan" / today
-
-    # Load config
     with open(CONFIG_FILE, "r", encoding="utf-8") as f:
         config_data = yaml.safe_load(f)
     config = SecuritiesCollateralLoanConfig(**config_data)
-
-    # Analyze
     analyzer = SecuritiesCollateralLoanAnalyzer(config)
     analyzer.raw_data_dir = DATA_DIR
-
-    # Empty payload -> load from disk
     analysis_payload = {}
     if config.optimization and config.optimization.enabled:
         analysis_payload["mode"] = "optimization"
     else:
         analysis_payload["mode"] = "manual"
-
     results = analyzer.evaluate(analysis_payload)
-
-    # Kronos Integration
     tickers_to_forecast = []
     mode = results.get("mode")
     if mode == "optimization":
@@ -1049,40 +922,32 @@ if __name__ == "__main__":
         asset_breakdown = results.get("asset_breakdown")
         if isinstance(asset_breakdown, pd.DataFrame):
             tickers_to_forecast = asset_breakdown["ticker"].tolist()
-
     forecasts = {}
     for ticker in tickers_to_forecast:
         p_path = DATA_DIR / f"{ticker}.parquet"
         c_path = DATA_DIR / f"{ticker}.csv"
-
         df = None
         if p_path.exists():
             df = pd.read_parquet(p_path)
         elif c_path.exists():
             df = pd.read_csv(c_path, index_col=0, parse_dates=True)
-
         if df is not None:
             try:
-                # Normalize
                 df.columns = [str(c).lower() for c in df.columns]
                 if "close" in df.columns and "open" not in df.columns:
                     df["open"] = df["close"]
                     df["high"] = df["close"]
                     df["low"] = df["close"]
                     df["volume"] = 0.0
-
-                # Ensure Date
                 if "date" in df.columns:
                     df["Date"] = pd.to_datetime(df["date"])
                 elif df.index.name and df.index.name.lower() == "date":
                     df = df.reset_index()
                     df["Date"] = pd.to_datetime(df["Date"])
                 else:
-                    # check first col
                     df = df.reset_index()
-                    df.columns.values[0] = "Date"  # assume
+                    df.columns.values[0] = "Date"
                     df["Date"] = pd.to_datetime(df.iloc[:, 0])
-
                 if "Date" in df.columns:
                     df = df.sort_values("Date").reset_index(drop=True)
                     if len(df) > 30:
@@ -1094,7 +959,6 @@ if __name__ == "__main__":
                             for i in range(pred_len)
                         ]
                         y_timestamp = pd.Series(future_dates)
-
                         pred_df = get_kronos_forecast(
                             df=df,
                             x_timestamp=x_timestamp,
@@ -1105,11 +969,8 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"Kronos forecast error for {ticker}: {e}")
                 forecasts[ticker] = {"error": str(e)}
-
     if forecasts:
         results["forecasts"] = forecasts
-
-    # Report
     reporter = SecuritiesCollateralLoanReporter(
         config, DATA_DIR / "processed", REPORT_DIR
     )
