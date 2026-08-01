@@ -36,12 +36,7 @@ def get_use_cases() -> list[str]:
 
 
 def report_priority(path: Path, slug: str) -> int:
-    """Rank Markdown files by their likelihood of being the public report.
-
-    Analysis pipelines often emit a primary report beside validation, signal,
-    audit, appendix, or raw-detail Markdown files. The ranking is explicit and
-    deterministic; unresolved ties still fail rather than selecting arbitrarily.
-    """
+    """Rank Markdown files by their likelihood of being the public report."""
     name = path.name.lower()
     slug = slug.lower()
 
@@ -121,8 +116,21 @@ def get_report_dates(use_case: str) -> list[str]:
     return sorted(dates, reverse=True)
 
 
-def copy_report_assets(report_dir: Path, case_docs_dir: Path, date: str) -> dict[str, str]:
+def add_rewrite_aliases(rewrites: dict[str, str], source: str, target: str) -> None:
+    rewrites[source] = target
+    if not source.startswith("./"):
+        rewrites[f"./{source}"] = target
+
+
+def prepare_report_assets(
+    report_dir: Path,
+    case_docs_dir: Path,
+    date: str,
+    selected_source: Path,
+) -> dict[str, str]:
+    """Copy binary assets and map companion Markdown files to generated HTML."""
     rewrites: dict[str, str] = {}
+
     for source in sorted(report_dir.rglob("*")):
         if not source.is_file() or source.suffix.lower() == ".md":
             continue
@@ -130,19 +138,57 @@ def copy_report_assets(report_dir: Path, case_docs_dir: Path, date: str) -> dict
         target = case_docs_dir / "assets" / date / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
-        rewrites[relative.as_posix()] = f"assets/{date}/{relative.as_posix()}"
+        add_rewrite_aliases(
+            rewrites,
+            relative.as_posix(),
+            f"assets/{date}/{relative.as_posix()}",
+        )
+
+    for companion in sorted(report_dir.glob("*.md")):
+        if companion == selected_source:
+            continue
+        output_name = f"{date}-{companion.stem}.html"
+        add_rewrite_aliases(rewrites, companion.name, output_name)
+
     return rewrites
 
 
 def rewrite_asset_links(markdown_text: str, rewrites: dict[str, str]) -> str:
     updated = markdown_text
-    for source, target in rewrites.items():
+    for source, target in sorted(rewrites.items(), key=lambda item: -len(item[0])):
         updated = updated.replace(f"]({source})", f"]({target})")
         updated = updated.replace(f'src="{source}"', f'src="{target}"')
         updated = updated.replace(f"src='{source}'", f"src='{target}'")
         updated = updated.replace(f'href="{source}"', f'href="{target}"')
         updated = updated.replace(f"href='{source}'", f"href='{target}'")
     return updated
+
+
+def markdown_to_html(markdown_text: str) -> str:
+    return markdown.markdown(
+        markdown_text,
+        extensions=["tables", "fenced_code", "sane_lists"],
+        output_format="html5",
+    )
+
+
+def render_report_page(
+    env: Environment,
+    *,
+    case: dict[str, object],
+    date: str,
+    dates: list[str],
+    source: Path,
+    rewrites: dict[str, str],
+) -> str:
+    raw_markdown = rewrite_asset_links(source.read_text(encoding="utf-8"), rewrites)
+    return env.get_template("static_report.html").render(
+        case=case,
+        date=date,
+        dates=dates,
+        content=markdown_to_html(raw_markdown),
+        source_name=source.name,
+    )
 
 
 def reset_docs_dir() -> None:
@@ -213,22 +259,31 @@ def build() -> None:
             source = report_source(report_dir)
             if source is None:
                 continue
-            raw_markdown = source.read_text(encoding="utf-8")
-            rewrites = copy_report_assets(report_dir, case_docs_dir, date)
-            raw_markdown = rewrite_asset_links(raw_markdown, rewrites)
-            html_content = markdown.markdown(
-                raw_markdown,
-                extensions=["tables", "fenced_code", "sane_lists"],
-                output_format="html5",
-            )
-            report_html = env.get_template("static_report.html").render(
+
+            rewrites = prepare_report_assets(report_dir, case_docs_dir, date, source)
+            report_html = render_report_page(
+                env,
                 case=case,
                 date=date,
                 dates=dates,
-                content=html_content,
-                source_name=source.name,
+                source=source,
+                rewrites=rewrites,
             )
             (case_docs_dir / f"{date}.html").write_text(report_html, encoding="utf-8")
+
+            for companion in sorted(report_dir.glob("*.md")):
+                if companion == source:
+                    continue
+                companion_html = render_report_page(
+                    env,
+                    case=case,
+                    date=date,
+                    dates=dates,
+                    source=companion,
+                    rewrites=rewrites,
+                )
+                output_name = f"{date}-{companion.stem}.html"
+                (case_docs_dir / output_name).write_text(companion_html, encoding="utf-8")
 
     manifest = {
         "schema_version": 1,
