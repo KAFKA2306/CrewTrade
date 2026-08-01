@@ -29,14 +29,12 @@ jobs:
         with:
           python-version: "3.11"
           enable-cache: true
-      - name: Install dependencies
-        run: uv sync
       - name: Compile web code
-        run: uv run python -m compileall -q web
+        run: uv run --no-project python -m compileall -q web
       - name: Build static site
-        run: uv run python web/build_static.py
+        run: uv run --no-project --with markdown --with jinja2 python web/build_static.py
       - name: Audit generated site
-        run: uv run python web/audit_static.py
+        run: uv run --no-project python web/audit_static.py
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
