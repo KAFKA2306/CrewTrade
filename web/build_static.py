@@ -35,6 +35,48 @@ def get_use_cases() -> list[str]:
     return sorted(directory.name for directory in OUTPUT_DIR.iterdir() if directory.is_dir())
 
 
+def report_priority(path: Path, slug: str) -> int:
+    """Rank Markdown files by their likelihood of being the public report.
+
+    Analysis pipelines often emit a primary report beside validation, signal,
+    audit, appendix, or raw-detail Markdown files. The ranking is explicit and
+    deterministic; unresolved ties still fail rather than selecting arbitrarily.
+    """
+    name = path.name.lower()
+    slug_report = f"{slug.lower()}_report.md"
+
+    if name == "report.md":
+        return 1000
+    if name == "analysis_report.md":
+        return 950
+    if name == slug_report:
+        return 900
+
+    score = 0
+    if name.endswith("_report.md"):
+        score = 800
+    if any(token in name for token in ("summary", "overview", "insight")):
+        score = max(score, 700)
+    if name in {"analysis.md", "results.md", "result.md"}:
+        score = max(score, 650)
+
+    companion_tokens = (
+        "validation",
+        "audit",
+        "signal",
+        "appendix",
+        "detail",
+        "raw",
+        "data",
+        "diagnostic",
+        "check",
+    )
+    if any(token in name for token in companion_tokens):
+        score -= 400
+
+    return score
+
+
 def report_source(report_dir: Path) -> Path | None:
     candidates = sorted(report_dir.glob("*.md"))
     if not candidates:
@@ -42,14 +84,26 @@ def report_source(report_dir: Path) -> Path | None:
     if len(candidates) == 1:
         return candidates[0]
 
-    preferred = [path for path in candidates if path.name in {"report.md", "analysis_report.md"}]
-    if len(preferred) == 1:
-        return preferred[0]
+    slug = report_dir.parent.name
+    ranked = sorted(
+        ((report_priority(path, slug), path) for path in candidates),
+        key=lambda item: (-item[0], item[1].name),
+    )
+    top_score = ranked[0][0]
+    top = [path for score, path in ranked if score == top_score]
+    if len(top) == 1:
+        selected = top[0]
+        names = ", ".join(path.name for path in candidates)
+        print(
+            f"Selected {selected.name} as the public report for "
+            f"{report_dir.relative_to(OUTPUT_DIR)} from: {names}"
+        )
+        return selected
 
-    names = ", ".join(path.name for path in candidates)
+    ranking = ", ".join(f"{path.name}={score}" for score, path in ranked)
     raise RuntimeError(
-        f"Ambiguous report source in {report_dir}: {names}. "
-        "Keep one Markdown file or name the intended file report.md."
+        f"Ambiguous report source in {report_dir}: {ranking}. "
+        "Add report.md to explicitly identify the public report."
     )
 
 
@@ -121,6 +175,10 @@ def build() -> None:
         if not dates:
             continue
         meta = describe_case(slug)
+        sources = {
+            date: report_source(OUTPUT_DIR / slug / date).name
+            for date in dates
+        }
         cards.append(
             {
                 **meta,
@@ -129,7 +187,7 @@ def build() -> None:
                 "latest_date_label": format_report_date(dates[0]),
             }
         )
-        report_index.append({"slug": slug, "dates": dates, **meta})
+        report_index.append({"slug": slug, "dates": dates, "sources": sources, **meta})
 
     if not cards:
         raise RuntimeError("No publishable Markdown reports were found under output/use_cases.")
