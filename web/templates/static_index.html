@@ -6,6 +6,7 @@
   <meta name="description" content="CrewTradeの金融調査・時系列分析レポートを、テーマ、更新日、検証軸から閲覧できる公開ワークスペースです。">
   <title>CrewTrade | Financial Research Workspace</title>
   <link rel="stylesheet" href="assets/site.css">
+  <link rel="stylesheet" href="assets/table.css">
   <script defer src="assets/site.js"></script>
 </head>
 <body>
@@ -48,13 +49,47 @@
         </div>
         <div class="toolbar">
           <input class="search" type="search" placeholder="テーマ・問いを検索" aria-label="調査テーマを検索" data-case-search>
-          <span class="result-count" data-result-count>{{ cases|length }}件</span>
+          <div class="view-switch" role="group" aria-label="一覧表示を切り替え">
+            <button class="view-button" type="button" data-view-button="table" aria-pressed="true">表</button>
+            <button class="view-button" type="button" data-view-button="cards" aria-pressed="false">カード</button>
+          </div>
+          <span class="result-count" data-result-count aria-live="polite">{{ cases|length }}件</span>
         </div>
       </div>
 
-      <div class="case-grid">
+      <div class="case-table-shell" data-case-view="table">
+        <table class="case-table">
+          <thead>
+            <tr>
+              <th scope="col">調査テーマ</th>
+              <th scope="col">分類</th>
+              <th scope="col">検証軸</th>
+              <th scope="col" class="number-column">レポート</th>
+              <th scope="col">最新更新</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for case in cases %}
+            <tr data-case-item data-case-row data-case-slug="{{ case.slug }}" data-search="{{ (case.title ~ ' ' ~ case.category ~ ' ' ~ case.summary ~ ' ' ~ case.question)|lower }}">
+              <td>
+                <a class="table-title" href="{{ case.slug }}/index.html" data-accent="{{ case.accent }}">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>{{ case.title }}</strong><small>{{ case.summary }}</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">{{ case.category }}</span></td>
+              <td class="table-question">{{ case.question }}</td>
+              <td class="number-column"><strong>{{ case.report_count }}</strong></td>
+              <td><a class="table-date" href="{{ case.slug }}/{{ case.latest_date }}.html">{{ case.latest_date_label }} <span aria-hidden="true">→</span></a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="case-grid" data-case-view="cards" hidden>
         {% for case in cases %}
-        <a class="case-card" href="{{ case.slug }}/index.html" data-case-card data-accent="{{ case.accent }}" data-search="{{ (case.title ~ ' ' ~ case.category ~ ' ' ~ case.summary ~ ' ' ~ case.question)|lower }}">
+        <a class="case-card" href="{{ case.slug }}/index.html" data-case-item data-case-card data-case-slug="{{ case.slug }}" data-accent="{{ case.accent }}" data-search="{{ (case.title ~ ' ' ~ case.category ~ ' ' ~ case.summary ~ ' ' ~ case.question)|lower }}">
           <div class="card-meta"><span>{{ case.category }}</span><span>{{ case.report_count }} reports</span></div>
           <h3>{{ case.title }}</h3>
           <p>{{ case.summary }}</p>

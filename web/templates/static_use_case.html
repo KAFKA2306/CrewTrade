@@ -6,6 +6,8 @@
   <meta name="description" content="{{ case.title }}の公開分析レポート一覧。">
   <title>{{ case.title }} | CrewTrade</title>
   <link rel="stylesheet" href="../assets/site.css">
+  <link rel="stylesheet" href="../assets/table.css">
+  <script defer src="../assets/site.js"></script>
 </head>
 <body style="--case-accent: var(--{{ case.accent }});">
   <header class="site-header shell">
@@ -27,11 +29,26 @@
     </section>
 
     <section class="section">
-      <div class="section-heading"><div><p class="eyebrow">Reports</p><h2>分析スナップショット</h2><p>作成日ごとの条件と結論の変化を追えます。</p></div></div>
-      <div class="report-list">
-        {% for date in dates %}
-        <a class="report-link{% if loop.first %} latest{% endif %}" href="{{ date }}.html"><strong>{{ date|report_date }}</strong><span>{% if loop.first %}最新レポート{% else %}過去スナップショット{% endif %}</span></a>
-        {% endfor %}
+      <div class="section-heading"><div><p class="eyebrow">Reports</p><h2>分析スナップショット</h2><p>作成日ごとの条件と結論の変化を、時系列の表で追えます。</p></div></div>
+      <div class="report-table-shell">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th scope="col">作成日</th>
+              <th scope="col">位置づけ</th>
+              <th scope="col">スナップショット</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for date in dates %}
+            <tr{% if loop.first %} class="latest-row"{% endif %}>
+              <td><strong>{{ date|report_date }}</strong></td>
+              <td>{% if loop.first %}<span class="status-pill latest-status">最新</span>{% else %}<span class="status-pill">履歴</span>{% endif %}</td>
+              <td><a class="report-open" href="{{ date }}.html">レポートを開く <span aria-hidden="true">→</span></a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
       <div class="notice"><strong>注意:</strong> 日付はレポートのスナップショット識別子です。本文でデータ取得日と対象期間を確認してください。</div>
     </section>
