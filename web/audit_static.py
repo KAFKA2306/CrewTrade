@@ -50,6 +50,7 @@ def audit() -> None:
     required = [
         DOCS_DIR / "index.html",
         DOCS_DIR / "assets" / "site.css",
+        DOCS_DIR / "assets" / "table.css",
         DOCS_DIR / "assets" / "site.js",
         DOCS_DIR / "site-manifest.json",
     ]
@@ -64,6 +65,19 @@ def audit() -> None:
         raise RuntimeError("Generated site manifest contains no reports.")
 
     failures: list[str] = []
+    index_text = (DOCS_DIR / "index.html").read_text(encoding="utf-8")
+    required_index_markers = {
+        'data-case-view="table"': "table view container",
+        'data-case-view="cards"': "card view container",
+        'data-view-button="table"': "table view button",
+        'data-view-button="cards"': "card view button",
+        'class="case-table"': "research table",
+        'href="assets/table.css"': "table stylesheet",
+    }
+    for marker, label in required_index_markers.items():
+        if marker not in index_text:
+            failures.append(f"index.html: missing {label}")
+
     manifest_report_count = 0
     manifest_companion_count = 0
     for case in manifest["cases"]:
@@ -73,8 +87,17 @@ def audit() -> None:
         if not slug or not dates:
             failures.append(f"manifest: invalid case entry {case!r}")
             continue
-        if not (DOCS_DIR / slug / "index.html").is_file():
+
+        case_index = DOCS_DIR / slug / "index.html"
+        if not case_index.is_file():
             failures.append(f"manifest: missing {slug}/index.html")
+        else:
+            case_text = case_index.read_text(encoding="utf-8")
+            if 'class="report-table"' not in case_text:
+                failures.append(f"{slug}/index.html: missing report table")
+            if 'href="../assets/table.css"' not in case_text:
+                failures.append(f"{slug}/index.html: missing table stylesheet")
+
         for date in dates:
             manifest_report_count += 1
             if not (DOCS_DIR / slug / f"{date}.html").is_file():
@@ -138,7 +161,8 @@ def audit() -> None:
         "Static site audit passed: "
         f"{manifest['total_reports']} reports / "
         f"{manifest_companion_count} companion pages / "
-        f"{len(manifest['cases'])} cases / {len(html_files)} HTML files"
+        f"{len(manifest['cases'])} cases / {len(html_files)} HTML files / "
+        "table views enabled"
     )
 
 
