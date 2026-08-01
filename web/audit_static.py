@@ -7,6 +7,8 @@ from urllib.parse import unquote, urlsplit
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = PROJECT_ROOT / "docs"
+CONTENT_REFRESH_DATE = "20260802"
+CONTENT_REFRESH_LABEL = "更新基準日: 2026-08-02"
 
 
 class LocalReferenceParser(HTMLParser):
@@ -88,6 +90,11 @@ def audit() -> None:
             failures.append(f"manifest: invalid case entry {case!r}")
             continue
 
+        if dates[0] != CONTENT_REFRESH_DATE:
+            failures.append(
+                f"manifest: {slug} latest report is {dates[0]}, expected {CONTENT_REFRESH_DATE}"
+            )
+
         case_index = DOCS_DIR / slug / "index.html"
         if not case_index.is_file():
             failures.append(f"manifest: missing {slug}/index.html")
@@ -97,6 +104,14 @@ def audit() -> None:
                 failures.append(f"{slug}/index.html: missing report table")
             if 'href="../assets/table.css"' not in case_text:
                 failures.append(f"{slug}/index.html: missing table stylesheet")
+
+        latest_report = DOCS_DIR / slug / f"{dates[0]}.html"
+        if latest_report.is_file():
+            latest_text = latest_report.read_text(encoding="utf-8")
+            if CONTENT_REFRESH_LABEL not in latest_text:
+                failures.append(
+                    f"{slug}/{dates[0]}.html: missing content refresh marker"
+                )
 
         for date in dates:
             manifest_report_count += 1
@@ -162,7 +177,7 @@ def audit() -> None:
         f"{manifest['total_reports']} reports / "
         f"{manifest_companion_count} companion pages / "
         f"{len(manifest['cases'])} cases / {len(html_files)} HTML files / "
-        "table views enabled"
+        f"table views enabled / content refreshed {CONTENT_REFRESH_DATE}"
     )
 
 
