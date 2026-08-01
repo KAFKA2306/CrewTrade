@@ -65,9 +65,11 @@ def audit() -> None:
 
     failures: list[str] = []
     manifest_report_count = 0
+    manifest_companion_count = 0
     for case in manifest["cases"]:
         slug = case.get("slug")
         dates = case.get("dates", [])
+        companion_map = case.get("companions", {})
         if not slug or not dates:
             failures.append(f"manifest: invalid case entry {case!r}")
             continue
@@ -77,6 +79,14 @@ def audit() -> None:
             manifest_report_count += 1
             if not (DOCS_DIR / slug / f"{date}.html").is_file():
                 failures.append(f"manifest: missing {slug}/{date}.html")
+            companions = companion_map.get(date, [])
+            if not isinstance(companions, list):
+                failures.append(f"manifest: invalid companions for {slug}/{date}")
+                continue
+            for companion in companions:
+                manifest_companion_count += 1
+                if not (DOCS_DIR / slug / companion).is_file():
+                    failures.append(f"manifest: missing {slug}/{companion}")
 
     if manifest_report_count != manifest["total_reports"]:
         failures.append(
@@ -85,10 +95,16 @@ def audit() -> None:
         )
 
     html_files = sorted(DOCS_DIR.rglob("*.html"))
-    if len(html_files) != manifest_report_count + len(manifest["cases"]) + 1:
+    expected_html_count = (
+        manifest_report_count
+        + manifest_companion_count
+        + len(manifest["cases"])
+        + 1
+    )
+    if len(html_files) != expected_html_count:
         failures.append(
             "generated HTML count does not match manifest "
-            f"({len(html_files)} files)"
+            f"({len(html_files)} != {expected_html_count})"
         )
 
     for html_path in html_files:
@@ -120,8 +136,9 @@ def audit() -> None:
 
     print(
         "Static site audit passed: "
-        f"{manifest['total_reports']} reports / {len(manifest['cases'])} cases / "
-        f"{len(html_files)} HTML files"
+        f"{manifest['total_reports']} reports / "
+        f"{manifest_companion_count} companion pages / "
+        f"{len(manifest['cases'])} cases / {len(html_files)} HTML files"
     )
 
 
