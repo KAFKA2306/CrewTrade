@@ -87,6 +87,18 @@ def rewrite_asset_links(markdown_text: str, rewrites: dict[str, str]) -> str:
     return updated
 
 
+def reset_docs_dir() -> None:
+    DOCS_DIR.mkdir(exist_ok=True)
+    preserved = {"CNAME", ".nojekyll"}
+    for path in DOCS_DIR.iterdir():
+        if path.name in preserved:
+            continue
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+
+
 def copy_site_assets() -> None:
     target = DOCS_DIR / "assets"
     target.mkdir(parents=True, exist_ok=True)
@@ -97,7 +109,7 @@ def copy_site_assets() -> None:
 
 def build() -> None:
     env = create_environment()
-    DOCS_DIR.mkdir(exist_ok=True)
+    reset_docs_dir()
     copy_site_assets()
 
     use_cases = get_use_cases()
