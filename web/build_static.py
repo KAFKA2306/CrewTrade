@@ -43,14 +43,18 @@ def report_priority(path: Path, slug: str) -> int:
     deterministic; unresolved ties still fail rather than selecting arbitrarily.
     """
     name = path.name.lower()
-    slug_report = f"{slug.lower()}_report.md"
+    slug = slug.lower()
 
     if name == "report.md":
         return 1000
     if name == "analysis_report.md":
         return 950
-    if name == slug_report:
+    if name == f"{slug}_report.md":
         return 900
+    if name in {f"{slug}_summary.md", f"{slug}_overview.md"}:
+        return 875
+    if name.startswith(f"{slug}_") and any(token in name for token in ("summary", "overview")):
+        return 850
 
     score = 0
     if name.endswith("_report.md"):
@@ -175,10 +179,7 @@ def build() -> None:
         if not dates:
             continue
         meta = describe_case(slug)
-        sources = {
-            date: report_source(OUTPUT_DIR / slug / date).name
-            for date in dates
-        }
+        sources = {date: report_source(OUTPUT_DIR / slug / date).name for date in dates}
         cards.append(
             {
                 **meta,
