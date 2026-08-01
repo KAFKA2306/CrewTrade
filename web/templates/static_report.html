@@ -1,117 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ name.replace('_', ' ').title() }} - {{ date }}</title>
-    <style>
-        :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --border: #30363d;
-            --text: #e6edf3;
-            --muted: #8b949e;
-            --accent: #58a6ff
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 2rem
-        }
-
-        h1,
-        h2,
-        h3,
-        h4 {
-            margin-top: 1.5rem;
-            margin-bottom: .5rem
-        }
-
-        a {
-            color: var(--accent);
-            text-decoration: none
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto
-        }
-
-        .report {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-top: 1rem
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0
-        }
-
-        th,
-        td {
-            border: 1px solid var(--border);
-            padding: .5rem;
-            text-align: left
-        }
-
-        th {
-            background: var(--bg)
-        }
-
-        code {
-            background: var(--bg);
-            padding: .2rem .4rem;
-            border-radius: 4px
-        }
-
-        pre {
-            background: var(--bg);
-            padding: 1rem;
-            border-radius: 6px;
-            overflow-x: auto
-        }
-
-        .nav {
-            margin-bottom: 1rem
-        }
-
-        .btn {
-            display: inline-block;
-            padding: .25rem .5rem;
-            background: var(--accent);
-            color: var(--bg);
-            border-radius: 4px;
-            margin: .125rem;
-            font-size: .8rem
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ case.title }} — {{ date|report_date }}の分析レポート。">
+  <title>{{ case.title }} — {{ date|report_date }} | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
 </head>
-
 <body>
-    <div class="container">
-        <div class="nav">
-            <a href="../index.html">← Dashboard</a> | <a href="index.html">{{ name.replace('_', ' ').title() }}</a>
-        </div>
-        <div class="nav">
-            {% for d in dates %}<a href="{{ d }}.html" class="btn{% if d == date %}" style="opacity:.5{% endif %}">{{ d
-                }}</a>{% endfor %}
-        </div>
-        <div class="report">{{ content | safe }}</div>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links"><a href="index.html">レポート一覧</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
     </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span>/</span><a href="index.html">{{ case.title }}</a><span>/</span><span>{{ date|report_date }}</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+          {% for item in dates %}<option value="{{ item }}.html"{% if item == date %} selected{% endif %}>{{ item|report_date }}</option>{% endfor %}
+        </select>
+        <dl><dt>テーマ</dt><dd>{{ case.title }}</dd><dt>分類</dt><dd>{{ case.category }}</dd><dt>生成元</dt><dd>{{ source_name }}</dd></dl>
+        <a class="card-arrow" href="index.html">← 一覧へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading"><p class="eyebrow">Analysis snapshot</p><h1>{{ case.title }}</h1><p>{{ date|report_date }} · 掲載値は作成時点のスナップショットです。</p></header>
+        <article class="report-body">{{ content | safe }}</article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、欠損処理、評価区間を優先してください。</div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / {{ case.title }}</span><span>{{ date|report_date }}</span></div></footer>
 </body>
-
 </html>
