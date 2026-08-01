@@ -1,88 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrewTrade Dashboard</title>
-    <style>
-        :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --border: #30363d;
-            --text: #e6edf3;
-            --muted: #8b949e;
-            --accent: #58a6ff
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 2rem
-        }
-
-        h1,
-        h2,
-        h3 {
-            margin-bottom: 1rem
-        }
-
-        a {
-            color: var(--accent);
-            text-decoration: none
-        }
-
-        a:hover {
-            text-decoration: underline
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto
-        }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            display: block
-        }
-
-        .card:hover {
-            border-color: var(--accent)
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CrewTradeの金融調査・時系列分析レポートを、テーマ、更新日、検証軸から閲覧できる公開ワークスペースです。">
+  <title>CrewTrade | Financial Research Workspace</title>
+  <link rel="stylesheet" href="assets/site.css">
+  <script defer src="assets/site.js"></script>
 </head>
-
 <body>
-    <div class="container">
-        <h1>📊 CrewTrade Dashboard</h1>
-        <p style="color:var(--muted);margin-bottom:2rem">Select a use case to view reports.</p>
-        <div class="grid">
-            {% for uc in use_cases %}
-            <a href="{{ uc }}/index.html" class="card">
-                <h3>{{ uc.replace('_', ' ').title() }}</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            {% endfor %}
-        </div>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="index.html" aria-label="CrewTrade ホーム">
+        <span class="brand-mark">CT</span><span>CrewTrade</span>
+      </a>
+      <nav class="header-links" aria-label="外部リンク">
+        <a href="#research-map">調査テーマ</a>
+        <a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a>
+      </nav>
     </div>
-</body>
+  </header>
 
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Financial research workspace</p>
+        <h1>数字と解釈を、混ぜずに読む。</h1>
+        <p class="hero-copy">市場データ、計算結果、予測、文章による解釈を分離し、テーマごとの問いからレポートと根拠へ進むための公開ワークスペースです。</p>
+        <div class="metrics" aria-label="公開状況">
+          <span class="metric"><strong>{{ cases|length }}</strong>調査テーマ</span>
+          <span class="metric"><strong>{{ total_reports }}</strong>公開レポート</span>
+          <span class="metric">静的スナップショット</span>
+        </div>
+      </div>
+      <aside class="hero-note">
+        <strong>このサイトの前提</strong>
+        <p>掲載値は各レポートの作成日時点です。リアルタイム価格、投資助言、将来収益の保証ではありません。</p>
+      </aside>
+    </section>
+
+    <section class="section" id="research-map">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Research map</p>
+          <h2>問いから分析を選ぶ</h2>
+          <p>銘柄名の羅列ではなく、検証したい構造で整理しています。</p>
+        </div>
+        <div class="toolbar">
+          <input class="search" type="search" placeholder="テーマ・問いを検索" aria-label="調査テーマを検索" data-case-search>
+          <span class="result-count" data-result-count>{{ cases|length }}件</span>
+        </div>
+      </div>
+
+      <div class="case-grid">
+        {% for case in cases %}
+        <a class="case-card" href="{{ case.slug }}/index.html" data-case-card data-accent="{{ case.accent }}" data-search="{{ (case.title ~ ' ' ~ case.category ~ ' ' ~ case.summary ~ ' ' ~ case.question)|lower }}">
+          <div class="card-meta"><span>{{ case.category }}</span><span>{{ case.report_count }} reports</span></div>
+          <h3>{{ case.title }}</h3>
+          <p>{{ case.summary }}</p>
+          <p class="card-question">{{ case.question }}</p>
+          <span class="card-arrow">{{ case.latest_date_label }} →</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Reading protocol</p>
+          <h2>レポートの読み方</h2>
+        </div>
+      </div>
+      <div class="process-grid">
+        <div class="process-step"><span>01</span><h3>対象と期間</h3><p>銘柄、指数、通貨、取得日、比較期間を最初に固定します。</p></div>
+        <div class="process-step"><span>02</span><h3>計算条件</h3><p>配当、分割、手数料、税、欠損、インサンプル/OOSを確認します。</p></div>
+        <div class="process-step"><span>03</span><h3>解釈と限界</h3><p>定量結果、モデル予測、LLMの文章を別の証拠レイヤーとして読みます。</p></div>
+      </div>
+      <div class="notice"><strong>再現性:</strong> 公開ページはリポジトリ内の分析スナップショットから生成されます。生成器は曖昧な複数Markdownや出力欠損を成功扱いしません。</div>
+    </section>
+  </main>
+
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade</span><span>Research, not recommendation.</span></div></footer>
+</body>
 </html>
