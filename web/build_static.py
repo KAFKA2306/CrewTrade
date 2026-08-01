@@ -122,6 +122,14 @@ def add_rewrite_aliases(rewrites: dict[str, str], source: str, target: str) -> N
         rewrites[f"./{source}"] = target
 
 
+def companion_output_names(report_dir: Path, selected_source: Path, date: str) -> list[str]:
+    return [
+        f"{date}-{companion.stem}.html"
+        for companion in sorted(report_dir.glob("*.md"))
+        if companion != selected_source
+    ]
+
+
 def prepare_report_assets(
     report_dir: Path,
     case_docs_dir: Path,
@@ -225,7 +233,16 @@ def build() -> None:
         if not dates:
             continue
         meta = describe_case(slug)
-        sources = {date: report_source(OUTPUT_DIR / slug / date).name for date in dates}
+        sources: dict[str, str] = {}
+        companions: dict[str, list[str]] = {}
+        for date in dates:
+            report_dir = OUTPUT_DIR / slug / date
+            source = report_source(report_dir)
+            if source is None:
+                continue
+            sources[date] = source.name
+            companions[date] = companion_output_names(report_dir, source, date)
+
         cards.append(
             {
                 **meta,
@@ -234,7 +251,15 @@ def build() -> None:
                 "latest_date_label": format_report_date(dates[0]),
             }
         )
-        report_index.append({"slug": slug, "dates": dates, "sources": sources, **meta})
+        report_index.append(
+            {
+                "slug": slug,
+                "dates": dates,
+                "sources": sources,
+                "companions": companions,
+                **meta,
+            }
+        )
 
     if not cards:
         raise RuntimeError("No publishable Markdown reports were found under output/use_cases.")
