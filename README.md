@@ -1,60 +1,69 @@
-# CrewTrade — マルチエージェント金融調査・時系列分析
+# CrewTrade — 金融調査ワークスペース
 
-**公開ダッシュボード:** https://kafka2306.github.io/CrewTrade/
+[公開ダッシュボード](https://kafka2306.github.io/CrewTrade/) · [GitHub Actions](https://github.com/KAFKA2306/CrewTrade/actions)
 
-CrewTradeは、CrewAIを用いて金融データの取得、定量分析、レポート生成、時系列予測をユースケースごとに実行する研究プロジェクトです。
+CrewTradeは、市場データの取得、定量計算、時系列予測、文章による解釈をユースケース単位で実行し、分析スナップショットとして公開する研究プロジェクトです。
 
-市場データ、計算結果、モデル予測、文章による解釈を分離し、インサンプル成績だけで投資戦略の有効性を断定しないことを前提とします。
+公開画面は、レポート名の一覧ではなく、**何を検証する分析なのか**を起点に設計しています。対象・期間・計算条件・予測・解釈を同じ証拠として扱わず、レポート本文でそれぞれ確認できる状態を目指します。
 
-## 主な機能
+## 公開画面
 
-- Yahoo Financeなどからの市場データ取得
-- 株式、ETF、金利、金属、半導体の分析
-- ポートフォリオと証券担保ローンのリスク計算
-- 基準指数とのリターン・リスク比較
-- インサンプルとアウト・オブ・サンプルの分離
-- CrewAIによる調査・分析タスクの分担
-- Amazon Chronos系モデルを使った時系列予測実験
-- Markdown・画像・静的HTMLレポートの生成
-- GitHub Pagesへの分析結果公開
+- 調査テーマを「運用評価」「資産配分」「リスク管理」「産業分析」などの検証目的で整理
+- テーマ、問い、説明文を横断検索
+- 各テーマの最新スナップショットと公開レポート数を表示
+- 日付別レポートを切り替えて、前提や結論の変化を追跡
+- レポート画像・添付物を日付別アセットへ分離し、同名ファイルの上書きを防止
+- 掲載値がリアルタイムではないこと、投資助言ではないことを画面内に明示
 
-## 公開処理
+デザインは、背景 `#fbfaf7`、本文 `#243653`、青 `#8fb5ec`、ラベンダー `#b9a8e6`、ローズ `#efb4c1`、ミント `#b7dbc8`、アプリコット `#f3cfaa` を基調としています。
 
-GitHub Actionsは、`main`への変更時に依存関係を同期し、`web/build_static.py`で`docs/`を生成してGitHub Pagesへ公開します。
+## 調査テーマ
 
-公開ダッシュボードは、ユースケースごとに生成済みレポートを一覧表示します。掲載値は各レポートの作成日時点の結果であり、リアルタイム価格ではありません。
-
-## 主なユースケース
-
-| ユースケース | 設定ファイル | 主な目的 |
+| 公開スラッグ | 表示名 | 主な検証軸 |
 | --- | --- | --- |
-| `imura` | `config/use_cases/imura.yaml` | ファンド・指数比較、リターンとリスク分析 |
-| `oracle` | `config/use_cases/oracle.yaml` | 個別企業・時系列予測の研究 |
-| `credit` | `config/use_cases/credit.yaml` | 信用・クレジット関連分析 |
-| `etf` | — | ETF比較 |
-| `loan` | `config/use_cases/loan.yaml` | 証券担保ローンなどのリスク分析 |
-| `metals` | `config/use_cases/metals.yaml` | 金属・コモディティ分析 |
-| `portfolio` | `config/use_cases/portfolio.yaml` | ポートフォリオ分析 |
-| `yields` | `config/use_cases/yields.yaml` | 金利・利回り分析 |
-| `semiconductors` | `config/use_cases/semiconductors.yaml` | 半導体関連分析 |
-| `legendary_investors` | `config/use_cases/legendary_investors.yaml` | 著名投資家の公開情報を用いた調査 |
+| `imura` | ファンド・指数比較 | 比較条件とリスクをそろえても超過収益が残るか |
+| `index_7_portfolio` | 7指数ポートフォリオ | 分散が実際の下落局面で機能したか |
+| `index_etf_comparison` | 指数ETF比較 | 同じ指数名でも投資結果を分ける条件は何か |
+| `legendary_investors` | 著名投資家リサーチ | 公開情報から再現可能な判断原則を抽出できるか |
+| `oracle` | 個別企業・時系列予測 | 予測がアウト・オブ・サンプルでも情報を持つか |
+| `precious_metals_spread` | 貴金属スプレッド | 価格差が平均回帰か構造変化か |
+| `securities_collateral_loan` | 証券担保ローン | どの下落率から意思決定の自由が失われるか |
+| `semiconductors` | 半導体サイクル | 利益成長が数量・価格・能力のどこから生じたか |
+| `yield_spread` | 金利・イールドスプレッド | 金利差の変化がどの期待を反映しているか |
 
-設定ファイルが存在しないユースケースは、実装内の既定値または個別スクリプトを使用します。
+未登録の出力ディレクトリは削除せず、「未分類」として表示します。名称や説明を推測で補完しません。
 
-## 技術構成
+## ディレクトリ構造
 
-- Python 3.11
-- CrewAI
-- `uv`
-- pandas / NumPy
-- yfinance / yahooquery / pandas-datareader
-- PyTorch / Transformers / Chronos Forecasting
-- Nixtla
-- Flask
-- Matplotlib
-- Playwright・Crawl4AI系の取得処理
+```text
+config/use_cases/           ユースケース設定
+output/use_cases/           分析結果の正本
+  <use_case>/<YYYYMMDD>/
+    report.md               公開対象Markdown
+    *.png / *.csv / ...     レポート添付物
+web/
+  catalog.py                表示名・分類・検証軸の定義
+  build_static.py           GitHub Pages生成器
+  audit_static.py           生成物監査
+  static/                   共通CSS・JavaScript
+  templates/                Jinjaテンプレート
+docs/                       生成された静的サイト
+```
 
-依存関係の正本は`pyproject.toml`です。
+分析結果の正本は `output/use_cases/` です。`docs/` は `web/build_static.py` から再生成されます。
+
+## 公開ロジック
+
+1. `output/use_cases/<use_case>/<date>/` を列挙
+2. 公開対象Markdownを決定
+3. テーマ情報を `web/catalog.py` から付与
+4. MarkdownをHTMLへ変換
+5. 添付物を `docs/<use_case>/assets/<date>/` へコピー
+6. `docs/site-manifest.json` に公開テーマと日付を記録
+7. `web/audit_static.py` で言語設定、テンプレート残存、旧UI残存を検査
+8. GitHub Pagesへデプロイ
+
+同一日付ディレクトリに複数のMarkdownがあり、`report.md` または `analysis_report.md` で公開対象を一意に決められない場合、ビルドは失敗します。曖昧なファイルを任意に選んで成功扱いしません。
 
 ## セットアップ
 
@@ -62,16 +71,24 @@ GitHub Actionsは、`main`への変更時に依存関係を同期し、`web/buil
 uv sync
 ```
 
-Python要件は`>=3.11,<3.12`です。
+Python要件は `>=3.11,<3.12` です。依存関係の正本は `pyproject.toml` です。
 
-APIキーや外部サービスの認証情報が必要なユースケースでは、ローカルの環境変数または非公開設定を使用してください。秘密情報をコミットしないでください。
+APIキーや外部サービスの認証情報は環境変数または非公開設定で管理し、リポジトリへコミットしないでください。
 
 ## 実行
 
 ```bash
-task process:all   # データ取得から分析までをまとめて実行
+task process:all   # データ取得から分析まで実行
 task fetch:all     # データ取得
-task run           # 分析を実行
+task run           # 分析実行
+task serve         # ローカルWeb画面
+```
+
+静的サイトのみを生成・監査する場合:
+
+```bash
+uv run python web/build_static.py
+uv run python web/audit_static.py
 ```
 
 CLIエントリポイント:
@@ -84,17 +101,11 @@ uv run replay
 uv run test
 ```
 
-Web画面をローカルで起動するタスクが利用できる構成では、次を実行します。
-
-```bash
-task serve
-```
-
 ## 分析品質の確認項目
 
 - データの対象期間と取得日時を残す
-- 配当・分割・通貨・市場休業日の扱いを明示する
-- インサンプルとOOSを分離する
+- 配当、分割、通貨、市場休業日の扱いを明示する
+- インサンプルとアウト・オブ・サンプルを分離する
 - 比較指数と計算条件をそろえる
 - 手数料、税、スリッページを含まない結果を実績と呼ばない
 - 予測モデルの入力期間、予測期間、評価指標を保存する
@@ -103,9 +114,9 @@ task serve
 
 ## 注意
 
+- 掲載値は各レポート作成日時点のスナップショットです
 - 過去の成績は将来の収益を保証しません
 - Chronosなどの予測値は確定的な将来価格ではありません
-- 公開レポートの数値は、作成時点のデータと実装に依存します
 - 本プロジェクトは投資助言、売買推奨、運用実績の保証ではありません
 
-**README最終監査:** 2026-08-01
+**最終構造監査:** 2026-08-02

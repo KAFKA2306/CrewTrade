@@ -1,70 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ name.replace('_', ' ').title() }} - CrewTrade</title>
-    <style>
-        :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --border: #30363d;
-            --text: #e6edf3;
-            --muted: #8b949e;
-            --accent: #58a6ff
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 2rem
-        }
-
-        h1,
-        h2,
-        h3 {
-            margin-bottom: 1rem
-        }
-
-        a {
-            color: var(--accent);
-            text-decoration: none
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto
-        }
-
-        .btn {
-            display: inline-block;
-            padding: .5rem 1rem;
-            background: var(--accent);
-            color: var(--bg);
-            border-radius: 6px;
-            margin: .25rem
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ case.title }}の公開分析レポート一覧。">
+  <title>{{ case.title }} | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
 </head>
-
-<body>
-    <div class="container">
-        <h1>{{ name.replace('_', ' ').title() }}</h1>
-        <p><a href="../index.html">← Back to Dashboard</a></p>
-        <h3>Reports</h3>
-        {% for date in dates %}
-        <a href="{{ date }}.html" class="btn">{{ date }}</a>
-        {% endfor %}
+<body style="--case-accent: var(--{{ case.accent }});">
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links"><a href="../index.html">全テーマ</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
     </div>
-</body>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span>/</span><span>{{ case.title }}</span></nav>
+    <section class="case-hero">
+      <div>
+        <p class="eyebrow">{{ case.category }}</p>
+        <h1>{{ case.title }}</h1>
+        <p class="case-summary">{{ case.summary }}</p>
+        <div class="metrics"><span class="metric"><strong>{{ dates|length }}</strong>公開レポート</span><span class="metric">最新 {{ dates[0]|report_date }}</span></div>
+      </div>
+      <aside class="question-box"><small>この分析の検証軸</small><strong>{{ case.question }}</strong></aside>
+    </section>
 
+    <section class="section">
+      <div class="section-heading"><div><p class="eyebrow">Reports</p><h2>分析スナップショット</h2><p>作成日ごとの条件と結論の変化を追えます。</p></div></div>
+      <div class="report-list">
+        {% for date in dates %}
+        <a class="report-link{% if loop.first %} latest{% endif %}" href="{{ date }}.html"><strong>{{ date|report_date }}</strong><span>{% if loop.first %}最新レポート{% else %}過去スナップショット{% endif %}</span></a>
+        {% endfor %}
+      </div>
+      <div class="notice"><strong>注意:</strong> 日付はレポートのスナップショット識別子です。本文でデータ取得日と対象期間を確認してください。</div>
+    </section>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / {{ case.title }}</span><span>Research, not recommendation.</span></div></footer>
+</body>
 </html>
