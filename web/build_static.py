@@ -167,7 +167,7 @@ def rewrite_asset_links(markdown_text: str, rewrites: dict[str, str]) -> str:
         updated = updated.replace(f"]({source})", f"]({target})")
         updated = updated.replace(f'src="{source}"', f'src="{target}"')
         updated = updated.replace(f"src='{source}'", f"src='{target}'")
-        updated = updated.replace(f'href="{source}"', f'href="{target}'")
+        updated = updated.replace(f'href="{source}"', f'href="{target}"')
         updated = updated.replace(f"href='{source}'", f"href='{target}'")
     return updated
 
@@ -269,7 +269,7 @@ def build() -> None:
     for card in cards:
         card["freshness"] = "current" if card["latest_date"] == site_latest_date else "archive"
 
-    purposes = []
+    purposes: list[str] = []
     for card in cards:
         purpose = str(card["purpose"])
         if purpose not in purposes:
