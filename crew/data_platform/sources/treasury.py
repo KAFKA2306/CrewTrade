@@ -28,6 +28,14 @@ _TENOR_FIELDS = {
     "BC_30YEAR": "30Y",
 }
 
+_REAL_TENOR_FIELDS = {
+    "BC_5YEAR": "5Y",
+    "BC_7YEAR": "7Y",
+    "BC_10YEAR": "10Y",
+    "BC_20YEAR": "20Y",
+    "BC_30YEAR": "30Y",
+}
+
 
 class TreasuryYieldCurveSource:
     name = "us_treasury"
@@ -38,57 +46,160 @@ class TreasuryYieldCurveSource:
         self.client = HttpClient(
             user_agent=str(config.get("user_agent", "CrewTrade data-platform")),
             min_interval_seconds=float(config.get("min_interval_seconds", 0.5)),
+            timeout_seconds=float(config.get("timeout_seconds", 60.0)),
+            max_attempts=int(config.get("max_attempts", 3)),
         )
 
     def fetch(self) -> Sequence[DatasetBatch]:
         years = [int(value) for value in self.config.get("years", [])]
         if not years:
             years = [pd.Timestamp.utcnow().year]
-        rows: list[dict[str, object]] = []
+
+        nominal_rows: list[dict[str, object]] = []
+        real_rows: list[dict[str, object]] = []
         raw_documents: list[dict[str, str]] = []
         latest_url = self.URL
         latest_retrieved_at = None
+
         for year in sorted(set(years)):
-            payload = self.client.get(
+            nominal_payload = self.client.get(
                 self.URL,
                 params={
                     "data": "daily_treasury_yield_curve",
                     "field_tdr_date_value": year,
                 },
             )
-            rows.extend(parse_treasury_yield_xml(payload.body))
-            raw_documents.append(
-                {
-                    "year": str(year),
-                    "url": payload.url,
-                    "body_base64": base64.b64encode(payload.body).decode("ascii"),
-                }
+            real_payload = self.client.get(
+                self.URL,
+                params={
+                    "data": "daily_treasury_real_yield_curve",
+                    "field_tdr_date_value": year,
+                },
             )
-            latest_url = payload.url
-            latest_retrieved_at = payload.retrieved_at
-        frame = pd.DataFrame.from_records(rows)
+            nominal_rows.extend(
+                parse_treasury_yield_xml(
+                    nominal_payload.body,
+                    tenor_fields=_TENOR_FIELDS,
+                    curve_type="daily_treasury_par_yield_curve",
+                )
+            )
+            real_rows.extend(
+                parse_treasury_yield_xml(
+                    real_payload.body,
+                    tenor_fields=_REAL_TENOR_FIELDS,
+                    curve_type="daily_treasury_par_real_yield_curve",
+                )
+            )
+            raw_documents.extend(
+                [
+                    {
+                        "year": str(year),
+                        "curve_type": "nominal",
+                        "url": nominal_payload.url,
+                        "body_base64": base64.b64encode(
+                            nominal_payload.body
+                        ).decode("ascii"),
+                    },
+                    {
+                        "year": str(year),
+                        "curve_type": "real",
+                        "url": real_payload.url,
+                        "body_base64": base64.b64encode(real_payload.body).decode(
+                            "ascii"
+                        ),
+                    },
+                ]
+            )
+            latest_url = real_payload.url
+            latest_retrieved_at = real_payload.retrieved_at
+
+        nominal = pd.DataFrame.from_records(nominal_rows)
+        real = pd.DataFrame.from_records(real_rows)
+        rates_macro = build_rates_macro(
+            nominal,
+            real,
+            retrieval_date=pd.Timestamp(latest_retrieved_at).date()
+            if latest_retrieved_at is not None
+            else pd.Timestamp.utcnow().date(),
+        )
+        raw_payload = json.dumps(
+            {"documents": raw_documents}, ensure_ascii=False, sort_keys=True
+        ).encode("utf-8")
+        retrieved_at = (
+            latest_retrieved_at
+            if latest_retrieved_at is not None
+            else pd.Timestamp.utcnow().to_pydatetime()
+        )
+        common_metadata = {
+            "years": years,
+            "retrieval_mode": "official_xml_snapshot",
+            "point_in_time_vintage": False,
+            "http_request_count": len(set(years)) * 2,
+        }
         return [
             DatasetBatch(
                 dataset=str(
                     self.config.get("dataset", "treasury_par_yield_curve")
                 ),
                 source=self.name,
-                frame=frame,
+                frame=nominal,
                 primary_key=("observation_date", "tenor"),
                 source_url=latest_url,
-                raw_payload=json.dumps(
-                    {"documents": raw_documents}, ensure_ascii=False, sort_keys=True
-                ).encode("utf-8"),
+                raw_payload=raw_payload,
                 content_type="application/json",
-                retrieved_at=latest_retrieved_at
-                if latest_retrieved_at is not None
-                else pd.Timestamp.utcnow().to_pydatetime(),
-                metadata={"years": years, "curve_type": "par_yield"},
-            )
+                retrieved_at=retrieved_at,
+                metadata={**common_metadata, "curve_type": "par_yield"},
+            ),
+            DatasetBatch(
+                dataset=str(
+                    self.config.get(
+                        "real_dataset", "treasury_par_real_yield_curve"
+                    )
+                ),
+                source=self.name,
+                frame=real,
+                primary_key=("observation_date", "tenor"),
+                source_url=latest_url,
+                raw_payload=raw_payload,
+                content_type="application/json",
+                retrieved_at=retrieved_at,
+                metadata={**common_metadata, "curve_type": "par_real_yield"},
+            ),
+            DatasetBatch(
+                dataset=str(self.config.get("rates_dataset", "rates_macro")),
+                source=self.name,
+                frame=rates_macro,
+                primary_key=(
+                    "series_id",
+                    "observation_date",
+                    "realtime_start",
+                    "realtime_end",
+                ),
+                source_url=latest_url,
+                raw_payload=raw_payload,
+                content_type="application/json",
+                retrieved_at=retrieved_at,
+                metadata={
+                    **common_metadata,
+                    "derived_series": ["us_10y_breakeven"],
+                    "source_series": [
+                        "us_2y",
+                        "us_10y",
+                        "us_30y",
+                        "us_10y_real",
+                    ],
+                },
+            ),
         ]
 
 
-def parse_treasury_yield_xml(payload: bytes) -> list[dict[str, object]]:
+def parse_treasury_yield_xml(
+    payload: bytes,
+    *,
+    tenor_fields: Mapping[str, str] | None = None,
+    curve_type: str = "daily_treasury_par_yield_curve",
+) -> list[dict[str, object]]:
+    fields = dict(tenor_fields or _TENOR_FIELDS)
     root = ElementTree.fromstring(payload)
     rows: list[dict[str, object]] = []
     for element in root.iter():
@@ -102,7 +213,7 @@ def parse_treasury_yield_xml(payload: bytes) -> list[dict[str, object]]:
         if not date_text:
             continue
         observation_date = pd.to_datetime(date_text).date()
-        for field, tenor in _TENOR_FIELDS.items():
+        for field, tenor in fields.items():
             value_text = values.get(field)
             if not value_text:
                 continue
@@ -112,10 +223,77 @@ def parse_treasury_yield_xml(payload: bytes) -> list[dict[str, object]]:
                     "tenor": tenor,
                     "value": float(value_text),
                     "unit": "percent",
-                    "curve_type": "daily_treasury_par_yield_curve",
+                    "curve_type": curve_type,
                 }
             )
     return rows
+
+
+def build_rates_macro(
+    nominal: pd.DataFrame,
+    real: pd.DataFrame,
+    *,
+    retrieval_date: object,
+) -> pd.DataFrame:
+    required_nominal = {"2Y": "us_2y", "10Y": "us_10y", "30Y": "us_30y"}
+    nominal_subset = nominal[nominal["tenor"].isin(required_nominal)].copy()
+    nominal_subset["label"] = nominal_subset["tenor"].map(required_nominal)
+    real_10y = real[real["tenor"] == "10Y"].copy()
+    real_10y["label"] = "us_10y_real"
+
+    long_rows = pd.concat([nominal_subset, real_10y], ignore_index=True)
+    snapshot_date = pd.to_datetime(retrieval_date).date()
+    long_rows["series_id"] = long_rows["label"].map(
+        {
+            "us_2y": "TREASURY_NOMINAL_2Y",
+            "us_10y": "TREASURY_NOMINAL_10Y",
+            "us_30y": "TREASURY_NOMINAL_30Y",
+            "us_10y_real": "TREASURY_REAL_10Y",
+        }
+    )
+    long_rows["realtime_start"] = snapshot_date
+    long_rows["realtime_end"] = snapshot_date
+    long_rows["units"] = "Percent"
+    long_rows["title"] = long_rows["label"].map(
+        {
+            "us_2y": "Daily Treasury Par Yield Curve Rate, 2-Year",
+            "us_10y": "Daily Treasury Par Yield Curve Rate, 10-Year",
+            "us_30y": "Daily Treasury Par Yield Curve Rate, 30-Year",
+            "us_10y_real": "Daily Treasury Par Real Yield Curve Rate, 10-Year",
+        }
+    )
+
+    nominal_10y = nominal[nominal["tenor"] == "10Y"][
+        ["observation_date", "value"]
+    ].rename(columns={"value": "nominal_10y"})
+    real_10y_values = real[real["tenor"] == "10Y"][
+        ["observation_date", "value"]
+    ].rename(columns={"value": "real_10y"})
+    breakeven = nominal_10y.merge(
+        real_10y_values, on="observation_date", how="inner"
+    )
+    breakeven["value"] = breakeven["nominal_10y"] - breakeven["real_10y"]
+    breakeven["series_id"] = "TREASURY_DERIVED_10Y_BREAKEVEN"
+    breakeven["label"] = "us_10y_breakeven"
+    breakeven["realtime_start"] = snapshot_date
+    breakeven["realtime_end"] = snapshot_date
+    breakeven["units"] = "Percent"
+    breakeven["title"] = "10-Year Nominal Minus 10-Year Real Treasury Yield"
+
+    columns = [
+        "series_id",
+        "label",
+        "observation_date",
+        "value",
+        "realtime_start",
+        "realtime_end",
+        "units",
+        "title",
+    ]
+    result = pd.concat(
+        [long_rows[columns], breakeven[columns]], ignore_index=True
+    )
+    return result.sort_values(["observation_date", "label"]).reset_index(drop=True)
 
 
 def _local_name(tag: str) -> str:
