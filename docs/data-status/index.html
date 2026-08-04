@@ -32,27 +32,70 @@
         <h1 id="page-title">数値より先に、データの状態を確認する。</h1>
         <p class="hero-copy">一次ソース、取得時刻、raw SHA-256、Parquet、品質検査、分析への接続状態を公開します。取得できないデータは推測せず、停止理由または非公開入力として表示します。</p>
         <div class="metrics" aria-label="データ基盤の公開状態">
-          <span class="metric"><strong>0</strong>正準稼働</span>
+          <span class="metric"><strong>1</strong>正準稼働</span>
           <span class="metric"><strong>9</strong>統制状態</span>
-          <span class="metric"><strong>1</strong>取得待ち</span>
-          <span class="metric">生成 2026-08-05 00:50 JST</span>
+          <span class="metric"><strong>0</strong>取得待ち</span>
+          <span class="metric">生成 2026-08-05 01:08 JST</span>
         </div>
       </div>
       <aside class="hero-note" aria-label="総合状態">
         <span class="status-label">DATA PLATFORM</span>
-        <strong data-platform-overall="degraded">DEGRADED · 一次スナップショット待ち</strong>
-        <p>構成と停止契約は有効です。正準接続済み分析の一部データがまだ取得されていません。</p>
+        <strong data-platform-overall="ok">OK · 正準データ経路は運用可能</strong>
+        <p>正準接続済み分析は最新スナップショットを参照し、残りは理由付きの統制状態です。</p>
       </aside>
     </section>
 
     <section class="section" aria-labelledby="run-title">
       <div class="section-heading"><div><p class="eyebrow">Ingestion</p><h2 id="run-title">最新取得実行</h2></div></div>
-      <div class="notice"><strong>取得スナップショット待ち</strong> 設定とPages表示は有効ですが、正準カタログの公開用スナップショットはまだありません。</div>
+      <div class="notice">
+        <strong>success</strong>
+        <span>run <code>20260804T160845Z-fd78fccf</code></span>
+        <span>開始 2026-08-04T16:08:45.287262+00:00</span>
+<span>完了 2026-08-04T16:08:45.403554+00:00</span>      </div>
     </section>
 
     <section class="section" aria-labelledby="dataset-title">
       <div class="section-heading"><div><p class="eyebrow">Canonical datasets</p><h2 id="dataset-title">正準データセット</h2><p>公開するのは状態・件数・来歴だけです。raw本文や非公開口座情報は公開しません。</p></div></div>
-      <div class="empty-state"><h3>公開用スナップショット未生成</h3><p>GitHub Actionsの一次データ取得後に、件数・取得日時・品質状態を表示します。</p></div>
+      <div class="case-table-shell" tabindex="0" aria-label="正準データセット一覧。横方向にスクロールできます。">
+        <table class="case-table data-status-table">
+          <caption>データセット、一次ソース、行数、取得日時、品質状態</caption>
+          <thead><tr><th scope="col">データセット</th><th scope="col">一次ソース</th><th scope="col">行数</th><th scope="col">取得日時</th><th scope="col">品質</th><th scope="col">取得方式</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>governed_source_registry</strong><small class="cell-secondary"><code>869da395ead1bac2</code></small></td>
+              <td><a href="https://github.com/KAFKA2306/CrewTrade/blob/main/config/data_platform.yaml">governed_manual</a></td>
+              <td>8</td>
+              <td>2026-08-04T16:08:45.300301+00:00</td>
+              <td><span class="status-pill">ok</span></td>
+              <td>official adapter</td>
+            </tr>
+            <tr>
+              <td><strong>rates_macro</strong><small class="cell-secondary"><code>6c207ee8e8316116</code></small></td>
+              <td><a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&amp;field_tdr_date_value=2026">us_treasury</a></td>
+              <td>3230</td>
+              <td>2026-08-04T16:08:44+00:00</td>
+              <td><span class="status-pill">ok</span></td>
+              <td>official_year_xml_snapshots<small class="cell-warning">取得時点スナップショット</small></td>
+            </tr>
+            <tr>
+              <td><strong>treasury_par_real_yield_curve</strong><small class="cell-secondary"><code>6c207ee8e8316116</code></small></td>
+              <td><a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&amp;field_tdr_date_value=2026">us_treasury</a></td>
+              <td>3230</td>
+              <td>2026-08-04T16:08:44+00:00</td>
+              <td><span class="status-pill">ok</span></td>
+              <td>official_year_xml_snapshots<small class="cell-warning">取得時点スナップショット</small></td>
+            </tr>
+            <tr>
+              <td><strong>treasury_par_yield_curve</strong><small class="cell-secondary"><code>6c207ee8e8316116</code></small></td>
+              <td><a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&amp;field_tdr_date_value=2026">us_treasury</a></td>
+              <td>8763</td>
+              <td>2026-08-04T16:08:44+00:00</td>
+              <td><span class="status-pill">ok</span></td>
+              <td>official_year_xml_snapshots<small class="cell-warning">取得時点スナップショット</small></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="section" id="use-case-status" aria-labelledby="use-case-title">
@@ -68,14 +111,14 @@
               <td>ICE Data Indices / FRED</td>
               <td>
 <small class="cell-secondary">ice_bofa_oas · blocked</small>              </td>
-              <td>ETF代理系列は廃止済み。ICE BofA OASは公開再配布権を確認できるまで数値更新を停止。<small class="cell-warning">Public redistribution approval is not recorded.</small></td>
+              <td>ETF代理系列は廃止済み。ICE BofA OASは公開再配布権を確認できるまで数値更新を停止。<small class="cell-warning">FRED states ICE BofA Top Level Data is for internal use only and may not be published or furnished to third parties without prior approval.</small></td>
             </tr>
-            <tr data-use-case-state="awaiting_snapshot">
+            <tr data-use-case-state="ok">
               <td><a class="table-title" href="../yield_spread/index.html"><span><strong>金利・イールドスプレッド</strong><small>yield_spread</small></span></a></td>
-              <td><span class="status-pill">取得待ち</span></td>
+              <td><span class="status-pill">正準稼働</span></td>
               <td>U.S. Department of the Treasury</td>
               <td>
-<strong>rates_macro, treasury_par_yield_curve, treasury_par_real_yield_curve</strong><small class="cell-warning">未取得: rates_macro, treasury_par_yield_curve, treasury_par_real_yield_curve</small>              </td>
+<strong>rates_macro, treasury_par_yield_curve, treasury_par_real_yield_curve</strong>              </td>
               <td>名目・実質カーブと両者から導出する10年期待インフレを分離。</td>
             </tr>
             <tr data-use-case-state="governed_blocked">
@@ -84,7 +127,7 @@
               <td>SEC EDGAR</td>
               <td>
 <small class="cell-secondary">sec_edgar_external_runner · blocked</small>              </td>
-              <td>静的実績値は廃止済み。data.sec.govがGitHub-hosted runnerを403拒否するため、到達可能な外部実行基盤を検証するまで自動数値更新を停止。<small class="cell-warning">GitHub-hosted runners receive HTTP 403 from data.sec.gov.</small></td>
+              <td>静的実績値は廃止済み。data.sec.govがLinux・macOSのGitHub-hosted runnerを403拒否するため、到達可能な外部実行基盤を検証するまで自動数値更新を停止。<small class="cell-warning">data.sec.gov returned HTTP 403 from both Linux and macOS GitHub-hosted runners despite a declared contact User-Agent. SEC ingestion remains disabled on Pages CI until a compliant reachable self-hosted or persistent runner is validated.</small></td>
             </tr>
             <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../legendary_investors/index.html"><span><strong>著名投資家リサーチ</strong><small>legendary_investors</small></span></a></td>
@@ -92,55 +135,55 @@
               <td>SEC EDGAR 13F</td>
               <td>
 <small class="cell-secondary">sec_edgar_external_runner · blocked</small>              </td>
-              <td>固定銘柄配列は廃止済み。13F information tableは到達可能な外部実行基盤を検証するまで自動数値更新を停止。<small class="cell-warning">GitHub-hosted runners receive HTTP 403 from data.sec.gov.</small></td>
+              <td>固定銘柄配列は廃止済み。13F information tableは到達可能な外部実行基盤を検証するまで自動数値更新を停止。<small class="cell-warning">data.sec.gov returned HTTP 403 from both Linux and macOS GitHub-hosted runners despite a declared contact User-Agent. SEC ingestion remains disabled on Pages CI until a compliant reachable self-hosted or persistent runner is validated.</small></td>
             </tr>
             <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../imura/index.html"><span><strong>ファンド・指数比較</strong><small>imura</small></span></a></td>
               <td><span class="status-pill">契約待ち・停止</span></td>
               <td>fundnote株式会社</td>
               <td>
-              </td>
-              <td>公式機械可読NAV契約が整うまで数値更新を停止。</td>
+<small class="cell-secondary">fundnote_kaihou · blocked</small>              </td>
+              <td>公式機械可読NAV契約が整うまで数値更新を停止。<small class="cell-warning">Machine-readable official NAV history endpoint not yet contracted.</small></td>
             </tr>
             <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../index_7_portfolio/index.html"><span><strong>7指数ポートフォリオ</strong><small>index_7_portfolio</small></span></a></td>
               <td><span class="status-pill">契約待ち・停止</span></td>
               <td>JPX / 各運用会社</td>
               <td>
-              </td>
-              <td>正式商品マスターと指数代替系列の整備待ち。</td>
+<small class="cell-secondary">jpx_etf_master · blocked</small>              </td>
+              <td>正式商品マスターと指数代替系列の整備待ち。<small class="cell-warning">Product master and market data redistribution terms must be recorded before ingestion.</small></td>
             </tr>
             <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../index_etf_comparison/index.html"><span><strong>指数ETF比較</strong><small>index_etf_comparison</small></span></a></td>
               <td><span class="status-pill">契約待ち・停止</span></td>
               <td>JPX / EDINET</td>
               <td>
-              </td>
-              <td>ISIN・正式指数・通貨・費用を揃えた商品契約待ち。</td>
+<small class="cell-secondary">jpx_etf_master · blocked</small><small class="cell-secondary">edinet_api_v2 · ready_requires_adapter_and_secret</small>              </td>
+              <td>ISIN・正式指数・通貨・費用を揃えた商品契約待ち。<small class="cell-warning">Product master and market data redistribution terms must be recorded before ingestion.</small><small class="cell-warning">EDINET_API_KEY and XBRL normalization adapter are not yet configured.</small></td>
             </tr>
             <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../precious_metals_spread/index.html"><span><strong>貴金属スプレッド</strong><small>precious_metals_spread</small></span></a></td>
               <td><span class="status-pill">契約待ち・停止</span></td>
               <td>LBMA</td>
               <td>
-              </td>
-              <td>履歴保存・再配布ライセンスが整うまで日次シグナル停止。</td>
+<small class="cell-secondary">lbma_benchmarks · blocked</small>              </td>
+              <td>履歴保存・再配布ライセンスが整うまで日次シグナル停止。<small class="cell-warning">Historical benchmark storage and redistribution require a recorded license.</small></td>
             </tr>
             <tr data-use-case-state="private_input_required">
               <td><a class="table-title" href="../securities_collateral_loan/index.html"><span><strong>証券担保ローン</strong><small>securities_collateral_loan</small></span></a></td>
               <td><span class="status-pill">非公開入力待ち</span></td>
               <td>非公開契約・口座状態</td>
               <td>
-              </td>
-              <td>公開Pagesへ契約・口座値を出さず、入力状態だけ表示。</td>
+<small class="cell-secondary">broker_collateral_contract · private_input_required</small>              </td>
+              <td>公開Pagesへ契約・口座値を出さず、入力状態だけ表示。<small class="cell-warning">Contract and account state must remain outside the public repository.</small></td>
             </tr>
             <tr data-use-case-state="governed_partial">
               <td><a class="table-title" href="../semiconductors/index.html"><span><strong>半導体サイクル</strong><small>semiconductors</small></span></a></td>
               <td><span class="status-pill">一部利用可能</span></td>
               <td>WSTS / EDINET / 企業開示</td>
               <td>
-              </td>
-              <td>公開リリースは利用可能、会員表と企業XBRLは追加契約待ち。</td>
+<small class="cell-secondary">wsts_market_data · partial</small><small class="cell-secondary">edinet_api_v2 · ready_requires_adapter_and_secret</small>              </td>
+              <td>公開リリースは利用可能、会員表と企業XBRLは追加契約待ち。<small class="cell-warning">Public releases can be snapshotted; detailed member tables require access rights.</small><small class="cell-warning">EDINET_API_KEY and XBRL normalization adapter are not yet configured.</small></td>
             </tr>
           </tbody>
         </table>
