@@ -1,28 +1,83 @@
 {
-  "catalog_present": false,
-  "datasets": [],
-  "generated_at": "2026-08-04T15:50:00+00:00",
-  "latest_run": null,
-  "overall_status": "degraded",
+  "catalog_present": true,
+  "datasets": [
+    {
+      "dataset": "governed_source_registry",
+      "point_in_time_vintage": null,
+      "quality_status": "ok",
+      "raw_sha256": "869da395ead1bac2473d684741dcf28844974115db4d1c449fc3c539f6f64070",
+      "retrieval_mode": null,
+      "retrieved_at": "2026-08-04T16:08:45.300301+00:00",
+      "row_count": 8,
+      "run_id": "20260804T160845Z-fd78fccf",
+      "source": "governed_manual",
+      "source_url": "https://github.com/KAFKA2306/CrewTrade/blob/main/config/data_platform.yaml"
+    },
+    {
+      "dataset": "rates_macro",
+      "point_in_time_vintage": false,
+      "quality_status": "ok",
+      "raw_sha256": "6c207ee8e8316116ecb39ad4349e8ed3576731be83adad7778610e37ad2bc486",
+      "retrieval_mode": "official_year_xml_snapshots",
+      "retrieved_at": "2026-08-04T16:08:44+00:00",
+      "row_count": 3230,
+      "run_id": "20260804T160841Z-98719e3e",
+      "source": "us_treasury",
+      "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026"
+    },
+    {
+      "dataset": "treasury_par_real_yield_curve",
+      "point_in_time_vintage": false,
+      "quality_status": "ok",
+      "raw_sha256": "6c207ee8e8316116ecb39ad4349e8ed3576731be83adad7778610e37ad2bc486",
+      "retrieval_mode": "official_year_xml_snapshots",
+      "retrieved_at": "2026-08-04T16:08:44+00:00",
+      "row_count": 3230,
+      "run_id": "20260804T160841Z-98719e3e",
+      "source": "us_treasury",
+      "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2026"
+    },
+    {
+      "dataset": "treasury_par_yield_curve",
+      "point_in_time_vintage": false,
+      "quality_status": "ok",
+      "raw_sha256": "6c207ee8e8316116ecb39ad4349e8ed3576731be83adad7778610e37ad2bc486",
+      "retrieval_mode": "official_year_xml_snapshots",
+      "retrieved_at": "2026-08-04T16:08:44+00:00",
+      "row_count": 8763,
+      "run_id": "20260804T160841Z-98719e3e",
+      "source": "us_treasury",
+      "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026"
+    }
+  ],
+  "generated_at": "2026-08-04T16:08:47.536008+00:00",
+  "latest_run": {
+    "completed_at": "2026-08-04T16:08:45.403554+00:00",
+    "error": null,
+    "run_id": "20260804T160845Z-fd78fccf",
+    "started_at": "2026-08-04T16:08:45.287262+00:00",
+    "status": "success"
+  },
+  "overall_status": "ok",
   "schema_version": 1,
   "summary": {
-    "awaiting_snapshot": 1,
-    "canonical_ok": 0,
+    "awaiting_snapshot": 0,
+    "canonical_ok": 1,
     "controlled_blocks": 9,
     "use_case_count": 10
   },
   "use_cases": [
     {
       "declared_state": "governed_blocked",
-      "missing_datasets": [],
       "failed_datasets": [],
+      "missing_datasets": [],
       "note": "ETF代理系列は廃止済み。ICE BofA OASは公開再配布権を確認できるまで数値更新を停止。",
       "operational": true,
       "owner_source": "ICE Data Indices / FRED",
       "required_contracts": [
         {
           "automation_status": "blocked",
-          "block_reason": "Public redistribution approval is not recorded.",
+          "block_reason": "FRED states ICE BofA Top Level Data is for internal use only and may not be published or furnished to third parties without prior approval.",
           "checked_on": "2026-08-04",
           "name": "ice_bofa_oas",
           "source_url": "https://fred.stlouisfed.org/data/BAMLC0A0CM"
@@ -35,14 +90,10 @@
     },
     {
       "declared_state": "canonical_active",
-      "missing_datasets": [
-        "rates_macro",
-        "treasury_par_yield_curve",
-        "treasury_par_real_yield_curve"
-      ],
       "failed_datasets": [],
+      "missing_datasets": [],
       "note": "名目・実質カーブと両者から導出する10年期待インフレを分離。",
-      "operational": false,
+      "operational": true,
       "owner_source": "U.S. Department of the Treasury",
       "required_contracts": [],
       "required_datasets": [
@@ -50,21 +101,21 @@
         "treasury_par_yield_curve",
         "treasury_par_real_yield_curve"
       ],
-      "runtime_state": "awaiting_snapshot",
+      "runtime_state": "ok",
       "slug": "yield_spread",
       "title": "金利・イールドスプレッド"
     },
     {
       "declared_state": "governed_blocked",
-      "missing_datasets": [],
       "failed_datasets": [],
-      "note": "静的実績値は廃止済み。data.sec.govがGitHub-hosted runnerを403拒否するため、到達可能な外部実行基盤を検証するまで自動数値更新を停止。",
+      "missing_datasets": [],
+      "note": "静的実績値は廃止済み。data.sec.govがLinux・macOSのGitHub-hosted runnerを403拒否するため、到達可能な外部実行基盤を検証するまで自動数値更新を停止。",
       "operational": true,
       "owner_source": "SEC EDGAR",
       "required_contracts": [
         {
           "automation_status": "blocked",
-          "block_reason": "GitHub-hosted runners receive HTTP 403 from data.sec.gov.",
+          "block_reason": "data.sec.gov returned HTTP 403 from both Linux and macOS GitHub-hosted runners despite a declared contact User-Agent. SEC ingestion remains disabled on Pages CI until a compliant reachable self-hosted or persistent runner is validated.",
           "checked_on": "2026-08-05",
           "name": "sec_edgar_external_runner",
           "source_url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
@@ -77,15 +128,15 @@
     },
     {
       "declared_state": "governed_blocked",
-      "missing_datasets": [],
       "failed_datasets": [],
+      "missing_datasets": [],
       "note": "固定銘柄配列は廃止済み。13F information tableは到達可能な外部実行基盤を検証するまで自動数値更新を停止。",
       "operational": true,
       "owner_source": "SEC EDGAR 13F",
       "required_contracts": [
         {
           "automation_status": "blocked",
-          "block_reason": "GitHub-hosted runners receive HTTP 403 from data.sec.gov.",
+          "block_reason": "data.sec.gov returned HTTP 403 from both Linux and macOS GitHub-hosted runners despite a declared contact User-Agent. SEC ingestion remains disabled on Pages CI until a compliant reachable self-hosted or persistent runner is validated.",
           "checked_on": "2026-08-05",
           "name": "sec_edgar_external_runner",
           "source_url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
@@ -97,82 +148,144 @@
       "title": "著名投資家リサーチ"
     },
     {
-      "slug": "imura",
-      "title": "ファンド・指数比較",
       "declared_state": "governed_blocked",
-      "runtime_state": "governed_blocked",
+      "failed_datasets": [],
+      "missing_datasets": [],
+      "note": "公式機械可読NAV契約が整うまで数値更新を停止。",
       "operational": true,
       "owner_source": "fundnote株式会社",
-      "note": "公式機械可読NAV契約が整うまで数値更新を停止。",
+      "required_contracts": [
+        {
+          "automation_status": "blocked",
+          "block_reason": "Machine-readable official NAV history endpoint not yet contracted.",
+          "checked_on": "2026-08-04",
+          "name": "fundnote_kaihou",
+          "source_url": "https://www.fundnote.co.jp/fund/kaihou/"
+        }
+      ],
       "required_datasets": [],
-      "missing_datasets": [],
-      "failed_datasets": [],
-      "required_contracts": []
+      "runtime_state": "governed_blocked",
+      "slug": "imura",
+      "title": "ファンド・指数比較"
     },
     {
-      "slug": "index_7_portfolio",
-      "title": "7指数ポートフォリオ",
       "declared_state": "governed_blocked",
-      "runtime_state": "governed_blocked",
+      "failed_datasets": [],
+      "missing_datasets": [],
+      "note": "正式商品マスターと指数代替系列の整備待ち。",
       "operational": true,
       "owner_source": "JPX / 各運用会社",
-      "note": "正式商品マスターと指数代替系列の整備待ち。",
+      "required_contracts": [
+        {
+          "automation_status": "blocked",
+          "block_reason": "Product master and market data redistribution terms must be recorded before ingestion.",
+          "checked_on": "2026-08-04",
+          "name": "jpx_etf_master",
+          "source_url": "https://www.jpx.co.jp/equities/products/etfs/issues/index.html"
+        }
+      ],
       "required_datasets": [],
-      "missing_datasets": [],
-      "failed_datasets": [],
-      "required_contracts": []
+      "runtime_state": "governed_blocked",
+      "slug": "index_7_portfolio",
+      "title": "7指数ポートフォリオ"
     },
     {
-      "slug": "index_etf_comparison",
-      "title": "指数ETF比較",
       "declared_state": "governed_blocked",
-      "runtime_state": "governed_blocked",
+      "failed_datasets": [],
+      "missing_datasets": [],
+      "note": "ISIN・正式指数・通貨・費用を揃えた商品契約待ち。",
       "operational": true,
       "owner_source": "JPX / EDINET",
-      "note": "ISIN・正式指数・通貨・費用を揃えた商品契約待ち。",
+      "required_contracts": [
+        {
+          "automation_status": "blocked",
+          "block_reason": "Product master and market data redistribution terms must be recorded before ingestion.",
+          "checked_on": "2026-08-04",
+          "name": "jpx_etf_master",
+          "source_url": "https://www.jpx.co.jp/equities/products/etfs/issues/index.html"
+        },
+        {
+          "automation_status": "ready_requires_adapter_and_secret",
+          "block_reason": "EDINET_API_KEY and XBRL normalization adapter are not yet configured.",
+          "checked_on": "2026-08-04",
+          "name": "edinet_api_v2",
+          "source_url": "https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/WEEK0060.html"
+        }
+      ],
       "required_datasets": [],
-      "missing_datasets": [],
-      "failed_datasets": [],
-      "required_contracts": []
+      "runtime_state": "governed_blocked",
+      "slug": "index_etf_comparison",
+      "title": "指数ETF比較"
     },
     {
-      "slug": "precious_metals_spread",
-      "title": "貴金属スプレッド",
       "declared_state": "governed_blocked",
-      "runtime_state": "governed_blocked",
+      "failed_datasets": [],
+      "missing_datasets": [],
+      "note": "履歴保存・再配布ライセンスが整うまで日次シグナル停止。",
       "operational": true,
       "owner_source": "LBMA",
-      "note": "履歴保存・再配布ライセンスが整うまで日次シグナル停止。",
+      "required_contracts": [
+        {
+          "automation_status": "blocked",
+          "block_reason": "Historical benchmark storage and redistribution require a recorded license.",
+          "checked_on": "2026-08-04",
+          "name": "lbma_benchmarks",
+          "source_url": "https://www.lbma.org.uk/prices-and-data/lbma-precious-metal-prices"
+        }
+      ],
       "required_datasets": [],
-      "missing_datasets": [],
-      "failed_datasets": [],
-      "required_contracts": []
+      "runtime_state": "governed_blocked",
+      "slug": "precious_metals_spread",
+      "title": "貴金属スプレッド"
     },
     {
-      "slug": "securities_collateral_loan",
-      "title": "証券担保ローン",
       "declared_state": "private_input_required",
-      "runtime_state": "private_input_required",
+      "failed_datasets": [],
+      "missing_datasets": [],
+      "note": "公開Pagesへ契約・口座値を出さず、入力状態だけ表示。",
       "operational": true,
       "owner_source": "非公開契約・口座状態",
-      "note": "公開Pagesへ契約・口座値を出さず、入力状態だけ表示。",
+      "required_contracts": [
+        {
+          "automation_status": "private_input_required",
+          "block_reason": "Contract and account state must remain outside the public repository.",
+          "checked_on": "2026-08-04",
+          "name": "broker_collateral_contract",
+          "source_url": "https://github.com/KAFKA2306/CrewTrade"
+        }
+      ],
       "required_datasets": [],
-      "missing_datasets": [],
-      "failed_datasets": [],
-      "required_contracts": []
+      "runtime_state": "private_input_required",
+      "slug": "securities_collateral_loan",
+      "title": "証券担保ローン"
     },
     {
-      "slug": "semiconductors",
-      "title": "半導体サイクル",
       "declared_state": "governed_partial",
-      "runtime_state": "governed_partial",
+      "failed_datasets": [],
+      "missing_datasets": [],
+      "note": "公開リリースは利用可能、会員表と企業XBRLは追加契約待ち。",
       "operational": true,
       "owner_source": "WSTS / EDINET / 企業開示",
-      "note": "公開リリースは利用可能、会員表と企業XBRLは追加契約待ち。",
+      "required_contracts": [
+        {
+          "automation_status": "partial",
+          "block_reason": "Public releases can be snapshotted; detailed member tables require access rights.",
+          "checked_on": "2026-08-04",
+          "name": "wsts_market_data",
+          "source_url": "https://www.wsts.org/"
+        },
+        {
+          "automation_status": "ready_requires_adapter_and_secret",
+          "block_reason": "EDINET_API_KEY and XBRL normalization adapter are not yet configured.",
+          "checked_on": "2026-08-04",
+          "name": "edinet_api_v2",
+          "source_url": "https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/WEEK0060.html"
+        }
+      ],
       "required_datasets": [],
-      "missing_datasets": [],
-      "failed_datasets": [],
-      "required_contracts": []
+      "runtime_state": "governed_partial",
+      "slug": "semiconductors",
+      "title": "半導体サイクル"
     }
   ]
 }
