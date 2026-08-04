@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CrewTradeの一次データ基盤、分析移行、データ契約、最終取得状態を公開します。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>CrewTrade | データ基盤状態</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <link rel="stylesheet" href="../assets/table.css">
+  <script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#data-platform-status">データ基盤状態へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html" aria-label="CrewTrade ホーム">
+        <span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span>
+      </a>
+      <nav class="header-links" aria-label="主要ナビゲーション">
+        <a href="../index.html">調査カタログ</a>
+        <a href="#use-case-status">分析別状態</a>
+        <a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell" id="data-platform-status" tabindex="-1">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Canonical data platform</p>
+        <h1 id="page-title">数値より先に、データの状態を確認する。</h1>
+        <p class="hero-copy">一次ソース、取得時刻、raw SHA-256、Parquet、品質検査、分析への接続状態を公開します。取得できないデータは推測せず、停止理由または非公開入力として表示します。</p>
+        <div class="metrics" aria-label="データ基盤の公開状態">
+          <span class="metric"><strong>0</strong>正準稼働</span>
+          <span class="metric"><strong>6</strong>統制状態</span>
+          <span class="metric"><strong>4</strong>取得待ち</span>
+          <span class="metric">生成 2026-08-04 19:13 JST</span>
+        </div>
+      </div>
+      <aside class="hero-note" aria-label="総合状態">
+        <span class="status-label">DATA PLATFORM</span>
+        <strong data-platform-overall="degraded">DEGRADED · 一次スナップショット待ち</strong>
+        <p>構成と停止契約は有効です。正準接続済み分析の一部データがまだ取得されていません。</p>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="run-title">
+      <div class="section-heading"><div><p class="eyebrow">Ingestion</p><h2 id="run-title">最新取得実行</h2></div></div>
+      <div class="notice"><strong>取得スナップショット待ち</strong> 設定とPages表示は有効ですが、正準カタログの公開用スナップショットはまだありません。</div>
+    </section>
+
+    <section class="section" aria-labelledby="dataset-title">
+      <div class="section-heading"><div><p class="eyebrow">Canonical datasets</p><h2 id="dataset-title">正準データセット</h2><p>公開するのは状態・件数・来歴だけです。raw本文や非公開口座情報は公開しません。</p></div></div>
+      <div class="empty-state"><h3>公開用スナップショット未生成</h3><p>GitHub Actionsの一次データ取得後に、件数・取得日時・品質状態を表示します。</p></div>
+    </section>
+
+    <section class="section" id="use-case-status" aria-labelledby="use-case-title">
+      <div class="section-heading"><div><p class="eyebrow">Use-case migration</p><h2 id="use-case-title">分析別の接続状態</h2><p>停止中も異常ではありません。利用権、秘密性、比較可能性を満たさない分析は、数値を生成しないことを正常動作とします。</p></div></div>
+      <div class="case-table-shell" tabindex="0" aria-label="分析別データ状態。横方向にスクロールできます。">
+        <table class="case-table data-use-case-table">
+          <caption>各分析の正準移行、一次ソース、必要データ、停止理由</caption>
+          <thead><tr><th scope="col">分析</th><th scope="col">実行状態</th><th scope="col">一次ソース</th><th scope="col">必要データ・契約</th><th scope="col">判断</th></tr></thead>
+          <tbody>
+            <tr data-use-case-state="awaiting_snapshot">
+              <td><a class="table-title" href="../credit/index.html"><span><strong>クレジット・スプレッド</strong><small>credit</small></span></a></td>
+              <td><span class="status-pill">取得待ち</span></td>
+              <td>FRED / ICE BofA</td>
+              <td>
+<strong>credit_oas</strong><small class="cell-warning">未取得: credit_oas</small>              </td>
+              <td>ETF価格比を廃止し、公式OASへ移行済み。</td>
+            </tr>
+            <tr data-use-case-state="awaiting_snapshot">
+              <td><a class="table-title" href="../yield_spread/index.html"><span><strong>金利・イールドスプレッド</strong><small>yield_spread</small></span></a></td>
+              <td><span class="status-pill">取得待ち</span></td>
+              <td>FRED / U.S. Treasury</td>
+              <td>
+<strong>rates_macro, treasury_par_yield_curve</strong><small class="cell-warning">未取得: rates_macro, treasury_par_yield_curve</small>              </td>
+              <td>国債カーブ・実質金利・期待インフレを分離。</td>
+            </tr>
+            <tr data-use-case-state="awaiting_snapshot">
+              <td><a class="table-title" href="../oracle/index.html"><span><strong>Oracle実績・予測監査</strong><small>oracle</small></span></a></td>
+              <td><span class="status-pill">取得待ち</span></td>
+              <td>SEC EDGAR</td>
+              <td>
+<strong>sec_filings, sec_company_facts</strong><small class="cell-warning">未取得: sec_filings, sec_company_facts</small>              </td>
+              <td>静的実績値を廃止し、提出履歴とXBRL factsへ移行。</td>
+            </tr>
+            <tr data-use-case-state="awaiting_snapshot">
+              <td><a class="table-title" href="../legendary_investors/index.html"><span><strong>著名投資家リサーチ</strong><small>legendary_investors</small></span></a></td>
+              <td><span class="status-pill">取得待ち</span></td>
+              <td>SEC EDGAR 13F</td>
+              <td>
+<strong>sec_filings, sec_13f_holdings</strong><small class="cell-warning">未取得: sec_filings, sec_13f_holdings</small>              </td>
+              <td>固定銘柄配列を廃止し、information tableへ移行。</td>
+            </tr>
+            <tr data-use-case-state="governed_blocked">
+              <td><a class="table-title" href="../imura/index.html"><span><strong>ファンド・指数比較</strong><small>imura</small></span></a></td>
+              <td><span class="status-pill">契約待ち・停止</span></td>
+              <td>fundnote株式会社</td>
+              <td>
+              </td>
+              <td>公式機械可読NAV契約が整うまで数値更新を停止。</td>
+            </tr>
+            <tr data-use-case-state="governed_blocked">
+              <td><a class="table-title" href="../index_7_portfolio/index.html"><span><strong>7指数ポートフォリオ</strong><small>index_7_portfolio</small></span></a></td>
+              <td><span class="status-pill">契約待ち・停止</span></td>
+              <td>JPX / 各運用会社</td>
+              <td>
+              </td>
+              <td>正式商品マスターと指数代替系列の整備待ち。</td>
+            </tr>
+            <tr data-use-case-state="governed_blocked">
+              <td><a class="table-title" href="../index_etf_comparison/index.html"><span><strong>指数ETF比較</strong><small>index_etf_comparison</small></span></a></td>
+              <td><span class="status-pill">契約待ち・停止</span></td>
+              <td>JPX / EDINET</td>
+              <td>
+              </td>
+              <td>ISIN・指数・通貨・費用を揃えた商品契約待ち。</td>
+            </tr>
+            <tr data-use-case-state="governed_blocked">
+              <td><a class="table-title" href="../precious_metals_spread/index.html"><span><strong>貴金属スプレッド</strong><small>precious_metals_spread</small></span></a></td>
+              <td><span class="status-pill">契約待ち・停止</span></td>
+              <td>LBMA</td>
+              <td>
+              </td>
+              <td>履歴保存・再配布ライセンスが整うまで日次シグナル停止。</td>
+            </tr>
+            <tr data-use-case-state="private_input_required">
+              <td><a class="table-title" href="../securities_collateral_loan/index.html"><span><strong>証券担保ローン</strong><small>securities_collateral_loan</small></span></a></td>
+              <td><span class="status-pill">非公開入力待ち</span></td>
+              <td>非公開契約・口座状態</td>
+              <td>
+              </td>
+              <td>公開Pagesへ契約・口座値を出さず、入力状態だけ表示。</td>
+            </tr>
+            <tr data-use-case-state="governed_partial">
+              <td><a class="table-title" href="../semiconductors/index.html"><span><strong>半導体サイクル</strong><small>semiconductors</small></span></a></td>
+              <td><span class="status-pill">一部利用可能</span></td>
+              <td>WSTS / EDINET / 企業開示</td>
+              <td>
+              </td>
+              <td>公開リリースは利用可能、会員表と企業XBRLは追加契約待ち。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="contract-title">
+      <div class="section-heading"><div><p class="eyebrow">Operational contract</p><h2 id="contract-title">OKの定義</h2></div></div>
+      <div class="process-grid">
+        <div class="process-step"><span>01</span><h3>一次情報</h3><p>公式APIまたは統制された非公開入力だけを受け付けます。</p></div>
+        <div class="process-step"><span>02</span><h3>来歴と品質</h3><p>raw SHA-256、取得時刻、主キー、NULL、重複、非有限値を検査します。</p></div>
+        <div class="process-step"><span>03</span><h3>停止も正常</h3><p>利用権や入力が不足する場合は、推測せず理由付きで停止します。</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade</span><span>Evidence before output.</span></div></footer>
+</body>
+</html>
