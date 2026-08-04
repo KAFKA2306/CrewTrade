@@ -1,106 +1,57 @@
 from __future__ import annotations
-from typing import Dict, List
+
+from typing import Dict
+
 import pandas as pd
-def build_insight_markdown(analysis_payload: Dict[str, pd.DataFrame]) -> str:
-    prices = analysis_payload["prices"]
-    metrics = analysis_payload["metrics"]
-    snapshot = analysis_payload["snapshot"]
-    edges = analysis_payload["edges"]
-    date_start = prices.index.min()
-    date_end = prices.index.max()
-    lines: List[str] = []
-    lines.append("
-    lines.append("")
-    lines.append("
-    lines.append(f"- Price range: {date_start.date()} → {date_end.date()}")
-    lines.append(f"- Pairs analysed: {len(snapshot)}")
-    lines.append("")
+
+
+_LABELS = {
+    "us_corporate_oas": "米国社債OAS",
+    "us_bbb_oas": "米国BBB社債OAS",
+    "us_high_yield_oas": "米国ハイイールドOAS",
+}
+
+
+def build_insight_markdown(
+    analysis_payload: Dict[str, pd.DataFrame],
+) -> str:
+    """Return a compact optional summary for canonical OAS output."""
+
+    snapshot = analysis_payload.get("snapshot", pd.DataFrame())
+    signals = analysis_payload.get("signals", pd.DataFrame())
+    lines = ["## 正準OASスナップショット", ""]
     if snapshot.empty:
-        lines.append("No sufficient data to compute spreads.")
+        lines.append("正準OASスナップショットはありません。")
         return "\n".join(lines)
-    snapshot_table = snapshot.copy()
-    snapshot_table["latest_date"] = snapshot_table["latest_date"].dt.date
-    snapshot_table["z_score"] = snapshot_table["z_score"].round(2)
-    snapshot_table["ratio"] = snapshot_table["ratio"].round(4)
-    snapshot_table["return_gap"] = (snapshot_table["return_gap"] * 100).round(2)
-    lines.append("
-    lines.append(
-        _format_table(
-            snapshot_table,
-            ["pair", "latest_date", "z_score", "ratio", "return_gap"],
-            ["Pair", "Date", "Z", "Ratio", "Return Gap %"],
-        )
+
+    table = snapshot.copy().sort_values("series")
+    lines.extend(
+        [
+            "| 系列 | 観測日 | 水準 | 20日変化 | z値 |",
+            "| --- | --- | ---: | ---: | ---: |",
+        ]
     )
-    lines.append("")
-    if edges.empty:
-        lines.append("
-        lines.append("No |z|-score breaches within the sampled horizon.")
-        return "\n".join(lines)
-    lines.append("
-    lines.append(f"- Total signals: {len(edges)}")
-    lines.append("")
-    counts = edges.groupby(["pair", "signal"]).size().reset_index(name="signals")
-    lines.append(
-        _format_table(
-            counts, ["pair", "signal", "signals"], ["Pair", "Signal", "Count"]
-        )
-    )
-    lines.append("")
-    recent_start = edges["date"].max() - pd.Timedelta(days=90)
-    recent_edges = edges[edges["date"] >= recent_start]
-    lines.append("
-    if recent_edges.empty:
-        lines.append("No breaches recorded in the last 90 days.")
-    else:
-        recent_counts = recent_edges.groupby("pair").size().reset_index(name="signals")
-        recent_median = (
-            recent_edges.groupby("pair")["z_score"]
-            .median()
-            .reset_index(name="median_z")
-        )
-        merged = pd.merge(recent_counts, recent_median, on="pair", how="left")
-        merged["median_z"] = merged["median_z"].round(2)
+    for _, row in table.iterrows():
         lines.append(
-            _format_table(
-                merged,
-                ["pair", "signals", "median_z"],
-                ["Pair", "Signals", "Median |Z|"],
+            "| {label} | {date} | {level:.2f}% | {change} | {z} |".format(
+                label=_LABELS.get(str(row["series"]), str(row["series"])),
+                date=pd.Timestamp(row["latest_date"]).date(),
+                level=float(row["level_pct"]),
+                change=_format_bp(row.get("change_20d_bp")),
+                z=_format_number(row.get("z_score")),
             )
         )
-    lines.append("")
-    vol_stats = (
-        metrics.stack(level=0)["z_score"]
-        .dropna()
-        .groupby(level=1)
-        .agg(["mean", "std", "max"])
-        .reset_index()
-        .rename(columns={"level_1": "pair", "index": "pair"})
-    )
-    if not vol_stats.empty:
-        vol_stats["mean"] = vol_stats["mean"].round(2)
-        vol_stats["std"] = vol_stats["std"].round(2)
-        vol_stats["max"] = vol_stats["max"].round(2)
-        lines.append("
-        lines.append(
-            _format_table(
-                vol_stats,
-                ["pair", "mean", "std", "max"],
-                ["Pair", "Mean", "Std", "Max"],
-            )
-        )
-        lines.append("")
+    lines.extend(["", f"閾値超過イベント: {len(signals)}件"])
     return "\n".join(lines)
-def _format_table(df: pd.DataFrame, columns: List[str], headers: List[str]) -> str:
-    table_lines: List[str] = []
-    table_lines.append("| " + " | ".join(headers) + " |")
-    table_lines.append("| " + " | ".join(["---"] * len(headers)) + " |")
-    for _, row in df[columns].iterrows():
-        formatted: List[str] = []
-        for col in columns:
-            value = row[col]
-            if isinstance(value, float):
-                formatted.append(f"{value:.2f}")
-            else:
-                formatted.append(str(value))
-        table_lines.append("| " + " | ".join(formatted) + " |")
-    return "\n".join(table_lines)
+
+
+def _format_bp(value: object) -> str:
+    if value is None or pd.isna(value):
+        return "—"
+    return f"{float(value):+.1f}bp"
+
+
+def _format_number(value: object) -> str:
+    if value is None or pd.isna(value):
+        return "—"
+    return f"{float(value):+.2f}"
