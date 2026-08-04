@@ -284,7 +284,8 @@ def _filter_years(frame: pd.DataFrame, years: set[int]) -> pd.DataFrame:
     if frame.empty:
         return frame
     observations = pd.to_datetime(frame["observation_date"])
-    return frame[observations.dt.year.isin(years)].reset_index(drop=True)
+    years_mask = observations.year.isin(years)
+    return frame[years_mask].reset_index(drop=True)
 
 
 def _local_name(tag: str) -> str:
