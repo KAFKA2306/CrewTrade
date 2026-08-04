@@ -1,17 +1,11 @@
-period: "1y"
-benchmark: "SPY"
-soros_holdings:
-  - "AMZN"
-  - "SW"
-  - "GOOGL"
-  - "RSP"
-  - "TKO"
-druckenmiller_holdings:
-  - "NTRA"
-  - "INSM"
-  - "TEVA"
-  - "TSM"
-  - "WWD"
-  - "CPNG"
-  - "MELI"
-  - "DOCU"
+name: legendary_investors
+forms: [13F-HR, 13F-HR/A]
+managers:
+  soros_fund_management:
+    display_name: Soros Fund Management LLC
+    cik: "1029160"
+  duquesne_family_office:
+    display_name: Duquesne Family Office LLC
+    cik: "1536411"
+minimum_history_quarters: 2
+top_holdings_limit: 20
