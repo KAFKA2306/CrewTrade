@@ -91,3 +91,44 @@ def refresh_gold_views(catalog_path: Path) -> None:
                 WHERE _rank = 1
                 """
             )
+
+        if "sec_13f_holdings" in datasets:
+            connection.execute(
+                """
+                CREATE OR REPLACE VIEW gold_sec_13f_holdings_latest AS
+                WITH deduplicated AS (
+                    SELECT * EXCLUDE (_holding_rank)
+                    FROM (
+                        SELECT *,
+                               row_number() OVER (
+                                   PARTITION BY holding_id
+                                   ORDER BY _retrieved_at DESC
+                               ) AS _holding_rank
+                        FROM bronze_sec_13f_holdings
+                    )
+                    WHERE _holding_rank = 1
+                ),
+                filing_candidates AS (
+                    SELECT entity_cik, accession_number, report_date, filing_date,
+                           max(_retrieved_at) AS latest_retrieved_at
+                    FROM deduplicated
+                    GROUP BY entity_cik, accession_number, report_date, filing_date
+                ),
+                ranked_filings AS (
+                    SELECT *,
+                           row_number() OVER (
+                               PARTITION BY entity_cik
+                               ORDER BY report_date DESC,
+                                        filing_date DESC,
+                                        latest_retrieved_at DESC
+                           ) AS filing_rank
+                    FROM filing_candidates
+                )
+                SELECT holdings.*
+                FROM deduplicated AS holdings
+                INNER JOIN ranked_filings AS filings
+                    ON holdings.entity_cik = filings.entity_cik
+                   AND holdings.accession_number = filings.accession_number
+                WHERE filings.filing_rank = 1
+                """
+            )
