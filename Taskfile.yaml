@@ -7,8 +7,37 @@ tasks:
       - task: fetch:all
       - task: analyze:all
 
+  data:validate:
+    desc: Validate canonical data platform configuration
+    cmd: uv run crew-data validate-config
+
+  data:test:
+    desc: Run offline data platform contract tests
+    cmd: uv run pytest tests/data_platform -q
+
+  data:sync:
+    desc: Sync all enabled canonical primary sources
+    cmd: uv run crew-data sync
+
+  data:sync:public:
+    desc: Sync FRED, Treasury, SEC, and governed source registry
+    cmd: >-
+      uv run crew-data sync
+      --source fred
+      --source treasury_yield_curve
+      --source sec_edgar
+      --source governed_manual
+
+  data:sync:registry:
+    desc: Materialize the governed source registry without external credentials
+    cmd: uv run crew-data sync --source governed_manual
+
+  data:status:
+    desc: Show canonical ingestion runs and datasets
+    cmd: uv run crew-data status
+
   fetch:all:
-    desc: Run all data fetchers
+    desc: Run all legacy data fetchers during migration to the canonical platform
     cmds:
       - task: fetch:imura
       - task: fetch:oracle

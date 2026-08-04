@@ -32,6 +32,10 @@ dependencies = [
     "chronos-forecasting",
     "transformers",
     "accelerate",
+    "duckdb>=1.2,<2",
+    "pyyaml>=6,<7",
+    "python-dotenv>=1,<2",
+    "pytest>=8,<9",
 ]
 
 [project.scripts]
@@ -40,6 +44,7 @@ run_crew = "crew.main:run"
 train = "crew.main:train"
 replay = "crew.main:replay"
 test = "crew.main:test"
+crew-data = "crew.data_platform.cli:main"
 
 [build-system]
 requires = ["hatchling"]

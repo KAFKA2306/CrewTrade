@@ -35,6 +35,8 @@ uv.lock
 
 # Database
 *.sqlite3
+*.duckdb
+*.duckdb.wal
 
 # Cache
 .ruff_cache/

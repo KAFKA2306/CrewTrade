@@ -1,0 +1,105 @@
+name: Validate canonical data platform
+
+on:
+  pull_request:
+    paths:
+      - "crew/data_platform/**"
+      - "config/data_platform.yaml"
+      - "tests/data_platform/**"
+      - "docs/data-platform.md"
+      - "pyproject.toml"
+      - "Taskfile.yaml"
+      - ".github/workflows/data-platform.yml"
+  push:
+    branches: [main]
+    paths:
+      - "crew/data_platform/**"
+      - "config/data_platform.yaml"
+      - "tests/data_platform/**"
+      - "pyproject.toml"
+      - "Taskfile.yaml"
+  workflow_dispatch:
+    inputs:
+      live_sync:
+        description: Fetch public primary sources and upload a snapshot artifact
+        type: boolean
+        default: false
+  schedule:
+    - cron: "17 5 * * *"
+      timezone: "Asia/Tokyo"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: data-platform-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Compile platform code
+        run: uv run python -m compileall -q crew/data_platform tests/data_platform
+
+      - name: Validate source registry
+        run: uv run crew-data validate-config
+
+      - name: Run offline contracts
+        run: uv run pytest tests/data_platform -q
+
+      - name: Exercise credential-free registry ingestion
+        run: uv run crew-data --root /tmp/crewtrade-platform sync --source governed_manual
+
+  live-snapshot:
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && inputs.live_sync)
+    needs: contracts
+    runs-on: ubuntu-latest
+    env:
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Require declared source credentials
+        run: |
+          test -n "$FRED_API_KEY" || { echo "FRED_API_KEY is required"; exit 1; }
+          test -n "$SEC_USER_AGENT" || { echo "SEC_USER_AGENT is required"; exit 1; }
+
+      - name: Fetch canonical public sources
+        run: uv run crew-data sync
+
+      - name: Show ingestion state
+        run: uv run crew-data status
+
+      - name: Upload non-canonical snapshot artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: crewtrade-data-platform-${{ github.run_id }}
+          path: data/platform
+          retention-days: 30
+          if-no-files-found: error

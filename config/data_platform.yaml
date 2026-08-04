@@ -1,0 +1,123 @@
+schema_version: 1
+storage:
+  root: data/platform
+  canonical_timezone: UTC
+
+sources:
+  fred:
+    adapter: fred
+    enabled: true
+    api_key_env: FRED_API_KEY
+    user_agent: CrewTrade data-platform
+    min_interval_seconds: 0.25
+    datasets:
+      credit_oas:
+        observation_start: "1996-12-31"
+        series:
+          us_corporate_oas: BAMLC0A0CM
+          us_bbb_oas: BAMLC0A4CBBB
+          us_high_yield_oas: BAMLH0A0HYM2
+      rates_macro:
+        observation_start: "2003-01-01"
+        series:
+          us_2y: DGS2
+          us_10y: DGS10
+          us_30y: DGS30
+          us_10y_real: DFII10
+          us_10y_breakeven: T10YIE
+
+  treasury_yield_curve:
+    adapter: treasury_yield_curve
+    enabled: true
+    user_agent: CrewTrade data-platform
+    min_interval_seconds: 0.5
+    dataset: treasury_par_yield_curve
+    years: [2024, 2025, 2026]
+
+  sec_edgar:
+    adapter: sec
+    enabled: true
+    user_agent_env: SEC_USER_AGENT
+    min_interval_seconds: 0.15
+    entities:
+      oracle:
+        cik: "1341439"
+        companyfacts: true
+      soros_fund_management:
+        cik: "1029160"
+        companyfacts: false
+      duquesne_family_office:
+        cik: "1536411"
+        companyfacts: false
+
+  governed_manual:
+    adapter: governed_manual
+    enabled: true
+    registry_url: https://github.com/KAFKA2306/CrewTrade/blob/main/config/data_platform.yaml
+    datasets:
+      fundnote_kaihou:
+        use_cases: [imura]
+        owner: fundnote株式会社
+        source_url: https://www.fundnote.co.jp/fund/kaihou/
+        access_mode: official_document
+        license_status: public_reference_only
+        refresh_policy: monthly_or_material_event
+        required_fields: [nav_date, nav, distribution, fee_revision, purchase_status]
+        automation_status: blocked
+        block_reason: Machine-readable official NAV history endpoint not yet contracted.
+        checked_on: "2026-08-04"
+      jpx_etf_master:
+        use_cases: [index_etf_comparison, index_7_portfolio, securities_collateral_loan]
+        owner: 株式会社日本取引所グループ
+        source_url: https://www.jpx.co.jp/equities/products/etfs/issues/index.html
+        access_mode: official_document
+        license_status: terms_review_required
+        refresh_policy: daily_metadata_monthly_full
+        required_fields: [ticker, isin, official_name, index_name, currency, hedge, fee, inception_date]
+        automation_status: blocked
+        block_reason: Product master and market data redistribution terms must be recorded before ingestion.
+        checked_on: "2026-08-04"
+      edinet_api_v2:
+        use_cases: [index_etf_comparison, semiconductors, oracle]
+        owner: 金融庁
+        source_url: https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/WEEK0060.html
+        access_mode: official_api
+        license_status: public_api_key_required
+        refresh_policy: daily
+        required_fields: [doc_id, edinet_code, sec_code, form_code, submit_datetime, xbrl_sha256]
+        automation_status: ready_requires_adapter_and_secret
+        block_reason: EDINET_API_KEY and XBRL normalization adapter are not yet configured.
+        checked_on: "2026-08-04"
+      lbma_benchmarks:
+        use_cases: [precious_metals_spread]
+        owner: London Bullion Market Association
+        source_url: https://www.lbma.org.uk/prices-and-data/lbma-precious-metal-prices
+        access_mode: licensed_benchmark
+        license_status: license_required_for_history_and_redistribution
+        refresh_policy: daily_after_license
+        required_fields: [benchmark, fixing, currency, unit, observation_time, value]
+        automation_status: blocked
+        block_reason: Historical benchmark storage and redistribution require a recorded license.
+        checked_on: "2026-08-04"
+      wsts_market_data:
+        use_cases: [semiconductors]
+        owner: World Semiconductor Trade Statistics
+        source_url: https://www.wsts.org/
+        access_mode: public_release_plus_member_data
+        license_status: mixed
+        refresh_policy: monthly_public_release_quarterly_forecast
+        required_fields: [vintage_date, period, product_group, geography, value, status]
+        automation_status: partial
+        block_reason: Public releases can be snapshotted; detailed member tables require access rights.
+        checked_on: "2026-08-04"
+      broker_collateral_contract:
+        use_cases: [securities_collateral_loan]
+        owner: user_private
+        source_url: https://github.com/KAFKA2306/CrewTrade
+        access_mode: private_contract
+        license_status: private_not_publishable
+        refresh_policy: on_contract_or_collateral_change
+        required_fields: [contract_version, valuation_time, ticker, quantity, market_price, collateral_haircut]
+        automation_status: private_input_required
+        block_reason: Contract and account state must remain outside the public repository.
+        checked_on: "2026-08-04"
