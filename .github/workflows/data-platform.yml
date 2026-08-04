@@ -90,6 +90,7 @@ jobs:
 
   live-snapshot:
     if: >-
+      github.event_name == 'pull_request' ||
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && inputs.live_sync)
@@ -130,14 +131,35 @@ jobs:
       - name: Export sanitized Pages status
         run: uv run crew-data export-status
 
+      - name: Require public status OK
+        run: |
+          uv run python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("web/generated/data-platform-status.json")
+          status = json.loads(path.read_text(encoding="utf-8"))
+          assert status["overall_status"] == "ok", status
+          assert status["summary"]["canonical_ok"] == 4, status["summary"]
+          assert status["summary"]["controlled_blocks"] == 6, status["summary"]
+          assert status["summary"]["awaiting_snapshot"] == 0, status["summary"]
+          print("Canonical Pages status is OK")
+          PY
+
       - name: Show ingestion state
         run: uv run crew-data status
 
-      - name: Upload non-canonical snapshot artifact
+      - name: Upload canonical smoke-test artifact
         uses: actions/upload-artifact@v4
         with:
-          name: crewtrade-data-platform-${{ github.run_id }}
-          path: data/platform
+          name: crewtrade-canonical-smoke-${{ github.run_id }}
+          path: |
+            data/platform
+            web/generated/data-platform-status.json
+            output/use_cases/credit
+            output/use_cases/yield_spread
+            output/use_cases/oracle
+            output/use_cases/legendary_investors
           retention-days: 30
           if-no-files-found: error
 
