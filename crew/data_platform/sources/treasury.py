@@ -309,7 +309,7 @@ def build_rates_macro(
 def _filter_years(frame: pd.DataFrame, years: set[int]) -> pd.DataFrame:
     if frame.empty:
         return frame
-    observations = pd.to_datetime(frame["observation_date"])
+    observations = pd.DatetimeIndex(pd.to_datetime(frame["observation_date"]))
     years_mask = observations.year.isin(years)
     return frame[years_mask].reset_index(drop=True)
 
