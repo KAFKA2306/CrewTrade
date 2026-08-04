@@ -10,15 +10,17 @@ sources:
     api_key_env: FRED_API_KEY
     user_agent: CrewTrade data-platform
     min_interval_seconds: 0.25
+    timeout_seconds: 60
+    max_attempts: 3
     datasets:
       credit_oas:
-        observation_start: "1996-12-31"
+        observation_start: "2020-01-01"
         series:
           us_corporate_oas: BAMLC0A0CM
           us_bbb_oas: BAMLC0A4CBBB
           us_high_yield_oas: BAMLH0A0HYM2
       rates_macro:
-        observation_start: "2003-01-01"
+        observation_start: "2020-01-01"
         series:
           us_2y: DGS2
           us_10y: DGS10
