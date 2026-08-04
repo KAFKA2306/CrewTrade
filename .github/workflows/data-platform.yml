@@ -136,6 +136,13 @@ jobs:
           print("Canonical Pages status is OK")
           PY
 
+      - name: Build and audit published Pages
+        run: |
+          uv run python web/build_static.py
+          uv run python web/audit_static.py
+          uv run python web/build_data_status.py
+          uv run python web/audit_data_status.py
+
       - name: Show ingestion state
         run: uv run crew-data status
 
@@ -147,19 +154,20 @@ jobs:
             data/platform
             web/generated/data-platform-status.json
             output/use_cases/yield_spread
+            docs
           retention-days: 30
           if-no-files-found: error
 
-      - name: Publish report and status on main
+      - name: Publish report, status, and Pages on main
         if: github.ref == 'refs/heads/main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add web/generated/data-platform-status.json output/use_cases/yield_spread
+          git add web/generated/data-platform-status.json output/use_cases/yield_spread docs
           if git diff --cached --quiet; then
-            echo "Published report and status are current."
+            echo "Published report, status, and Pages are current."
           else
-            git commit -m "Refresh canonical data report and status"
+            git commit -m "Refresh canonical data report, status, and Pages"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
