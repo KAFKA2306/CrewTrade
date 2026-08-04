@@ -49,12 +49,12 @@ sources:
         cik: "1029160"
         companyfacts: false
         thirteen_f_information_table: true
-        history_limit: 8
+        history_limit: 2
       duquesne_family_office:
         cik: "1536411"
         companyfacts: false
         thirteen_f_information_table: true
-        history_limit: 8
+        history_limit: 2
 
   governed_manual:
     adapter: governed_manual
