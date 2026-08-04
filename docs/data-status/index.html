@@ -33,9 +33,9 @@
         <p class="hero-copy">一次ソース、取得時刻、raw SHA-256、Parquet、品質検査、分析への接続状態を公開します。取得できないデータは推測せず、停止理由または非公開入力として表示します。</p>
         <div class="metrics" aria-label="データ基盤の公開状態">
           <span class="metric"><strong>0</strong>正準稼働</span>
-          <span class="metric"><strong>6</strong>統制状態</span>
-          <span class="metric"><strong>4</strong>取得待ち</span>
-          <span class="metric">生成 2026-08-04 19:13 JST</span>
+          <span class="metric"><strong>9</strong>統制状態</span>
+          <span class="metric"><strong>1</strong>取得待ち</span>
+          <span class="metric">生成 2026-08-05 00:50 JST</span>
         </div>
       </div>
       <aside class="hero-note" aria-label="総合状態">
@@ -62,37 +62,37 @@
           <caption>各分析の正準移行、一次ソース、必要データ、停止理由</caption>
           <thead><tr><th scope="col">分析</th><th scope="col">実行状態</th><th scope="col">一次ソース</th><th scope="col">必要データ・契約</th><th scope="col">判断</th></tr></thead>
           <tbody>
-            <tr data-use-case-state="awaiting_snapshot">
+            <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../credit/index.html"><span><strong>クレジット・スプレッド</strong><small>credit</small></span></a></td>
-              <td><span class="status-pill">取得待ち</span></td>
-              <td>FRED / ICE BofA</td>
+              <td><span class="status-pill">契約待ち・停止</span></td>
+              <td>ICE Data Indices / FRED</td>
               <td>
-<strong>credit_oas</strong><small class="cell-warning">未取得: credit_oas</small>              </td>
-              <td>ETF価格比を廃止し、公式OASへ移行済み。</td>
+<small class="cell-secondary">ice_bofa_oas · blocked</small>              </td>
+              <td>ETF代理系列は廃止済み。ICE BofA OASは公開再配布権を確認できるまで数値更新を停止。<small class="cell-warning">Public redistribution approval is not recorded.</small></td>
             </tr>
             <tr data-use-case-state="awaiting_snapshot">
               <td><a class="table-title" href="../yield_spread/index.html"><span><strong>金利・イールドスプレッド</strong><small>yield_spread</small></span></a></td>
               <td><span class="status-pill">取得待ち</span></td>
-              <td>FRED / U.S. Treasury</td>
+              <td>U.S. Department of the Treasury</td>
               <td>
-<strong>rates_macro, treasury_par_yield_curve</strong><small class="cell-warning">未取得: rates_macro, treasury_par_yield_curve</small>              </td>
-              <td>国債カーブ・実質金利・期待インフレを分離。</td>
+<strong>rates_macro, treasury_par_yield_curve, treasury_par_real_yield_curve</strong><small class="cell-warning">未取得: rates_macro, treasury_par_yield_curve, treasury_par_real_yield_curve</small>              </td>
+              <td>名目・実質カーブと両者から導出する10年期待インフレを分離。</td>
             </tr>
-            <tr data-use-case-state="awaiting_snapshot">
+            <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../oracle/index.html"><span><strong>Oracle実績・予測監査</strong><small>oracle</small></span></a></td>
-              <td><span class="status-pill">取得待ち</span></td>
+              <td><span class="status-pill">契約待ち・停止</span></td>
               <td>SEC EDGAR</td>
               <td>
-<strong>sec_filings, sec_company_facts</strong><small class="cell-warning">未取得: sec_filings, sec_company_facts</small>              </td>
-              <td>静的実績値を廃止し、提出履歴とXBRL factsへ移行。</td>
+<small class="cell-secondary">sec_edgar_external_runner · blocked</small>              </td>
+              <td>静的実績値は廃止済み。data.sec.govがGitHub-hosted runnerを403拒否するため、到達可能な外部実行基盤を検証するまで自動数値更新を停止。<small class="cell-warning">GitHub-hosted runners receive HTTP 403 from data.sec.gov.</small></td>
             </tr>
-            <tr data-use-case-state="awaiting_snapshot">
+            <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../legendary_investors/index.html"><span><strong>著名投資家リサーチ</strong><small>legendary_investors</small></span></a></td>
-              <td><span class="status-pill">取得待ち</span></td>
+              <td><span class="status-pill">契約待ち・停止</span></td>
               <td>SEC EDGAR 13F</td>
               <td>
-<strong>sec_filings, sec_13f_holdings</strong><small class="cell-warning">未取得: sec_filings, sec_13f_holdings</small>              </td>
-              <td>固定銘柄配列を廃止し、information tableへ移行。</td>
+<small class="cell-secondary">sec_edgar_external_runner · blocked</small>              </td>
+              <td>固定銘柄配列は廃止済み。13F information tableは到達可能な外部実行基盤を検証するまで自動数値更新を停止。<small class="cell-warning">GitHub-hosted runners receive HTTP 403 from data.sec.gov.</small></td>
             </tr>
             <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../imura/index.html"><span><strong>ファンド・指数比較</strong><small>imura</small></span></a></td>
@@ -116,7 +116,7 @@
               <td>JPX / EDINET</td>
               <td>
               </td>
-              <td>ISIN・指数・通貨・費用を揃えた商品契約待ち。</td>
+              <td>ISIN・正式指数・通貨・費用を揃えた商品契約待ち。</td>
             </tr>
             <tr data-use-case-state="governed_blocked">
               <td><a class="table-title" href="../precious_metals_spread/index.html"><span><strong>貴金属スプレッド</strong><small>precious_metals_spread</small></span></a></td>

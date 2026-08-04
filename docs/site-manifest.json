@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "source_revision": "d7453e909239ee405699f1fd3c3546a5d44e5259",
+  "source_revision": "baadaa59117f31572320670ba858102d28ebe38c",
   "site_latest_date": "20260804",
   "purposes": [
     "運用評価",
@@ -35,12 +35,12 @@
       "category": "信用環境",
       "purpose": "リスク管理",
       "scope": "投資適格・BBB・ハイイールドの信用市場",
-      "period": "直近観測と過去のストレス局面",
-      "status": "悪化方向",
-      "summary": "投資適格・BBB・ハイイールドのOASを同一日で比較し、低いリスク補償からの悪化を監視します。",
-      "question": "信用リスクへの追加補償は、悪化余地に見合っているか",
-      "warning": "スプレッドの縮小だけで安全性を断定しません。格付け、デフォルト、流動性を併記します。",
-      "change_summary": "ETF価格差を廃止し、ICE BofA OASの実測値とz値へ更新。",
+      "period": "公開利用許諾を確認できるまで数値停止",
+      "status": "ライセンス待ち",
+      "summary": "ETF代理系列を廃止し、ICE BofA OASの公開再配布権を記録できるまで数値とシグナルを停止します。",
+      "question": "信用リスクへの追加補償を、利用権を満たす一次データで評価できるか",
+      "warning": "FREDで閲覧可能であることを第三者サイトでの再配布許可と解釈しません。",
+      "change_summary": "旧OAS数値とETF代理評価を撤回し、ライセンス待ちの統制状態へ変更。",
       "accent": "apricot"
     },
     {
@@ -340,11 +340,11 @@
       "purpose": "マクロ・市場構造",
       "scope": "政策金利・国債カーブ・実質金利・通貨",
       "period": "現在のカーブと過去推移",
-      "status": "定義修正",
-      "summary": "米国債カーブと信用OASを別系列として扱い、期間構造と信用プレミアムを分離します。",
+      "status": "正準稼働",
+      "summary": "米国財務省の名目・実質カーブを別系列として扱い、期間構造と期待インフレを分離します。",
       "question": "金利差の変化は、どの期待とリスクプレミアムを反映しているか",
       "warning": "名目金利差だけで為替方向を断定せず、実質金利、ヘッジ費用、ポジションを確認します。",
-      "change_summary": "ハイイールド実効利回り－10年国債を廃止し、財務省カーブとOASへ分離。",
+      "change_summary": "FRED依存を外し、米国財務省の名目・実質パー・イールドへ統合。",
       "accent": "mint"
     }
   ],
@@ -352,11 +352,11 @@
   "data_platform": {
     "path": "data-status/index.html",
     "overall_status": "degraded",
-    "generated_at": "2026-08-04T10:13:00+00:00",
+    "generated_at": "2026-08-04T15:50:00+00:00",
     "summary": {
-      "awaiting_snapshot": 4,
+      "awaiting_snapshot": 1,
       "canonical_ok": 0,
-      "controlled_blocks": 6,
+      "controlled_blocks": 9,
       "use_case_count": 10
     },
     "catalog_present": false

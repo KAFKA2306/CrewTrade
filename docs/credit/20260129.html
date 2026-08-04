@@ -28,11 +28,11 @@
           <dt>検証目的</dt><dd>リスク管理</dd>
           <dt>テーマ</dt><dd>クレジット・スプレッド</dd>
           <dt>対象</dt><dd>投資適格・BBB・ハイイールドの信用市場</dd>
-          <dt>期間</dt><dd>直近観測と過去のストレス局面</dd>
-          <dt>状態</dt><dd>悪化方向</dd>
+          <dt>期間</dt><dd>公開利用許諾を確認できるまで数値停止</dd>
+          <dt>状態</dt><dd>ライセンス待ち</dd>
           <dt>生成元</dt><dd>report.md</dd>
         </dl>
-        <p class="card-warning"><strong>主要な注意</strong>スプレッドの縮小だけで安全性を断定しません。格付け、デフォルト、流動性を併記します。</p>
+        <p class="card-warning"><strong>主要な注意</strong>FREDで閲覧可能であることを第三者サイトでの再配布許可と解釈しません。</p>
         <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
       </aside>
       <div class="report-panel">
@@ -40,93 +40,56 @@
           <p class="eyebrow">Analysis snapshot · 信用環境</p>
           <h1>クレジット・スプレッド</h1>
           <p>2026年01月29日 · 掲載値は作成時点の静的スナップショットです。</p>
-          <div class="metrics"><span class="metric">問い 信用リスクへの追加補償は、悪化余地に見合っているか</span><span class="metric">状態 悪化方向</span></div>
+          <div class="metrics"><span class="metric">問い 信用リスクへの追加補償を、利用権を満たす一次データで評価できるか</span><span class="metric">状態 ライセンス待ち</span></div>
         </header>
-        <article class="report-body" id="report-content" tabindex="-1"><h1>クレジットスプレッド分析 — 2026-01-29</h1>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>クレジットスプレッド旧代理分析 — 2026年1月29日</h1>
 <h2>概要</h2>
-<p>このレポートは、ハイイールド債ETFと米国債ETFの相対値動きを用いて、クレジットスプレッドの拡大・縮小シグナルを整理したものです。</p>
-<h2>データ範囲</h2>
-<ul>
-<li>価格期間: 2020-12-14〜2025-12-11</li>
-<li>対象ペア: <code>HYG / IEF</code>、<code>JNK / TLT</code></li>
-<li>最新観測日: 2025-12-11</li>
-</ul>
-<h2>最新スナップショット</h2>
+<p>この履歴は、ハイイールド債ETFと米国債ETFの価格比を信用スプレッドの代理として使用していました。残存期間、デュレーション、オプション、需給、構成銘柄が一致しないため、OASを再現する分析ではありません。旧結果とシグナル値は公開評価から撤回しました。</p>
+<h2>データ</h2>
 <table>
 <thead>
 <tr>
-<th>ペア</th>
-<th style="text-align: right;">Zスコア</th>
-<th style="text-align: right;">比率</th>
-<th style="text-align: right;">リターン差</th>
+<th>項目</th>
+<th>現在の扱い</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>HYG / IEF</td>
-<td style="text-align: right;">1.61</td>
-<td style="text-align: right;">0.8368</td>
-<td style="text-align: right;">-0.04%</td>
+<td>信用OASではないため不採用</td>
 </tr>
 <tr>
 <td>JNK / TLT</td>
-<td style="text-align: right;">1.75</td>
-<td style="text-align: right;">1.1030</td>
-<td style="text-align: right;">0.12%</td>
+<td>信用OASではないため不採用</td>
+</tr>
+<tr>
+<td>比率z値</td>
+<td>旧代理モデルのため不採用</td>
+</tr>
+<tr>
+<td>正式対象</td>
+<td>ICE BofA OAS。ただし公開利用許諾待ち</td>
 </tr>
 </tbody>
 </table>
-<p>両ペアとも最新Zスコアは正であり、このモデル上では相対的なスプレッド拡大側に位置しています。ただし、Zスコアは売買判断そのものではなく、設定した観測窓に対する相対的位置を示す指標です。</p>
-<h2>シグナル集計</h2>
-<table>
-<thead>
-<tr>
-<th>ペア</th>
-<th>シグナル</th>
-<th style="text-align: right;">件数</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>HYG / IEF</td>
-<td>spread tightening</td>
-<td style="text-align: right;">104</td>
-</tr>
-<tr>
-<td>HYG / IEF</td>
-<td>spread widening</td>
-<td style="text-align: right;">251</td>
-</tr>
-<tr>
-<td>JNK / TLT</td>
-<td>spread tightening</td>
-<td style="text-align: right;">116</td>
-</tr>
-<tr>
-<td>JNK / TLT</td>
-<td>spread widening</td>
-<td style="text-align: right;">238</td>
-</tr>
-</tbody>
-</table>
+<h2>定量分析</h2>
+<p>旧代理系列の件数、z値、リターン差は、信用スプレッドの定量証拠として使用しません。</p>
+<h2>評価</h2>
+<p>旧モデルは再現可能でしたが、測定対象の妥当性を満たしません。したがって評価は「無効化済み」です。</p>
+<h2>限界と反証条件</h2>
 <ul>
-<li>全シグナル数: 709</li>
-<li>直近90日シグナル数: HYG / IEF 13件、JNK / TLT 19件</li>
+<li>ETF価格比をOASと表示しません。</li>
+<li>異なるデュレーションの価格差を信用プレミアムへ直接変換しません。</li>
+<li>ICE BofA OASは公開利用許諾を確認できるまでPagesへ数値公開しません。</li>
 </ul>
-<h2>読み方</h2>
+<h2>一次情報</h2>
 <ul>
-<li><code>spread widening</code>: ハイイールド債が米国債に対して相対的に弱い方向</li>
-<li><code>spread tightening</code>: ハイイールド債が米国債に対して相対的に強い方向</li>
-<li>比率やZスコアはETF価格から計算した代理指標であり、実際の社債OASそのものではありません</li>
-<li>過去の閾値到達回数は、将来の反転や継続を保証しません</li>
+<li>https://fred.stlouisfed.org/data/BAMLC0A0CM</li>
+<li>https://fred.stlouisfed.org/data/BAMLH0A0HYM2</li>
 </ul>
-<h2>詳細データ</h2>
-<p>同じ出力ディレクトリ内の以下の生成物を分析の補助資料として保持します。</p>
-<ul>
-<li><code>spread_insights.md</code>: 集計と分布</li>
-<li><code>spread_signals.md</code>: 過去シグナル明細</li>
-</ul>
-<p>公開ページでは可読性を優先し、この <code>report.md</code> を代表レポートとして使用します。</p></article>
+<blockquote>
+<p>旧分析の撤回・統制更新日: 2026-08-04。</p>
+</blockquote></article>
         <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
       </div>
     </div>
