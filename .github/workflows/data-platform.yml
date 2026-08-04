@@ -4,13 +4,11 @@ on:
   pull_request:
     paths:
       - "crew/data_platform/**"
-      - "crew/credit/**"
       - "crew/yields/**"
       - "crew/oracle/**"
       - "crew/legendary_investors/**"
       - "config/data_platform.yaml"
       - "config/use_case_data_status.yaml"
-      - "config/use_cases/credit.yaml"
       - "config/use_cases/yields.yaml"
       - "config/use_cases/oracle.yaml"
       - "config/use_cases/legendary_investors.yaml"
@@ -23,13 +21,11 @@ on:
     branches: [main]
     paths:
       - "crew/data_platform/**"
-      - "crew/credit/**"
       - "crew/yields/**"
       - "crew/oracle/**"
       - "crew/legendary_investors/**"
       - "config/data_platform.yaml"
       - "config/use_case_data_status.yaml"
-      - "config/use_cases/credit.yaml"
       - "config/use_cases/yields.yaml"
       - "config/use_cases/oracle.yaml"
       - "config/use_cases/legendary_investors.yaml"
@@ -40,7 +36,7 @@ on:
   workflow_dispatch:
     inputs:
       live_sync:
-        description: Fetch primary sources and publish the sanitized status
+        description: Fetch reachable primary sources and publish the sanitized status
         type: boolean
         default: true
   schedule:
@@ -70,10 +66,10 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Compile platform and migrated analyses
+      - name: Compile platform and analyses
         run: |
           uv run python -m compileall -q \
-            crew/data_platform crew/credit crew/yields crew/oracle \
+            crew/data_platform crew/yields crew/oracle \
             crew/legendary_investors tests/data_platform
 
       - name: Validate source registry
@@ -90,14 +86,12 @@ jobs:
 
   live-snapshot:
     if: >-
+      github.event_name == 'pull_request' ||
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && inputs.live_sync)
     needs: contracts
     runs-on: ubuntu-latest
-    env:
-      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-      SEC_USER_AGENT: CrewTrade KAFKA2306 https://github.com/KAFKA2306/CrewTrade/issues
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -113,44 +107,59 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Fetch canonical primary sources
-        run: uv run crew-data sync
+      - name: Fetch nominal and real U.S. Treasury curves
+        run: uv run crew-data sync --source treasury_yield_curve
 
-      - name: Generate migrated analysis reports
+      - name: Materialize governed source registry
+        run: uv run crew-data sync --source governed_manual
+
+      - name: Generate active analysis report
         run: |
-          uv run python -m crew.credit.data_pipeline
-          uv run python -m crew.credit.analysis
           uv run python -m crew.yields.data_pipeline
           uv run python -m crew.yields.analysis
-          uv run python -m crew.oracle.data_pipeline
-          uv run python -m crew.oracle.analysis
-          uv run python -m crew.legendary_investors.data_pipeline
-          uv run python -m crew.legendary_investors.analysis
 
       - name: Export sanitized Pages status
         run: uv run crew-data export-status
 
+      - name: Require public status OK
+        run: |
+          uv run python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("web/generated/data-platform-status.json")
+          status = json.loads(path.read_text(encoding="utf-8"))
+          assert status["overall_status"] == "ok", status
+          assert status["summary"]["canonical_ok"] == 1, status["summary"]
+          assert status["summary"]["controlled_blocks"] == 9, status["summary"]
+          assert status["summary"]["awaiting_snapshot"] == 0, status["summary"]
+          print("Canonical Pages status is OK")
+          PY
+
       - name: Show ingestion state
         run: uv run crew-data status
 
-      - name: Upload non-canonical snapshot artifact
+      - name: Upload canonical smoke-test artifact
         uses: actions/upload-artifact@v4
         with:
-          name: crewtrade-data-platform-${{ github.run_id }}
-          path: data/platform
+          name: crewtrade-canonical-smoke-${{ github.run_id }}
+          path: |
+            data/platform
+            web/generated/data-platform-status.json
+            output/use_cases/yield_spread
           retention-days: 30
           if-no-files-found: error
 
-      - name: Publish reports and status on main
+      - name: Publish report and status on main
         if: github.ref == 'refs/heads/main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add web/generated/data-platform-status.json output/use_cases
+          git add web/generated/data-platform-status.json output/use_cases/yield_spread
           if git diff --cached --quiet; then
-            echo "Published reports and status are current."
+            echo "Published report and status are current."
           else
-            git commit -m "Refresh canonical data reports and status"
+            git commit -m "Refresh canonical data report and status"
             git pull --rebase origin main
             git push origin HEAD:main
           fi

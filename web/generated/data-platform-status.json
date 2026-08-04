@@ -1,26 +1,178 @@
 {
   "catalog_present": false,
   "datasets": [],
-  "generated_at": "2026-08-04T10:13:00+00:00",
+  "generated_at": "2026-08-04T15:50:00+00:00",
   "latest_run": null,
   "overall_status": "degraded",
   "schema_version": 1,
   "summary": {
-    "awaiting_snapshot": 4,
+    "awaiting_snapshot": 1,
     "canonical_ok": 0,
-    "controlled_blocks": 6,
+    "controlled_blocks": 9,
     "use_case_count": 10
   },
   "use_cases": [
-    {"slug":"credit","title":"クレジット・スプレッド","declared_state":"canonical_active","runtime_state":"awaiting_snapshot","operational":false,"owner_source":"FRED / ICE BofA","note":"ETF価格比を廃止し、公式OASへ移行済み。","required_datasets":["credit_oas"],"missing_datasets":["credit_oas"],"required_contracts":[]},
-    {"slug":"yield_spread","title":"金利・イールドスプレッド","declared_state":"canonical_active","runtime_state":"awaiting_snapshot","operational":false,"owner_source":"FRED / U.S. Treasury","note":"国債カーブ・実質金利・期待インフレを分離。","required_datasets":["rates_macro","treasury_par_yield_curve"],"missing_datasets":["rates_macro","treasury_par_yield_curve"],"required_contracts":[]},
-    {"slug":"oracle","title":"Oracle実績・予測監査","declared_state":"canonical_active","runtime_state":"awaiting_snapshot","operational":false,"owner_source":"SEC EDGAR","note":"静的実績値を廃止し、提出履歴とXBRL factsへ移行。","required_datasets":["sec_filings","sec_company_facts"],"missing_datasets":["sec_filings","sec_company_facts"],"required_contracts":[]},
-    {"slug":"legendary_investors","title":"著名投資家リサーチ","declared_state":"canonical_active","runtime_state":"awaiting_snapshot","operational":false,"owner_source":"SEC EDGAR 13F","note":"固定銘柄配列を廃止し、information tableへ移行。","required_datasets":["sec_filings","sec_13f_holdings"],"missing_datasets":["sec_filings","sec_13f_holdings"],"required_contracts":[]},
-    {"slug":"imura","title":"ファンド・指数比較","declared_state":"governed_blocked","runtime_state":"governed_blocked","operational":true,"owner_source":"fundnote株式会社","note":"公式機械可読NAV契約が整うまで数値更新を停止。","required_datasets":[],"missing_datasets":[],"required_contracts":[]},
-    {"slug":"index_7_portfolio","title":"7指数ポートフォリオ","declared_state":"governed_blocked","runtime_state":"governed_blocked","operational":true,"owner_source":"JPX / 各運用会社","note":"正式商品マスターと指数代替系列の整備待ち。","required_datasets":[],"missing_datasets":[],"required_contracts":[]},
-    {"slug":"index_etf_comparison","title":"指数ETF比較","declared_state":"governed_blocked","runtime_state":"governed_blocked","operational":true,"owner_source":"JPX / EDINET","note":"ISIN・指数・通貨・費用を揃えた商品契約待ち。","required_datasets":[],"missing_datasets":[],"required_contracts":[]},
-    {"slug":"precious_metals_spread","title":"貴金属スプレッド","declared_state":"governed_blocked","runtime_state":"governed_blocked","operational":true,"owner_source":"LBMA","note":"履歴保存・再配布ライセンスが整うまで日次シグナル停止。","required_datasets":[],"missing_datasets":[],"required_contracts":[]},
-    {"slug":"securities_collateral_loan","title":"証券担保ローン","declared_state":"private_input_required","runtime_state":"private_input_required","operational":true,"owner_source":"非公開契約・口座状態","note":"公開Pagesへ契約・口座値を出さず、入力状態だけ表示。","required_datasets":[],"missing_datasets":[],"required_contracts":[]},
-    {"slug":"semiconductors","title":"半導体サイクル","declared_state":"governed_partial","runtime_state":"governed_partial","operational":true,"owner_source":"WSTS / EDINET / 企業開示","note":"公開リリースは利用可能、会員表と企業XBRLは追加契約待ち。","required_datasets":[],"missing_datasets":[],"required_contracts":[]}
+    {
+      "declared_state": "governed_blocked",
+      "missing_datasets": [],
+      "failed_datasets": [],
+      "note": "ETF代理系列は廃止済み。ICE BofA OASは公開再配布権を確認できるまで数値更新を停止。",
+      "operational": true,
+      "owner_source": "ICE Data Indices / FRED",
+      "required_contracts": [
+        {
+          "automation_status": "blocked",
+          "block_reason": "Public redistribution approval is not recorded.",
+          "checked_on": "2026-08-04",
+          "name": "ice_bofa_oas",
+          "source_url": "https://fred.stlouisfed.org/data/BAMLC0A0CM"
+        }
+      ],
+      "required_datasets": [],
+      "runtime_state": "governed_blocked",
+      "slug": "credit",
+      "title": "クレジット・スプレッド"
+    },
+    {
+      "declared_state": "canonical_active",
+      "missing_datasets": [
+        "rates_macro",
+        "treasury_par_yield_curve",
+        "treasury_par_real_yield_curve"
+      ],
+      "failed_datasets": [],
+      "note": "名目・実質カーブと両者から導出する10年期待インフレを分離。",
+      "operational": false,
+      "owner_source": "U.S. Department of the Treasury",
+      "required_contracts": [],
+      "required_datasets": [
+        "rates_macro",
+        "treasury_par_yield_curve",
+        "treasury_par_real_yield_curve"
+      ],
+      "runtime_state": "awaiting_snapshot",
+      "slug": "yield_spread",
+      "title": "金利・イールドスプレッド"
+    },
+    {
+      "declared_state": "governed_blocked",
+      "missing_datasets": [],
+      "failed_datasets": [],
+      "note": "静的実績値は廃止済み。data.sec.govがGitHub-hosted runnerを403拒否するため、到達可能な外部実行基盤を検証するまで自動数値更新を停止。",
+      "operational": true,
+      "owner_source": "SEC EDGAR",
+      "required_contracts": [
+        {
+          "automation_status": "blocked",
+          "block_reason": "GitHub-hosted runners receive HTTP 403 from data.sec.gov.",
+          "checked_on": "2026-08-05",
+          "name": "sec_edgar_external_runner",
+          "source_url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+        }
+      ],
+      "required_datasets": [],
+      "runtime_state": "governed_blocked",
+      "slug": "oracle",
+      "title": "Oracle実績・予測監査"
+    },
+    {
+      "declared_state": "governed_blocked",
+      "missing_datasets": [],
+      "failed_datasets": [],
+      "note": "固定銘柄配列は廃止済み。13F information tableは到達可能な外部実行基盤を検証するまで自動数値更新を停止。",
+      "operational": true,
+      "owner_source": "SEC EDGAR 13F",
+      "required_contracts": [
+        {
+          "automation_status": "blocked",
+          "block_reason": "GitHub-hosted runners receive HTTP 403 from data.sec.gov.",
+          "checked_on": "2026-08-05",
+          "name": "sec_edgar_external_runner",
+          "source_url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+        }
+      ],
+      "required_datasets": [],
+      "runtime_state": "governed_blocked",
+      "slug": "legendary_investors",
+      "title": "著名投資家リサーチ"
+    },
+    {
+      "slug": "imura",
+      "title": "ファンド・指数比較",
+      "declared_state": "governed_blocked",
+      "runtime_state": "governed_blocked",
+      "operational": true,
+      "owner_source": "fundnote株式会社",
+      "note": "公式機械可読NAV契約が整うまで数値更新を停止。",
+      "required_datasets": [],
+      "missing_datasets": [],
+      "failed_datasets": [],
+      "required_contracts": []
+    },
+    {
+      "slug": "index_7_portfolio",
+      "title": "7指数ポートフォリオ",
+      "declared_state": "governed_blocked",
+      "runtime_state": "governed_blocked",
+      "operational": true,
+      "owner_source": "JPX / 各運用会社",
+      "note": "正式商品マスターと指数代替系列の整備待ち。",
+      "required_datasets": [],
+      "missing_datasets": [],
+      "failed_datasets": [],
+      "required_contracts": []
+    },
+    {
+      "slug": "index_etf_comparison",
+      "title": "指数ETF比較",
+      "declared_state": "governed_blocked",
+      "runtime_state": "governed_blocked",
+      "operational": true,
+      "owner_source": "JPX / EDINET",
+      "note": "ISIN・正式指数・通貨・費用を揃えた商品契約待ち。",
+      "required_datasets": [],
+      "missing_datasets": [],
+      "failed_datasets": [],
+      "required_contracts": []
+    },
+    {
+      "slug": "precious_metals_spread",
+      "title": "貴金属スプレッド",
+      "declared_state": "governed_blocked",
+      "runtime_state": "governed_blocked",
+      "operational": true,
+      "owner_source": "LBMA",
+      "note": "履歴保存・再配布ライセンスが整うまで日次シグナル停止。",
+      "required_datasets": [],
+      "missing_datasets": [],
+      "failed_datasets": [],
+      "required_contracts": []
+    },
+    {
+      "slug": "securities_collateral_loan",
+      "title": "証券担保ローン",
+      "declared_state": "private_input_required",
+      "runtime_state": "private_input_required",
+      "operational": true,
+      "owner_source": "非公開契約・口座状態",
+      "note": "公開Pagesへ契約・口座値を出さず、入力状態だけ表示。",
+      "required_datasets": [],
+      "missing_datasets": [],
+      "failed_datasets": [],
+      "required_contracts": []
+    },
+    {
+      "slug": "semiconductors",
+      "title": "半導体サイクル",
+      "declared_state": "governed_partial",
+      "runtime_state": "governed_partial",
+      "operational": true,
+      "owner_source": "WSTS / EDINET / 企業開示",
+      "note": "公開リリースは利用可能、会員表と企業XBRLは追加契約待ち。",
+      "required_datasets": [],
+      "missing_datasets": [],
+      "failed_datasets": [],
+      "required_contracts": []
+    }
   ]
 }

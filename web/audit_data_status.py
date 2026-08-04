@@ -62,11 +62,13 @@ def audit() -> None:
         failures.append("summary use_case_count must be 10")
     if status.get("overall_status") == "ok":
         if (
-            summary.get("canonical_ok") != 4
+            summary.get("canonical_ok") != 1
+            or summary.get("controlled_blocks") != 9
             or summary.get("awaiting_snapshot") != 0
         ):
             failures.append(
-                "OK requires four canonical use cases and no pending snapshot"
+                "OK requires one reachable canonical use case, nine controlled states, "
+                "and no pending snapshot"
             )
     elif status.get("overall_status") != "degraded":
         failures.append("overall_status must be ok or degraded")
