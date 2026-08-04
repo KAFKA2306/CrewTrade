@@ -1,0 +1,44 @@
+name: Diagnose SEC network paths
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/sec-network-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe official SEC endpoints
+        env:
+          SEC_USER_AGENT: CrewTrade 137051370+KAFKA2306@users.noreply.github.com
+        run: |
+          set +e
+          urls=(
+            "https://data.sec.gov/submissions/CIK0001341439.json"
+            "https://www.sec.gov/Archives/edgar/full-index/2026/QTR2/master.idx"
+            "https://www.sec.gov/Archives/edgar/data/1029160/000090266426002529/0000902664-26-002529-index.htm"
+            "https://www.sec.gov/Archives/edgar/data/1029160/000090266426002529/xslForm13F_X02/infotable.xml"
+            "https://www.sec.gov/Archives/edgar/data/1341439/000119312526101045/orcl-20260228.htm"
+            "https://www.sec.gov/Archives/edgar/data/1341439/000119312526101045/orcl-20260228_htm.xml"
+            "https://www.sec.gov/data-research/sec-markets-data/form-13f-data-sets"
+            "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1341439&type=10-Q&output=atom"
+            "https://efts.sec.gov/LATEST/search-index?q=oracle&forms=10-Q&ciks=1341439&from=0&size=1"
+          )
+          for url in "${urls[@]}"; do
+            status=$(curl --http1.1 --compressed --silent --show-error \
+              --location \
+              --output /tmp/sec-probe-body \
+              --write-out "%{http_code}" \
+              --header "User-Agent: ${SEC_USER_AGENT}" \
+              --header "From: 137051370+KAFKA2306@users.noreply.github.com" \
+              --header "Accept: */*" \
+              "$url")
+            bytes=$(wc -c < /tmp/sec-probe-body | tr -d ' ')
+            content=$(file --brief --mime-type /tmp/sec-probe-body)
+            echo "${status} ${bytes} ${content} ${url}"
+          done
