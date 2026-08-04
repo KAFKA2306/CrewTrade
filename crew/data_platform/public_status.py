@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import duckdb
 import yaml
@@ -50,6 +51,12 @@ def build_public_status(
         missing_datasets = [
             dataset for dataset in required_datasets if dataset not in dataset_status
         ]
+        failed_datasets = [
+            dataset
+            for dataset in required_datasets
+            if dataset in dataset_status
+            and dataset_status[dataset]["quality_status"] != "ok"
+        ]
         contract_rows = []
         for contract_name in required_contracts:
             contract = dict(governed_contracts.get(contract_name, {}))
@@ -66,8 +73,12 @@ def build_public_status(
             )
 
         if declared_state == "canonical_active":
-            runtime_state = "ok" if not missing_datasets else "awaiting_snapshot"
-            active_missing |= bool(missing_datasets)
+            runtime_state = (
+                "ok"
+                if not missing_datasets and not failed_datasets
+                else "awaiting_snapshot"
+            )
+            active_missing |= bool(missing_datasets or failed_datasets)
         else:
             runtime_state = declared_state
         use_case_rows.append(
@@ -81,6 +92,7 @@ def build_public_status(
                 "note": definition.get("note"),
                 "required_datasets": required_datasets,
                 "missing_datasets": missing_datasets,
+                "failed_datasets": failed_datasets,
                 "required_contracts": contract_rows,
             }
         )
@@ -94,7 +106,9 @@ def build_public_status(
         "overall_status": overall_status,
         "catalog_present": catalog_path.is_file(),
         "latest_run": latest_run,
-        "datasets": sorted(dataset_status.values(), key=lambda row: row["dataset"]),
+        "datasets": sorted(
+            dataset_status.values(), key=lambda row: row["dataset"]
+        ),
         "use_cases": use_case_rows,
         "summary": {
             "use_case_count": len(use_case_rows),
@@ -146,18 +160,30 @@ def _catalog_status(
     with duckdb.connect(str(catalog_path), read_only=True) as connection:
         dataset_rows = connection.execute(
             """
-            SELECT dataset, source, row_count, raw_sha256, source_url,
-                   retrieved_at, metadata_json, run_id
-            FROM (
+            WITH latest_files AS (
                 SELECT *,
                        row_number() OVER (
                            PARTITION BY dataset
                            ORDER BY retrieved_at DESC, run_id DESC
                        ) AS dataset_rank
                 FROM dataset_files
+            ),
+            quality AS (
+                SELECT dataset, run_id,
+                       count(*) FILTER (WHERE passed = false) AS failed_checks
+                FROM quality_results
+                GROUP BY dataset, run_id
             )
-            WHERE dataset_rank = 1
-            ORDER BY dataset
+            SELECT files.dataset, files.source, files.row_count,
+                   files.raw_sha256, files.source_url, files.retrieved_at,
+                   files.metadata_json, files.run_id,
+                   coalesce(quality.failed_checks, 0) AS failed_checks
+            FROM latest_files AS files
+            LEFT JOIN quality
+              ON files.dataset = quality.dataset
+             AND files.run_id = quality.run_id
+            WHERE files.dataset_rank = 1
+            ORDER BY files.dataset
             """
         ).fetchall()
         latest_run_row = connection.execute(
@@ -168,21 +194,10 @@ def _catalog_status(
             LIMIT 1
             """
         ).fetchone()
-        failed_checks = {
-            row[0]: int(row[1])
-            for row in connection.execute(
-                """
-                SELECT dataset, count(*)
-                FROM quality_results
-                WHERE passed = false
-                GROUP BY dataset
-                """
-            ).fetchall()
-        }
 
     status: dict[str, dict[str, Any]] = {}
     for row in dataset_rows:
-        metadata = json.loads(row[6]) if row[6] else {}
+        metadata = _metadata_mapping(row[6])
         status[str(row[0])] = {
             "dataset": str(row[0]),
             "source": str(row[1]),
@@ -191,7 +206,7 @@ def _catalog_status(
             "source_url": str(row[4]),
             "retrieved_at": _iso(row[5]),
             "run_id": str(row[7]),
-            "quality_status": "ok" if failed_checks.get(str(row[0]), 0) == 0 else "failed",
+            "quality_status": "ok" if int(row[8]) == 0 else "failed",
             "retrieval_mode": metadata.get("retrieval_mode"),
             "point_in_time_vintage": metadata.get("point_in_time_vintage"),
         }
@@ -205,6 +220,17 @@ def _catalog_status(
             "error": latest_run_row[4],
         }
     return status, latest_run
+
+
+def _metadata_mapping(value: object) -> dict[str, Any]:
+    if isinstance(value, Mapping):
+        return dict(value)
+    if value is None or value == "":
+        return {}
+    parsed = json.loads(str(value))
+    if not isinstance(parsed, Mapping):
+        raise ValueError("dataset metadata must be a JSON object")
+    return dict(parsed)
 
 
 def _load_yaml(path: Path) -> Mapping[str, Any]:
