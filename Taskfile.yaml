@@ -2,7 +2,7 @@ version: "3"
 
 tasks:
   process:all:
-    desc: Sync publishable canonical sources, run active analyses, and export Pages status
+    desc: Sync reachable canonical sources, run active analyses, and export Pages status
     cmds:
       - task: fetch:all
       - task: analyze:all
@@ -21,11 +21,10 @@ tasks:
     cmd: uv run crew-data sync
 
   data:sync:public:
-    desc: Sync Treasury, SEC, and governed source registry
+    desc: Sync reachable Treasury data and governed source registry
     cmd: >-
       uv run crew-data sync
       --source treasury_yield_curve
-      --source sec_edgar
       --source governed_manual
 
   data:sync:registry:
@@ -41,20 +40,16 @@ tasks:
     cmd: uv run crew-data export-status
 
   fetch:all:
-    desc: Export all publicly canonical-active use cases from DuckDB
+    desc: Export all reachable canonical-active use cases from DuckDB
     cmds:
       - task: data:sync
       - task: fetch:yield
-      - task: fetch:oracle
-      - task: fetch:legendary_investors
 
   analyze:all:
-    desc: Run publicly canonical-active analyses only; governed blocks remain stopped
+    desc: Run reachable canonical-active analyses only; governed blocks remain stopped
     aliases: [run]
     cmds:
       - task: analyze:yield
-      - task: analyze:oracle
-      - task: analyze:legendary_investors
 
   lint:
     cmd: uv run ruff check . --fix
@@ -64,8 +59,10 @@ tasks:
     cmd: uv sync
 
   fetch:oracle:
+    desc: External-runner only — requires reachable SEC EDGAR access
     cmd: uv run python -m crew.oracle.data_pipeline
   analyze:oracle:
+    desc: External-runner only — requires a validated SEC snapshot
     cmd: uv run python -m crew.oracle.analysis
 
   fetch:yield:
@@ -74,10 +71,15 @@ tasks:
     cmd: uv run python -m crew.yields.analysis
 
   fetch:legendary_investors:
+    desc: External-runner only — requires reachable SEC EDGAR access
     cmd: uv run python -m crew.legendary_investors.data_pipeline
   analyze:legendary_investors:
+    desc: External-runner only — requires a validated SEC snapshot
     cmd: uv run python -m crew.legendary_investors.analysis
 
+  blocked:sec:
+    desc: Governed stop — data.sec.gov rejects GitHub-hosted runners with HTTP 403
+    cmd: echo "SEC analyses require a validated reachable external runner; see data-status"
   blocked:credit:
     desc: Governed stop — ICE BofA OAS public redistribution approval is missing
     cmd: echo "credit OAS is intentionally stopped; see data-status"
