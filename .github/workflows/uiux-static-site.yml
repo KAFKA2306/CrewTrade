@@ -5,6 +5,7 @@ on:
     paths:
       - "web/**"
       - "output/use_cases/**"
+      - "config/use_case_data_status.yaml"
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/uiux-static-site.yml"
@@ -48,8 +49,10 @@ jobs:
           uv run python -m compileall -q web
           node --check web/static/site.js
 
-      - name: Build static site
-        run: uv run python web/build_static.py
+      - name: Build static site and data status
+        run: |
+          uv run python web/build_static.py
+          uv run python web/build_data_status.py
 
       - name: Audit generated site
         run: uv run python web/audit_static.py
