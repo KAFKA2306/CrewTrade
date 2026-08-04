@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "source_revision": "7f18d4729f8395dfcbab1653e450b03915f6f0a8",
+  "source_revision": "c5de06e6bbd382e4dee7e65025f011e499c64951",
   "site_latest_date": "20260805",
   "purposes": [
     "運用評価",
@@ -355,7 +355,7 @@
   "data_platform": {
     "path": "data-status/index.html",
     "overall_status": "ok",
-    "generated_at": "2026-08-04T16:08:47.536008+00:00",
+    "generated_at": "2026-08-04T21:38:11.910916+00:00",
     "summary": {
       "awaiting_snapshot": 0,
       "canonical_ok": 1,
