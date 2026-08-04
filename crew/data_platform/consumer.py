@@ -28,7 +28,12 @@ def resolve_catalog(root: Path | None = None) -> Path:
     return catalog
 
 
-def query_frame(sql: str, parameters: Iterable[object] | None = None, *, root: Path | None = None) -> pd.DataFrame:
+def query_frame(
+    sql: str,
+    parameters: Iterable[object] | None = None,
+    *,
+    root: Path | None = None,
+) -> pd.DataFrame:
     catalog = resolve_catalog(root)
     try:
         with duckdb.connect(str(catalog), read_only=True) as connection:
@@ -77,8 +82,14 @@ def pivot_latest_vintage(dataset: str, *, root: Path | None = None) -> pd.DataFr
     return pivot
 
 
-def treasury_curve(*, latest_only: bool = False, root: Path | None = None) -> pd.DataFrame:
-    view = "gold_treasury_curve_latest" if latest_only else "bronze_treasury_par_yield_curve"
+def treasury_curve(
+    *, latest_only: bool = False, root: Path | None = None
+) -> pd.DataFrame:
+    view = (
+        "gold_treasury_curve_latest"
+        if latest_only
+        else "bronze_treasury_par_yield_curve"
+    )
     frame = query_frame(
         f"""
         SELECT observation_date, tenor, value, unit, curve_type,
@@ -126,7 +137,12 @@ def sec_filings(
     )
     if frame.empty:
         raise CanonicalDataUnavailable("No matching SEC filings are available")
-    for column in ("filing_date", "report_date", "acceptance_datetime", "_retrieved_at"):
+    for column in (
+        "filing_date",
+        "report_date",
+        "acceptance_datetime",
+        "_retrieved_at",
+    ):
         frame[column] = pd.to_datetime(frame[column])
     return frame
 
@@ -159,5 +175,45 @@ def sec_company_facts(
     if frame.empty:
         raise CanonicalDataUnavailable(f"No SEC company facts for {entity_name}")
     for column in ("start_date", "end_date", "filed_date", "_retrieved_at"):
+        frame[column] = pd.to_datetime(frame[column])
+    return frame
+
+
+def sec_13f_holdings(
+    *,
+    entity_names: Iterable[str] | None = None,
+    latest_only: bool = False,
+    root: Path | None = None,
+) -> pd.DataFrame:
+    view = (
+        "gold_sec_13f_holdings_latest"
+        if latest_only
+        else "bronze_sec_13f_holdings"
+    )
+    names = list(entity_names or [])
+    where = ""
+    parameters: list[object] = []
+    if names:
+        where = "WHERE entity_name IN (" + ",".join("?" for _ in names) + ")"
+        parameters.extend(names)
+    frame = query_frame(
+        f"""
+        SELECT holding_id, entity_name, entity_cik, accession_number,
+               report_date, filing_date, issuer, title_of_class, cusip,
+               figi, reported_value, reported_value_unit,
+               shares_or_principal, shares_or_principal_type, put_call,
+               investment_discretion, other_manager, voting_sole,
+               voting_shared, voting_none, source_document_url,
+               _retrieved_at, _source_url, _raw_sha256
+        FROM {view}
+        {where}
+        ORDER BY entity_name, report_date DESC, reported_value DESC NULLS LAST
+        """,
+        parameters,
+        root=root,
+    )
+    if frame.empty:
+        raise CanonicalDataUnavailable("No matching SEC 13F holdings are available")
+    for column in ("report_date", "filing_date", "_retrieved_at"):
         frame[column] = pd.to_datetime(frame[column])
     return frame
