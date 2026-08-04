@@ -29,11 +29,11 @@ _TENOR_FIELDS = {
 }
 
 _REAL_TENOR_FIELDS = {
-    "BC_5YEAR": "5Y",
-    "BC_7YEAR": "7Y",
-    "BC_10YEAR": "10Y",
-    "BC_20YEAR": "20Y",
-    "BC_30YEAR": "30Y",
+    "TC_5YEAR": "5Y",
+    "TC_7YEAR": "7Y",
+    "TC_10YEAR": "10Y",
+    "TC_20YEAR": "20Y",
+    "TC_30YEAR": "30Y",
 }
 
 
