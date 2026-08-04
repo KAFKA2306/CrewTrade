@@ -11,6 +11,7 @@ from crew.data_platform.contracts import DatasetBatch
 from crew.data_platform.gold import refresh_gold_views
 from crew.data_platform.sources.fred import parse_fred_public_csv
 from crew.data_platform.sources.sec import parse_13f_information_table
+from crew.data_platform.sources.treasury import build_rates_macro
 from crew.data_platform.storage import DataPlatformStorage
 from crew.yields.analysis import YieldSpreadAnalyzer
 from crew.yields.config import YieldSpreadConfig
@@ -26,6 +27,36 @@ def test_parse_fred_public_csv() -> None:
     assert len(rows) == 1
     assert rows[0]["value"] == 4.70
     assert str(rows[0]["realtime_start"]) == "2026-08-04"
+
+
+def test_build_rates_macro_from_treasury_curves() -> None:
+    nominal = pd.DataFrame(
+        [
+            {"observation_date": pd.Timestamp("2026-08-03").date(), "tenor": "2Y", "value": 4.25},
+            {"observation_date": pd.Timestamp("2026-08-03").date(), "tenor": "10Y", "value": 4.70},
+            {"observation_date": pd.Timestamp("2026-08-03").date(), "tenor": "30Y", "value": 5.23},
+        ]
+    )
+    real = pd.DataFrame(
+        [
+            {"observation_date": pd.Timestamp("2026-08-03").date(), "tenor": "10Y", "value": 2.15},
+        ]
+    )
+    result = build_rates_macro(
+        nominal,
+        real,
+        retrieval_date="2026-08-04",
+    ).set_index("label")
+    assert result.loc["us_2y", "value"] == 4.25
+    assert result.loc["us_10y_real", "value"] == 2.15
+    assert result.loc["us_10y_breakeven", "value"] == 2.55
+    assert set(result.index) == {
+        "us_2y",
+        "us_10y",
+        "us_30y",
+        "us_10y_real",
+        "us_10y_breakeven",
+    }
 
 
 def test_parse_sec_13f_information_table() -> None:
