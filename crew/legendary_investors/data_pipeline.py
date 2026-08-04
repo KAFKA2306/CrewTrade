@@ -1,23 +1,54 @@
-"""Data flow for legendary investors use case."""
+from __future__ import annotations
+
 from pathlib import Path
-from crew.clients.equities import YFinanceEquityDataClient
-def fetch_investor_data(
-    tickers: list[str],
-    raw_data_dir: Path,
-    period: str = "1y",
-) -> dict:
-    """Fetch and cache price data for investor holdings."""
-    raw_data_dir.mkdir(parents=True, exist_ok=True)
-    client = YFinanceEquityDataClient(raw_data_dir)
-    frames = client.get_frames(tickers, period=period)
-    return frames
-if __name__ == "__main__":
-    from crew.legendary_investors.config import LegendaryInvestorsConfig
-    config = LegendaryInvestorsConfig(name="legendary_investors")
-    all_tickers = list(
-        set(config.soros_holdings + config.druckenmiller_holdings + [config.benchmark])
+from typing import Dict
+
+from crew.app import BaseDataPipeline, GenericUseCase
+from crew.data_platform.consumer import sec_13f_holdings, sec_filings
+from crew.legendary_investors.config import LegendaryInvestorsConfig
+
+
+class LegendaryInvestorsDataPipeline(BaseDataPipeline):
+    """Export 13F filings and information-table holdings from canonical SEC data."""
+
+    def __init__(self, raw_data_dir: Path, config: LegendaryInvestorsConfig) -> None:
+        super().__init__(raw_data_dir, config)
+
+    def fetch_data_internal(self, targets: Dict[str, str], days: int) -> Dict[str, str]:
+        manager_names = self.config.manager_names
+        filings = sec_filings(
+            entity_names=manager_names,
+            forms=self.config.forms,
+        )
+        holdings = sec_13f_holdings(
+            entity_names=manager_names,
+            latest_only=False,
+        )
+        self._save("filings", filings)
+        self._save("holdings", holdings)
+        return {
+            "filings": str(self.raw_data_dir / "filings.parquet"),
+            "holdings": str(self.raw_data_dir / "holdings.parquet"),
+        }
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+CONFIG_FILE = PROJECT_ROOT / "config" / "use_cases" / "legendary_investors.yaml"
+
+
+def main() -> None:
+    from crew.legendary_investors.analysis import LegendaryInvestorsAnalyzer
+
+    use_case = GenericUseCase(
+        config_path=CONFIG_FILE,
+        pipeline_class=LegendaryInvestorsDataPipeline,
+        analyzer_class=LegendaryInvestorsAnalyzer,
+        config_class=LegendaryInvestorsConfig,
     )
-    raw_dir = Path("resources") / "data" / "use_cases" / "legendary_investors" / "raw"
-    print(f"Fetching data for {len(all_tickers)} tickers...")
-    frames = fetch_investor_data(all_tickers, raw_dir, config.period)
-    print(f"Fetched {len(frames)} ticker(s)")
+    saved_files = use_case.fetch_data()
+    for name, path in saved_files.items():
+        print(f"Saved canonical investor {name}: {path}")
+
+
+if __name__ == "__main__":
+    main()
