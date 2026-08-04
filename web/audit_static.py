@@ -7,8 +7,8 @@ from urllib.parse import unquote, urlsplit
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = PROJECT_ROOT / "docs"
-CONTENT_REFRESH_DATE = "20260802"
-CONTENT_REFRESH_LABEL = "更新基準日: 2026-08-02"
+CONTENT_REFRESH_DATE = "20260804"
+CONTENT_REFRESH_LABEL = "更新基準日: 2026-08-04"
 REQUIRED_CASE_FIELDS = {
     "slug",
     "title",
@@ -22,6 +22,13 @@ REQUIRED_CASE_FIELDS = {
     "warning",
     "change_summary",
     "accent",
+}
+REQUIRED_REPORT_SECTIONS = {
+    "## データ": "data section",
+    "## 定量分析": "quantitative analysis section",
+    "## 評価": "evaluation section",
+    "## 限界": "limitations section",
+    "## 一次情報": "primary-source section",
 }
 
 
@@ -115,6 +122,7 @@ def audit() -> None:
 
         slug = case.get("slug")
         dates = case.get("dates", [])
+        source_map = case.get("sources", {})
         companion_map = case.get("companions", {})
         if not slug or not dates:
             failures.append(f"manifest: invalid case entry {case!r}")
@@ -142,15 +150,49 @@ def audit() -> None:
                 if marker not in case_text:
                     failures.append(f"{slug}/index.html: missing {label}")
 
-        latest_report = DOCS_DIR / slug / f"{dates[0]}.html"
+        latest_date = dates[0]
+        latest_source_name = source_map.get(latest_date)
+        if not latest_source_name:
+            failures.append(f"manifest: missing source mapping for {slug}/{latest_date}")
+        else:
+            latest_source = (
+                PROJECT_ROOT
+                / "output"
+                / "use_cases"
+                / slug
+                / latest_date
+                / latest_source_name
+            )
+            if not latest_source.is_file():
+                failures.append(
+                    f"manifest: missing source report {slug}/{latest_date}/{latest_source_name}"
+                )
+            else:
+                source_text = latest_source.read_text(encoding="utf-8")
+                if CONTENT_REFRESH_LABEL not in source_text:
+                    failures.append(
+                        f"{slug}/{latest_date}/{latest_source_name}: missing content refresh marker"
+                    )
+                for marker, label in REQUIRED_REPORT_SECTIONS.items():
+                    if marker not in source_text:
+                        failures.append(
+                            f"{slug}/{latest_date}/{latest_source_name}: missing {label}"
+                        )
+                primary_source_section = source_text.split("## 一次情報", maxsplit=1)
+                if len(primary_source_section) != 2 or "https://" not in primary_source_section[1]:
+                    failures.append(
+                        f"{slug}/{latest_date}/{latest_source_name}: primary-source section has no URL"
+                    )
+
+        latest_report = DOCS_DIR / slug / f"{latest_date}.html"
         if latest_report.is_file():
             latest_text = latest_report.read_text(encoding="utf-8")
             if CONTENT_REFRESH_LABEL not in latest_text:
                 failures.append(
-                    f"{slug}/{dates[0]}.html: missing content refresh marker"
+                    f"{slug}/{latest_date}.html: missing content refresh marker"
                 )
             if 'id="report-content"' not in latest_text:
-                failures.append(f"{slug}/{dates[0]}.html: missing report content target")
+                failures.append(f"{slug}/{latest_date}.html: missing report content target")
 
         for date in dates:
             manifest_report_count += 1
@@ -215,7 +257,8 @@ def audit() -> None:
         f"{manifest['total_reports']} reports / "
         f"{manifest_companion_count} companion pages / "
         f"{len(manifest['cases'])} cases / {len(html_files)} HTML files / "
-        f"decision catalogue enabled / content refreshed {CONTENT_REFRESH_DATE}"
+        f"decision catalogue enabled / quantitative evidence contract enabled / "
+        f"content refreshed {CONTENT_REFRESH_DATE}"
     )
 
 
