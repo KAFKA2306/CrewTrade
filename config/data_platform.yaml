@@ -6,34 +6,24 @@ storage:
 sources:
   fred:
     adapter: fred
-    enabled: true
+    enabled: false
     api_key_env: FRED_API_KEY
     user_agent: CrewTrade data-platform
     min_interval_seconds: 0.25
     timeout_seconds: 60
     max_attempts: 3
-    datasets:
-      credit_oas:
-        observation_start: "2020-01-01"
-        series:
-          us_corporate_oas: BAMLC0A0CM
-          us_bbb_oas: BAMLC0A4CBBB
-          us_high_yield_oas: BAMLH0A0HYM2
-      rates_macro:
-        observation_start: "2020-01-01"
-        series:
-          us_2y: DGS2
-          us_10y: DGS10
-          us_30y: DGS30
-          us_10y_real: DFII10
-          us_10y_breakeven: T10YIE
+    datasets: {}
 
   treasury_yield_curve:
     adapter: treasury_yield_curve
     enabled: true
     user_agent: CrewTrade data-platform
     min_interval_seconds: 0.5
+    timeout_seconds: 60
+    max_attempts: 3
     dataset: treasury_par_yield_curve
+    real_dataset: treasury_par_real_yield_curve
+    rates_dataset: rates_macro
     years: [2024, 2025, 2026]
 
   sec_edgar:
@@ -61,6 +51,17 @@ sources:
     enabled: true
     registry_url: https://github.com/KAFKA2306/CrewTrade/blob/main/config/data_platform.yaml
     datasets:
+      ice_bofa_oas:
+        use_cases: [credit]
+        owner: ICE Data Indices, LLC / FRED
+        source_url: https://fred.stlouisfed.org/data/BAMLC0A0CM
+        access_mode: licensed_third_party_index_data
+        license_status: internal_use_only_no_public_redistribution
+        refresh_policy: after_recorded_license
+        required_fields: [series_id, observation_date, value, license_scope]
+        automation_status: blocked
+        block_reason: FRED states ICE BofA Top Level Data is for internal use only and may not be published or furnished to third parties without prior approval.
+        checked_on: "2026-08-04"
       fundnote_kaihou:
         use_cases: [imura]
         owner: fundnote株式会社
