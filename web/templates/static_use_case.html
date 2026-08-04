@@ -3,54 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{{ case.title }}の公開分析レポート一覧。">
+  <meta name="description" content="{{ case.title }}の対象、期間、警告、公開分析レポート一覧。">
+  <meta name="theme-color" content="#fbfaf7">
   <title>{{ case.title }} | CrewTrade</title>
   <link rel="stylesheet" href="../assets/site.css">
   <link rel="stylesheet" href="../assets/table.css">
   <script defer src="../assets/site.js"></script>
 </head>
 <body style="--case-accent: var(--{{ case.accent }});">
+  <a class="skip-link" href="#report-history">レポート履歴へ移動</a>
   <header class="site-header shell">
     <div class="header-inner">
-      <a class="brand" href="../index.html"><span class="brand-mark">CT</span><span>CrewTrade</span></a>
-      <nav class="header-links"><a href="../index.html">全テーマ</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="../index.html">全テーマ</a><a href="#report-history">履歴</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
     </div>
   </header>
   <main class="shell">
-    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span>/</span><span>{{ case.title }}</span></nav>
-    <section class="case-hero">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><span aria-current="page">{{ case.title }}</span></nav>
+    <section class="case-hero" aria-labelledby="case-title">
       <div>
-        <p class="eyebrow">{{ case.category }}</p>
-        <h1>{{ case.title }}</h1>
+        <p class="eyebrow">{{ case.purpose }} · {{ case.category }}</p>
+        <h1 id="case-title">{{ case.title }}</h1>
         <p class="case-summary">{{ case.summary }}</p>
-        <div class="metrics"><span class="metric"><strong>{{ dates|length }}</strong>公開レポート</span><span class="metric">最新 {{ dates[0]|report_date }}</span></div>
+        <div class="metrics"><span class="metric"><strong>{{ dates|length }}</strong>公開レポート</span><span class="metric">最新 {{ dates[0]|report_date }}</span><span class="metric">状態 {{ case.status }}</span></div>
       </div>
-      <aside class="question-box"><small>この分析の検証軸</small><strong>{{ case.question }}</strong></aside>
+      <aside class="question-box" aria-label="分析の前提">
+        <small>検証する問い</small><strong>{{ case.question }}</strong>
+        <dl class="card-facts"><div><dt>対象</dt><dd>{{ case.scope }}</dd></div><div><dt>期間</dt><dd>{{ case.period }}</dd></div></dl>
+        <p class="card-warning"><strong>主要な注意</strong>{{ case.warning }}</p>
+      </aside>
     </section>
 
-    <section class="section">
-      <div class="section-heading"><div><p class="eyebrow">Reports</p><h2>分析スナップショット</h2><p>作成日ごとの条件と結論の変化を、時系列の表で追えます。</p></div></div>
-      <div class="report-table-shell">
+    <section class="section" id="report-history" tabindex="-1" aria-labelledby="history-title">
+      <div class="section-heading"><div><p class="eyebrow">Reports</p><h2 id="history-title">分析スナップショット</h2><p>作成日ごとの条件と結論を時系列で確認します。最新という理由だけで正式評価とは扱いません。</p></div></div>
+      <div class="report-table-shell" tabindex="0" aria-label="レポート履歴表。横方向にスクロールできます。">
         <table class="report-table">
-          <thead>
-            <tr>
-              <th scope="col">作成日</th>
-              <th scope="col">位置づけ</th>
-              <th scope="col">スナップショット</th>
-            </tr>
-          </thead>
+          <caption>{{ case.title }}の公開レポート履歴</caption>
+          <thead><tr><th scope="col">作成日</th><th scope="col">位置づけ</th><th scope="col">確認事項</th><th scope="col">スナップショット</th></tr></thead>
           <tbody>
             {% for date in dates %}
             <tr{% if loop.first %} class="latest-row"{% endif %}>
               <td><strong>{{ date|report_date }}</strong></td>
               <td>{% if loop.first %}<span class="status-pill latest-status">最新</span>{% else %}<span class="status-pill">履歴</span>{% endif %}</td>
+              <td>{% if loop.first %}{{ case.change_summary }}{% else %}当時の対象期間、計算条件、結論を本文で確認{% endif %}</td>
               <td><a class="report-open" href="{{ date }}.html">レポートを開く <span aria-hidden="true">→</span></a></td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-      <div class="notice"><strong>注意:</strong> 日付はレポートのスナップショット識別子です。本文でデータ取得日と対象期間を確認してください。</div>
+      <div class="notice"><strong>注意:</strong> 日付はレポートのスナップショット識別子です。本文のデータ取得日、対象期間、比較条件、欠損処理を優先してください。</div>
     </section>
   </main>
   <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / {{ case.title }}</span><span>Research, not recommendation.</span></div></footer>
