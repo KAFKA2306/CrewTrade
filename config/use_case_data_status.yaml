@@ -19,16 +19,16 @@ use_cases:
     note: 名目・実質カーブと両者から導出する10年期待インフレを分離。
   oracle:
     title: Oracle実績・予測監査
-    state: canonical_active
-    required_datasets: [sec_filings, sec_company_facts]
+    state: governed_blocked
+    required_contracts: [sec_edgar_external_runner]
     owner_source: SEC EDGAR
-    note: 静的実績値を廃止し、提出履歴とXBRL factsへ移行。
+    note: 静的実績値は廃止済み。data.sec.govがGitHub-hosted runnerを403拒否するため、到達可能な外部実行基盤を検証するまで自動数値更新を停止。
   legendary_investors:
     title: 著名投資家リサーチ
-    state: canonical_active
-    required_datasets: [sec_filings, sec_13f_holdings]
+    state: governed_blocked
+    required_contracts: [sec_edgar_external_runner]
     owner_source: SEC EDGAR 13F
-    note: 固定銘柄配列を廃止し、information tableへ移行。
+    note: 固定銘柄配列は廃止済み。13F information tableは到達可能な外部実行基盤を検証するまで自動数値更新を停止。
   imura:
     title: ファンド・指数比較
     state: governed_blocked
