@@ -23,6 +23,8 @@ class FredSource:
         self.client = HttpClient(
             user_agent=str(config.get("user_agent", "CrewTrade data-platform")),
             min_interval_seconds=float(config.get("min_interval_seconds", 0.25)),
+            timeout_seconds=float(config.get("timeout_seconds", 60.0)),
+            max_attempts=int(config.get("max_attempts", 3)),
         )
 
     def fetch(self) -> Sequence[DatasetBatch]:
@@ -39,15 +41,20 @@ class FredSource:
                 "retrieval_mode": retrieval_mode,
                 "series": {},
             }
+            series_map = {
+                str(label): str(series_id)
+                for label, series_id in dict(
+                    dataset_config.get("series", {})
+                ).items()
+            }
+            observation_start = str(
+                dataset_config.get("observation_start", "1900-01-01")
+            )
             latest_url = ""
             latest_retrieved_at = None
-            series_map = dict(dataset_config.get("series", {}))
-            for label, series_id_value in series_map.items():
-                series_id = str(series_id_value)
-                observation_start = str(
-                    dataset_config.get("observation_start", "1900-01-01")
-                )
-                if self.api_key:
+
+            if self.api_key:
+                for label, series_id in series_map.items():
                     series_rows, raw_record, source_url, retrieved_at = (
                         self._fetch_api_series(
                             label=label,
@@ -55,18 +62,19 @@ class FredSource:
                             observation_start=observation_start,
                         )
                     )
-                else:
-                    series_rows, raw_record, source_url, retrieved_at = (
-                        self._fetch_public_csv_series(
-                            label=label,
-                            series_id=series_id,
-                            observation_start=observation_start,
-                        )
+                    rows.extend(series_rows)
+                    raw_bundle["series"][series_id] = raw_record
+                    latest_url = source_url
+                    latest_retrieved_at = retrieved_at
+            else:
+                rows, raw_record, latest_url, latest_retrieved_at = (
+                    self._fetch_public_csv_dataset(
+                        series_map=series_map,
+                        observation_start=observation_start,
                     )
-                rows.extend(series_rows)
-                raw_bundle["series"][series_id] = raw_record
-                latest_url = source_url
-                latest_retrieved_at = retrieved_at
+                )
+                raw_bundle["batch"] = raw_record
+
             frame = pd.DataFrame.from_records(rows)
             batches.append(
                 DatasetBatch(
@@ -94,6 +102,9 @@ class FredSource:
                         "series_count": len(series_map),
                         "retrieval_mode": retrieval_mode,
                         "point_in_time_vintage": bool(self.api_key),
+                        "http_request_count": len(series_map) * 2
+                        if self.api_key
+                        else 1,
                     },
                 )
             )
@@ -139,25 +150,31 @@ class FredSource:
             observations_payload.retrieved_at,
         )
 
-    def _fetch_public_csv_series(
-        self, *, label: str, series_id: str, observation_start: str
+    def _fetch_public_csv_dataset(
+        self,
+        *,
+        series_map: Mapping[str, str],
+        observation_start: str,
     ) -> tuple[list[dict[str, object]], dict[str, object], str, object]:
+        series_ids = list(series_map.values())
         payload = self.client.get(
             self.PUBLIC_CSV_URL,
-            params={"id": series_id, "cosd": observation_start},
+            params={
+                "id": ",".join(series_ids),
+                "cosd": observation_start,
+            },
         )
         retrieval_date = pd.Timestamp(payload.retrieved_at).date()
-        rows = parse_fred_public_csv(
-            label=label,
-            series_id=series_id,
+        rows = parse_fred_public_csv_batch(
+            series_map=series_map,
             payload=payload.body,
             retrieval_date=retrieval_date,
         )
         return (
             rows,
             {
-                "label": label,
                 "retrieval_mode": "public_csv_snapshot",
+                "series_ids": series_ids,
                 "csv": payload.body.decode("utf-8"),
             },
             payload.url,
@@ -201,6 +218,49 @@ def parse_fred_series(
     return rows
 
 
+def parse_fred_public_csv_batch(
+    *,
+    series_map: Mapping[str, str],
+    payload: bytes,
+    retrieval_date: object,
+) -> list[dict[str, object]]:
+    frame = pd.read_csv(io.BytesIO(payload))
+    date_column = _date_column(frame)
+    missing = sorted(set(series_map.values()).difference(frame.columns))
+    if missing:
+        raise ValueError(
+            f"FRED CSV is missing requested series {missing}; columns={list(frame.columns)}"
+        )
+    frame[date_column] = pd.to_datetime(frame[date_column], errors="coerce")
+    snapshot_date = pd.to_datetime(retrieval_date).date()
+    rows: list[dict[str, object]] = []
+    for label, series_id in series_map.items():
+        series_frame = frame[[date_column, series_id]].copy()
+        series_frame[series_id] = pd.to_numeric(
+            series_frame[series_id], errors="coerce"
+        )
+        series_frame = series_frame.dropna(subset=[date_column, series_id])
+        for record in series_frame.to_dict(orient="records"):
+            rows.append(
+                {
+                    "series_id": series_id,
+                    "label": label,
+                    "observation_date": pd.Timestamp(
+                        record[date_column]
+                    ).date(),
+                    "value": float(record[series_id]),
+                    "realtime_start": snapshot_date,
+                    "realtime_end": snapshot_date,
+                    "frequency": None,
+                    "units": None,
+                    "seasonal_adjustment": None,
+                    "last_updated": snapshot_date,
+                    "title": series_id,
+                }
+            )
+    return rows
+
+
 def parse_fred_public_csv(
     *,
     label: str,
@@ -208,7 +268,14 @@ def parse_fred_public_csv(
     payload: bytes,
     retrieval_date: object,
 ) -> list[dict[str, object]]:
-    frame = pd.read_csv(io.BytesIO(payload))
+    return parse_fred_public_csv_batch(
+        series_map={label: series_id},
+        payload=payload,
+        retrieval_date=retrieval_date,
+    )
+
+
+def _date_column(frame: pd.DataFrame) -> str:
     date_column = next(
         (
             candidate
@@ -217,29 +284,8 @@ def parse_fred_public_csv(
         ),
         None,
     )
-    if date_column is None or series_id not in frame.columns:
+    if date_column is None:
         raise ValueError(
-            f"Unexpected FRED CSV columns for {series_id}: {list(frame.columns)}"
+            f"Unexpected FRED CSV date columns: {list(frame.columns)}"
         )
-    frame[series_id] = pd.to_numeric(frame[series_id], errors="coerce")
-    frame[date_column] = pd.to_datetime(frame[date_column], errors="coerce")
-    frame = frame.dropna(subset=[date_column, series_id])
-    snapshot_date = pd.to_datetime(retrieval_date).date()
-    rows: list[dict[str, object]] = []
-    for record in frame[[date_column, series_id]].to_dict(orient="records"):
-        rows.append(
-            {
-                "series_id": series_id,
-                "label": label,
-                "observation_date": pd.Timestamp(record[date_column]).date(),
-                "value": float(record[series_id]),
-                "realtime_start": snapshot_date,
-                "realtime_end": snapshot_date,
-                "frequency": None,
-                "units": None,
-                "seasonal_adjustment": None,
-                "last_updated": snapshot_date,
-                "title": series_id,
-            }
-        )
-    return rows
+    return date_column
