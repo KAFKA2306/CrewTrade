@@ -39,7 +39,12 @@ _REAL_TENOR_FIELDS = {
 
 class TreasuryYieldCurveSource:
     name = "us_treasury"
-    URL = "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"
+    NOMINAL_URL = (
+        "https://home.treasury.gov/sites/default/files/interest-rates/yield.xml"
+    )
+    REAL_URL = (
+        "https://home.treasury.gov/sites/default/files/interest-rates/real_yield.xml"
+    )
 
     def __init__(self, config: Mapping[str, Any]) -> None:
         self.config = config
@@ -51,49 +56,46 @@ class TreasuryYieldCurveSource:
         )
 
     def fetch(self) -> Sequence[DatasetBatch]:
-        years = [int(value) for value in self.config.get("years", [])]
+        years = {int(value) for value in self.config.get("years", [])}
         if not years:
-            years = [pd.Timestamp.utcnow().year]
+            years = {pd.Timestamp.utcnow().year}
 
-        nominal_rows: list[dict[str, object]] = []
-        real_rows: list[dict[str, object]] = []
-        raw_documents: list[dict[str, str]] = []
-        latest_url = self.URL
-        latest_retrieved_at = None
+        nominal_payload = self.client.get(self.NOMINAL_URL)
+        real_payload = self.client.get(self.REAL_URL)
+        nominal = pd.DataFrame.from_records(
+            parse_treasury_yield_xml(
+                nominal_payload.body,
+                tenor_fields=_TENOR_FIELDS,
+                curve_type="daily_treasury_par_yield_curve",
+            )
+        )
+        real = pd.DataFrame.from_records(
+            parse_treasury_yield_xml(
+                real_payload.body,
+                tenor_fields=_REAL_TENOR_FIELDS,
+                curve_type="daily_treasury_par_real_yield_curve",
+            )
+        )
+        nominal = _filter_years(nominal, years)
+        real = _filter_years(real, years)
+        if nominal.empty:
+            raise ValueError(f"Treasury nominal feed has no rows for {sorted(years)}")
+        if real.empty:
+            raise ValueError(f"Treasury real feed has no rows for {sorted(years)}")
 
-        for year in sorted(set(years)):
-            nominal_payload = self.client.get(
-                self.URL,
-                params={
-                    "data": "daily_treasury_yield_curve",
-                    "field_tdr_date_value": year,
-                },
-            )
-            real_payload = self.client.get(
-                self.URL,
-                params={
-                    "data": "daily_treasury_real_yield_curve",
-                    "field_tdr_date_value": year,
-                },
-            )
-            nominal_rows.extend(
-                parse_treasury_yield_xml(
-                    nominal_payload.body,
-                    tenor_fields=_TENOR_FIELDS,
-                    curve_type="daily_treasury_par_yield_curve",
-                )
-            )
-            real_rows.extend(
-                parse_treasury_yield_xml(
-                    real_payload.body,
-                    tenor_fields=_REAL_TENOR_FIELDS,
-                    curve_type="daily_treasury_par_real_yield_curve",
-                )
-            )
-            raw_documents.extend(
-                [
+        retrieval_date = pd.Timestamp(real_payload.retrieved_at).date()
+        rates_macro = build_rates_macro(
+            nominal,
+            real,
+            retrieval_date=retrieval_date,
+        )
+        if rates_macro.empty:
+            raise ValueError("Treasury nominal and real curves have no comparable dates")
+
+        raw_payload = json.dumps(
+            {
+                "documents": [
                     {
-                        "year": str(year),
                         "curve_type": "nominal",
                         "url": nominal_payload.url,
                         "body_base64": base64.b64encode(
@@ -101,7 +103,6 @@ class TreasuryYieldCurveSource:
                         ).decode("ascii"),
                     },
                     {
-                        "year": str(year),
                         "curve_type": "real",
                         "url": real_payload.url,
                         "body_base64": base64.b64encode(real_payload.body).decode(
@@ -109,32 +110,15 @@ class TreasuryYieldCurveSource:
                         ),
                     },
                 ]
-            )
-            latest_url = real_payload.url
-            latest_retrieved_at = real_payload.retrieved_at
-
-        nominal = pd.DataFrame.from_records(nominal_rows)
-        real = pd.DataFrame.from_records(real_rows)
-        rates_macro = build_rates_macro(
-            nominal,
-            real,
-            retrieval_date=pd.Timestamp(latest_retrieved_at).date()
-            if latest_retrieved_at is not None
-            else pd.Timestamp.utcnow().date(),
-        )
-        raw_payload = json.dumps(
-            {"documents": raw_documents}, ensure_ascii=False, sort_keys=True
+            },
+            ensure_ascii=False,
+            sort_keys=True,
         ).encode("utf-8")
-        retrieved_at = (
-            latest_retrieved_at
-            if latest_retrieved_at is not None
-            else pd.Timestamp.utcnow().to_pydatetime()
-        )
         common_metadata = {
-            "years": years,
-            "retrieval_mode": "official_xml_snapshot",
+            "years": sorted(years),
+            "retrieval_mode": "official_static_xml_snapshot",
             "point_in_time_vintage": False,
-            "http_request_count": len(set(years)) * 2,
+            "http_request_count": 2,
         }
         return [
             DatasetBatch(
@@ -144,10 +128,10 @@ class TreasuryYieldCurveSource:
                 source=self.name,
                 frame=nominal,
                 primary_key=("observation_date", "tenor"),
-                source_url=latest_url,
+                source_url=nominal_payload.url,
                 raw_payload=raw_payload,
                 content_type="application/json",
-                retrieved_at=retrieved_at,
+                retrieved_at=real_payload.retrieved_at,
                 metadata={**common_metadata, "curve_type": "par_yield"},
             ),
             DatasetBatch(
@@ -159,10 +143,10 @@ class TreasuryYieldCurveSource:
                 source=self.name,
                 frame=real,
                 primary_key=("observation_date", "tenor"),
-                source_url=latest_url,
+                source_url=real_payload.url,
                 raw_payload=raw_payload,
                 content_type="application/json",
-                retrieved_at=retrieved_at,
+                retrieved_at=real_payload.retrieved_at,
                 metadata={**common_metadata, "curve_type": "par_real_yield"},
             ),
             DatasetBatch(
@@ -175,10 +159,10 @@ class TreasuryYieldCurveSource:
                     "realtime_start",
                     "realtime_end",
                 ),
-                source_url=latest_url,
+                source_url=real_payload.url,
                 raw_payload=raw_payload,
                 content_type="application/json",
-                retrieved_at=retrieved_at,
+                retrieved_at=real_payload.retrieved_at,
                 metadata={
                     **common_metadata,
                     "derived_series": ["us_10y_breakeven"],
@@ -294,6 +278,13 @@ def build_rates_macro(
         [long_rows[columns], breakeven[columns]], ignore_index=True
     )
     return result.sort_values(["observation_date", "label"]).reset_index(drop=True)
+
+
+def _filter_years(frame: pd.DataFrame, years: set[int]) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    observations = pd.to_datetime(frame["observation_date"])
+    return frame[observations.dt.year.isin(years)].reset_index(drop=True)
 
 
 def _local_name(tag: str) -> str:
