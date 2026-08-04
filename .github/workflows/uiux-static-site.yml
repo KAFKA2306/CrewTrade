@@ -70,5 +70,6 @@ jobs:
             echo "Generated docs are current."
           else
             git commit -m "Rebuild published research catalogue [skip ci]"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
