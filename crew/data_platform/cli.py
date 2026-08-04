@@ -5,10 +5,13 @@ from pathlib import Path
 
 import duckdb
 
+from crew.data_platform.public_status import export_public_status
 from crew.data_platform.registry import load_config, sync
 
 
 DEFAULT_CONFIG = Path("config/data_platform.yaml")
+DEFAULT_MIGRATION_CONFIG = Path("config/use_case_data_status.yaml")
+DEFAULT_PUBLIC_STATUS = Path("web/generated/data-platform-status.json")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -32,6 +35,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     query_parser = subparsers.add_parser("query", help="Run a read-only DuckDB query")
     query_parser.add_argument("sql")
+
+    export_parser = subparsers.add_parser(
+        "export-status", help="Write a sanitized status snapshot for GitHub Pages"
+    )
+    export_parser.add_argument(
+        "--migration-config", type=Path, default=DEFAULT_MIGRATION_CONFIG
+    )
+    export_parser.add_argument("--output", type=Path, default=DEFAULT_PUBLIC_STATUS)
 
     subparsers.add_parser("validate-config", help="Validate configuration only")
     return parser
@@ -60,6 +71,20 @@ def main(argv: list[str] | None = None) -> int:
                 f"sha256={batch.raw_sha256[:16]} parquet={batch.parquet_path}"
             )
         print(f"Manifest: {manifest}")
+        return 0
+
+    if args.command == "export-status":
+        payload = export_public_status(
+            output_path=args.output,
+            platform_config_path=args.config,
+            migration_config_path=args.migration_config,
+            root=args.root,
+        )
+        print(
+            f"Public status: {payload['overall_status']} -> {args.output} "
+            f"({payload['summary']['canonical_ok']} canonical OK, "
+            f"{payload['summary']['controlled_blocks']} controlled)"
+        )
         return 0
 
     catalog = root / "catalog.duckdb"

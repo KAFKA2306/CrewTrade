@@ -5,6 +5,7 @@ on:
     paths:
       - "web/**"
       - "output/use_cases/**"
+      - "config/use_case_data_status.yaml"
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/uiux-static-site.yml"
@@ -48,11 +49,16 @@ jobs:
           uv run python -m compileall -q web
           node --check web/static/site.js
 
-      - name: Build static site
+      - name: Build research catalogue
         run: uv run python web/build_static.py
 
-      - name: Audit generated site
+      - name: Audit research catalogue
         run: uv run python web/audit_static.py
+
+      - name: Build and audit data status
+        run: |
+          uv run python web/build_data_status.py
+          uv run python web/audit_data_status.py
 
       - name: Commit generated docs on main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

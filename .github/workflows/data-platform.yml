@@ -4,7 +4,16 @@ on:
   pull_request:
     paths:
       - "crew/data_platform/**"
+      - "crew/credit/**"
+      - "crew/yields/**"
+      - "crew/oracle/**"
+      - "crew/legendary_investors/**"
       - "config/data_platform.yaml"
+      - "config/use_case_data_status.yaml"
+      - "config/use_cases/credit.yaml"
+      - "config/use_cases/yields.yaml"
+      - "config/use_cases/oracle.yaml"
+      - "config/use_cases/legendary_investors.yaml"
       - "tests/data_platform/**"
       - "docs/data-platform.md"
       - "pyproject.toml"
@@ -14,22 +23,32 @@ on:
     branches: [main]
     paths:
       - "crew/data_platform/**"
+      - "crew/credit/**"
+      - "crew/yields/**"
+      - "crew/oracle/**"
+      - "crew/legendary_investors/**"
       - "config/data_platform.yaml"
+      - "config/use_case_data_status.yaml"
+      - "config/use_cases/credit.yaml"
+      - "config/use_cases/yields.yaml"
+      - "config/use_cases/oracle.yaml"
+      - "config/use_cases/legendary_investors.yaml"
       - "tests/data_platform/**"
       - "pyproject.toml"
       - "Taskfile.yaml"
+      - ".github/workflows/data-platform.yml"
   workflow_dispatch:
     inputs:
       live_sync:
-        description: Fetch public primary sources and upload a snapshot artifact
+        description: Fetch primary sources and publish the sanitized status
         type: boolean
-        default: false
+        default: true
   schedule:
     - cron: "17 5 * * *"
       timezone: "Asia/Tokyo"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: data-platform-${{ github.event_name }}-${{ github.ref }}
@@ -51,8 +70,11 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Compile platform code
-        run: uv run python -m compileall -q crew/data_platform tests/data_platform
+      - name: Compile platform and migrated analyses
+        run: |
+          uv run python -m compileall -q \
+            crew/data_platform crew/credit crew/yields crew/oracle \
+            crew/legendary_investors tests/data_platform
 
       - name: Validate source registry
         run: uv run crew-data validate-config
@@ -61,20 +83,26 @@ jobs:
         run: uv run pytest tests/data_platform -q
 
       - name: Exercise credential-free registry ingestion
-        run: uv run crew-data --root /tmp/crewtrade-platform sync --source governed_manual
+        run: |
+          uv run crew-data --root /tmp/crewtrade-platform sync --source governed_manual
+          uv run crew-data --root /tmp/crewtrade-platform export-status \
+            --output /tmp/crewtrade-public-status.json
 
   live-snapshot:
     if: >-
+      github.event_name == 'push' ||
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && inputs.live_sync)
     needs: contracts
     runs-on: ubuntu-latest
     env:
       FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+      SEC_USER_AGENT: CrewTrade KAFKA2306 https://github.com/KAFKA2306/CrewTrade/issues
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Install uv and Python
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
@@ -85,13 +113,22 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Require declared source credentials
-        run: |
-          test -n "$FRED_API_KEY" || { echo "FRED_API_KEY is required"; exit 1; }
-          test -n "$SEC_USER_AGENT" || { echo "SEC_USER_AGENT is required"; exit 1; }
-
-      - name: Fetch canonical public sources
+      - name: Fetch canonical primary sources
         run: uv run crew-data sync
+
+      - name: Generate migrated analysis reports
+        run: |
+          uv run python -m crew.credit.data_pipeline
+          uv run python -m crew.credit.analysis
+          uv run python -m crew.yields.data_pipeline
+          uv run python -m crew.yields.analysis
+          uv run python -m crew.oracle.data_pipeline
+          uv run python -m crew.oracle.analysis
+          uv run python -m crew.legendary_investors.data_pipeline
+          uv run python -m crew.legendary_investors.analysis
+
+      - name: Export sanitized Pages status
+        run: uv run crew-data export-status
 
       - name: Show ingestion state
         run: uv run crew-data status
@@ -103,3 +140,16 @@ jobs:
           path: data/platform
           retention-days: 30
           if-no-files-found: error
+
+      - name: Publish reports and status on main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/generated/data-platform-status.json output/use_cases
+          if git diff --cached --quiet; then
+            echo "Published reports and status are current."
+          else
+            git commit -m "Refresh canonical data reports and status"
+            git push
+          fi

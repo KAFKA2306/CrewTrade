@@ -1,0 +1,67 @@
+schema_version: 1
+allowed_controlled_states:
+  - canonical_active
+  - governed_blocked
+  - governed_partial
+  - private_input_required
+use_cases:
+  credit:
+    title: クレジット・スプレッド
+    state: canonical_active
+    required_datasets: [credit_oas]
+    owner_source: FRED / ICE BofA
+    note: ETF価格比を廃止し、公式OASへ移行済み。
+  yield_spread:
+    title: 金利・イールドスプレッド
+    state: canonical_active
+    required_datasets: [rates_macro, treasury_par_yield_curve]
+    owner_source: FRED / U.S. Treasury
+    note: 国債カーブ・実質金利・期待インフレを分離。
+  oracle:
+    title: Oracle実績・予測監査
+    state: canonical_active
+    required_datasets: [sec_filings, sec_company_facts]
+    owner_source: SEC EDGAR
+    note: 静的実績値を廃止し、提出履歴とXBRL factsへ移行。
+  legendary_investors:
+    title: 著名投資家リサーチ
+    state: canonical_active
+    required_datasets: [sec_filings, sec_13f_holdings]
+    owner_source: SEC EDGAR 13F
+    note: 固定銘柄配列を廃止し、information tableへ移行。
+  imura:
+    title: ファンド・指数比較
+    state: governed_blocked
+    required_contracts: [fundnote_kaihou]
+    owner_source: fundnote株式会社
+    note: 公式機械可読NAV契約が整うまで数値更新を停止。
+  index_7_portfolio:
+    title: 7指数ポートフォリオ
+    state: governed_blocked
+    required_contracts: [jpx_etf_master]
+    owner_source: JPX / 各運用会社
+    note: 正式商品マスターと指数代替系列の整備待ち。
+  index_etf_comparison:
+    title: 指数ETF比較
+    state: governed_blocked
+    required_contracts: [jpx_etf_master, edinet_api_v2]
+    owner_source: JPX / EDINET
+    note: ISIN・指数・通貨・費用を揃えた商品契約待ち。
+  precious_metals_spread:
+    title: 貴金属スプレッド
+    state: governed_blocked
+    required_contracts: [lbma_benchmarks]
+    owner_source: LBMA
+    note: 履歴保存・再配布ライセンスが整うまで日次シグナル停止。
+  securities_collateral_loan:
+    title: 証券担保ローン
+    state: private_input_required
+    required_contracts: [broker_collateral_contract]
+    owner_source: 非公開契約・口座状態
+    note: 公開Pagesへ契約・口座値を出さず、入力状態だけ表示。
+  semiconductors:
+    title: 半導体サイクル
+    state: governed_partial
+    required_contracts: [wsts_market_data, edinet_api_v2]
+    owner_source: WSTS / EDINET / 企業開示
+    note: 公開リリースは利用可能、会員表と企業XBRLは追加契約待ち。

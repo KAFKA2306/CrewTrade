@@ -2,10 +2,11 @@ version: "3"
 
 tasks:
   process:all:
-    desc: Run all data pipelines then all analysis
+    desc: Sync canonical sources, run active analyses, and export Pages status
     cmds:
       - task: fetch:all
       - task: analyze:all
+      - task: data:export-status
 
   data:validate:
     desc: Validate canonical data platform configuration
@@ -36,36 +37,26 @@ tasks:
     desc: Show canonical ingestion runs and datasets
     cmd: uv run crew-data status
 
+  data:export-status:
+    desc: Export sanitized canonical status for GitHub Pages
+    cmd: uv run crew-data export-status
+
   fetch:all:
-    desc: Run all legacy data fetchers during migration to the canonical platform
+    desc: Export all canonical-active use cases from DuckDB
     cmds:
-      - task: fetch:imura
-      - task: fetch:oracle
+      - task: data:sync
       - task: fetch:credit
-      - task: fetch:etf
-      - task: fetch:loan
-      - task: fetch:metals
-      - task: fetch:portfolio
       - task: fetch:yield
-      - task: fetch:semiconductors
+      - task: fetch:oracle
       - task: fetch:legendary_investors
 
   analyze:all:
-    desc: Run all analysis
+    desc: Run canonical-active analyses only; governed blocks remain stopped
     aliases: [run]
     cmds:
-      - task: sync
-      - task: lint
-      - task: format
-      - task: analyze:imura
-      - task: analyze:oracle
       - task: analyze:credit
-      - task: analyze:etf
-      - task: analyze:loan
-      - task: analyze:metals
-      - task: analyze:portfolio
       - task: analyze:yield
-      - task: analyze:semiconductors
+      - task: analyze:oracle
       - task: analyze:legendary_investors
 
   lint:
@@ -74,11 +65,6 @@ tasks:
     cmd: uv run ruff format .
   sync:
     cmd: uv sync
-
-  fetch:imura:
-    cmd: uv run python -m crew.imura.data_pipeline
-  analyze:imura:
-    cmd: uv run python -m crew.imura.analysis
 
   fetch:oracle:
     cmd: uv run python -m crew.oracle.data_pipeline
@@ -90,40 +76,31 @@ tasks:
   analyze:credit:
     cmd: uv run python -m crew.credit.analysis
 
-  fetch:etf:
-    cmd: uv run python -m crew.etf.data_pipeline
-  analyze:etf:
-    cmd: uv run python -m crew.etf.analysis
-
-  fetch:loan:
-    cmd: uv run python -m crew.loan.data_pipeline
-  analyze:loan:
-    cmd: uv run python -m crew.loan.analysis
-
-  fetch:metals:
-    cmd: uv run python -m crew.metals.data_pipeline
-  analyze:metals:
-    cmd: uv run python -m crew.metals.analysis
-
-  fetch:portfolio:
-    cmd: uv run python -m crew.portfolio.data_pipeline
-  analyze:portfolio:
-    cmd: uv run python -m crew.portfolio.analysis
-
   fetch:yield:
     cmd: uv run python -m crew.yields.data_pipeline
   analyze:yield:
     cmd: uv run python -m crew.yields.analysis
 
-  fetch:semiconductors:
-    cmd: uv run python -m crew.semiconductors.data_pipeline
-  analyze:semiconductors:
-    cmd: uv run python -m crew.use_case_runner semiconductors --config config/use_cases/semiconductors.yaml
-
   fetch:legendary_investors:
     cmd: uv run python -m crew.legendary_investors.data_pipeline
   analyze:legendary_investors:
-    cmd: uv run python -m crew.use_case_runner legendary_investors --config config/use_cases/legendary_investors.yaml
+    cmd: uv run python -m crew.legendary_investors.analysis
+
+  blocked:imura:
+    desc: Governed stop — official machine-readable NAV contract is missing
+    cmd: echo "imura is intentionally stopped; see data-status"
+  blocked:etf:
+    desc: Governed stop — JPX/EDINET product contract is missing
+    cmd: echo "ETF comparisons are intentionally stopped; see data-status"
+  blocked:metals:
+    desc: Governed stop — LBMA historical data license is missing
+    cmd: echo "metals is intentionally stopped; see data-status"
+  blocked:loan:
+    desc: Governed stop — private contract/account input is required
+    cmd: echo "collateral loan live state requires private input; see data-status"
+  blocked:semiconductors:
+    desc: Governed partial — public WSTS releases only
+    cmd: echo "semiconductors is partially available; see data-status"
 
   serve:
     desc: Run the HTMX web dashboard
