@@ -93,7 +93,7 @@ jobs:
     needs: contracts
     runs-on: ubuntu-latest
     env:
-      SEC_USER_AGENT: CrewTrade KAFKA2306 https://github.com/KAFKA2306/CrewTrade/issues
+      SEC_USER_AGENT: CrewTrade KAFKA2306 137051370+KAFKA2306@users.noreply.github.com
     steps:
       - name: Checkout
         uses: actions/checkout@v6
