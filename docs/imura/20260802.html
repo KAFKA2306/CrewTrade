@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ファンド・指数比較 — 2026年08月02日の対象、期間、警告付き分析レポート。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>ファンド・指数比較 — 2026年08月02日 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-content">レポート本文へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="index.html">レポート一覧</a><a href="#report-content">本文</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><a href="index.html">ファンド・指数比較</a><span aria-hidden="true">/</span><span aria-current="page">2026年08月02日</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar" aria-label="レポート情報">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+<option value="20260802.html" selected>2026年08月02日</option><option value="20251224.html">2025年12月24日</option><option value="20251211.html">2025年12月11日</option><option value="00AME0129.html">00AME0129</option>        </select>
+        <dl>
+          <dt>検証目的</dt><dd>運用評価</dd>
+          <dt>テーマ</dt><dd>ファンド・指数比較</dd>
+          <dt>対象</dt><dd>ファンドと基準指数</dd>
+          <dt>期間</dt><dd>同一期間・配当・費用条件</dd>
+          <dt>状態</dt><dd>比較可能</dd>
+          <dt>生成元</dt><dd>report.md</dd>
+        </dl>
+        <p class="card-warning"><strong>主要な注意</strong>比較期間、配当、費用、通貨条件が一致しない結果は横並びにしません。</p>
+        <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading">
+          <p class="eyebrow">Analysis snapshot · 運用評価</p>
+          <h1>ファンド・指数比較</h1>
+          <p>2026年08月02日 · 掲載値は作成時点の静的スナップショットです。</p>
+          <div class="metrics"><span class="metric">問い 超過収益は、比較条件とリスクをそろえても残るか</span><span class="metric">状態 比較可能</span></div>
+        </header>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>ファンド・指数比較 — 2026年8月2日</h1>
+<h2>結論</h2>
+<p>旧レポートのファンド比較結果は、2026年7月末までの基準価額・分配金・指数データを再取得していないため、現在の優劣判定として使わない。今回の更新では、比較条件を固定し、次回計算で「見かけの超過収益」を排除する監査仕様へ変更する。</p>
+<h2>比較の基本式</h2>
+<p>ファンドと指数は、同一開始日・同一終了日・同一通貨・配当再投資込みで比較する。</p>
+<p><code>超過収益 = ファンドのトータルリターン − 比較指数のトータルリターン</code></p>
+<p>ただし、超過収益だけでは不十分である。次も同時に確認する。</p>
+<ul>
+<li>年率ボラティリティ</li>
+<li>最大ドローダウン</li>
+<li>下方偏差</li>
+<li>回復期間</li>
+<li>ベータと残差リターン</li>
+<li>売買回転率</li>
+<li>信託報酬・実質コスト</li>
+<li>為替エクスポージャー</li>
+</ul>
+<h2>再計算で禁止する比較</h2>
+<table>
+<thead>
+<tr>
+<th>禁止事項</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ファンド設定日と指数の長期履歴をそのまま比較</td>
+<td>対象期間が一致しない</td>
+</tr>
+<tr>
+<td>分配金込みファンドと価格指数を比較</td>
+<td>配当条件が不一致</td>
+</tr>
+<tr>
+<td>円建てファンドと現地通貨指数を比較</td>
+<td>為替効果を超過収益と誤認</td>
+</tr>
+<tr>
+<td>最新ファンドだけ生存者として選ぶ</td>
+<td>サバイバーシップバイアス</td>
+</tr>
+<tr>
+<td>最も良い開始日だけを採用</td>
+<td>期間選択バイアス</td>
+</tr>
+<tr>
+<td>信託報酬を無視</td>
+<td>長期差の主要因になり得る</td>
+</tr>
+</tbody>
+</table>
+<h2>必須の出力</h2>
+<h3>1. 同一期間比較</h3>
+<ul>
+<li>日次または月次のトータルリターン</li>
+<li>年率リターン</li>
+<li>年率ボラティリティ</li>
+<li>最大ドローダウン</li>
+<li>最悪月</li>
+<li>回復までの日数</li>
+</ul>
+<h3>2. ローリング評価</h3>
+<table>
+<thead>
+<tr>
+<th>窓</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1年</td>
+<td>短期の相対優位</td>
+</tr>
+<tr>
+<td>3年</td>
+<td>運用サイクル</td>
+</tr>
+<tr>
+<td>5年</td>
+<td>継続性</td>
+</tr>
+<tr>
+<td>設定来</td>
+<td>長期実績。ただし期間差に注意</td>
+</tr>
+</tbody>
+</table>
+<p>各窓について、指数超過率、情報比、勝率を表示する。</p>
+<h3>3. 要因分解</h3>
+<p>超過収益を以下へ分ける。</p>
+<ul>
+<li>市場ベータ</li>
+<li>サイズ・バリュー・モメンタム</li>
+<li>業種配分</li>
+<li>銘柄選択</li>
+<li>為替</li>
+<li>現金比率</li>
+<li>コスト</li>
+</ul>
+<h2>2026年の追加注意点</h2>
+<ul>
+<li>AI・半導体関連への集中で、ファンド間の名称差より実質ファクターが近づく可能性</li>
+<li>金利水準が高く、現金保有が以前より大きな収益源になる可能性</li>
+<li>円高・円安で海外資産ファンドの円建て成績が大きく変わる</li>
+<li>高配当・バリュー・グロースの分類が業種集中を隠す可能性</li>
+</ul>
+<h2>判定基準</h2>
+<p>ファンドを「指数より優れている」と判定するには、次をすべて満たす必要がある。</p>
+<ol>
+<li>コスト控除後で超過収益が正</li>
+<li>複数開始日で結果が再現</li>
+<li>最大ドローダウンが許容範囲</li>
+<li>超過収益が単一業種・単一局面だけに依存しない</li>
+<li>ローリング3年の勝率が十分高い</li>
+<li>ファクター調整後アルファが残る</li>
+</ol>
+<h2>現在の監査状態</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>状態</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>比較仕様</td>
+<td>更新済み</td>
+</tr>
+<tr>
+<td>最新基準価額</td>
+<td>未再取得</td>
+</tr>
+<tr>
+<td>最新分配金</td>
+<td>未再取得</td>
+</tr>
+<tr>
+<td>最新指数値</td>
+<td>未再取得</td>
+</tr>
+<tr>
+<td>旧超過収益</td>
+<td>履歴資料としてのみ保持</td>
+</tr>
+<tr>
+<td>現在の優劣判定</td>
+<td>保留</td>
+</tr>
+</tbody>
+</table>
+<h2>次回処理</h2>
+<p>2026年7月31日までのデータを再取得し、旧レポートと同じ対象を同一期間へ切りそろえる。結果は、旧値の上書きではなく新しい日付スナップショットとして保存する。</p>
+<blockquote>
+<p>更新基準日: 2026-08-02。データ未再取得の項目を推測で補完せず、比較仕様と判定条件を最新化した。</p>
+</blockquote></article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / ファンド・指数比較</span><span>2026年08月02日</span></div></footer>
+</body>
+</html>

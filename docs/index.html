@@ -1,128 +1,373 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrewTrade Dashboard</title>
-    <style>
-        :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --border: #30363d;
-            --text: #e6edf3;
-            --muted: #8b949e;
-            --accent: #58a6ff
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 2rem
-        }
-
-        h1,
-        h2,
-        h3 {
-            margin-bottom: 1rem
-        }
-
-        a {
-            color: var(--accent);
-            text-decoration: none
-        }
-
-        a:hover {
-            text-decoration: underline
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto
-        }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            display: block
-        }
-
-        .card:hover {
-            border-color: var(--accent)
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CrewTradeの金融調査を、検証目的、対象、期間、更新状態、主要警告から選べる公開研究カタログです。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>CrewTrade | 金融調査カタログ</title>
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="stylesheet" href="assets/table.css">
+  <script defer src="assets/site.js"></script>
 </head>
-
 <body>
-    <div class="container">
-        <h1>📊 CrewTrade Dashboard</h1>
-        <p style="color:var(--muted);margin-bottom:2rem">Select a use case to view reports.</p>
-        <div class="grid">
-            
-            <a href="imura/index.html" class="card">
-                <h3>Imura</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            
-            <a href="index_7_portfolio/index.html" class="card">
-                <h3>Index 7 Portfolio</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            
-            <a href="index_etf_comparison/index.html" class="card">
-                <h3>Index Etf Comparison</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            
-            <a href="legendary_investors/index.html" class="card">
-                <h3>Legendary Investors</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            
-            <a href="oracle/index.html" class="card">
-                <h3>Oracle</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            
-            <a href="precious_metals_spread/index.html" class="card">
-                <h3>Precious Metals Spread</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            
-            <a href="securities_collateral_loan/index.html" class="card">
-                <h3>Securities Collateral Loan</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            
-            <a href="semiconductors/index.html" class="card">
-                <h3>Semiconductors</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            
-            <a href="yield_spread/index.html" class="card">
-                <h3>Yield Spread</h3>
-                <p style="color:var(--muted)">View analysis reports</p>
-            </a>
-            
-        </div>
+  <a class="skip-link" href="#research-catalogue">調査カタログへ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="index.html" aria-label="CrewTrade ホーム">
+        <span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span>
+      </a>
+      <nav class="header-links" aria-label="主要ナビゲーション">
+        <a href="#research-catalogue">調査を選ぶ</a>
+        <a href="#reading-protocol">読み方</a>
+        <a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a>
+      </nav>
     </div>
-</body>
+  </header>
 
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Decision-oriented research catalogue</p>
+        <h1 id="page-title">何を検証するかから、調査を選ぶ。</h1>
+        <p class="hero-copy">テーマ名ではなく、検証目的、対象、期間、更新時点、主要な注意事項を先に確認します。数値、モデル予測、文章による解釈は同じ証拠として扱いません。</p>
+        <div class="metrics" aria-label="公開状況">
+          <span class="metric"><strong>10</strong>調査テーマ</span>
+          <span class="metric"><strong>26</strong>公開レポート</span>
+          <span class="metric"><strong>6</strong>検証目的</span>
+          <span class="metric">最新 2026年08月02日</span>
+        </div>
+      </div>
+      <aside class="hero-note" aria-label="利用上の注意">
+        <span class="status-label">STATIC SNAPSHOT</span>
+        <strong>これはリアルタイム画面ではありません</strong>
+        <p>各カードの更新日と警告を確認してください。掲載内容は投資助言、売買推奨、将来収益の保証ではありません。</p>
+      </aside>
+    </section>
+
+    <section class="section catalogue" id="research-catalogue" tabindex="-1" aria-labelledby="catalogue-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Research catalogue</p>
+          <h2 id="catalogue-title">調査テーマ</h2>
+          <p>検索条件はURLに保存され、再読込、共有、戻る操作で復元されます。</p>
+        </div>
+      </div>
+
+      <form class="catalogue-controls" data-case-controls role="search" aria-label="調査テーマを絞り込む">
+        <label class="control-field control-search" for="case-search">
+          <span>検索</span>
+          <input id="case-search" class="search" type="search" placeholder="問い、対象、テーマ、警告を検索" autocomplete="off" data-case-search>
+        </label>
+        <label class="control-field" for="purpose-filter">
+          <span>検証目的</span>
+          <select id="purpose-filter" data-purpose-filter>
+            <option value="all">すべて</option>
+<option value="運用評価">運用評価</option><option value="資産配分">資産配分</option><option value="リスク管理">リスク管理</option><option value="産業・企業分析">産業・企業分析</option><option value="マクロ・市場構造">マクロ・市場構造</option><option value="公開情報調査">公開情報調査</option>          </select>
+        </label>
+        <label class="control-field" for="freshness-filter">
+          <span>更新状態</span>
+          <select id="freshness-filter" data-freshness-filter>
+            <option value="all">すべて</option>
+            <option value="current">最新基準日</option>
+            <option value="archive">過去基準日</option>
+          </select>
+        </label>
+        <div class="control-field">
+          <span>表示</span>
+          <div class="view-switch" role="group" aria-label="一覧表示を切り替え">
+            <button class="view-button" type="button" data-view-button="table" aria-pressed="true">比較表</button>
+            <button class="view-button" type="button" data-view-button="cards" aria-pressed="false">目的別カード</button>
+          </div>
+        </div>
+        <button class="clear-button" type="button" data-clear-filters>条件をリセット</button>
+      </form>
+
+      <div class="active-summary" aria-live="polite">
+        <strong data-result-count>10件</strong>
+        <span data-filter-summary>全テーマを表示中</span>
+      </div>
+
+      <div class="empty-state" data-empty-state hidden>
+        <h3>条件に一致する調査がありません</h3>
+        <p>検索語または絞り込み条件を変更してください。</p>
+        <button type="button" data-empty-clear>すべて表示</button>
+      </div>
+
+      <div class="case-table-shell" data-case-view="table" tabindex="0" aria-label="調査テーマ比較表。横方向にスクロールできます。">
+        <table class="case-table">
+          <caption>検証目的、対象、期間、更新状態、警告を比較する調査テーマ一覧</caption>
+          <thead>
+            <tr>
+              <th scope="col">調査テーマ</th>
+              <th scope="col">検証目的</th>
+              <th scope="col">対象・期間</th>
+              <th scope="col">状態・警告</th>
+              <th scope="col">最新更新</th>
+              <th scope="col" class="number-column">レポート</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-case-item data-case-row data-case-slug="imura" data-purpose="運用評価" data-freshness="current" data-search="ファンド・指数比較 運用評価 運用評価 ファンドと基準指数 同一期間・配当・費用条件 ファンドと基準指数を同一期間・同一条件で比較し、コスト控除後の超過収益と下振れを検証します。 超過収益は、比較条件とリスクをそろえても残るか 比較可能 比較期間、配当、費用、通貨条件が一致しない結果は横並びにしません。">
+              <td>
+                <a class="table-title" href="imura/index.html" data-accent="blue">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>ファンド・指数比較</strong><small>超過収益は、比較条件とリスクをそろえても残るか</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">運用評価</span><small class="cell-secondary">運用評価</small></td>
+              <td><strong>ファンドと基準指数</strong><small class="cell-secondary">同一期間・配当・費用条件</small></td>
+              <td><span class="status-pill">比較可能</span><small class="cell-warning">比較期間、配当、費用、通貨条件が一致しない結果は横並びにしません。</small></td>
+              <td><a class="table-date" href="imura/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">比較条件とリスク指標を最新レポートへ統合。</small></td>
+              <td class="number-column"><strong>4</strong></td>
+            </tr>
+            <tr data-case-item data-case-row data-case-slug="index_etf_comparison" data-purpose="運用評価" data-freshness="current" data-search="指数etf比較 商品比較 運用評価 同一または近接指数へ連動するetf 同一通貨・配当・費用条件 連動対象、通貨、配当、費用、流動性、トラッキング差をそろえ、etfを比較可能な形に整理します。 同じ指数名でも、投資結果を分ける条件は何か 比較可能 名称が同じでも連動指数、為替、分配、税、流動性が異なります。">
+              <td>
+                <a class="table-title" href="index_etf_comparison/index.html" data-accent="mint">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>指数ETF比較</strong><small>同じ指数名でも、投資結果を分ける条件は何か</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">運用評価</span><small class="cell-secondary">商品比較</small></td>
+              <td><strong>同一または近接指数へ連動するETF</strong><small class="cell-secondary">同一通貨・配当・費用条件</small></td>
+              <td><span class="status-pill">比較可能</span><small class="cell-warning">名称が同じでも連動指数、為替、分配、税、流動性が異なります。</small></td>
+              <td><a class="table-date" href="index_etf_comparison/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">費用とトラッキング差を含む比較軸へ更新。</small></td>
+              <td class="number-column"><strong>2</strong></td>
+            </tr>
+            <tr data-case-item data-case-row data-case-slug="index_7_portfolio" data-purpose="資産配分" data-freshness="current" data-search="7指数ポートフォリオ 資産配分 資産配分 株式・債券・実物資産を含む7指数 下落局面を含む検証期間 複数指数の組み合わせを、収益率だけでなく共通ファクター、分散効果、最大下落率から評価します。 分散は、実際の下落局面でも機能するか 比較可能 銘柄数ではなく、相関と共通リスク因子で実効分散を確認します。">
+              <td>
+                <a class="table-title" href="index_7_portfolio/index.html" data-accent="lavender">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>7指数ポートフォリオ</strong><small>分散は、実際の下落局面でも機能するか</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">資産配分</span><small class="cell-secondary">資産配分</small></td>
+              <td><strong>株式・債券・実物資産を含む7指数</strong><small class="cell-secondary">下落局面を含む検証期間</small></td>
+              <td><span class="status-pill">比較可能</span><small class="cell-warning">銘柄数ではなく、相関と共通リスク因子で実効分散を確認します。</small></td>
+              <td><a class="table-date" href="index_7_portfolio/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">共通ファクターと下落局面の検証を最新化。</small></td>
+              <td class="number-column"><strong>3</strong></td>
+            </tr>
+            <tr data-case-item data-case-row data-case-slug="credit" data-purpose="リスク管理" data-freshness="current" data-search="クレジット・スプレッド 信用環境 リスク管理 投資適格・bbb・ハイイールドの信用市場 直近観測と過去のストレス局面 投資適格・bbb・ハイイールドのoasを分け、信用不安と割高なリスクテイクを監視します。 信用リスクへの追加補償は、悪化余地に見合っているか 要監視 スプレッドの縮小だけで安全性を断定しません。格付け、デフォルト、流動性を併記します。">
+              <td>
+                <a class="table-title" href="credit/index.html" data-accent="apricot">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>クレジット・スプレッド</strong><small>信用リスクへの追加補償は、悪化余地に見合っているか</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">リスク管理</span><small class="cell-secondary">信用環境</small></td>
+              <td><strong>投資適格・BBB・ハイイールドの信用市場</strong><small class="cell-secondary">直近観測と過去のストレス局面</small></td>
+              <td><span class="status-pill">要監視</span><small class="cell-warning">スプレッドの縮小だけで安全性を断定しません。格付け、デフォルト、流動性を併記します。</small></td>
+              <td><a class="table-date" href="credit/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">最新スナップショットのデータ時点と監視条件を更新。</small></td>
+              <td class="number-column"><strong>2</strong></td>
+            </tr>
+            <tr data-case-item data-case-row data-case-slug="securities_collateral_loan" data-purpose="リスク管理" data-freshness="current" data-search="証券担保ローン リスク管理 リスク管理 担保評価・金利・追証・強制売却条件 契約条件と下落シナリオ 実契約の金利、担保下落、警戒線、強制売却条件を明示し、意思決定余力を検証します。 どの下落率から意思決定の自由が失われるか 契約依存 契約条項と担保掛目を確認せず、一般的な安全水準を適用しません。">
+              <td>
+                <a class="table-title" href="securities_collateral_loan/index.html" data-accent="rose">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>証券担保ローン</strong><small>どの下落率から意思決定の自由が失われるか</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">リスク管理</span><small class="cell-secondary">リスク管理</small></td>
+              <td><strong>担保評価・金利・追証・強制売却条件</strong><small class="cell-secondary">契約条件と下落シナリオ</small></td>
+              <td><span class="status-pill">契約依存</span><small class="cell-warning">契約条項と担保掛目を確認せず、一般的な安全水準を適用しません。</small></td>
+              <td><a class="table-date" href="securities_collateral_loan/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">警戒線と強制売却条件の表示を更新。</small></td>
+              <td class="number-column"><strong>4</strong></td>
+            </tr>
+            <tr data-case-item data-case-row data-case-slug="oracle" data-purpose="産業・企業分析" data-freshness="current" data-search="oracle実績・予測監査 企業分析・予測 産業・企業分析 oracleのクラウド実績・受注残・設備投資 開示実績と未検証予測を分離 oracleのクラウド実績とrpoを確認し、実測値と未検証の時系列予測を分離します。 クラウド成長と受注残は、設備投資回収を伴う売上・キャッシュフローへ転換するか 要検証 モデル予測を会社実績または会社予想として表示しません。">
+              <td>
+                <a class="table-title" href="oracle/index.html" data-accent="apricot">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>Oracle実績・予測監査</strong><small>クラウド成長と受注残は、設備投資回収を伴う売上・キャッシュフローへ転換するか</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">産業・企業分析</span><small class="cell-secondary">企業分析・予測</small></td>
+              <td><strong>Oracleのクラウド実績・受注残・設備投資</strong><small class="cell-secondary">開示実績と未検証予測を分離</small></td>
+              <td><span class="status-pill">要検証</span><small class="cell-warning">モデル予測を会社実績または会社予想として表示しません。</small></td>
+              <td><a class="table-date" href="oracle/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">実績・会社開示・モデル予測の境界を再整理。</small></td>
+              <td class="number-column"><strong>2</strong></td>
+            </tr>
+            <tr data-case-item data-case-row data-case-slug="semiconductors" data-purpose="産業・企業分析" data-freshness="current" data-search="半導体サイクル 産業分析 産業・企業分析 半導体企業・需要・価格・能力・設備投資 四半期実績と中期能力計画 市場成長を数量、価格、製品ミックス、能力、設備投資へ分解し、ai集中と循環要因を区別します。 利益成長は数量・価格・能力のどこから生じたか 継続更新 会社実績、会社予想、業界推計、独自シナリオを混在させません。">
+              <td>
+                <a class="table-title" href="semiconductors/index.html" data-accent="blue">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>半導体サイクル</strong><small>利益成長は数量・価格・能力のどこから生じたか</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">産業・企業分析</span><small class="cell-secondary">産業分析</small></td>
+              <td><strong>半導体企業・需要・価格・能力・設備投資</strong><small class="cell-secondary">四半期実績と中期能力計画</small></td>
+              <td><span class="status-pill">継続更新</span><small class="cell-warning">会社実績、会社予想、業界推計、独自シナリオを混在させません。</small></td>
+              <td><a class="table-date" href="semiconductors/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">数量・価格・能力の分解と一次資料を更新。</small></td>
+              <td class="number-column"><strong>2</strong></td>
+            </tr>
+            <tr data-case-item data-case-row data-case-slug="precious_metals_spread" data-purpose="マクロ・市場構造" data-freshness="current" data-search="貴金属スプレッド 相対価値 マクロ・市場構造 金・銀・白金族の価格比とスプレッド 同一時点・同一通貨の時系列 金・銀・白金族の価格差と比率を同一条件で追い、平均回帰と構造変化を分けます。 価格差は平均回帰か、構造変化か 要監視 単位、取引時間、通貨、先物ロールが異なる系列を直接比較しません。">
+              <td>
+                <a class="table-title" href="precious_metals_spread/index.html" data-accent="lavender">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>貴金属スプレッド</strong><small>価格差は平均回帰か、構造変化か</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">マクロ・市場構造</span><small class="cell-secondary">相対価値</small></td>
+              <td><strong>金・銀・白金族の価格比とスプレッド</strong><small class="cell-secondary">同一時点・同一通貨の時系列</small></td>
+              <td><span class="status-pill">要監視</span><small class="cell-warning">単位、取引時間、通貨、先物ロールが異なる系列を直接比較しません。</small></td>
+              <td><a class="table-date" href="precious_metals_spread/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">系列条件と構造変化の監査観点を更新。</small></td>
+              <td class="number-column"><strong>2</strong></td>
+            </tr>
+            <tr data-case-item data-case-row data-case-slug="yield_spread" data-purpose="マクロ・市場構造" data-freshness="current" data-search="金利・イールドスプレッド マクロ マクロ・市場構造 政策金利・国債カーブ・実質金利・通貨 現在のカーブと過去推移 政策金利と国債カーブを分け、成長、インフレ、財政、期間プレミアムの変化を読み解きます。 金利差の変化は、どの期待とリスクプレミアムを反映しているか 継続更新 名目金利差だけで為替方向を断定せず、実質金利、ヘッジ費用、ポジションを確認します。">
+              <td>
+                <a class="table-title" href="yield_spread/index.html" data-accent="mint">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>金利・イールドスプレッド</strong><small>金利差の変化は、どの期待とリスクプレミアムを反映しているか</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">マクロ・市場構造</span><small class="cell-secondary">マクロ</small></td>
+              <td><strong>政策金利・国債カーブ・実質金利・通貨</strong><small class="cell-secondary">現在のカーブと過去推移</small></td>
+              <td><span class="status-pill">継続更新</span><small class="cell-warning">名目金利差だけで為替方向を断定せず、実質金利、ヘッジ費用、ポジションを確認します。</small></td>
+              <td><a class="table-date" href="yield_spread/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">金利差の構成要因と比較条件を更新。</small></td>
+              <td class="number-column"><strong>3</strong></td>
+            </tr>
+            <tr data-case-item data-case-row data-case-slug="legendary_investors" data-purpose="公開情報調査" data-freshness="current" data-search="著名投資家リサーチ 公開情報調査 公開情報調査 sec提出資料・年次報告書・株主書簡 公開済みの最新標準四半期 sec提出資料と一次情報を起点に、開示遅延、再現可能性、資本配分の制約を切り分けます。 物語ではなく、検証可能な判断原則は何か 開示遅延あり 13fは四半期末の限定情報であり、現在保有、現金、空売りの全体像ではありません。">
+              <td>
+                <a class="table-title" href="legendary_investors/index.html" data-accent="rose">
+                  <span class="table-accent" aria-hidden="true"></span>
+                  <span><strong>著名投資家リサーチ</strong><small>物語ではなく、検証可能な判断原則は何か</small></span>
+                </a>
+              </td>
+              <td><span class="category-pill">公開情報調査</span><small class="cell-secondary">公開情報調査</small></td>
+              <td><strong>SEC提出資料・年次報告書・株主書簡</strong><small class="cell-secondary">公開済みの最新標準四半期</small></td>
+              <td><span class="status-pill">開示遅延あり</span><small class="cell-warning">13Fは四半期末の限定情報であり、現在保有、現金、空売りの全体像ではありません。</small></td>
+              <td><a class="table-date" href="legendary_investors/20260802.html">2026年08月02日 <span aria-hidden="true">→</span></a><small class="cell-secondary">利用可能な開示四半期と提出期限を更新。</small></td>
+              <td class="number-column"><strong>2</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="purpose-groups" data-case-view="cards" hidden>
+        <section class="purpose-section" data-purpose-section="運用評価" aria-labelledby="purpose-1">
+          <div class="purpose-heading"><h3 id="purpose-1">運用評価</h3><span data-purpose-count></span></div>
+          <div class="case-grid">
+            <article class="case-card" data-case-item data-case-card data-case-slug="imura" data-purpose="運用評価" data-freshness="current" data-accent="blue" data-search="ファンド・指数比較 運用評価 運用評価 ファンドと基準指数 同一期間・配当・費用条件 ファンドと基準指数を同一期間・同一条件で比較し、コスト控除後の超過収益と下振れを検証します。 超過収益は、比較条件とリスクをそろえても残るか 比較可能 比較期間、配当、費用、通貨条件が一致しない結果は横並びにしません。">
+              <div class="card-meta"><span>運用評価</span><span class="status-pill">比較可能</span></div>
+              <h4><a href="imura/index.html">ファンド・指数比較</a></h4>
+              <p class="card-question"><span>検証する問い</span>超過収益は、比較条件とリスクをそろえても残るか</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>ファンドと基準指数</dd></div><div><dt>期間</dt><dd>同一期間・配当・費用条件</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>比較期間、配当、費用、通貨条件が一致しない結果は横並びにしません。</p>
+              <div class="card-footer"><a href="imura/20260802.html">最新 2026年08月02日</a><span>4件</span></div>
+            </article>
+            <article class="case-card" data-case-item data-case-card data-case-slug="index_etf_comparison" data-purpose="運用評価" data-freshness="current" data-accent="mint" data-search="指数etf比較 商品比較 運用評価 同一または近接指数へ連動するetf 同一通貨・配当・費用条件 連動対象、通貨、配当、費用、流動性、トラッキング差をそろえ、etfを比較可能な形に整理します。 同じ指数名でも、投資結果を分ける条件は何か 比較可能 名称が同じでも連動指数、為替、分配、税、流動性が異なります。">
+              <div class="card-meta"><span>商品比較</span><span class="status-pill">比較可能</span></div>
+              <h4><a href="index_etf_comparison/index.html">指数ETF比較</a></h4>
+              <p class="card-question"><span>検証する問い</span>同じ指数名でも、投資結果を分ける条件は何か</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>同一または近接指数へ連動するETF</dd></div><div><dt>期間</dt><dd>同一通貨・配当・費用条件</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>名称が同じでも連動指数、為替、分配、税、流動性が異なります。</p>
+              <div class="card-footer"><a href="index_etf_comparison/20260802.html">最新 2026年08月02日</a><span>2件</span></div>
+            </article>
+          </div>
+        </section>
+        <section class="purpose-section" data-purpose-section="資産配分" aria-labelledby="purpose-2">
+          <div class="purpose-heading"><h3 id="purpose-2">資産配分</h3><span data-purpose-count></span></div>
+          <div class="case-grid">
+            <article class="case-card" data-case-item data-case-card data-case-slug="index_7_portfolio" data-purpose="資産配分" data-freshness="current" data-accent="lavender" data-search="7指数ポートフォリオ 資産配分 資産配分 株式・債券・実物資産を含む7指数 下落局面を含む検証期間 複数指数の組み合わせを、収益率だけでなく共通ファクター、分散効果、最大下落率から評価します。 分散は、実際の下落局面でも機能するか 比較可能 銘柄数ではなく、相関と共通リスク因子で実効分散を確認します。">
+              <div class="card-meta"><span>資産配分</span><span class="status-pill">比較可能</span></div>
+              <h4><a href="index_7_portfolio/index.html">7指数ポートフォリオ</a></h4>
+              <p class="card-question"><span>検証する問い</span>分散は、実際の下落局面でも機能するか</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>株式・債券・実物資産を含む7指数</dd></div><div><dt>期間</dt><dd>下落局面を含む検証期間</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>銘柄数ではなく、相関と共通リスク因子で実効分散を確認します。</p>
+              <div class="card-footer"><a href="index_7_portfolio/20260802.html">最新 2026年08月02日</a><span>3件</span></div>
+            </article>
+          </div>
+        </section>
+        <section class="purpose-section" data-purpose-section="リスク管理" aria-labelledby="purpose-3">
+          <div class="purpose-heading"><h3 id="purpose-3">リスク管理</h3><span data-purpose-count></span></div>
+          <div class="case-grid">
+            <article class="case-card" data-case-item data-case-card data-case-slug="credit" data-purpose="リスク管理" data-freshness="current" data-accent="apricot" data-search="クレジット・スプレッド 信用環境 リスク管理 投資適格・bbb・ハイイールドの信用市場 直近観測と過去のストレス局面 投資適格・bbb・ハイイールドのoasを分け、信用不安と割高なリスクテイクを監視します。 信用リスクへの追加補償は、悪化余地に見合っているか 要監視 スプレッドの縮小だけで安全性を断定しません。格付け、デフォルト、流動性を併記します。">
+              <div class="card-meta"><span>信用環境</span><span class="status-pill">要監視</span></div>
+              <h4><a href="credit/index.html">クレジット・スプレッド</a></h4>
+              <p class="card-question"><span>検証する問い</span>信用リスクへの追加補償は、悪化余地に見合っているか</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>投資適格・BBB・ハイイールドの信用市場</dd></div><div><dt>期間</dt><dd>直近観測と過去のストレス局面</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>スプレッドの縮小だけで安全性を断定しません。格付け、デフォルト、流動性を併記します。</p>
+              <div class="card-footer"><a href="credit/20260802.html">最新 2026年08月02日</a><span>2件</span></div>
+            </article>
+            <article class="case-card" data-case-item data-case-card data-case-slug="securities_collateral_loan" data-purpose="リスク管理" data-freshness="current" data-accent="rose" data-search="証券担保ローン リスク管理 リスク管理 担保評価・金利・追証・強制売却条件 契約条件と下落シナリオ 実契約の金利、担保下落、警戒線、強制売却条件を明示し、意思決定余力を検証します。 どの下落率から意思決定の自由が失われるか 契約依存 契約条項と担保掛目を確認せず、一般的な安全水準を適用しません。">
+              <div class="card-meta"><span>リスク管理</span><span class="status-pill">契約依存</span></div>
+              <h4><a href="securities_collateral_loan/index.html">証券担保ローン</a></h4>
+              <p class="card-question"><span>検証する問い</span>どの下落率から意思決定の自由が失われるか</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>担保評価・金利・追証・強制売却条件</dd></div><div><dt>期間</dt><dd>契約条件と下落シナリオ</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>契約条項と担保掛目を確認せず、一般的な安全水準を適用しません。</p>
+              <div class="card-footer"><a href="securities_collateral_loan/20260802.html">最新 2026年08月02日</a><span>4件</span></div>
+            </article>
+          </div>
+        </section>
+        <section class="purpose-section" data-purpose-section="産業・企業分析" aria-labelledby="purpose-4">
+          <div class="purpose-heading"><h3 id="purpose-4">産業・企業分析</h3><span data-purpose-count></span></div>
+          <div class="case-grid">
+            <article class="case-card" data-case-item data-case-card data-case-slug="oracle" data-purpose="産業・企業分析" data-freshness="current" data-accent="apricot" data-search="oracle実績・予測監査 企業分析・予測 産業・企業分析 oracleのクラウド実績・受注残・設備投資 開示実績と未検証予測を分離 oracleのクラウド実績とrpoを確認し、実測値と未検証の時系列予測を分離します。 クラウド成長と受注残は、設備投資回収を伴う売上・キャッシュフローへ転換するか 要検証 モデル予測を会社実績または会社予想として表示しません。">
+              <div class="card-meta"><span>企業分析・予測</span><span class="status-pill">要検証</span></div>
+              <h4><a href="oracle/index.html">Oracle実績・予測監査</a></h4>
+              <p class="card-question"><span>検証する問い</span>クラウド成長と受注残は、設備投資回収を伴う売上・キャッシュフローへ転換するか</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>Oracleのクラウド実績・受注残・設備投資</dd></div><div><dt>期間</dt><dd>開示実績と未検証予測を分離</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>モデル予測を会社実績または会社予想として表示しません。</p>
+              <div class="card-footer"><a href="oracle/20260802.html">最新 2026年08月02日</a><span>2件</span></div>
+            </article>
+            <article class="case-card" data-case-item data-case-card data-case-slug="semiconductors" data-purpose="産業・企業分析" data-freshness="current" data-accent="blue" data-search="半導体サイクル 産業分析 産業・企業分析 半導体企業・需要・価格・能力・設備投資 四半期実績と中期能力計画 市場成長を数量、価格、製品ミックス、能力、設備投資へ分解し、ai集中と循環要因を区別します。 利益成長は数量・価格・能力のどこから生じたか 継続更新 会社実績、会社予想、業界推計、独自シナリオを混在させません。">
+              <div class="card-meta"><span>産業分析</span><span class="status-pill">継続更新</span></div>
+              <h4><a href="semiconductors/index.html">半導体サイクル</a></h4>
+              <p class="card-question"><span>検証する問い</span>利益成長は数量・価格・能力のどこから生じたか</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>半導体企業・需要・価格・能力・設備投資</dd></div><div><dt>期間</dt><dd>四半期実績と中期能力計画</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>会社実績、会社予想、業界推計、独自シナリオを混在させません。</p>
+              <div class="card-footer"><a href="semiconductors/20260802.html">最新 2026年08月02日</a><span>2件</span></div>
+            </article>
+          </div>
+        </section>
+        <section class="purpose-section" data-purpose-section="マクロ・市場構造" aria-labelledby="purpose-5">
+          <div class="purpose-heading"><h3 id="purpose-5">マクロ・市場構造</h3><span data-purpose-count></span></div>
+          <div class="case-grid">
+            <article class="case-card" data-case-item data-case-card data-case-slug="precious_metals_spread" data-purpose="マクロ・市場構造" data-freshness="current" data-accent="lavender" data-search="貴金属スプレッド 相対価値 マクロ・市場構造 金・銀・白金族の価格比とスプレッド 同一時点・同一通貨の時系列 金・銀・白金族の価格差と比率を同一条件で追い、平均回帰と構造変化を分けます。 価格差は平均回帰か、構造変化か 要監視 単位、取引時間、通貨、先物ロールが異なる系列を直接比較しません。">
+              <div class="card-meta"><span>相対価値</span><span class="status-pill">要監視</span></div>
+              <h4><a href="precious_metals_spread/index.html">貴金属スプレッド</a></h4>
+              <p class="card-question"><span>検証する問い</span>価格差は平均回帰か、構造変化か</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>金・銀・白金族の価格比とスプレッド</dd></div><div><dt>期間</dt><dd>同一時点・同一通貨の時系列</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>単位、取引時間、通貨、先物ロールが異なる系列を直接比較しません。</p>
+              <div class="card-footer"><a href="precious_metals_spread/20260802.html">最新 2026年08月02日</a><span>2件</span></div>
+            </article>
+            <article class="case-card" data-case-item data-case-card data-case-slug="yield_spread" data-purpose="マクロ・市場構造" data-freshness="current" data-accent="mint" data-search="金利・イールドスプレッド マクロ マクロ・市場構造 政策金利・国債カーブ・実質金利・通貨 現在のカーブと過去推移 政策金利と国債カーブを分け、成長、インフレ、財政、期間プレミアムの変化を読み解きます。 金利差の変化は、どの期待とリスクプレミアムを反映しているか 継続更新 名目金利差だけで為替方向を断定せず、実質金利、ヘッジ費用、ポジションを確認します。">
+              <div class="card-meta"><span>マクロ</span><span class="status-pill">継続更新</span></div>
+              <h4><a href="yield_spread/index.html">金利・イールドスプレッド</a></h4>
+              <p class="card-question"><span>検証する問い</span>金利差の変化は、どの期待とリスクプレミアムを反映しているか</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>政策金利・国債カーブ・実質金利・通貨</dd></div><div><dt>期間</dt><dd>現在のカーブと過去推移</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>名目金利差だけで為替方向を断定せず、実質金利、ヘッジ費用、ポジションを確認します。</p>
+              <div class="card-footer"><a href="yield_spread/20260802.html">最新 2026年08月02日</a><span>3件</span></div>
+            </article>
+          </div>
+        </section>
+        <section class="purpose-section" data-purpose-section="公開情報調査" aria-labelledby="purpose-6">
+          <div class="purpose-heading"><h3 id="purpose-6">公開情報調査</h3><span data-purpose-count></span></div>
+          <div class="case-grid">
+            <article class="case-card" data-case-item data-case-card data-case-slug="legendary_investors" data-purpose="公開情報調査" data-freshness="current" data-accent="rose" data-search="著名投資家リサーチ 公開情報調査 公開情報調査 sec提出資料・年次報告書・株主書簡 公開済みの最新標準四半期 sec提出資料と一次情報を起点に、開示遅延、再現可能性、資本配分の制約を切り分けます。 物語ではなく、検証可能な判断原則は何か 開示遅延あり 13fは四半期末の限定情報であり、現在保有、現金、空売りの全体像ではありません。">
+              <div class="card-meta"><span>公開情報調査</span><span class="status-pill">開示遅延あり</span></div>
+              <h4><a href="legendary_investors/index.html">著名投資家リサーチ</a></h4>
+              <p class="card-question"><span>検証する問い</span>物語ではなく、検証可能な判断原則は何か</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>SEC提出資料・年次報告書・株主書簡</dd></div><div><dt>期間</dt><dd>公開済みの最新標準四半期</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>13Fは四半期末の限定情報であり、現在保有、現金、空売りの全体像ではありません。</p>
+              <div class="card-footer"><a href="legendary_investors/20260802.html">最新 2026年08月02日</a><span>2件</span></div>
+            </article>
+          </div>
+        </section>
+      </div>
+      <noscript><p class="notice">JavaScriptが無効なため、検索と表示切替は利用できません。比較表から全テーマを閲覧できます。</p></noscript>
+    </section>
+
+    <section class="section" id="reading-protocol" aria-labelledby="protocol-title">
+      <div class="section-heading"><div><p class="eyebrow">Reading protocol</p><h2 id="protocol-title">レポートの読み方</h2></div></div>
+      <div class="process-grid">
+        <div class="process-step"><span>01</span><h3>対象と期間</h3><p>銘柄、指数、通貨、取得日、比較期間を最初に固定します。</p></div>
+        <div class="process-step"><span>02</span><h3>計算と証拠</h3><p>配当、分割、費用、欠損、実績、予測、OOSを分離します。</p></div>
+        <div class="process-step"><span>03</span><h3>警告と反証</h3><p>結論だけでなく、成立しない条件と更新時点を確認します。</p></div>
+      </div>
+      <div class="notice"><strong>再現性:</strong> 公開ページはリポジトリ内の分析スナップショットから生成されます。曖昧な複数Markdown、出力欠損、未登録メタデータを正常状態として隠しません。</div>
+    </section>
+  </main>
+
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade</span><span>Research, not recommendation.</span></div></footer>
+</body>
 </html>

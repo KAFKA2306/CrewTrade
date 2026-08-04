@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="7指数ポートフォリオ — 2026年08月02日の対象、期間、警告付き分析レポート。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>7指数ポートフォリオ — 2026年08月02日 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-content">レポート本文へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="index.html">レポート一覧</a><a href="#report-content">本文</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><a href="index.html">7指数ポートフォリオ</a><span aria-hidden="true">/</span><span aria-current="page">2026年08月02日</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar" aria-label="レポート情報">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+<option value="20260802.html" selected>2026年08月02日</option><option value="20251224.html">2025年12月24日</option><option value="20251101.html">2025年11月01日</option>        </select>
+        <dl>
+          <dt>検証目的</dt><dd>資産配分</dd>
+          <dt>テーマ</dt><dd>7指数ポートフォリオ</dd>
+          <dt>対象</dt><dd>株式・債券・実物資産を含む7指数</dd>
+          <dt>期間</dt><dd>下落局面を含む検証期間</dd>
+          <dt>状態</dt><dd>比較可能</dd>
+          <dt>生成元</dt><dd>report.md</dd>
+        </dl>
+        <p class="card-warning"><strong>主要な注意</strong>銘柄数ではなく、相関と共通リスク因子で実効分散を確認します。</p>
+        <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading">
+          <p class="eyebrow">Analysis snapshot · 資産配分</p>
+          <h1>7指数ポートフォリオ</h1>
+          <p>2026年08月02日 · 掲載値は作成時点の静的スナップショットです。</p>
+          <div class="metrics"><span class="metric">問い 分散は、実際の下落局面でも機能するか</span><span class="metric">状態 比較可能</span></div>
+        </header>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>7指数ポートフォリオ — 2026年8月2日</h1>
+<h2>結論</h2>
+<p>旧スナップショットの最適配分と実績値は、2026年8月時点の価格系列で再計算していない。したがって、過去のウェイト・Sharpe・最大ドローダウンを現在の推奨配分として扱わない。</p>
+<p>今回の更新では、2026年7月末の市場環境をストレス条件へ反映し、次回再計算の判定基準を固定する。</p>
+<h2>現在の市場アンカー</h2>
+<table>
+<thead>
+<tr>
+<th>要因</th>
+<th>2026年7月末の状態</th>
+<th>ポートフォリオへの影響</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>米政策金利</td>
+<td>3.50〜3.75%</td>
+<td>キャッシュ・短期債の期待収益が高い</td>
+</tr>
+<tr>
+<td>米2年債</td>
+<td>4.28%</td>
+<td>短中期債にも価格変動余地</td>
+</tr>
+<tr>
+<td>米10年債</td>
+<td>4.75%</td>
+<td>長期債デュレーションの下落リスクが大きい</td>
+</tr>
+<tr>
+<td>米30年債</td>
+<td>5.27%</td>
+<td>財政・期間プレミアムへの感応度が高い</td>
+</tr>
+<tr>
+<td>HY OAS</td>
+<td>2%台後半</td>
+<td>信用リスクへの補償は薄い</td>
+</tr>
+<tr>
+<td>金</td>
+<td>上期に5500ドル超から4000ドル割れまで変動</td>
+<td>ヘッジ資産だが短期ボラティリティが高い</td>
+</tr>
+<tr>
+<td>半導体</td>
+<td>メモリ・ロジック集中型の急成長予測</td>
+<td>株式指数間の実質相関が上がる可能性</td>
+</tr>
+</tbody>
+</table>
+<h2>再計算で固定する条件</h2>
+<ol>
+<li>各指数を同一通貨のトータルリターンへ統一</li>
+<li>配当込み・税引前を基本とし、別途税引後を表示</li>
+<li>月末リバランスと無リバランスを比較</li>
+<li>売買コスト、信託報酬、為替ヘッジコストを明示</li>
+<li>最適化期間と評価期間を分離</li>
+<li>期待リターン推定に直近上昇率だけを使わない</li>
+<li>ウェイト上限を設定し、極端な集中解を禁止</li>
+</ol>
+<h2>必須の評価指標</h2>
+<table>
+<thead>
+<tr>
+<th>指標</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>年率リターン</td>
+<td>成長性</td>
+</tr>
+<tr>
+<td>年率ボラティリティ</td>
+<td>通常時の変動</td>
+</tr>
+<tr>
+<td>最大ドローダウン</td>
+<td>危機時の損失</td>
+</tr>
+<tr>
+<td>Calmar ratio</td>
+<td>下落に対する収益効率</td>
+</tr>
+<tr>
+<td>Sortino ratio</td>
+<td>下方変動への耐性</td>
+</tr>
+<tr>
+<td>最悪月・最悪四半期</td>
+<td>短期資金需要との整合</td>
+</tr>
+<tr>
+<td>回復期間</td>
+<td>含み損を抱える時間</td>
+</tr>
+<tr>
+<td>資産別損失寄与</td>
+<td>見かけ上の分散を排除</td>
+</tr>
+</tbody>
+</table>
+<h2>2026年ストレスシナリオ</h2>
+<h3>金利再上昇</h3>
+<ul>
+<li>10年債利回り: +100bp</li>
+<li>長期債価格下落</li>
+<li>高PER株のバリュエーション圧縮</li>
+<li>金はドル・実質金利との組合せで方向が分かれる</li>
+</ul>
+<h3>AI設備投資失速</h3>
+<ul>
+<li>半導体・情報通信指数の同時下落</li>
+<li>見かけ上異なる株式指数の相関上昇</li>
+<li>クレジットスプレッド拡大を伴う場合は複合ショック化</li>
+</ul>
+<h3>景気後退</h3>
+<ul>
+<li>株式と景気敏感資産が下落</li>
+<li>短期金利は低下しても長期債が必ず上昇するとは限らない</li>
+<li>金、国債、現金の防御力を別々に評価</li>
+</ul>
+<h3>円高</h3>
+<ul>
+<li>外貨資産の円換算リターンが悪化</li>
+<li>為替ヘッジ有無で結果を分離</li>
+<li>円建て国内資産との相関が変化</li>
+</ul>
+<h2>暫定運用判断</h2>
+<ul>
+<li>過去最適ウェイトをそのまま維持しない</li>
+<li>株式指数を名称ではなく共通ファクターで集約する</li>
+<li>長期債は安全資産ではなくデュレーション資産として扱う</li>
+<li>証券担保ローンを併用する場合、最大ドローダウンではなく強制売却ラインから逆算する</li>
+<li>次回は2026年7月31日までのデータで再計算する</li>
+</ul>
+<h2>監査状態</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>状態</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>旧バックテスト</td>
+<td>履歴資料として保持</td>
+</tr>
+<tr>
+<td>最新価格データ</td>
+<td>未再取得</td>
+</tr>
+<tr>
+<td>最新ウェイト</td>
+<td>未算出</td>
+</tr>
+<tr>
+<td>ストレス条件</td>
+<td>更新済み</td>
+</tr>
+<tr>
+<td>次回OOS評価</td>
+<td>必須</td>
+</tr>
+</tbody>
+</table>
+<h2>参照</h2>
+<ul>
+<li><a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?field_tdr_date_value_month=202607&amp;type=daily_treasury_yield_curve">U.S. Treasury: Daily Treasury Par Yield Curve Rates</a></li>
+<li><a href="https://www.federalreserve.gov/monetarypolicy/2026-07-mpr-summary.htm">Federal Reserve: Monetary Policy Report, July 2026</a></li>
+<li><a href="https://www.gold.org/goldhub/research/gold-mid-year-outlook-2026">World Gold Council: Gold Mid-Year Outlook 2026</a></li>
+</ul>
+<blockquote>
+<p>更新基準日: 2026-08-02。数値を再計算していない項目は明示的に未算出とした。</p>
+</blockquote></article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / 7指数ポートフォリオ</span><span>2026年08月02日</span></div></footer>
+</body>
+</html>

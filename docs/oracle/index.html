@@ -1,70 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oracle - CrewTrade</title>
-    <style>
-        :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --border: #30363d;
-            --text: #e6edf3;
-            --muted: #8b949e;
-            --accent: #58a6ff
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 2rem
-        }
-
-        h1,
-        h2,
-        h3 {
-            margin-bottom: 1rem
-        }
-
-        a {
-            color: var(--accent);
-            text-decoration: none
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto
-        }
-
-        .btn {
-            display: inline-block;
-            padding: .5rem 1rem;
-            background: var(--accent);
-            color: var(--bg);
-            border-radius: 6px;
-            margin: .25rem
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Oracle実績・予測監査の対象、期間、警告、公開分析レポート一覧。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>Oracle実績・予測監査 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <link rel="stylesheet" href="../assets/table.css">
+  <script defer src="../assets/site.js"></script>
 </head>
-
-<body>
-    <div class="container">
-        <h1>Oracle</h1>
-        <p><a href="../index.html">← Back to Dashboard</a></p>
-        <h3>Reports</h3>
-        
-        <a href="20251211.html" class="btn">20251211</a>
-        
+<body style="--case-accent: var(--apricot);">
+  <a class="skip-link" href="#report-history">レポート履歴へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="../index.html">全テーマ</a><a href="#report-history">履歴</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
     </div>
-</body>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><span aria-current="page">Oracle実績・予測監査</span></nav>
+    <section class="case-hero" aria-labelledby="case-title">
+      <div>
+        <p class="eyebrow">産業・企業分析 · 企業分析・予測</p>
+        <h1 id="case-title">Oracle実績・予測監査</h1>
+        <p class="case-summary">Oracleのクラウド実績とRPOを確認し、実測値と未検証の時系列予測を分離します。</p>
+        <div class="metrics"><span class="metric"><strong>2</strong>公開レポート</span><span class="metric">最新 2026年08月02日</span><span class="metric">状態 要検証</span></div>
+      </div>
+      <aside class="question-box" aria-label="分析の前提">
+        <small>検証する問い</small><strong>クラウド成長と受注残は、設備投資回収を伴う売上・キャッシュフローへ転換するか</strong>
+        <dl class="card-facts"><div><dt>対象</dt><dd>Oracleのクラウド実績・受注残・設備投資</dd></div><div><dt>期間</dt><dd>開示実績と未検証予測を分離</dd></div></dl>
+        <p class="card-warning"><strong>主要な注意</strong>モデル予測を会社実績または会社予想として表示しません。</p>
+      </aside>
+    </section>
 
+    <section class="section" id="report-history" tabindex="-1" aria-labelledby="history-title">
+      <div class="section-heading"><div><p class="eyebrow">Reports</p><h2 id="history-title">分析スナップショット</h2><p>作成日ごとの条件と結論を時系列で確認します。最新という理由だけで正式評価とは扱いません。</p></div></div>
+      <div class="report-table-shell" tabindex="0" aria-label="レポート履歴表。横方向にスクロールできます。">
+        <table class="report-table">
+          <caption>Oracle実績・予測監査の公開レポート履歴</caption>
+          <thead><tr><th scope="col">作成日</th><th scope="col">位置づけ</th><th scope="col">確認事項</th><th scope="col">スナップショット</th></tr></thead>
+          <tbody>
+            <tr class="latest-row">
+              <td><strong>2026年08月02日</strong></td>
+              <td><span class="status-pill latest-status">最新</span></td>
+              <td>実績・会社開示・モデル予測の境界を再整理。</td>
+              <td><a class="report-open" href="20260802.html">レポートを開く <span aria-hidden="true">→</span></a></td>
+            </tr>
+            <tr>
+              <td><strong>2025年12月11日</strong></td>
+              <td><span class="status-pill">履歴</span></td>
+              <td>当時の対象期間、計算条件、結論を本文で確認</td>
+              <td><a class="report-open" href="20251211.html">レポートを開く <span aria-hidden="true">→</span></a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="notice"><strong>注意:</strong> 日付はレポートのスナップショット識別子です。本文のデータ取得日、対象期間、比較条件、欠損処理を優先してください。</div>
+    </section>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / Oracle実績・予測監査</span><span>Research, not recommendation.</span></div></footer>
+</body>
 </html>

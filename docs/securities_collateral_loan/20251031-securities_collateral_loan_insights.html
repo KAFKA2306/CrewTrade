@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="証券担保ローン — 2025年10月31日の対象、期間、警告付き分析レポート。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>証券担保ローン — 2025年10月31日 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-content">レポート本文へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="index.html">レポート一覧</a><a href="#report-content">本文</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><a href="index.html">証券担保ローン</a><span aria-hidden="true">/</span><span aria-current="page">2025年10月31日</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar" aria-label="レポート情報">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+<option value="20260802.html">2026年08月02日</option><option value="20251101.html">2025年11月01日</option><option value="20251031.html" selected>2025年10月31日</option><option value="20251030.html">2025年10月30日</option>        </select>
+        <dl>
+          <dt>検証目的</dt><dd>リスク管理</dd>
+          <dt>テーマ</dt><dd>証券担保ローン</dd>
+          <dt>対象</dt><dd>担保評価・金利・追証・強制売却条件</dd>
+          <dt>期間</dt><dd>契約条件と下落シナリオ</dd>
+          <dt>状態</dt><dd>契約依存</dd>
+          <dt>生成元</dt><dd>securities_collateral_loan_insights.md</dd>
+        </dl>
+        <p class="card-warning"><strong>主要な注意</strong>契約条項と担保掛目を確認せず、一般的な安全水準を適用しません。</p>
+        <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading">
+          <p class="eyebrow">Analysis snapshot · リスク管理</p>
+          <h1>証券担保ローン</h1>
+          <p>2025年10月31日 · 掲載値は作成時点の静的スナップショットです。</p>
+          <div class="metrics"><span class="metric">問い どの下落率から意思決定の自由が失われるか</span><span class="metric">状態 契約依存</span></div>
+        </header>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>Securities Collateral Loan Insight</h1>
+<h2>Optimization Summary</h2>
+<ul>
+<li>Total ETFs evaluated: 70</li>
+<li>ETFs with sufficient data: 10</li>
+<li>Candidate universe after filtering: 10</li>
+<li>
+<p>Risk gate metric: max_asset_drawdown — Exclude ETFs solely when their trailing max drawdown exceeds the max_asset_drawdown constraint; other limits remain for portfolio construction, not asset gating.</p>
+</li>
+<li>
+<p>Selected ETFs (max_sharpe): 10</p>
+</li>
+<li>Excluded 58 ETF(s) with drawdown worse than -30.0%</li>
+<li>Portfolio annual return: 12.10%</li>
+<li>Portfolio annual volatility: 10.07%</li>
+<li>Portfolio Sharpe ratio: 1.202</li>
+<li>Weighted expense ratio: 0.17%</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>Return</th>
+<th>Volatility</th>
+<th>Sharpe</th>
+<th>Expense</th>
+<th>Selected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>max_sharpe</td>
+<td>12.10%</td>
+<td>10.07%</td>
+<td>1.202</td>
+<td>0.17%</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>low_volatility</td>
+<td>12.10%</td>
+<td>10.07%</td>
+<td>1.202</td>
+<td>0.17%</td>
+<td></td>
+</tr>
+<tr>
+<td>cost_focus</td>
+<td>12.10%</td>
+<td>10.07%</td>
+<td>1.202</td>
+<td>0.17%</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>Current Profile</h2>
+<ul>
+<li>Loan amount: ¥10,000,000.0</li>
+<li>Current collateral value: ¥18247381</li>
+<li>Current loan ratio: 0.548</li>
+<li>Buffer to 70%: 21.71% drop</li>
+<li>Buffer to 85%: 35.53% drop</li>
+<li>Max drawdown (history): -16.59%</li>
+</ul>
+<h2>Stress Scenarios</h2>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Post Value</th>
+<th>Loan Ratio</th>
+<th>≥70%</th>
+<th>≥85%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-10%</td>
+<td>¥16,422,643</td>
+<td>0.609</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>-20%</td>
+<td>¥14,597,905</td>
+<td>0.685</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>-30%</td>
+<td>¥12,773,167</td>
+<td>0.783</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>-40%</td>
+<td>¥10,948,429</td>
+<td>0.913</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<h2>Historical Breach Counts</h2>
+<ul>
+<li>Margin call events: 2488</li>
+<li>Forced liquidation events: 2273</li>
+</ul>
+<h2>Interest Projection (Simple)</h2>
+<table>
+<thead>
+<tr>
+<th>Days</th>
+<th>Interest (¥)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>30</td>
+<td>15,410.96</td>
+</tr>
+<tr>
+<td>90</td>
+<td>46,232.88</td>
+</tr>
+<tr>
+<td>180</td>
+<td>92,465.75</td>
+</tr>
+</tbody>
+</table></article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / 証券担保ローン</span><span>2025年10月31日</span></div></footer>
+</body>
+</html>

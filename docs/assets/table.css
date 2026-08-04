@@ -1,0 +1,216 @@
+[hidden] {
+  display: none !important;
+}
+
+.view-switch {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.view-button {
+  min-width: 3.2rem;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.view-button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--ink);
+  box-shadow: 0 6px 18px rgba(36, 54, 83, 0.18);
+}
+
+.case-table-shell,
+.report-table-shell {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.case-table,
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.case-table th,
+.case-table td,
+.report-table th,
+.report-table td {
+  padding: 15px 17px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.case-table th,
+.report-table th {
+  color: var(--muted);
+  background: rgba(143, 181, 236, 0.08);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.case-table tbody tr:last-child td,
+.report-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.case-table tbody tr,
+.report-table tbody tr {
+  transition: background 0.16s ease;
+}
+
+.case-table tbody tr:hover,
+.report-table tbody tr:hover {
+  background: rgba(143, 181, 236, 0.08);
+}
+
+.table-title {
+  --accent: var(--neutral);
+  display: grid;
+  grid-template-columns: 7px minmax(210px, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  min-width: 260px;
+}
+
+.table-title[data-accent="blue"] { --accent: var(--blue); }
+.table-title[data-accent="lavender"] { --accent: var(--lavender); }
+.table-title[data-accent="rose"] { --accent: var(--rose); }
+.table-title[data-accent="mint"] { --accent: var(--mint); }
+.table-title[data-accent="apricot"] { --accent: var(--apricot); }
+
+.table-accent {
+  width: 7px;
+  min-height: 48px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.table-title strong,
+.table-title small {
+  display: block;
+}
+
+.table-title strong {
+  font-size: 0.98rem;
+  letter-spacing: -0.02em;
+}
+
+.table-title small {
+  max-width: 43rem;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.category-pill,
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.table-question {
+  min-width: 240px;
+  max-width: 420px;
+  color: #34445f;
+  line-height: 1.55;
+}
+
+.number-column {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.table-date,
+.report-open {
+  color: #416da9;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.table-date:hover,
+.report-open:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.report-table {
+  font-size: 0.94rem;
+}
+
+.report-table td:first-child {
+  width: 34%;
+}
+
+.report-table td:nth-child(2) {
+  width: 20%;
+}
+
+.latest-row {
+  background: linear-gradient(90deg, rgba(143, 181, 236, 0.16), rgba(255, 255, 255, 0.2));
+}
+
+.latest-status {
+  color: var(--ink);
+  border-color: rgba(143, 181, 236, 0.45);
+  background: rgba(143, 181, 236, 0.22);
+}
+
+@media (max-width: 900px) {
+  .toolbar {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .case-table,
+  .report-table {
+    min-width: 820px;
+  }
+}
+
+@media (max-width: 620px) {
+  .toolbar {
+    justify-content: flex-start;
+  }
+
+  .view-switch {
+    order: 2;
+  }
+
+  .result-count {
+    order: 3;
+    margin-left: auto;
+  }
+
+  .case-table-shell,
+  .report-table-shell {
+    margin-right: -11px;
+    border-radius: var(--radius-small) 0 0 var(--radius-small);
+  }
+}

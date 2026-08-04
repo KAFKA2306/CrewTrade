@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="貴金属スプレッド — 2026年08月02日の対象、期間、警告付き分析レポート。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>貴金属スプレッド — 2026年08月02日 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-content">レポート本文へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="index.html">レポート一覧</a><a href="#report-content">本文</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><a href="index.html">貴金属スプレッド</a><span aria-hidden="true">/</span><span aria-current="page">2026年08月02日</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar" aria-label="レポート情報">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+<option value="20260802.html" selected>2026年08月02日</option><option value="20251029.html">2025年10月29日</option>        </select>
+        <dl>
+          <dt>検証目的</dt><dd>マクロ・市場構造</dd>
+          <dt>テーマ</dt><dd>貴金属スプレッド</dd>
+          <dt>対象</dt><dd>金・銀・白金族の価格比とスプレッド</dd>
+          <dt>期間</dt><dd>同一時点・同一通貨の時系列</dd>
+          <dt>状態</dt><dd>要監視</dd>
+          <dt>生成元</dt><dd>report.md</dd>
+        </dl>
+        <p class="card-warning"><strong>主要な注意</strong>単位、取引時間、通貨、先物ロールが異なる系列を直接比較しません。</p>
+        <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading">
+          <p class="eyebrow">Analysis snapshot · 相対価値</p>
+          <h1>貴金属スプレッド</h1>
+          <p>2026年08月02日 · 掲載値は作成時点の静的スナップショットです。</p>
+          <div class="metrics"><span class="metric">問い 価格差は平均回帰か、構造変化か</span><span class="metric">状態 要監視</span></div>
+        </header>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>貴金属スプレッド — 2026年8月2日</h1>
+<h2>結論</h2>
+<p>2026年前半の金市場は、年初の急騰と6月の急落を経験し、単純な上昇トレンドではなくなった。World Gold Councilによると、金は1月に一時5500ドル/ozを超えた後、6月下旬に4000ドル/ozを割り込み、2026年上期末時点で年初来約7%下落した。</p>
+<p>現時点で確認できた外部一次情報は金中心である。銀・プラチナ・パラジウムの同日価格系列は再取得していないため、旧レポートの金銀比・金プラチナ比を最新値として流用しない。</p>
+<h2>金の2026年上期</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>状態</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>年初高値</td>
+<td>1月に5500ドル/oz超を一時記録</td>
+</tr>
+<tr>
+<td>6月安値</td>
+<td>4000ドル/oz割れ</td>
+</tr>
+<tr>
+<td>上期騰落</td>
+<td>年初来約-7%</td>
+</tr>
+<tr>
+<td>変動要因</td>
+<td>地政学、金利期待、投資家ポジション、利益確定</td>
+</tr>
+<tr>
+<td>WGC基本シナリオ</td>
+<td>中程度の成長・高めのインフレ・限定的な引締め下で概ねレンジ推移</td>
+</tr>
+</tbody>
+</table>
+<h2>スプレッド分析の更新方針</h2>
+<p>貴金属間の相対価値は、同一時刻・同一通貨・同一単位で計算する。</p>
+<ul>
+<li>金銀比 = 金価格（USD/oz）÷ 銀価格（USD/oz）</li>
+<li>金プラチナ比 = 金価格（USD/oz）÷ プラチナ価格（USD/oz）</li>
+<li>プラチナ・パラジウム差 = プラチナ価格 − パラジウム価格</li>
+</ul>
+<h3>再計算時の必須条件</h3>
+<ol>
+<li>LBMAまたは取引所の同日終値へ統一</li>
+<li>休日・欠損日の前方補完を原則禁止</li>
+<li>現物価格と先物価格を混在させない</li>
+<li>為替換算を行う場合は同日レートを使用</li>
+<li>Z-scoreは20日・60日・250日を分ける</li>
+<li>構造変化検定なしに平均回帰を前提にしない</li>
+</ol>
+<h2>現時点の状態認識</h2>
+<h3>金</h3>
+<p>年初高値からの調整幅が大きく、モメンタムだけで方向を決めにくい。実質金利、ドル、地政学、ETFフローの寄与が短期間で入れ替わっている。</p>
+<h3>銀・プラチナ・パラジウム</h3>
+<p>本更新では最新系列を取得していないため、方向判定を保留する。産業需要比率が金より高く、景気・自動車・太陽光・供給制約の影響を分ける必要がある。</p>
+<h2>シグナル判定</h2>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>扱い</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>比率が長期平均から乖離</td>
+<td>監視開始であり売買シグナルではない</td>
+</tr>
+<tr>
+<td>短期Z-scoreのみ極端</td>
+<td>一時的フローの可能性</td>
+</tr>
+<tr>
+<td>60日・250日が同方向</td>
+<td>構造変化候補</td>
+</tr>
+<tr>
+<td>価格差と在庫・供給が整合</td>
+<td>ファンダメンタルズ確認</td>
+</tr>
+<tr>
+<td>比率だけ変化し両価格下落</td>
+<td>相対価値と絶対損失を分離</td>
+</tr>
+</tbody>
+</table>
+<h2>次回更新で追加するデータ</h2>
+<ul>
+<li>LBMA Gold / Silver / Platinum / Palladiumの同日価格</li>
+<li>20日・60日・250日の比率分布</li>
+<li>ETF保有量と先物ポジション</li>
+<li>実質金利、ドル指数、原油との相関</li>
+<li>構造変化点と平均回帰半減期</li>
+</ul>
+<h2>一次情報</h2>
+<ul>
+<li><a href="https://www.gold.org/goldhub/research/gold-mid-year-outlook-2026">World Gold Council: Gold Mid-Year Outlook 2026</a></li>
+<li><a href="https://www.gold.org/goldhub/research/market-commentary">World Gold Council: Market Commentary</a></li>
+</ul>
+<blockquote>
+<p>更新基準日: 2026-08-02。未取得の銀・白金族データを推測で補完せず、金の確認済み情報と再計算要件を分離した。</p>
+</blockquote></article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / 貴金属スプレッド</span><span>2026年08月02日</span></div></footer>
+</body>
+</html>

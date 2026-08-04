@@ -1,115 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index 7 Portfolio - 20251224</title>
-    <style>
-        :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --border: #30363d;
-            --text: #e6edf3;
-            --muted: #8b949e;
-            --accent: #58a6ff
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 2rem
-        }
-
-        h1,
-        h2,
-        h3,
-        h4 {
-            margin-top: 1.5rem;
-            margin-bottom: .5rem
-        }
-
-        a {
-            color: var(--accent);
-            text-decoration: none
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto
-        }
-
-        .report {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-top: 1rem
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0
-        }
-
-        th,
-        td {
-            border: 1px solid var(--border);
-            padding: .5rem;
-            text-align: left
-        }
-
-        th {
-            background: var(--bg)
-        }
-
-        code {
-            background: var(--bg);
-            padding: .2rem .4rem;
-            border-radius: 4px
-        }
-
-        pre {
-            background: var(--bg);
-            padding: 1rem;
-            border-radius: 6px;
-            overflow-x: auto
-        }
-
-        .nav {
-            margin-bottom: 1rem
-        }
-
-        .btn {
-            display: inline-block;
-            padding: .25rem .5rem;
-            background: var(--accent);
-            color: var(--bg);
-            border-radius: 4px;
-            margin: .125rem;
-            font-size: .8rem
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="7指数ポートフォリオ — 2025年12月24日の対象、期間、警告付き分析レポート。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>7指数ポートフォリオ — 2025年12月24日 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
 </head>
-
 <body>
-    <div class="container">
-        <div class="nav">
-            <a href="../index.html">← Dashboard</a> | <a href="index.html">Index 7 Portfolio</a>
-        </div>
-        <div class="nav">
-            <a href="20251224.html" class="btn" style="opacity:.5">20251224</a><a href="20251101.html" class="btn">20251101</a>
-        </div>
-        <div class="report"><h1>Index 7-Portfolio Optimization Report</h1>
+  <a class="skip-link" href="#report-content">レポート本文へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="index.html">レポート一覧</a><a href="#report-content">本文</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><a href="index.html">7指数ポートフォリオ</a><span aria-hidden="true">/</span><span aria-current="page">2025年12月24日</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar" aria-label="レポート情報">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+<option value="20260802.html">2026年08月02日</option><option value="20251224.html" selected>2025年12月24日</option><option value="20251101.html">2025年11月01日</option>        </select>
+        <dl>
+          <dt>検証目的</dt><dd>資産配分</dd>
+          <dt>テーマ</dt><dd>7指数ポートフォリオ</dd>
+          <dt>対象</dt><dd>株式・債券・実物資産を含む7指数</dd>
+          <dt>期間</dt><dd>下落局面を含む検証期間</dd>
+          <dt>状態</dt><dd>比較可能</dd>
+          <dt>生成元</dt><dd>index_7_portfolio_report.md</dd>
+        </dl>
+        <p class="card-warning"><strong>主要な注意</strong>銘柄数ではなく、相関と共通リスク因子で実効分散を確認します。</p>
+        <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading">
+          <p class="eyebrow">Analysis snapshot · 資産配分</p>
+          <h1>7指数ポートフォリオ</h1>
+          <p>2025年12月24日 · 掲載値は作成時点の静的スナップショットです。</p>
+          <div class="metrics"><span class="metric">問い 分散は、実際の下落局面でも機能するか</span><span class="metric">状態 比較可能</span></div>
+        </header>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>Index 7-Portfolio Optimization Report</h1>
 <p><strong>Generated:</strong> 2025-12-24 16:37:49</p>
 <h2>代替ETF対応表</h2>
 <table>
@@ -252,32 +185,35 @@
 <h2>Visualizations</h2>
 <h3>Portfolio Allocation</h3>
 <p>100% stacked bar chart comparing asset weights across the optimized portfolio, reference strategies (Equal Weight, 60/40 Mix, Inverse-Vol, Min/Max variants), and walk-forward periods.
-<img alt="Portfolio Allocation" src="./graphs/01_allocation.png" /></p>
+<img alt="Portfolio Allocation" src="assets/20251224/graphs/01_allocation.png"></p>
 <h3>Historical Portfolio Allocation (Walk-Forward)</h3>
 <p>Evolution of portfolio weights over year-by-year out-of-sample periods.
-<img alt="Historical Allocation" src="./graphs/09_historical_allocation.png" /></p>
+<img alt="Historical Allocation" src="assets/20251224/graphs/09_historical_allocation.png"></p>
 <h3>Cumulative Returns Comparison</h3>
 <p>Stacked area view of strategy share (Optimized, Equal Weight, reference mixes) with cumulative return overlay.
-<img alt="Cumulative Returns" src="./graphs/02_cumulative_returns.png" /></p>
+<img alt="Cumulative Returns" src="assets/20251224/graphs/02_cumulative_returns.png"></p>
 <h3>Drawdown Evolution</h3>
 <p>Stacked drawdown contributions by asset category, with total drawdown overlay.
-<img alt="Drawdown" src="./graphs/03_drawdown.png" /></p>
+<img alt="Drawdown" src="assets/20251224/graphs/03_drawdown.png"></p>
 <h3>LTV Stress Tests</h3>
 <p>Loan-to-Value ratio during historical crisis periods (COVID-19, 2022 Inflation).
-<img alt="LTV Stress" src="./graphs/04_ltv_stress.png" /></p>
+<img alt="LTV Stress" src="assets/20251224/graphs/04_ltv_stress.png"></p>
 <h3>Asset Contribution to Returns</h3>
 <p>Monthly positive/negative contribution by asset relative to category-colored baseline.
-<img alt="Asset Contribution" src="./graphs/05_asset_contribution.png" /></p>
+<img alt="Asset Contribution" src="assets/20251224/graphs/05_asset_contribution.png"></p>
 <h3>Risk-Return Profile</h3>
 <p>Scatter plot comparing individual assets with multiple allocation strategies (Optimized, Equal Weight, 60/40 Mix, Inverse-Vol, Min Variance, Max Sharpe, Min Volatility, Min Drawdown, Max Kelly, Walk-Forward portfolios WF#1/WF#2).
-<img alt="Risk-Return" src="./graphs/06_risk_return.png" /></p>
+<img alt="Risk-Return" src="assets/20251224/graphs/06_risk_return.png"></p>
 <h3>Rolling Sharpe Ratio</h3>
 <p>252-day rolling Sharpe ratio showing risk-adjusted performance stability over time.
-<img alt="Rolling Sharpe" src="./graphs/07_rolling_sharpe.png" /></p>
+<img alt="Rolling Sharpe" src="assets/20251224/graphs/07_rolling_sharpe.png"></p>
 <h3>Asset Correlation Matrix</h3>
 <p>Correlation heatmap revealing diversification benefits between assets.
-<img alt="Correlation" src="./graphs/08_correlation.png" /></p></div>
+<img alt="Correlation" src="assets/20251224/graphs/08_correlation.png"></p></article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
+      </div>
     </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / 7指数ポートフォリオ</span><span>2025年12月24日</span></div></footer>
 </body>
-
 </html>
