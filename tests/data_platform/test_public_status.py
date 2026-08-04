@@ -24,8 +24,8 @@ def test_status_is_degraded_before_first_snapshot(tmp_path: Path) -> None:
     assert status["summary"] == {
         "use_case_count": 10,
         "canonical_ok": 0,
-        "controlled_blocks": 9,
-        "awaiting_snapshot": 1,
+        "controlled_blocks": 7,
+        "awaiting_snapshot": 3,
     }
 
 
@@ -38,6 +38,9 @@ def test_status_is_ok_when_all_canonical_datasets_exist(tmp_path: Path) -> None:
         "rates_macro",
         "treasury_par_yield_curve",
         "treasury_par_real_yield_curve",
+        "sec_filings",
+        "sec_company_facts",
+        "sec_13f_holdings",
     ):
         batch = DatasetBatch(
             dataset=dataset,
@@ -60,7 +63,7 @@ def test_status_is_ok_when_all_canonical_datasets_exist(tmp_path: Path) -> None:
     )
     assert output.is_file()
     assert status["overall_status"] == "ok"
-    assert status["summary"]["canonical_ok"] == 1
-    assert status["summary"]["controlled_blocks"] == 9
+    assert status["summary"]["canonical_ok"] == 3
+    assert status["summary"]["controlled_blocks"] == 7
     assert status["summary"]["awaiting_snapshot"] == 0
     assert all(row["operational"] for row in status["use_cases"])
