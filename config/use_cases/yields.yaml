@@ -1,7 +1,7 @@
 name: yields
 rates_dataset: rates_macro
 curve_dataset: treasury_par_yield_curve
-period: 5y
+period: 2y
 rolling_window: 60
 minimum_periods: 20
 z_score_threshold: 1.5
@@ -10,8 +10,8 @@ curve_spreads:
   us_2s10s:
     short_label: us_2y
     long_label: us_10y
-    description: US 10Y minus 2Y constant maturity rate
+    description: U.S. Treasury 10Y par yield minus 2Y par yield
   us_10s30s:
     short_label: us_10y
     long_label: us_30y
-    description: US 30Y minus 10Y constant maturity rate
+    description: U.S. Treasury 30Y par yield minus 10Y par yield
