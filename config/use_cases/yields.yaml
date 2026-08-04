@@ -1,4 +1,4 @@
-name: yield_spread
+name: yields
 rates_dataset: rates_macro
 curve_dataset: treasury_par_yield_curve
 period: 5y
