@@ -1,127 +1,238 @@
-"""Analysis module for legendary investors portfolios."""
-from dataclasses import dataclass
-from typing import Any, Dict, List
-import numpy as np
+from __future__ import annotations
+
+import datetime
+from pathlib import Path
+from typing import Any, Dict
+from zoneinfo import ZoneInfo
+
 import pandas as pd
-from .config import LegendaryInvestorsConfig
-from .deep_research import LegendaryInvestorsResearcher
-@dataclass
-class HoldingMetrics:
-    symbol: str
-    current_price: float
-    return_1m: float
-    return_3m: float
-    return_6m: float
-    return_12m: float
-    ytd_return: float
-    volatility: float
-    sharpe_ratio: float
-    max_drawdown: float
-    fundamentals: str = ""
-    news_summary: str = ""
-    reason_why: str = ""
-    evaluation: str = ""
-    rumor: str = ""
-    earnings: str = ""
-    alpha: str = ""
+import yaml
+
+from crew.legendary_investors.config import LegendaryInvestorsConfig
+
+
 class LegendaryInvestorsAnalyzer:
-    """Analyzer for legendary investors' top holdings."""
-    RISK_FREE_RATE = 0.045
+    """Analyze point-in-time 13F information tables instead of fixed ticker lists."""
+
     def __init__(
         self, config: LegendaryInvestorsConfig, raw_data_dir: Any = None
     ) -> None:
         self.config = config
-        self.researcher = LegendaryInvestorsResearcher()
-        self.raw_data_dir = raw_data_dir
+        self.raw_data_dir = Path(raw_data_dir) if raw_data_dir else None
+
     def analyze(self, data_payload: Dict[str, Any]) -> Dict[str, Any]:
-        price_frames = data_payload.get("price_frames", {})
-        if not price_frames and self.raw_data_dir:
-            from pathlib import Path
-            raw = Path(self.raw_data_dir)
-            tickers = list(
-                set(
-                    self.config.soros_holdings
-                    + self.config.druckenmiller_holdings
-                    + [self.config.benchmark]
+        filings = self._load_frame(data_payload.get("filings"), "filings.parquet")
+        holdings = self._load_frame(data_payload.get("holdings"), "holdings.parquet")
+        for column in ("filing_date", "report_date", "acceptance_datetime", "_retrieved_at"):
+            if column in filings.columns:
+                filings[column] = pd.to_datetime(filings[column])
+        for column in ("report_date", "filing_date", "_retrieved_at"):
+            if column in holdings.columns:
+                holdings[column] = pd.to_datetime(holdings[column])
+        holdings["reported_value"] = pd.to_numeric(
+            holdings["reported_value"], errors="coerce"
+        )
+        holdings["shares_or_principal"] = pd.to_numeric(
+            holdings["shares_or_principal"], errors="coerce"
+        )
+        holdings = (
+            holdings.sort_values("_retrieved_at", ascending=False)
+            .drop_duplicates("holding_id", keep="first")
+            .reset_index(drop=True)
+        )
+
+        manager_summaries: list[dict[str, object]] = []
+        latest_tables: list[pd.DataFrame] = []
+        change_tables: list[pd.DataFrame] = []
+        for manager_name, manager_config in self.config.managers.items():
+            manager_holdings = holdings[
+                holdings["entity_name"] == manager_name
+            ].copy()
+            report_dates = sorted(
+                manager_holdings["report_date"].dropna().unique(), reverse=True
+            )
+            if not report_dates:
+                continue
+            latest_date = pd.Timestamp(report_dates[0])
+            previous_date = (
+                pd.Timestamp(report_dates[1]) if len(report_dates) > 1 else None
+            )
+            latest = manager_holdings[
+                manager_holdings["report_date"] == latest_date
+            ].copy()
+            latest = self._aggregate_positions(latest)
+            total_value = latest["reported_value"].sum(min_count=1)
+            latest["portfolio_weight"] = (
+                latest["reported_value"] / total_value
+                if pd.notna(total_value) and total_value != 0
+                else pd.NA
+            )
+            latest["manager"] = manager_name
+            latest["manager_display_name"] = manager_config.display_name
+            latest_tables.append(
+                latest.sort_values("reported_value", ascending=False).head(
+                    self.config.top_holdings_limit
                 )
             )
-            for t in tickers:
-                p = raw / f"{t}.parquet"
-                if p.exists():
-                    price_frames[t] = pd.read_parquet(p)
-        if not price_frames:
-            return {"error": "No price data available"}
-        soros_metrics = self._analyze_portfolio(
-            self.config.soros_holdings, price_frames
+
+            changes = pd.DataFrame()
+            if previous_date is not None:
+                previous = self._aggregate_positions(
+                    manager_holdings[
+                        manager_holdings["report_date"] == previous_date
+                    ].copy()
+                )
+                changes = self._compare_positions(latest, previous)
+                changes["manager"] = manager_name
+                changes["manager_display_name"] = manager_config.display_name
+                change_tables.append(changes)
+
+            latest_filing = filings[
+                (filings["entity_name"] == manager_name)
+                & (filings["report_date"] == latest_date)
+            ].sort_values("filing_date", ascending=False)
+            filing_date = (
+                pd.Timestamp(latest_filing.iloc[0]["filing_date"])
+                if not latest_filing.empty
+                else pd.Timestamp(latest["filing_date"].max())
+            )
+            manager_summaries.append(
+                {
+                    "manager": manager_name,
+                    "manager_display_name": manager_config.display_name,
+                    "latest_report_date": latest_date,
+                    "previous_report_date": previous_date,
+                    "filing_date": filing_date,
+                    "filing_lag_days": (filing_date - latest_date).days,
+                    "position_count": len(latest),
+                    "reported_value_total": total_value,
+                    "history_quarters": len(report_dates),
+                    "comparison_ready": len(report_dates)
+                    >= self.config.minimum_history_quarters,
+                }
+            )
+
+        summary = pd.DataFrame(manager_summaries)
+        latest_holdings = (
+            pd.concat(latest_tables, ignore_index=True)
+            if latest_tables
+            else pd.DataFrame()
         )
-        druckenmiller_metrics = self._analyze_portfolio(
-            self.config.druckenmiller_holdings, price_frames
+        changes = (
+            pd.concat(change_tables, ignore_index=True)
+            if change_tables
+            else pd.DataFrame()
         )
         return {
-            "soros_metrics": soros_metrics,
-            "druckenmiller_metrics": druckenmiller_metrics,
-            "analysis_date": pd.Timestamp.now().strftime("%Y-%m-%d"),
+            "filings": filings,
+            "holdings": holdings,
+            "manager_summary": summary,
+            "latest_holdings": latest_holdings,
+            "quarter_changes": changes,
+            "analysis_date": pd.Timestamp.now(tz="UTC"),
         }
-    def _analyze_portfolio(
-        self, tickers: List[str], frames: Dict[str, pd.DataFrame]
-    ) -> List[HoldingMetrics]:
-        metrics_list = []
-        for ticker in tickers:
-            df = frames.get(ticker)
-            if df is None or df.empty:
-                continue
-            col = "Adj Close" if "Adj Close" in df.columns else "Close"
-            prices = df[col].dropna()
-            if len(prices) < 20:
-                continue
-            current_price = float(prices.iloc[-1])
-            ret_1m = self._calc_period_return(prices, 21)
-            ret_3m = self._calc_period_return(prices, 63)
-            ret_6m = self._calc_period_return(prices, 126)
-            ret_12m = self._calc_period_return(prices, 252)
-            ytd = self._calc_ytd_return(prices)
-            returns = prices.pct_change().dropna()
-            vol = float(returns.std() * np.sqrt(252))
-            excess_return = ret_12m - self.RISK_FREE_RATE
-            sharpe = excess_return / vol if vol > 0 else 0.0
-            cummax = prices.cummax()
-            drawdown = (prices - cummax) / cummax
-            max_dd = float(drawdown.min())
-            research_data = self.researcher.get_research_for_ticker(ticker)
-            metrics_list.append(
-                HoldingMetrics(
-                    symbol=ticker,
-                    current_price=current_price,
-                    return_1m=ret_1m,
-                    return_3m=ret_3m,
-                    return_6m=ret_6m,
-                    return_12m=ret_12m,
-                    ytd_return=ytd,
-                    volatility=vol,
-                    sharpe_ratio=sharpe,
-                    max_drawdown=max_dd,
-                    fundamentals=research_data.get("fundamentals", ""),
-                    news_summary=research_data.get("news_summary", ""),
-                    reason_why=research_data.get("reason_why", ""),
-                    evaluation=research_data.get("evaluation", ""),
-                    rumor=research_data.get("rumor", ""),
-                    earnings=research_data.get("earnings", ""),
-                    alpha=research_data.get("alpha", ""),
-                )
-            )
-        metrics_list.sort(key=lambda x: x.return_12m, reverse=True)
-        return metrics_list
-    def _calc_period_return(self, prices: pd.Series, days: int) -> float:
-        if len(prices) < days:
-            days = len(prices)
-        start = float(prices.iloc[-days])
-        end = float(prices.iloc[-1])
-        return (end - start) / start if start > 0 else 0.0
-    def _calc_ytd_return(self, prices: pd.Series) -> float:
-        current_year = pd.Timestamp.now().year
-        ytd = prices[prices.index.year == current_year]
-        if len(ytd) < 2:
-            return 0.0
-        start = float(ytd.iloc[0])
-        end = float(ytd.iloc[-1])
-        return (end - start) / start if start > 0 else 0.0
+
+    evaluate = analyze
+
+    def _load_frame(self, value: object, filename: str) -> pd.DataFrame:
+        if isinstance(value, pd.DataFrame):
+            return value.copy()
+        if isinstance(value, (str, Path)) and Path(value).is_file():
+            return pd.read_parquet(value)
+        if self.raw_data_dir is not None:
+            path = self.raw_data_dir / filename
+            if path.is_file():
+                return pd.read_parquet(path)
+        raise FileNotFoundError(
+            f"Canonical investor export {filename} is missing. "
+            "Run `task fetch:legendary_investors`."
+        )
+
+    @staticmethod
+    def _aggregate_positions(frame: pd.DataFrame) -> pd.DataFrame:
+        keys = ["cusip", "issuer", "title_of_class", "put_call"]
+        aggregations = {
+            "reported_value": "sum",
+            "shares_or_principal": "sum",
+            "shares_or_principal_type": "first",
+            "accession_number": "first",
+            "report_date": "first",
+            "filing_date": "max",
+            "source_document_url": "first",
+            "_source_url": "first",
+            "_raw_sha256": "first",
+        }
+        available = {
+            key: value
+            for key, value in aggregations.items()
+            if key in frame.columns
+        }
+        return frame.groupby(keys, dropna=False, as_index=False).agg(available)
+
+    @staticmethod
+    def _compare_positions(latest: pd.DataFrame, previous: pd.DataFrame) -> pd.DataFrame:
+        keys = ["cusip", "issuer", "title_of_class", "put_call"]
+        left = latest[keys + ["reported_value", "shares_or_principal"]].rename(
+            columns={
+                "reported_value": "latest_value",
+                "shares_or_principal": "latest_shares",
+            }
+        )
+        right = previous[keys + ["reported_value", "shares_or_principal"]].rename(
+            columns={
+                "reported_value": "previous_value",
+                "shares_or_principal": "previous_shares",
+            }
+        )
+        compared = left.merge(right, on=keys, how="outer")
+        compared["value_change"] = (
+            compared["latest_value"].fillna(0)
+            - compared["previous_value"].fillna(0)
+        )
+        compared["share_change"] = (
+            compared["latest_shares"].fillna(0)
+            - compared["previous_shares"].fillna(0)
+        )
+
+        def classify(row: pd.Series) -> str:
+            if pd.isna(row["previous_shares"]):
+                return "new"
+            if pd.isna(row["latest_shares"]):
+                return "exited"
+            if row["share_change"] > 0:
+                return "increased"
+            if row["share_change"] < 0:
+                return "decreased"
+            return "unchanged"
+
+        compared["change_type"] = compared.apply(classify, axis=1)
+        return compared.sort_values("value_change", key=lambda values: values.abs(), ascending=False)
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+CONFIG_FILE = PROJECT_ROOT / "config" / "use_cases" / "legendary_investors.yaml"
+DATA_DIR = PROJECT_ROOT / "data" / "legendary_investors"
+
+
+def main() -> None:
+    from crew.legendary_investors.reporting import LegendaryInvestorsReporter
+
+    config = LegendaryInvestorsConfig(
+        **yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8"))
+    )
+    analyzer = LegendaryInvestorsAnalyzer(config, DATA_DIR)
+    result = analyzer.analyze({})
+    report_date = datetime.datetime.now(ZoneInfo("Asia/Tokyo")).strftime("%Y%m%d")
+    reporter = LegendaryInvestorsReporter(
+        PROJECT_ROOT
+        / "output"
+        / "use_cases"
+        / "legendary_investors"
+        / report_date
+    )
+    stored = reporter.produce_report(result)
+    print(f"Canonical investor report: {stored['report_file']}")
+
+
+if __name__ == "__main__":
+    main()
