@@ -8,6 +8,7 @@ from typing import Any, Mapping, Sequence
 import yaml
 
 from crew.data_platform.contracts import PersistedBatch, SourceAdapter
+from crew.data_platform.gold import refresh_gold_views
 from crew.data_platform.sources import (
     FredSource,
     GovernedManualSource,
@@ -82,6 +83,7 @@ def sync(
         for adapter in adapters:
             for batch in adapter.fetch():
                 persisted.append(storage.persist(run_id, batch))
+        refresh_gold_views(storage.catalog_path)
         manifest_path = storage.write_manifest(run_id, persisted)
         storage.finish_run(run_id, status="success")
         return run_id, persisted, manifest_path
