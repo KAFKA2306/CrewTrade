@@ -28,7 +28,7 @@ sources:
 
   sec_edgar:
     adapter: sec
-    enabled: true
+    enabled: false
     user_agent_env: SEC_USER_AGENT
     min_interval_seconds: 0.15
     entities:
@@ -51,6 +51,17 @@ sources:
     enabled: true
     registry_url: https://github.com/KAFKA2306/CrewTrade/blob/main/config/data_platform.yaml
     datasets:
+      sec_edgar_external_runner:
+        use_cases: [oracle, legendary_investors]
+        owner: U.S. Securities and Exchange Commission
+        source_url: https://www.sec.gov/search-filings/edgar-application-programming-interfaces
+        access_mode: official_api_external_runner
+        license_status: public_api_fair_access
+        refresh_policy: daily_after_runner_validation
+        required_fields: [declared_user_agent, reachable_runner, raw_sha256, retrieved_at]
+        automation_status: blocked
+        block_reason: data.sec.gov returned HTTP 403 from both Linux and macOS GitHub-hosted runners despite a declared contact User-Agent. SEC ingestion remains disabled on Pages CI until a compliant reachable self-hosted or persistent runner is validated.
+        checked_on: "2026-08-05"
       ice_bofa_oas:
         use_cases: [credit]
         owner: ICE Data Indices, LLC / FRED
