@@ -45,20 +45,29 @@ def audit() -> None:
             failures.append("invalid use-case status row")
             continue
         if row.get("runtime_state") not in ALLOWED_STATES:
-            failures.append(f"invalid state for {row.get('slug')}: {row.get('runtime_state')}")
+            failures.append(
+                f"invalid state for {row.get('slug')}: {row.get('runtime_state')}"
+            )
         if not row.get("owner_source") or not row.get("note"):
             failures.append(f"missing owner/note for {row.get('slug')}")
         if row.get("declared_state") == "canonical_active" and not row.get(
             "required_datasets"
         ):
-            failures.append(f"canonical use case has no datasets: {row.get('slug')}")
+            failures.append(
+                f"canonical use case has no datasets: {row.get('slug')}"
+            )
 
     summary = status.get("summary", {})
     if summary.get("use_case_count") != 10:
         failures.append("summary use_case_count must be 10")
     if status.get("overall_status") == "ok":
-        if summary.get("canonical_ok") != 4 or summary.get("awaiting_snapshot") != 0:
-            failures.append("OK requires four canonical use cases and no pending snapshot")
+        if (
+            summary.get("canonical_ok") != 4
+            or summary.get("awaiting_snapshot") != 0
+        ):
+            failures.append(
+                "OK requires four canonical use cases and no pending snapshot"
+            )
     elif status.get("overall_status") != "degraded":
         failures.append("overall_status must be ok or degraded")
 
@@ -66,15 +75,22 @@ def audit() -> None:
         '<html lang="ja">': "Japanese language",
         'id="data-platform-status"': "data platform landmark",
         'id="use-case-status"': "use-case status section",
-        'class="case-table data-status-table"': "dataset table",
         'class="case-table data-use-case-table"': "use-case table",
-        'data-platform-overall=': "overall status marker",
+        "data-platform-overall=": "overall status marker",
         'href="../assets/site.css"': "site stylesheet",
         'href="../index.html"': "home link",
     }
     for marker, label in required_page_markers.items():
         if marker not in page:
             failures.append(f"status page missing {label}")
+
+    datasets = status.get("datasets", [])
+    if datasets:
+        if 'class="case-table data-status-table"' not in page:
+            failures.append("status page missing dataset table")
+    elif "公開用スナップショット未生成" not in page:
+        failures.append("status page missing explicit empty dataset state")
+
     if 'href="data-status/index.html"' not in index:
         failures.append("home page has no data-status link")
 
