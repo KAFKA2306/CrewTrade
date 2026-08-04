@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="金利・イールドスプレッド — 2026年08月04日の対象、期間、警告付き分析レポート。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>金利・イールドスプレッド — 2026年08月04日 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-content">レポート本文へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="index.html">レポート一覧</a><a href="#report-content">本文</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><a href="index.html">金利・イールドスプレッド</a><span aria-hidden="true">/</span><span aria-current="page">2026年08月04日</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar" aria-label="レポート情報">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+<option value="20260804.html" selected>2026年08月04日</option><option value="20260802.html">2026年08月02日</option><option value="20251030.html">2025年10月30日</option><option value="20251029.html">2025年10月29日</option>        </select>
+        <dl>
+          <dt>検証目的</dt><dd>マクロ・市場構造</dd>
+          <dt>テーマ</dt><dd>金利・イールドスプレッド</dd>
+          <dt>対象</dt><dd>政策金利・国債カーブ・実質金利・通貨</dd>
+          <dt>期間</dt><dd>現在のカーブと過去推移</dd>
+          <dt>状態</dt><dd>定義修正</dd>
+          <dt>生成元</dt><dd>report.md</dd>
+        </dl>
+        <p class="card-warning"><strong>主要な注意</strong>名目金利差だけで為替方向を断定せず、実質金利、ヘッジ費用、ポジションを確認します。</p>
+        <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading">
+          <p class="eyebrow">Analysis snapshot · マクロ</p>
+          <h1>金利・イールドスプレッド</h1>
+          <p>2026年08月04日 · 掲載値は作成時点の静的スナップショットです。</p>
+          <div class="metrics"><span class="metric">問い 金利差の変化は、どの期待とリスクプレミアムを反映しているか</span><span class="metric">状態 定義修正</span></div>
+        </header>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>金利・イールドスプレッド定量監査</h1>
+<p>更新基準日: 2026-08-04</p>
+<h2>結論</h2>
+<p>2026年8月3日の米国債カーブは、3か月3.91%、2年4.25%、10年4.70%、30年5.23%で、2年10年は+45bp、3か月10年は+79bp、10年30年は+53bpです。短中期より長期金利が高い順イールドですが、これだけで景気や株式配分を決めません。現行設定の「ハイイールド実効利回り－10年国債」は、信用OASと残存期間差を混在させるため廃止し、国債カーブと信用OASを別シグナルにします。</p>
+<h2>データ</h2>
+<p>米国財務省の2026年8月3日パー・イールド・カーブを使用します。</p>
+<table>
+<thead>
+<tr>
+<th>年限</th>
+<th style="text-align: right;">利回り</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1か月</td>
+<td style="text-align: right;">3.79%</td>
+</tr>
+<tr>
+<td>3か月</td>
+<td style="text-align: right;">3.91%</td>
+</tr>
+<tr>
+<td>6か月</td>
+<td style="text-align: right;">4.02%</td>
+</tr>
+<tr>
+<td>1年</td>
+<td style="text-align: right;">4.07%</td>
+</tr>
+<tr>
+<td>2年</td>
+<td style="text-align: right;">4.25%</td>
+</tr>
+<tr>
+<td>3年</td>
+<td style="text-align: right;">4.32%</td>
+</tr>
+<tr>
+<td>5年</td>
+<td style="text-align: right;">4.40%</td>
+</tr>
+<tr>
+<td>7年</td>
+<td style="text-align: right;">4.54%</td>
+</tr>
+<tr>
+<td>10年</td>
+<td style="text-align: right;">4.70%</td>
+</tr>
+<tr>
+<td>20年</td>
+<td style="text-align: right;">5.23%</td>
+</tr>
+<tr>
+<td>30年</td>
+<td style="text-align: right;">5.23%</td>
+</tr>
+</tbody>
+</table>
+<p>信用リスクは、FREDのICE BofA US High Yield Index Option-Adjusted Spreadを直接使用します。2026年7月30日のOASは2.84%です。</p>
+<h2>定量分析</h2>
+<table>
+<thead>
+<tr>
+<th>スプレッド</th>
+<th>計算</th>
+<th style="text-align: right;">値</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2年10年</td>
+<td>4.70 - 4.25</td>
+<td style="text-align: right;">+0.45ポイント</td>
+</tr>
+<tr>
+<td>3か月10年</td>
+<td>4.70 - 3.91</td>
+<td style="text-align: right;">+0.79ポイント</td>
+</tr>
+<tr>
+<td>5年30年</td>
+<td>5.23 - 4.40</td>
+<td style="text-align: right;">+0.83ポイント</td>
+</tr>
+<tr>
+<td>10年30年</td>
+<td>5.23 - 4.70</td>
+<td style="text-align: right;">+0.53ポイント</td>
+</tr>
+<tr>
+<td>HY OAS</td>
+<td>FRED直接系列</td>
+<td style="text-align: right;">2.84ポイント</td>
+</tr>
+</tbody>
+</table>
+<p>現行の<code>BAMLH0A0HYM2EY - DGS10</code>は、ハイイールド指数の実効利回りから10年国債の一点を引きます。ハイイールド指数は残存期間、オプション、構成銘柄が10年国債と一致しないため、この差は純粋な信用プレミアムではありません。信用評価にはOAS、期間構造には財務省カーブを用います。</p>
+<p>資産配分ラベルを単純なz値で切り替える現行ロジックも停止します。金利カーブ、実質金利、インフレ期待、信用OASは異なる状態変数であり、同じ方向に動くとは限りません。</p>
+<h2>評価</h2>
+<table>
+<thead>
+<tr>
+<th>評価軸</th>
+<th style="text-align: right;">点数</th>
+<th>判定根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>国債データ</td>
+<td style="text-align: right;">5/5</td>
+<td>財務省の同日カーブ</td>
+</tr>
+<tr>
+<td>信用データ</td>
+<td style="text-align: right;">5/5</td>
+<td>OAS直接系列へ修正</td>
+</tr>
+<tr>
+<td>定義整合</td>
+<td style="text-align: right;">2/5</td>
+<td>現行設定は実効利回りと10年国債を混在</td>
+</tr>
+<tr>
+<td>時系列評価</td>
+<td style="text-align: right;">3/5</td>
+<td>現在値は確認、長期分位は未更新</td>
+</tr>
+<tr>
+<td>配分接続</td>
+<td style="text-align: right;">1/5</td>
+<td>z値から固定配分へ直接接続</td>
+</tr>
+<tr>
+<td><strong>合計</strong></td>
+<td style="text-align: right;"><strong>16/25</strong></td>
+<td><strong>評価: データは有効、現行シグナル合成を再設計</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>限界と反証条件</h2>
+<ul>
+<li>パー・イールドとゼロクーポン・スポットレートを混同しません。</li>
+<li>名目金利カーブだけで実質金融環境を断定しません。</li>
+<li>OASの月内z値を長期ストレス分位として扱いません。</li>
+<li>国債カーブ、実質金利、期待インフレ、信用OASを個別系列で保存し、公開日時を揃えます。</li>
+<li>配分モデルはローリング・アウト・オブ・サンプルで固定配分を上回らない限り採用しません。</li>
+</ul>
+<h2>一次情報</h2>
+<ul>
+<li>U.S. Treasury Daily Treasury Par Yield Curve Rates — https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?field_tdr_date_value=2026&amp;type=daily_treasury_yield_curve</li>
+<li>FRED ICE BofA US High Yield Index OAS — https://fred.stlouisfed.org/series/BAMLH0A0HYM2</li>
+<li>CrewTrade 現行設定 — https://github.com/KAFKA2306/CrewTrade/blob/main/config/use_cases/yields.yaml</li>
+</ul></article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / 金利・イールドスプレッド</span><span>2026年08月04日</span></div></footer>
+</body>
+</html>

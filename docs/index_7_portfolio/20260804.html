@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="7指数ポートフォリオ — 2026年08月04日の対象、期間、警告付き分析レポート。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>7指数ポートフォリオ — 2026年08月04日 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-content">レポート本文へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="index.html">レポート一覧</a><a href="#report-content">本文</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><a href="index.html">7指数ポートフォリオ</a><span aria-hidden="true">/</span><span aria-current="page">2026年08月04日</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar" aria-label="レポート情報">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+<option value="20260804.html" selected>2026年08月04日</option><option value="20260802.html">2026年08月02日</option><option value="20251224.html">2025年12月24日</option><option value="20251101.html">2025年11月01日</option>        </select>
+        <dl>
+          <dt>検証目的</dt><dd>資産配分</dd>
+          <dt>テーマ</dt><dd>7指数ポートフォリオ</dd>
+          <dt>対象</dt><dd>株式・債券・実物資産を含む7指数</dd>
+          <dt>期間</dt><dd>下落局面を含む検証期間</dd>
+          <dt>状態</dt><dd>評価不能</dd>
+          <dt>生成元</dt><dd>report.md</dd>
+        </dl>
+        <p class="card-warning"><strong>主要な注意</strong>銘柄数ではなく、相関と共通リスク因子で実効分散を確認します。</p>
+        <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading">
+          <p class="eyebrow">Analysis snapshot · 資産配分</p>
+          <h1>7指数ポートフォリオ</h1>
+          <p>2026年08月04日 · 掲載値は作成時点の静的スナップショットです。</p>
+          <div class="metrics"><span class="metric">問い 分散は、実際の下落局面でも機能するか</span><span class="metric">状態 評価不能</span></div>
+        </header>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>7指数ポートフォリオ妥当性監査</h1>
+<p>更新基準日: 2026-08-04</p>
+<h2>結論</h2>
+<p>現行の「20年期間」「10年ルックバック」「7銘柄同時最適化」は成立しません。構成銘柄の一つであるiシェアーズ ゴールド ETF（314A）は2025年1月14日設定であり、2026年8月4日時点の実績は約19か月です。したがって、7銘柄すべてを使った20年バックテストや10年共分散推定は<strong>データ不存在により無効</strong>です。過去の最適ウェイトを実績値として再利用せず、指数代替系列を使う長期検証と、ETF実績だけを使う短期検証へ分離します。</p>
+<h2>データ</h2>
+<p>現行設定は7銘柄、最小ウェイト5%、最大ウェイト30%、最大年率ボラティリティ15%、乱数候補10,000、最適化ルックバック10年です。</p>
+<table>
+<thead>
+<tr>
+<th>監査項目</th>
+<th style="text-align: right;">現行値</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>銘柄数</td>
+<td style="text-align: right;">7</td>
+<td>銘柄数は分散度を保証しない</td>
+</tr>
+<tr>
+<td>分析期間</td>
+<td style="text-align: right;">20年</td>
+<td>314Aの実績期間と不整合</td>
+</tr>
+<tr>
+<td>最適化ルックバック</td>
+<td style="text-align: right;">10年</td>
+<td>314Aを含む共通期間では実行不能</td>
+</tr>
+<tr>
+<td>最小ウェイト</td>
+<td style="text-align: right;">5%</td>
+<td>7銘柄合計の下限35%で実行可能</td>
+</tr>
+<tr>
+<td>最大ウェイト</td>
+<td style="text-align: right;">30%</td>
+<td>単一資産集中を抑えるが因子集中は残る</td>
+</tr>
+<tr>
+<td>最大ボラティリティ</td>
+<td style="text-align: right;">15%</td>
+<td>推定期間が短いと制約の信頼性が低い</td>
+</tr>
+</tbody>
+</table>
+<h2>定量分析</h2>
+<p>均等配分なら各14.29%、有効銘柄数 <code>N_eff=1/Σw²</code> は7.00です。1銘柄を上限30%、残り6銘柄を均等配分11.67%とした場合、<code>N_eff</code> は約5.83まで低下します。これは銘柄ウェイトだけの集中度であり、米国大型株とNASDAQ100のような共通因子を考慮すると実効分散はさらに低くなります。</p>
+<p>全銘柄共通のETF実績期間は、少なくとも314Aの設定日に制約されます。約19か月の日次データは、おおむね400営業日前後であり、期待収益・相関・最大ドローダウンの安定推定には不足します。10年ルックバックに必要な約2,500営業日の2割未満です。</p>
+<p>新しい評価を次の二層に分けます。</p>
+<h3>長期構造テスト</h3>
+<p>ETFそのものではなく、各ETFが連動する配当込み指数・円換算・為替ヘッジ条件を統一した代替系列を使用します。検証はローリング10年推定、翌1年アウト・オブ・サンプル、取引コスト控除、危機局面別評価とします。</p>
+<h3>実装可能性テスト</h3>
+<p>ETF設定日以降だけを使用し、基準価額、信託報酬、売買代金、気配スプレッド、分配金、トラッキング差を評価します。長期指数テストの結果をそのままETFの実績とは呼びません。</p>
+<h2>評価</h2>
+<table>
+<thead>
+<tr>
+<th>評価軸</th>
+<th style="text-align: right;">点数</th>
+<th>判定根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>データ期間整合</td>
+<td style="text-align: right;">0/5</td>
+<td>20年・10年要件を全銘柄が満たさない</td>
+</tr>
+<tr>
+<td>資産定義</td>
+<td style="text-align: right;">3/5</td>
+<td>ティッカーはあるが連動指数・為替条件の正規化不足</td>
+</tr>
+<tr>
+<td>分散評価</td>
+<td style="text-align: right;">2/5</td>
+<td>銘柄ウェイト制約のみで因子集中を未評価</td>
+</tr>
+<tr>
+<td>アウト・オブ・サンプル</td>
+<td style="text-align: right;">1/5</td>
+<td>現行設定に明示なし</td>
+</tr>
+<tr>
+<td>実装コスト</td>
+<td style="text-align: right;">1/5</td>
+<td>費用・流動性・トラッキング差が目的関数外</td>
+</tr>
+<tr>
+<td><strong>合計</strong></td>
+<td style="text-align: right;"><strong>7/25</strong></td>
+<td><strong>評価: 現行バックテストは無効、二層検証へ再構築</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>限界と反証条件</h2>
+<ul>
+<li>各ETFの正確な設定日、指数履歴、分配再投資系列をすべて正規化するまでは最適ウェイトを掲載しません。</li>
+<li>指数代替系列とETF実績の差が年率50bpを超える場合、指数検証の結果を実装可能な結果として採用しません。</li>
+<li>ローリング・アウト・オブ・サンプルで均等配分を上回らない最適化は棄却します。</li>
+<li>危機局面で相関が上昇し、実効銘柄数が3未満となる場合は「7指数分散」と表記しません。</li>
+</ul>
+<h2>一次情報</h2>
+<ul>
+<li>CrewTrade 現行設定 — https://github.com/KAFKA2306/CrewTrade/blob/main/config/use_cases/portfolio.yaml</li>
+<li>iシェアーズ ゴールド ETF（314A、設定日・費用） — https://www.blackrock.com/jp/individual/ja/products/341438/ishares-gold-etf</li>
+</ul></article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / 7指数ポートフォリオ</span><span>2026年08月04日</span></div></footer>
+</body>
+</html>

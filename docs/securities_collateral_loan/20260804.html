@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="証券担保ローン — 2026年08月04日の対象、期間、警告付き分析レポート。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>証券担保ローン — 2026年08月04日 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-content">レポート本文へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="index.html">レポート一覧</a><a href="#report-content">本文</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><a href="index.html">証券担保ローン</a><span aria-hidden="true">/</span><span aria-current="page">2026年08月04日</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar" aria-label="レポート情報">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+<option value="20260804.html" selected>2026年08月04日</option><option value="20260802.html">2026年08月02日</option><option value="20251101.html">2025年11月01日</option><option value="20251031.html">2025年10月31日</option><option value="20251030.html">2025年10月30日</option>        </select>
+        <dl>
+          <dt>検証目的</dt><dd>リスク管理</dd>
+          <dt>テーマ</dt><dd>証券担保ローン</dd>
+          <dt>対象</dt><dd>担保評価・金利・追証・強制売却条件</dd>
+          <dt>期間</dt><dd>契約条件と下落シナリオ</dd>
+          <dt>状態</dt><dd>実状態未確認</dd>
+          <dt>生成元</dt><dd>report.md</dd>
+        </dl>
+        <p class="card-warning"><strong>主要な注意</strong>契約条項と担保掛目を確認せず、一般的な安全水準を適用しません。</p>
+        <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading">
+          <p class="eyebrow">Analysis snapshot · リスク管理</p>
+          <h1>証券担保ローン</h1>
+          <p>2026年08月04日 · 掲載値は作成時点の静的スナップショットです。</p>
+          <div class="metrics"><span class="metric">問い どの下落率から意思決定の自由が失われるか</span><span class="metric">状態 実状態未確認</span></div>
+        </header>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>証券担保ローンモデル検証</h1>
+<p>更新基準日: 2026-08-04</p>
+<h2>結論</h2>
+<p>現行設定から再現できるのは、借入元本・金利・LTV閾値を使った数理シナリオです。市場価格の時点、銘柄別担保掛目、契約条項の版がないため、実口座の状態を表すモデルではありません。出力を「契約・時価確認済み」と「設定値だけの感度分析」に分離します。</p>
+<h2>データ</h2>
+<table>
+<thead>
+<tr>
+<th>入力</th>
+<th style="text-align: right;">設定値</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>借入元本</td>
+<td style="text-align: right;">10,000,000円</td>
+</tr>
+<tr>
+<td>年利</td>
+<td style="text-align: right;">1.875%</td>
+</tr>
+<tr>
+<td>基準LTV</td>
+<td style="text-align: right;">60%</td>
+</tr>
+<tr>
+<td>警戒LTV</td>
+<td style="text-align: right;">70%</td>
+</tr>
+<tr>
+<td>上限LTV</td>
+<td style="text-align: right;">85%</td>
+</tr>
+<tr>
+<td>担保銘柄数</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>市場価格の時点</td>
+<td style="text-align: right;">未登録</td>
+</tr>
+<tr>
+<td>銘柄別担保掛目</td>
+<td style="text-align: right;">未登録</td>
+</tr>
+<tr>
+<td>契約文書の版</td>
+<td style="text-align: right;">未登録</td>
+</tr>
+</tbody>
+</table>
+<p>単利・Actual/365を仮定した利息感度は、30日15,411円、90日46,233円、180日92,466円、365日187,500円です。実計算方式は設定外です。</p>
+<h2>定量分析</h2>
+<p><code>LTV = 借入残高 / 担保評価額</code> と仮定した必要担保評価額は、60%で16,666,667円、70%で14,285,714円、85%で11,764,706円です。</p>
+<p>60%を起点とする一様価格下落シナリオでは、LTVは次のように変化します。</p>
+<table>
+<thead>
+<tr>
+<th>一様価格変化</th>
+<th style="text-align: right;">モデルLTV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-10%</td>
+<td style="text-align: right;">66.67%</td>
+</tr>
+<tr>
+<td>-20%</td>
+<td style="text-align: right;">75.00%</td>
+</tr>
+<tr>
+<td>-30%</td>
+<td style="text-align: right;">85.71%</td>
+</tr>
+<tr>
+<td>-40%</td>
+<td style="text-align: right;">100.00%</td>
+</tr>
+</tbody>
+</table>
+<p>60%から70%へ移る担保評価額の変化率は-14.29%、60%から85%へは-29.41%です。これは借入残高、金利、担保掛目が不変という感度計算であり、実際の契約イベントを表しません。</p>
+<h2>評価</h2>
+<table>
+<thead>
+<tr>
+<th>評価軸</th>
+<th style="text-align: right;">点数</th>
+<th>判定根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数式再現性</td>
+<td style="text-align: right;">5/5</td>
+<td>設定値から一意に計算可能</td>
+</tr>
+<tr>
+<td>契約来歴</td>
+<td style="text-align: right;">1/5</td>
+<td>原本・版・定義なし</td>
+</tr>
+<tr>
+<td>時価来歴</td>
+<td style="text-align: right;">0/5</td>
+<td>価格時点なし</td>
+</tr>
+<tr>
+<td>担保掛目</td>
+<td style="text-align: right;">0/5</td>
+<td>銘柄別条件なし</td>
+</tr>
+<tr>
+<td>ストレス設計</td>
+<td style="text-align: right;">3/5</td>
+<td>一様下落のみ</td>
+</tr>
+<tr>
+<td><strong>合計</strong></td>
+<td style="text-align: right;"><strong>9/25</strong></td>
+<td><strong>評価: 感度計算として有効、実状態評価には不足</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>限界と反証条件</h2>
+<ul>
+<li>設定値を契約条項そのものとは扱いません。</li>
+<li>銘柄別価格、数量、担保掛目、評価時刻を入力契約へ追加します。</li>
+<li>金利加算、掛目変更、担保除外、売却コストを別のストレス要因として保存します。</li>
+<li>契約原本と設定値が一致しない場合、レポートを無効化します。</li>
+<li>実口座評価を行う場合は、取得日時付きの証券会社データを必須にします。</li>
+</ul>
+<h2>一次情報</h2>
+<ul>
+<li>CrewTrade 現行設定 — https://github.com/KAFKA2306/CrewTrade/blob/main/config/use_cases/loan.yaml</li>
+</ul></article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / 証券担保ローン</span><span>2026年08月04日</span></div></footer>
+</body>
+</html>

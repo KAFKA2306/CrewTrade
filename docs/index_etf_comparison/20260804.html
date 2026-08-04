@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="指数ETF比較 — 2026年08月04日の対象、期間、警告付き分析レポート。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>指数ETF比較 — 2026年08月04日 | CrewTrade</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-content">レポート本文へ移動</a>
+  <header class="site-header shell">
+    <div class="header-inner">
+      <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span></a>
+      <nav class="header-links" aria-label="主要ナビゲーション"><a href="index.html">レポート一覧</a><a href="#report-content">本文</a><a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="../index.html">CrewTrade</a><span aria-hidden="true">/</span><a href="index.html">指数ETF比較</a><span aria-hidden="true">/</span><span aria-current="page">2026年08月04日</span></nav>
+    <div class="report-layout">
+      <aside class="report-sidebar" aria-label="レポート情報">
+        <label for="report-date">スナップショット</label>
+        <select id="report-date" data-report-select>
+<option value="20260804.html" selected>2026年08月04日</option><option value="20260802.html">2026年08月02日</option><option value="20251031.html">2025年10月31日</option>        </select>
+        <dl>
+          <dt>検証目的</dt><dd>運用評価</dd>
+          <dt>テーマ</dt><dd>指数ETF比較</dd>
+          <dt>対象</dt><dd>同一または近接指数へ連動するETF</dd>
+          <dt>期間</dt><dd>同一通貨・配当・費用条件</dd>
+          <dt>状態</dt><dd>再構築中</dd>
+          <dt>生成元</dt><dd>report.md</dd>
+        </dl>
+        <p class="card-warning"><strong>主要な注意</strong>名称が同じでも連動指数、為替、分配、税、流動性が異なります。</p>
+        <a class="card-arrow" href="index.html">← 履歴へ戻る</a>
+      </aside>
+      <div class="report-panel">
+        <header class="report-heading">
+          <p class="eyebrow">Analysis snapshot · 商品比較</p>
+          <h1>指数ETF比較</h1>
+          <p>2026年08月04日 · 掲載値は作成時点の静的スナップショットです。</p>
+          <div class="metrics"><span class="metric">問い 同じ指数名でも、投資結果を分ける条件は何か</span><span class="metric">状態 再構築中</span></div>
+        </header>
+        <article class="report-body" id="report-content" tabindex="-1"><h1>指数ETF比較の再現性監査</h1>
+<p>更新基準日: 2026-08-04</p>
+<h2>結論</h2>
+<p>現行設定は4つの指数ラベルだけで、ETFを一意に識別できません。ティッカー、ISIN、正式な連動指数、通貨、為替ヘッジ、分配条件、費用がないため、比較結果を再現できません。商品マスターを先に整備し、比較条件が一致した対象だけを定量評価します。</p>
+<h2>データ</h2>
+<p>ETFごとに必要な項目を10項目へ固定します。</p>
+<ol>
+<li>ティッカー</li>
+<li>ISIN</li>
+<li>正式商品名</li>
+<li>正式な連動指数名</li>
+<li>価格指数・グロス配当込み・ネット配当込みの区分</li>
+<li>基準通貨・評価通貨</li>
+<li>為替ヘッジ条件</li>
+<li>分配頻度と再投資条件</li>
+<li>信託報酬・その他費用</li>
+<li>設定日・履歴開始日</li>
+</ol>
+<p>現行設定は各対象について指数ラベル1項目だけを保持します。必須10項目に対する構造的充足率は10%です。</p>
+<p>1655を公式情報で照合すると、単なる「S&amp;P500」ではありません。</p>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>公式情報</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>正式名称</td>
+<td>iシェアーズ S&amp;P 500 米国株 ETF</td>
+</tr>
+<tr>
+<td>ISIN</td>
+<td>JP3048530004</td>
+</tr>
+<tr>
+<td>連動指数</td>
+<td>S&amp;P 500 in TTM Rates Index - Net Total Return (JPY)</td>
+</tr>
+<tr>
+<td>基準通貨</td>
+<td>JPY</td>
+</tr>
+<tr>
+<td>信託報酬</td>
+<td>税込年0.0660%程度</td>
+</tr>
+<tr>
+<td>設定日</td>
+<td>2017-09-27</td>
+</tr>
+<tr>
+<td>分配頻度</td>
+<td>年2回</td>
+</tr>
+</tbody>
+</table>
+<h2>定量分析</h2>
+<p>現行4対象について、再現可能性を構成する主要フィールドの充足数を監査しました。</p>
+<table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th style="text-align: right;">充足数</th>
+<th style="text-align: right;">充足率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ティッカー</td>
+<td style="text-align: right;">0/4</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td>ISIN</td>
+<td style="text-align: right;">0/4</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td>正式指数名</td>
+<td style="text-align: right;">0/4</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td>通貨条件</td>
+<td style="text-align: right;">0/4</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td>配当区分</td>
+<td style="text-align: right;">0/4</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td>為替ヘッジ</td>
+<td style="text-align: right;">0/4</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td>費用</td>
+<td style="text-align: right;">0/4</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td>設定日</td>
+<td style="text-align: right;">0/4</td>
+<td style="text-align: right;">0%</td>
+</tr>
+</tbody>
+</table>
+<p>比較期間の指定だけでは条件を揃えられません。4商品すべてについて10項目が揃うまで、優劣の数値を生成しません。</p>
+<h2>評価</h2>
+<table>
+<thead>
+<tr>
+<th>評価軸</th>
+<th style="text-align: right;">点数</th>
+<th>判定根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>商品識別</td>
+<td style="text-align: right;">0/5</td>
+<td>ティッカー・ISINなし</td>
+</tr>
+<tr>
+<td>指数定義</td>
+<td style="text-align: right;">1/5</td>
+<td>通称のみ</td>
+</tr>
+<tr>
+<td>通貨・ヘッジ</td>
+<td style="text-align: right;">0/5</td>
+<td>未登録</td>
+</tr>
+<tr>
+<td>費用・分配</td>
+<td style="text-align: right;">0/5</td>
+<td>未登録</td>
+</tr>
+<tr>
+<td>履歴比較</td>
+<td style="text-align: right;">1/5</td>
+<td>期間だけ指定、共通開始日なし</td>
+</tr>
+<tr>
+<td><strong>合計</strong></td>
+<td style="text-align: right;"><strong>2/25</strong></td>
+<td><strong>評価: 現行比較は再現不能</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>限界と反証条件</h2>
+<ul>
+<li>1655の仕様を他の商品へ流用しません。</li>
+<li>10項目が揃い、同一通貨・同一配当条件・同一期間へ正規化できるまで比較値を公開しません。</li>
+<li>市場価格の売買スプレッドと基準価額のトラッキング差を分離します。</li>
+<li>指数変更や費用改定があれば履歴を分割します。</li>
+</ul>
+<h2>一次情報</h2>
+<ul>
+<li>CrewTrade 現行設定 — https://github.com/KAFKA2306/CrewTrade/blob/main/config/use_cases/etf.yaml</li>
+<li>ブラックロック 1655公式商品ページ — https://www.blackrock.com/jp/individual/ja/products/290499/ishares-s-p-500-etf-fund</li>
+</ul></article>
+        <div class="notice"><strong>解釈上の注意:</strong> 過去の成績とモデル予測は将来の収益を保証しません。本文の対象期間、比較条件、データ時点、欠損処理、評価区間、反証条件を優先してください。</div>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer shell"><div class="footer-inner"><span>CrewTrade / 指数ETF比較</span><span>2026年08月04日</span></div></footer>
+</body>
+</html>
