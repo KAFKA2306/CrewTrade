@@ -7,16 +7,16 @@ allowed_controlled_states:
 use_cases:
   credit:
     title: クレジット・スプレッド
-    state: canonical_active
-    required_datasets: [credit_oas]
-    owner_source: FRED / ICE BofA
-    note: ETF価格比を廃止し、公式OASへ移行済み。
+    state: governed_blocked
+    required_contracts: [ice_bofa_oas]
+    owner_source: ICE Data Indices / FRED
+    note: ETF代理系列は廃止済み。ICE BofA OASは公開再配布権を確認できるまで数値更新を停止。
   yield_spread:
     title: 金利・イールドスプレッド
     state: canonical_active
-    required_datasets: [rates_macro, treasury_par_yield_curve]
-    owner_source: FRED / U.S. Treasury
-    note: 国債カーブ・実質金利・期待インフレを分離。
+    required_datasets: [rates_macro, treasury_par_yield_curve, treasury_par_real_yield_curve]
+    owner_source: U.S. Department of the Treasury
+    note: 名目・実質カーブと両者から導出する10年期待インフレを分離。
   oracle:
     title: Oracle実績・予測監査
     state: canonical_active
@@ -46,7 +46,7 @@ use_cases:
     state: governed_blocked
     required_contracts: [jpx_etf_master, edinet_api_v2]
     owner_source: JPX / EDINET
-    note: ISIN・指数・通貨・費用を揃えた商品契約待ち。
+    note: ISIN・正式指数・通貨・費用を揃えた商品契約待ち。
   precious_metals_spread:
     title: 貴金属スプレッド
     state: governed_blocked
