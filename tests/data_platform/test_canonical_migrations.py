@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from crew.credit.analysis import CreditSpreadAnalyzer
 from crew.credit.config import CreditSpreadConfig
@@ -49,7 +50,7 @@ def test_build_rates_macro_from_treasury_curves() -> None:
     ).set_index("label")
     assert result.loc["us_2y", "value"] == 4.25
     assert result.loc["us_10y_real", "value"] == 2.15
-    assert result.loc["us_10y_breakeven", "value"] == 2.55
+    assert result.loc["us_10y_breakeven", "value"] == pytest.approx(2.55)
     assert set(result.index) == {
         "us_2y",
         "us_10y",
