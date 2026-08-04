@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import time
 from datetime import timezone
 from email.utils import parsedate_to_datetime
@@ -8,6 +9,9 @@ from typing import Mapping
 import requests
 
 from crew.data_platform.contracts import HttpPayload, utc_now
+
+
+_EMAIL_PATTERN = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.IGNORECASE)
 
 
 class HttpClient:
@@ -24,13 +28,15 @@ class HttpClient:
         if not user_agent.strip():
             raise ValueError("A declared user agent is required for automated ingestion.")
         self.session = requests.Session()
-        self.session.headers.update(
-            {
-                "User-Agent": user_agent,
-                "Accept-Encoding": "gzip, deflate",
-                "Accept": "application/json, application/xml, text/xml, text/csv, */*",
-            }
-        )
+        default_headers = {
+            "User-Agent": user_agent,
+            "Accept-Encoding": "gzip, deflate",
+            "Accept": "application/json, application/xml, text/xml, text/csv, */*",
+        }
+        contact_match = _EMAIL_PATTERN.search(user_agent)
+        if contact_match:
+            default_headers["From"] = contact_match.group(0)
+        self.session.headers.update(default_headers)
         self.min_interval_seconds = max(0.0, min_interval_seconds)
         self.timeout_seconds = timeout_seconds
         self.max_attempts = max_attempts
