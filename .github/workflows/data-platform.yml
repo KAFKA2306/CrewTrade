@@ -114,8 +114,17 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Fetch canonical primary sources
-        run: uv run crew-data sync
+      - name: Fetch FRED canonical series
+        run: uv run crew-data sync --source fred
+
+      - name: Fetch U.S. Treasury curve
+        run: uv run crew-data sync --source treasury_yield_curve
+
+      - name: Fetch SEC filings, facts, and 13F tables
+        run: uv run crew-data sync --source sec_edgar
+
+      - name: Materialize governed source registry
+        run: uv run crew-data sync --source governed_manual
 
       - name: Generate migrated analysis reports
         run: |
