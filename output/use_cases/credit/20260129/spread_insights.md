@@ -1,33 +1,16 @@
-# Credit Spread Insight Report
+# 旧クレジット代理分析の撤回
 
-## Data Coverage
-- Price range: 2020-12-14 → 2025-12-11
-- Pairs analysed: 2
+この補助レポートは、HYG/IEFおよびJNK/TLTのETF価格比を信用スプレッドの代理として使用していました。
 
-## Latest Snapshot
-| Pair | Date | Z | Ratio | Return Gap % |
-| --- | --- | --- | --- | --- |
-| HYG_vs_IEF | 2025-12-11 | 1.61 | 0.84 | -0.04 |
-| JNK_vs_TLT | 2025-12-11 | 1.75 | 1.10 | 0.12 |
+ETF価格比は、残存期間、デュレーション、オプション、構成銘柄、需給が一致しないため、ICE BofA OASを再現しません。旧スナップショット、z値分布、シグナル件数は信用分析の証拠から撤回しました。
 
-## Signals
-- Total signals: 709
+現在の公開状態は次のとおりです。
 
-| Pair | Signal | Count |
-| --- | --- | --- |
-| HYG_vs_IEF | spread_tightening | 104 |
-| HYG_vs_IEF | spread_widening | 251 |
-| JNK_vs_TLT | spread_tightening | 116 |
-| JNK_vs_TLT | spread_widening | 238 |
+- ETF代理系列: 廃止
+- 正式対象: ICE BofA OAS
+- PagesへのOAS数値公開: 公開利用許諾を確認できるまで停止
+- 再開条件: 権利者の公開利用許諾と保存範囲を記録
 
-## 90-Day Activity
-| Pair | Signals | Median |Z| |
-| --- | --- | --- |
-| HYG_vs_IEF | 13 | 1.53 |
-| JNK_vs_TLT | 19 | -1.62 |
+一次情報: https://fred.stlouisfed.org/data/BAMLC0A0CM
 
-## Z-Score Distribution
-| Pair | Mean | Std | Max |
-| --- | --- | --- | --- |
-| HYG_vs_IEF | 0.38 | 1.25 | 2.68 |
-| JNK_vs_TLT | 0.33 | 1.26 | 3.11 |
+撤回・統制更新日: 2026-08-04
