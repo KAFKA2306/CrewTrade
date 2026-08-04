@@ -12,7 +12,11 @@ from crew.data_platform.contracts import DatasetBatch
 from crew.data_platform.gold import refresh_gold_views
 from crew.data_platform.sources.fred import parse_fred_public_csv
 from crew.data_platform.sources.sec import parse_13f_information_table
-from crew.data_platform.sources.treasury import build_rates_macro
+from crew.data_platform.sources.treasury import (
+    _REAL_TENOR_FIELDS,
+    build_rates_macro,
+    parse_treasury_yield_xml,
+)
 from crew.data_platform.storage import DataPlatformStorage
 from crew.yields.analysis import YieldSpreadAnalyzer
 from crew.yields.config import YieldSpreadConfig
@@ -28,6 +32,29 @@ def test_parse_fred_public_csv() -> None:
     assert len(rows) == 1
     assert rows[0]["value"] == 4.70
     assert str(rows[0]["realtime_start"]) == "2026-08-04"
+
+
+def test_parse_treasury_real_yield_xml() -> None:
+    payload = b"""<?xml version='1.0' encoding='utf-8'?>
+    <feed xmlns='http://www.w3.org/2005/Atom'
+          xmlns:m='http://schemas.microsoft.com/ado/2007/08/dataservices/metadata'
+          xmlns:d='http://schemas.microsoft.com/ado/2007/08/dataservices'>
+      <entry><content type='application/xml'><m:properties>
+        <d:NEW_DATE>2026-08-03T00:00:00</d:NEW_DATE>
+        <d:TC_5YEAR>1.90</d:TC_5YEAR>
+        <d:TC_7YEAR>2.02</d:TC_7YEAR>
+        <d:TC_10YEAR>2.15</d:TC_10YEAR>
+        <d:TC_20YEAR>2.44</d:TC_20YEAR>
+        <d:TC_30YEAR>2.50</d:TC_30YEAR>
+      </m:properties></content></entry>
+    </feed>"""
+    rows = parse_treasury_yield_xml(
+        payload,
+        tenor_fields=_REAL_TENOR_FIELDS,
+        curve_type="daily_treasury_par_real_yield_curve",
+    )
+    assert [row["tenor"] for row in rows] == ["5Y", "7Y", "10Y", "20Y", "30Y"]
+    assert rows[2]["value"] == 2.15
 
 
 def test_build_rates_macro_from_treasury_curves() -> None:
