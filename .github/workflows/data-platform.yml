@@ -151,5 +151,6 @@ jobs:
             echo "Published reports and status are current."
           else
             git commit -m "Refresh canonical data reports and status"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi

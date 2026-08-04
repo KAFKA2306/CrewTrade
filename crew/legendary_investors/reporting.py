@@ -75,7 +75,7 @@ class LegendaryInvestorsReporter:
             ascending=[True, False],
         ).iterrows():
             lines.append(
-                f"| {row['manager_display_name']} | {row['issuer']} | {row['title_of_class']} | `{row['cusip']}` | {row['put_call'] or '—'} | {_format_number(row['reported_value'])} | {_format_percent(row['portfolio_weight'])} | {_format_number(row['shares_or_principal'])} {row['shares_or_principal_type'] or ''} |"
+                f"| {_format_text(row['manager_display_name'])} | {_format_text(row['issuer'])} | {_format_text(row['title_of_class'])} | `{_format_text(row['cusip'])}` | {_format_text(row['put_call'])} | {_format_number(row['reported_value'])} | {_format_percent(row['portfolio_weight'])} | {_format_number(row['shares_or_principal'])} {_format_text(row['shares_or_principal_type'], fallback='')} |"
             )
 
         lines.extend(
@@ -116,7 +116,7 @@ class LegendaryInvestorsReporter:
             )
             for _, row in changes.head(20).iterrows():
                 lines.append(
-                    f"| {row['manager_display_name']} | {row['issuer']} | `{row['cusip']}` | {row['change_type']} | {_format_signed(row['share_change'])} | {_format_signed(row['value_change'])} |"
+                    f"| {_format_text(row['manager_display_name'])} | {_format_text(row['issuer'])} | `{_format_text(row['cusip'])}` | {_format_text(row['change_type'])} | {_format_signed(row['share_change'])} | {_format_signed(row['value_change'])} |"
                 )
 
         lines.extend(
@@ -168,6 +168,13 @@ def _frame(payload: Dict[str, Any], key: str, *, required: bool = True) -> pd.Da
     if required:
         raise TypeError(f"Expected DataFrame payload: {key}")
     return pd.DataFrame()
+
+
+def _format_text(value: object, *, fallback: str = "—") -> str:
+    if value is None or pd.isna(value):
+        return fallback
+    text = str(value).strip()
+    return text or fallback
 
 
 def _format_number(value: object) -> str:
