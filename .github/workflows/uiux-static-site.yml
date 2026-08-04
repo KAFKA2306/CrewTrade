@@ -1,0 +1,68 @@
+name: Build and audit research catalogue
+
+on:
+  pull_request:
+    paths:
+      - "web/**"
+      - "output/use_cases/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/uiux-static-site.yml"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: research-catalogue-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Validate source syntax
+        run: |
+          uv run python -m compileall -q web
+          node --check web/static/site.js
+
+      - name: Build static site
+        run: uv run python web/build_static.py
+
+      - name: Audit generated site
+        run: uv run python web/audit_static.py
+
+      - name: Commit generated docs on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          if git diff --cached --quiet; then
+            echo "Generated docs are current."
+          else
+            git commit -m "Rebuild published research catalogue [skip ci]"
+            git push
+          fi

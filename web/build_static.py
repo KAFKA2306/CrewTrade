@@ -8,7 +8,7 @@ from pathlib import Path
 import markdown
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
-from catalog import describe_case, format_report_date
+from catalog import describe_case, format_report_date, purpose_rank
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "output" / "use_cases"
@@ -264,9 +264,23 @@ def build() -> None:
     if not cards:
         raise RuntimeError("No publishable Markdown reports were found under output/use_cases.")
 
+    cards.sort(key=lambda item: (purpose_rank(str(item["purpose"])), str(item["title"])))
+    site_latest_date = max(str(card["latest_date"]) for card in cards)
+    for card in cards:
+        card["freshness"] = "current" if card["latest_date"] == site_latest_date else "archive"
+
+    purposes: list[str] = []
+    for card in cards:
+        purpose = str(card["purpose"])
+        if purpose not in purposes:
+            purposes.append(purpose)
+
     index_html = env.get_template("static_index.html").render(
         cases=cards,
+        purposes=purposes,
         total_reports=sum(int(card["report_count"]) for card in cards),
+        site_latest_date=site_latest_date,
+        site_latest_date_label=format_report_date(site_latest_date),
     )
     (DOCS_DIR / "index.html").write_text(index_html, encoding="utf-8")
 
@@ -311,8 +325,10 @@ def build() -> None:
                 (case_docs_dir / output_name).write_text(companion_html, encoding="utf-8")
 
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "source_revision": os.environ.get("GITHUB_SHA", "local"),
+        "site_latest_date": site_latest_date,
+        "purposes": purposes,
         "cases": report_index,
         "total_reports": sum(len(item["dates"]) for item in report_index),
     }

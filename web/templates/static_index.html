@@ -3,116 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="CrewTradeの金融調査・時系列分析レポートを、テーマ、更新日、検証軸から閲覧できる公開ワークスペースです。">
-  <title>CrewTrade | Financial Research Workspace</title>
+  <meta name="description" content="CrewTradeの金融調査を、検証目的、対象、期間、更新状態、主要警告から選べる公開研究カタログです。">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>CrewTrade | 金融調査カタログ</title>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="stylesheet" href="assets/table.css">
   <script defer src="assets/site.js"></script>
 </head>
 <body>
+  <a class="skip-link" href="#research-catalogue">調査カタログへ移動</a>
   <header class="site-header shell">
     <div class="header-inner">
       <a class="brand" href="index.html" aria-label="CrewTrade ホーム">
-        <span class="brand-mark">CT</span><span>CrewTrade</span>
+        <span class="brand-mark" aria-hidden="true">CT</span><span>CrewTrade</span>
       </a>
-      <nav class="header-links" aria-label="外部リンク">
-        <a href="#research-map">調査テーマ</a>
+      <nav class="header-links" aria-label="主要ナビゲーション">
+        <a href="#research-catalogue">調査を選ぶ</a>
+        <a href="#reading-protocol">読み方</a>
         <a href="https://github.com/KAFKA2306/CrewTrade">GitHub</a>
       </nav>
     </div>
   </header>
 
   <main class="shell">
-    <section class="hero">
+    <section class="hero" aria-labelledby="page-title">
       <div>
-        <p class="eyebrow">Financial research workspace</p>
-        <h1>数字と解釈を、混ぜずに読む。</h1>
-        <p class="hero-copy">市場データ、計算結果、予測、文章による解釈を分離し、テーマごとの問いからレポートと根拠へ進むための公開ワークスペースです。</p>
+        <p class="eyebrow">Decision-oriented research catalogue</p>
+        <h1 id="page-title">何を検証するかから、調査を選ぶ。</h1>
+        <p class="hero-copy">テーマ名ではなく、検証目的、対象、期間、更新時点、主要な注意事項を先に確認します。数値、モデル予測、文章による解釈は同じ証拠として扱いません。</p>
         <div class="metrics" aria-label="公開状況">
           <span class="metric"><strong>{{ cases|length }}</strong>調査テーマ</span>
           <span class="metric"><strong>{{ total_reports }}</strong>公開レポート</span>
-          <span class="metric">静的スナップショット</span>
+          <span class="metric"><strong>{{ purposes|length }}</strong>検証目的</span>
+          <span class="metric">最新 {{ site_latest_date_label }}</span>
         </div>
       </div>
-      <aside class="hero-note">
-        <strong>このサイトの前提</strong>
-        <p>掲載値は各レポートの作成日時点です。リアルタイム価格、投資助言、将来収益の保証ではありません。</p>
+      <aside class="hero-note" aria-label="利用上の注意">
+        <span class="status-label">STATIC SNAPSHOT</span>
+        <strong>これはリアルタイム画面ではありません</strong>
+        <p>各カードの更新日と警告を確認してください。掲載内容は投資助言、売買推奨、将来収益の保証ではありません。</p>
       </aside>
     </section>
 
-    <section class="section" id="research-map">
+    <section class="section catalogue" id="research-catalogue" tabindex="-1" aria-labelledby="catalogue-title">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Research map</p>
-          <h2>問いから分析を選ぶ</h2>
-          <p>銘柄名の羅列ではなく、検証したい構造で整理しています。</p>
-        </div>
-        <div class="toolbar">
-          <input class="search" type="search" placeholder="テーマ・問いを検索" aria-label="調査テーマを検索" data-case-search>
-          <div class="view-switch" role="group" aria-label="一覧表示を切り替え">
-            <button class="view-button" type="button" data-view-button="table" aria-pressed="true">表</button>
-            <button class="view-button" type="button" data-view-button="cards" aria-pressed="false">カード</button>
-          </div>
-          <span class="result-count" data-result-count aria-live="polite">{{ cases|length }}件</span>
+          <p class="eyebrow">Research catalogue</p>
+          <h2 id="catalogue-title">調査テーマ</h2>
+          <p>検索条件はURLに保存され、再読込、共有、戻る操作で復元されます。</p>
         </div>
       </div>
 
-      <div class="case-table-shell" data-case-view="table">
+      <form class="catalogue-controls" data-case-controls role="search" aria-label="調査テーマを絞り込む">
+        <label class="control-field control-search" for="case-search">
+          <span>検索</span>
+          <input id="case-search" class="search" type="search" placeholder="問い、対象、テーマ、警告を検索" autocomplete="off" data-case-search>
+        </label>
+        <label class="control-field" for="purpose-filter">
+          <span>検証目的</span>
+          <select id="purpose-filter" data-purpose-filter>
+            <option value="all">すべて</option>
+            {% for purpose in purposes %}<option value="{{ purpose }}">{{ purpose }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="control-field" for="freshness-filter">
+          <span>更新状態</span>
+          <select id="freshness-filter" data-freshness-filter>
+            <option value="all">すべて</option>
+            <option value="current">最新基準日</option>
+            <option value="archive">過去基準日</option>
+          </select>
+        </label>
+        <div class="control-field">
+          <span>表示</span>
+          <div class="view-switch" role="group" aria-label="一覧表示を切り替え">
+            <button class="view-button" type="button" data-view-button="table" aria-pressed="true">比較表</button>
+            <button class="view-button" type="button" data-view-button="cards" aria-pressed="false">目的別カード</button>
+          </div>
+        </div>
+        <button class="clear-button" type="button" data-clear-filters>条件をリセット</button>
+      </form>
+
+      <div class="active-summary" aria-live="polite">
+        <strong data-result-count>{{ cases|length }}件</strong>
+        <span data-filter-summary>全テーマを表示中</span>
+      </div>
+
+      <div class="empty-state" data-empty-state hidden>
+        <h3>条件に一致する調査がありません</h3>
+        <p>検索語または絞り込み条件を変更してください。</p>
+        <button type="button" data-empty-clear>すべて表示</button>
+      </div>
+
+      <div class="case-table-shell" data-case-view="table" tabindex="0" aria-label="調査テーマ比較表。横方向にスクロールできます。">
         <table class="case-table">
+          <caption>検証目的、対象、期間、更新状態、警告を比較する調査テーマ一覧</caption>
           <thead>
             <tr>
               <th scope="col">調査テーマ</th>
-              <th scope="col">分類</th>
-              <th scope="col">検証軸</th>
-              <th scope="col" class="number-column">レポート</th>
+              <th scope="col">検証目的</th>
+              <th scope="col">対象・期間</th>
+              <th scope="col">状態・警告</th>
               <th scope="col">最新更新</th>
+              <th scope="col" class="number-column">レポート</th>
             </tr>
           </thead>
           <tbody>
             {% for case in cases %}
-            <tr data-case-item data-case-row data-case-slug="{{ case.slug }}" data-search="{{ (case.title ~ ' ' ~ case.category ~ ' ' ~ case.summary ~ ' ' ~ case.question)|lower }}">
+            <tr data-case-item data-case-row data-case-slug="{{ case.slug }}" data-purpose="{{ case.purpose }}" data-freshness="{{ case.freshness }}" data-search="{{ (case.title ~ ' ' ~ case.category ~ ' ' ~ case.purpose ~ ' ' ~ case.scope ~ ' ' ~ case.period ~ ' ' ~ case.summary ~ ' ' ~ case.question ~ ' ' ~ case.status ~ ' ' ~ case.warning)|lower }}">
               <td>
                 <a class="table-title" href="{{ case.slug }}/index.html" data-accent="{{ case.accent }}">
                   <span class="table-accent" aria-hidden="true"></span>
-                  <span><strong>{{ case.title }}</strong><small>{{ case.summary }}</small></span>
+                  <span><strong>{{ case.title }}</strong><small>{{ case.question }}</small></span>
                 </a>
               </td>
-              <td><span class="category-pill">{{ case.category }}</span></td>
-              <td class="table-question">{{ case.question }}</td>
+              <td><span class="category-pill">{{ case.purpose }}</span><small class="cell-secondary">{{ case.category }}</small></td>
+              <td><strong>{{ case.scope }}</strong><small class="cell-secondary">{{ case.period }}</small></td>
+              <td><span class="status-pill">{{ case.status }}</span><small class="cell-warning">{{ case.warning }}</small></td>
+              <td><a class="table-date" href="{{ case.slug }}/{{ case.latest_date }}.html">{{ case.latest_date_label }} <span aria-hidden="true">→</span></a><small class="cell-secondary">{{ case.change_summary }}</small></td>
               <td class="number-column"><strong>{{ case.report_count }}</strong></td>
-              <td><a class="table-date" href="{{ case.slug }}/{{ case.latest_date }}.html">{{ case.latest_date_label }} <span aria-hidden="true">→</span></a></td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
 
-      <div class="case-grid" data-case-view="cards" hidden>
-        {% for case in cases %}
-        <a class="case-card" href="{{ case.slug }}/index.html" data-case-item data-case-card data-case-slug="{{ case.slug }}" data-accent="{{ case.accent }}" data-search="{{ (case.title ~ ' ' ~ case.category ~ ' ' ~ case.summary ~ ' ' ~ case.question)|lower }}">
-          <div class="card-meta"><span>{{ case.category }}</span><span>{{ case.report_count }} reports</span></div>
-          <h3>{{ case.title }}</h3>
-          <p>{{ case.summary }}</p>
-          <p class="card-question">{{ case.question }}</p>
-          <span class="card-arrow">{{ case.latest_date_label }} →</span>
-        </a>
+      <div class="purpose-groups" data-case-view="cards" hidden>
+        {% for purpose in purposes %}
+        <section class="purpose-section" data-purpose-section="{{ purpose }}" aria-labelledby="purpose-{{ loop.index }}">
+          <div class="purpose-heading"><h3 id="purpose-{{ loop.index }}">{{ purpose }}</h3><span data-purpose-count></span></div>
+          <div class="case-grid">
+            {% for case in cases if case.purpose == purpose %}
+            <article class="case-card" data-case-item data-case-card data-case-slug="{{ case.slug }}" data-purpose="{{ case.purpose }}" data-freshness="{{ case.freshness }}" data-accent="{{ case.accent }}" data-search="{{ (case.title ~ ' ' ~ case.category ~ ' ' ~ case.purpose ~ ' ' ~ case.scope ~ ' ' ~ case.period ~ ' ' ~ case.summary ~ ' ' ~ case.question ~ ' ' ~ case.status ~ ' ' ~ case.warning)|lower }}">
+              <div class="card-meta"><span>{{ case.category }}</span><span class="status-pill">{{ case.status }}</span></div>
+              <h4><a href="{{ case.slug }}/index.html">{{ case.title }}</a></h4>
+              <p class="card-question"><span>検証する問い</span>{{ case.question }}</p>
+              <dl class="card-facts"><div><dt>対象</dt><dd>{{ case.scope }}</dd></div><div><dt>期間</dt><dd>{{ case.period }}</dd></div></dl>
+              <p class="card-warning"><strong>注意</strong>{{ case.warning }}</p>
+              <div class="card-footer"><a href="{{ case.slug }}/{{ case.latest_date }}.html">最新 {{ case.latest_date_label }}</a><span>{{ case.report_count }}件</span></div>
+            </article>
+            {% endfor %}
+          </div>
+        </section>
         {% endfor %}
       </div>
+      <noscript><p class="notice">JavaScriptが無効なため、検索と表示切替は利用できません。比較表から全テーマを閲覧できます。</p></noscript>
     </section>
 
-    <section class="section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Reading protocol</p>
-          <h2>レポートの読み方</h2>
-        </div>
-      </div>
+    <section class="section" id="reading-protocol" aria-labelledby="protocol-title">
+      <div class="section-heading"><div><p class="eyebrow">Reading protocol</p><h2 id="protocol-title">レポートの読み方</h2></div></div>
       <div class="process-grid">
         <div class="process-step"><span>01</span><h3>対象と期間</h3><p>銘柄、指数、通貨、取得日、比較期間を最初に固定します。</p></div>
-        <div class="process-step"><span>02</span><h3>計算条件</h3><p>配当、分割、手数料、税、欠損、インサンプル/OOSを確認します。</p></div>
-        <div class="process-step"><span>03</span><h3>解釈と限界</h3><p>定量結果、モデル予測、LLMの文章を別の証拠レイヤーとして読みます。</p></div>
+        <div class="process-step"><span>02</span><h3>計算と証拠</h3><p>配当、分割、費用、欠損、実績、予測、OOSを分離します。</p></div>
+        <div class="process-step"><span>03</span><h3>警告と反証</h3><p>結論だけでなく、成立しない条件と更新時点を確認します。</p></div>
       </div>
-      <div class="notice"><strong>再現性:</strong> 公開ページはリポジトリ内の分析スナップショットから生成されます。生成器は曖昧な複数Markdownや出力欠損を成功扱いしません。</div>
+      <div class="notice"><strong>再現性:</strong> 公開ページはリポジトリ内の分析スナップショットから生成されます。曖昧な複数Markdown、出力欠損、未登録メタデータを正常状態として隠しません。</div>
     </section>
   </main>
 
