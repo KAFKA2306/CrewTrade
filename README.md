@@ -6,8 +6,6 @@
 
 CrewTradeは、一次データの取得、定量計算、評価、文章による解釈を分離し、再検証可能な分析スナップショットとして公開する金融調査ワークスペースです。ここで immutable raw、Parquet、DuckDB、lineage などの技術を使います。
 
-READMEの入口は [`KAFKA2306/articles#34`](https://github.com/KAFKA2306/articles/issues/34) の「広い問題 → 具体例 → 技術」の編集原則を維持し、停止中テーマを稼働中と書かず、利用権・再配布権・到達性の境界を保ちます。
-
 [公開ダッシュボード](https://kafka2306.github.io/CrewTrade/) · [データ基盤状態](https://kafka2306.github.io/CrewTrade/data-status/) · [GitHub Actions](https://github.com/KAFKA2306/CrewTrade/actions) · [データ基盤設計](docs/data-platform.md)
 
 取得経路、利用権、比較可能性、秘密性のいずれかが不足する場合は数値を推測せず、理由付きで停止します。Pagesの`OK`は「全テーマが数値を出している」ことではなく、到達可能な公開分析が正準稼働し、残りが明示的に統制されていることを意味します。
