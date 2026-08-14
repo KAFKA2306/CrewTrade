@@ -17,7 +17,6 @@ from crew.data_platform.sources import (
 )
 from crew.data_platform.storage import DataPlatformStorage
 
-
 _ADAPTERS = {
     "fred": FredSource,
     "treasury_yield_curve": TreasuryYieldCurveSource,
