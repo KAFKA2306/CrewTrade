@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import re
 import time
-from datetime import timezone
+from collections.abc import Mapping
+from datetime import UTC
 from email.utils import parsedate_to_datetime
-from typing import Mapping
 
 import requests
 
 from crew.data_platform.contracts import HttpPayload, utc_now
-
 
 _EMAIL_PATTERN = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.IGNORECASE)
 
@@ -69,18 +68,14 @@ class HttpClient:
                 date_header = response.headers.get("Date")
                 if date_header:
                     try:
-                        retrieved_at = parsedate_to_datetime(date_header).astimezone(
-                            timezone.utc
-                        )
+                        retrieved_at = parsedate_to_datetime(date_header).astimezone(UTC)
                     except (TypeError, ValueError, OverflowError):
                         pass
                 return HttpPayload(
                     body=response.content,
                     url=response.url,
                     status_code=response.status_code,
-                    content_type=response.headers.get(
-                        "Content-Type", "application/octet-stream"
-                    ),
+                    content_type=response.headers.get("Content-Type", "application/octet-stream"),
                     retrieved_at=retrieved_at,
                     headers=dict(response.headers),
                 )

@@ -28,9 +28,6 @@ env/
 logs/
 *.log
 
-# Lock files
-uv.lock
-
 # !Generated files
 
 # Database
@@ -45,6 +42,3 @@ uv.lock
 # Data
 data/
 resources/data/
-
-# Submodules/External
-Kronos/*.png

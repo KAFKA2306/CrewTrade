@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
 
-def build_insight_markdown(analysis_payload: Dict[str, Any]) -> str:
+def build_insight_markdown(analysis_payload: dict[str, Any]) -> str:
     """Return a compact optional summary for canonical Treasury output."""
 
     snapshot = analysis_payload.get("spread_snapshot", pd.DataFrame())

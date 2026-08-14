@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: crewtrade-fast-quality
+        name: CrewTrade fast quality gates
+        entry: bash scripts/check.sh
+        language: system
+        pass_filenames: false
+        always_run: true

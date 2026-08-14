@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict
 
 import pandas as pd
 
@@ -20,7 +19,7 @@ class YieldSpreadDataPipeline(BaseDataPipeline):
     def __init__(self, raw_data_dir: Path, config: YieldSpreadConfig) -> None:
         super().__init__(raw_data_dir, config)
 
-    def fetch_data_internal(self, targets: Dict[str, str], days: int) -> Dict[str, str]:
+    def fetch_data_internal(self, targets: dict[str, str], days: int) -> dict[str, str]:
         rates = pivot_latest_vintage(self.config.rates_dataset)
         rates = self._slice_period(rates, self.config.period)
         required_labels = {
@@ -36,9 +35,7 @@ class YieldSpreadDataPipeline(BaseDataPipeline):
         provenance = latest_vintage_series(self.config.rates_dataset)
         provenance = provenance[provenance["label"].isin(required_labels)].copy()
         if not rates.empty:
-            provenance = provenance[
-                provenance["observation_date"] >= rates.index.min()
-            ]
+            provenance = provenance[provenance["observation_date"] >= rates.index.min()]
 
         curve = treasury_curve(latest_only=False)
         self._save("rates", rates.reset_index())
@@ -46,9 +43,7 @@ class YieldSpreadDataPipeline(BaseDataPipeline):
         self._save("treasury_curve", curve)
         return {
             "rates": str(self.raw_data_dir / "rates.parquet"),
-            "rates_provenance": str(
-                self.raw_data_dir / "rates_provenance.parquet"
-            ),
+            "rates_provenance": str(self.raw_data_dir / "rates_provenance.parquet"),
             "treasury_curve": str(self.raw_data_dir / "treasury_curve.parquet"),
         }
 

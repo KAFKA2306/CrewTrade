@@ -8,7 +8,6 @@ from crew.data_platform.contracts import DatasetBatch
 from crew.data_platform.public_status import build_public_status, export_public_status
 from crew.data_platform.storage import DataPlatformStorage
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PLATFORM_CONFIG = PROJECT_ROOT / "config" / "data_platform.yaml"
 MIGRATION_CONFIG = PROJECT_ROOT / "config" / "use_case_data_status.yaml"

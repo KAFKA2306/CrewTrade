@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict
-
 from pydantic import BaseModel, Field, validator
 
 from crew.base import UseCaseConfig
@@ -21,7 +19,7 @@ class YieldSpreadConfig(UseCaseConfig):
     minimum_periods: int = Field(default=20, ge=2)
     z_score_threshold: float = Field(default=1.5, gt=0)
     bp_alert_threshold: float = Field(default=25.0, ge=0)
-    curve_spreads: Dict[str, CurveSpreadConfig] = Field(
+    curve_spreads: dict[str, CurveSpreadConfig] = Field(
         default_factory=lambda: {
             "us_2s10s": CurveSpreadConfig(
                 short_label="us_2y",

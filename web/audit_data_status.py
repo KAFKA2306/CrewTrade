@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = PROJECT_ROOT / "docs"
 STATUS_SOURCE = PROJECT_ROOT / "web" / "generated" / "data-platform-status.json"
@@ -45,17 +44,11 @@ def audit() -> None:
             failures.append("invalid use-case status row")
             continue
         if row.get("runtime_state") not in ALLOWED_STATES:
-            failures.append(
-                f"invalid state for {row.get('slug')}: {row.get('runtime_state')}"
-            )
+            failures.append(f"invalid state for {row.get('slug')}: {row.get('runtime_state')}")
         if not row.get("owner_source") or not row.get("note"):
             failures.append(f"missing owner/note for {row.get('slug')}")
-        if row.get("declared_state") == "canonical_active" and not row.get(
-            "required_datasets"
-        ):
-            failures.append(
-                f"canonical use case has no datasets: {row.get('slug')}"
-            )
+        if row.get("declared_state") == "canonical_active" and not row.get("required_datasets"):
+            failures.append(f"canonical use case has no datasets: {row.get('slug')}")
 
     summary = status.get("summary", {})
     if summary.get("use_case_count") != 10:

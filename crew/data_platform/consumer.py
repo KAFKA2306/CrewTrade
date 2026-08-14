@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import duckdb
 import pandas as pd
@@ -82,14 +82,8 @@ def pivot_latest_vintage(dataset: str, *, root: Path | None = None) -> pd.DataFr
     return pivot
 
 
-def treasury_curve(
-    *, latest_only: bool = False, root: Path | None = None
-) -> pd.DataFrame:
-    view = (
-        "gold_treasury_curve_latest"
-        if latest_only
-        else "bronze_treasury_par_yield_curve"
-    )
+def treasury_curve(*, latest_only: bool = False, root: Path | None = None) -> pd.DataFrame:
+    view = "gold_treasury_curve_latest" if latest_only else "bronze_treasury_par_yield_curve"
     frame = query_frame(
         f"""
         SELECT observation_date, tenor, value, unit, curve_type,
@@ -166,7 +160,7 @@ def sec_company_facts(
                fiscal_year, fiscal_period, frame, accession_number,
                _retrieved_at, _source_url, _raw_sha256
         FROM bronze_sec_company_facts
-        WHERE {' AND '.join(clauses)}
+        WHERE {" AND ".join(clauses)}
         ORDER BY end_date DESC NULLS LAST, filed_date DESC NULLS LAST
         """,
         parameters,
@@ -185,11 +179,7 @@ def sec_13f_holdings(
     latest_only: bool = False,
     root: Path | None = None,
 ) -> pd.DataFrame:
-    view = (
-        "gold_sec_13f_holdings_latest"
-        if latest_only
-        else "bronze_sec_13f_holdings"
-    )
+    view = "gold_sec_13f_holdings_latest" if latest_only else "bronze_sec_13f_holdings"
     names = list(entity_names or [])
     where = ""
     parameters: list[object] = []

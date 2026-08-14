@@ -1,0 +1,49 @@
+name: Fast quality gates
+
+on:
+  pull_request:
+    paths:
+      - "crew/**"
+      - "web/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".gitignore"
+      - ".pre-commit-config.yaml"
+      - "scripts/bootstrap.sh"
+      - "scripts/check.sh"
+      - ".github/workflows/quality.yml"
+  push:
+    branches: [main]
+    paths:
+      - "crew/**"
+      - "web/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".gitignore"
+      - ".pre-commit-config.yaml"
+      - "scripts/bootstrap.sh"
+      - "scripts/check.sh"
+      - ".github/workflows/quality.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.32"
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Run repository fast quality gates
+        run: bash scripts/check.sh

@@ -3,16 +3,15 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterable
 
 import duckdb
 
 from crew.data_platform.contracts import DatasetBatch, PersistedBatch, QualityCheck
 from crew.data_platform.quality import assert_quality, validate_batch
-
 
 _SAFE_NAME = re.compile(r"[^a-zA-Z0-9_]+")
 
@@ -47,7 +46,7 @@ class DataPlatformStorage:
                 """,
                 [
                     run_id,
-                    datetime.now(timezone.utc),
+                    datetime.now(UTC),
                     json.dumps(sorted(set(requested_sources)), ensure_ascii=False),
                 ],
             )
@@ -66,7 +65,7 @@ class DataPlatformStorage:
                 SET completed_at = ?, status = ?, error = ?
                 WHERE run_id = ?
                 """,
-                [datetime.now(timezone.utc), status, error, run_id],
+                [datetime.now(UTC), status, error, run_id],
             )
 
     def persist(self, run_id: str, batch: DatasetBatch) -> PersistedBatch:
@@ -147,7 +146,7 @@ class DataPlatformStorage:
         manifest = {
             "schema_version": 1,
             "run_id": run_id,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "catalog": str(self.catalog_path),
             "batches": [
                 {
@@ -198,7 +197,7 @@ class DataPlatformStorage:
                         check.name,
                         check.passed,
                         check.details,
-                        datetime.now(timezone.utc),
+                        datetime.now(UTC),
                     ],
                 )
 

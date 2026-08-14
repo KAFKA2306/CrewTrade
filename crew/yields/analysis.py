@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import datetime
 from pathlib import Path
-from typing import Dict, List
 from zoneinfo import ZoneInfo
 
 import numpy as np
@@ -19,11 +18,9 @@ class YieldSpreadAnalyzer:
         self.config = config
         self.raw_data_dir: Path | None = None
 
-    def evaluate(self, data_payload: Dict[str, object]) -> Dict[str, pd.DataFrame]:
+    def evaluate(self, data_payload: dict[str, object]) -> dict[str, pd.DataFrame]:
         rates = self._load_frame(data_payload.get("rates"), "rates.parquet")
-        curve = self._load_frame(
-            data_payload.get("treasury_curve"), "treasury_curve.parquet"
-        )
+        curve = self._load_frame(data_payload.get("treasury_curve"), "treasury_curve.parquet")
         provenance = self._load_frame(
             data_payload.get("rates_provenance"),
             "rates_provenance.parquet",
@@ -54,9 +51,7 @@ class YieldSpreadAnalyzer:
             "provenance": provenance,
         }
 
-    def _load_frame(
-        self, value: object, filename: str, *, required: bool = True
-    ) -> pd.DataFrame:
+    def _load_frame(self, value: object, filename: str, *, required: bool = True) -> pd.DataFrame:
         if isinstance(value, pd.DataFrame):
             return value.copy()
         if isinstance(value, (str, Path)) and Path(value).is_file():
@@ -72,29 +67,27 @@ class YieldSpreadAnalyzer:
         return pd.DataFrame()
 
     def _compute_spreads(self, rates: pd.DataFrame) -> pd.DataFrame:
-        store: Dict[str, pd.DataFrame] = {}
+        store: dict[str, pd.DataFrame] = {}
         for label, definition in self.config.curve_spreads.items():
             missing = sorted(
-                {definition.short_label, definition.long_label}.difference(
-                    rates.columns
-                )
+                {definition.short_label, definition.long_label}.difference(rates.columns)
             )
             if missing:
                 raise ValueError(f"Missing canonical rate series for {label}: {missing}")
-            aligned = rates[
-                [definition.short_label, definition.long_label]
-            ].dropna()
-            spread_pct = (
-                aligned[definition.long_label] - aligned[definition.short_label]
-            )
+            aligned = rates[[definition.short_label, definition.long_label]].dropna()
+            spread_pct = aligned[definition.long_label] - aligned[definition.short_label]
             rolling_mean = spread_pct.rolling(
                 self.config.rolling_window,
                 min_periods=self.config.minimum_periods,
             ).mean()
-            rolling_std = spread_pct.rolling(
-                self.config.rolling_window,
-                min_periods=self.config.minimum_periods,
-            ).std().replace(0, np.nan)
+            rolling_std = (
+                spread_pct.rolling(
+                    self.config.rolling_window,
+                    min_periods=self.config.minimum_periods,
+                )
+                .std()
+                .replace(0, np.nan)
+            )
             store[label] = pd.DataFrame(
                 {
                     "short_rate_pct": aligned[definition.short_label],
@@ -110,7 +103,7 @@ class YieldSpreadAnalyzer:
         return pd.concat(store, axis=1).sort_index()
 
     def _detect_signals(self, metrics: pd.DataFrame) -> pd.DataFrame:
-        records: List[dict[str, object]] = []
+        records: list[dict[str, object]] = []
         for label in self.config.curve_spreads:
             frame = metrics[label].dropna(subset=["z_score"])
             mask = frame["z_score"].abs() >= self.config.z_score_threshold
@@ -124,9 +117,7 @@ class YieldSpreadAnalyzer:
                         "spread_bp": float(row["spread_bp"]),
                         "change_20d_bp": float(row["change_20d_bp"]),
                         "z_score": float(row["z_score"]),
-                        "direction": "steepening"
-                        if row["change_20d_bp"] > 0
-                        else "flattening",
+                        "direction": "steepening" if row["change_20d_bp"] > 0 else "flattening",
                     }
                 )
         columns = [
@@ -137,12 +128,16 @@ class YieldSpreadAnalyzer:
             "z_score",
             "direction",
         ]
-        return pd.DataFrame.from_records(records, columns=columns).sort_values(
-            "date", ignore_index=True
-        ) if records else pd.DataFrame(columns=columns)
+        return (
+            pd.DataFrame.from_records(records, columns=columns).sort_values(
+                "date", ignore_index=True
+            )
+            if records
+            else pd.DataFrame(columns=columns)
+        )
 
     def _spread_snapshot(self, metrics: pd.DataFrame) -> pd.DataFrame:
-        rows: List[dict[str, object]] = []
+        rows: list[dict[str, object]] = []
         for label, definition in self.config.curve_spreads.items():
             frame = metrics[label].dropna(subset=["spread_pct"])
             if frame.empty:
@@ -164,7 +159,7 @@ class YieldSpreadAnalyzer:
 
     @staticmethod
     def _macro_snapshot(rates: pd.DataFrame) -> pd.DataFrame:
-        rows: List[dict[str, object]] = []
+        rows: list[dict[str, object]] = []
         for label in rates.columns:
             series = rates[label].dropna()
             if series.empty:
@@ -198,9 +193,7 @@ DATA_DIR = PROJECT_ROOT / "data" / "yields"
 def main() -> None:
     from crew.yields.reporting import YieldSpreadReporter
 
-    config = YieldSpreadConfig(
-        **yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8"))
-    )
+    config = YieldSpreadConfig(**yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8")))
     analyzer = YieldSpreadAnalyzer(config)
     analyzer.raw_data_dir = DATA_DIR
     results = analyzer.evaluate({})

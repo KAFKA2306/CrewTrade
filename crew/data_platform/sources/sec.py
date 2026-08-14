@@ -4,7 +4,8 @@ import base64
 import hashlib
 import json
 import os
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 from xml.etree import ElementTree
 
 import pandas as pd
@@ -29,9 +30,7 @@ class SecSource:
             )
         self.client = HttpClient(
             user_agent=user_agent,
-            min_interval_seconds=max(
-                0.12, float(config.get("min_interval_seconds", 0.15))
-            ),
+            min_interval_seconds=max(0.12, float(config.get("min_interval_seconds", 0.15))),
         )
 
     def fetch(self) -> Sequence[DatasetBatch]:
@@ -44,9 +43,7 @@ class SecSource:
 
         for entity_name, entity_config in dict(self.config.get("entities", {})).items():
             cik = str(entity_config["cik"]).zfill(10)
-            submissions_payload = self.client.get(
-                f"{self.DATA_BASE_URL}/submissions/CIK{cik}.json"
-            )
+            submissions_payload = self.client.get(f"{self.DATA_BASE_URL}/submissions/CIK{cik}.json")
             submissions_json = json.loads(submissions_payload.body)
             entity_filings = parse_sec_submissions(
                 entity_name=str(entity_name), cik=cik, payload=submissions_json
@@ -134,7 +131,9 @@ class SecSource:
                     raw_payload=raw_payload,
                     content_type="application/json",
                     retrieved_at=retrieved_at,
-                    metadata={"filing_count": len({row["accession_number"] for row in holding_rows})},
+                    metadata={
+                        "filing_count": len({row["accession_number"] for row in holding_rows})
+                    },
                 )
             )
         return batches
@@ -148,9 +147,7 @@ class SecSource:
         history_limit: int,
     ) -> tuple[list[dict[str, object]], list[dict[str, object]], str, object | None]:
         eligible = [
-            filing
-            for filing in filings
-            if str(filing.get("form")) in {"13F-HR", "13F-HR/A"}
+            filing for filing in filings if str(filing.get("form")) in {"13F-HR", "13F-HR/A"}
         ]
         eligible.sort(
             key=lambda item: (
@@ -167,9 +164,7 @@ class SecSource:
             accession = str(filing["accession_number"])
             compact_accession = accession.replace("-", "")
             archive_cik = str(int(cik))
-            directory_url = (
-                f"{self.ARCHIVES_BASE_URL}/{archive_cik}/{compact_accession}"
-            )
+            directory_url = f"{self.ARCHIVES_BASE_URL}/{archive_cik}/{compact_accession}"
             index_payload = self.client.get(f"{directory_url}/index.json")
             index_json = json.loads(index_payload.body)
             candidates = _information_table_candidates(index_json)
@@ -197,9 +192,7 @@ class SecSource:
                     {
                         "filename": filename,
                         "url": document_payload.url,
-                        "body_base64": base64.b64encode(document_payload.body).decode(
-                            "ascii"
-                        ),
+                        "body_base64": base64.b64encode(document_payload.body).decode("ascii"),
                     }
                 )
                 latest_url = document_payload.url
@@ -223,14 +216,10 @@ def parse_sec_submissions(
                 "accession_number": accession_number,
                 "filing_date": _date_at(recent, "filingDate", index),
                 "report_date": _date_at(recent, "reportDate", index),
-                "acceptance_datetime": _timestamp_at(
-                    recent, "acceptanceDateTime", index
-                ),
+                "acceptance_datetime": _timestamp_at(recent, "acceptanceDateTime", index),
                 "form": _value_at(recent, "form", index),
                 "primary_document": _value_at(recent, "primaryDocument", index),
-                "primary_doc_description": _value_at(
-                    recent, "primaryDocDescription", index
-                ),
+                "primary_doc_description": _value_at(recent, "primaryDocDescription", index),
                 "file_number": _value_at(recent, "fileNumber", index),
                 "is_xbrl": _value_at(recent, "isXBRL", index),
                 "is_inline_xbrl": _value_at(recent, "isInlineXBRL", index),
@@ -336,16 +325,10 @@ def parse_13f_information_table(
                 "figi": _descendant_text(node, "figi"),
                 "reported_value": _to_number(_descendant_text(node, "value")),
                 "reported_value_unit": "SEC_13F_as_filed",
-                "shares_or_principal": _to_number(
-                    _descendant_text(node, "sshPrnamt")
-                ),
-                "shares_or_principal_type": _descendant_text(
-                    node, "sshPrnamtType"
-                ),
+                "shares_or_principal": _to_number(_descendant_text(node, "sshPrnamt")),
+                "shares_or_principal_type": _descendant_text(node, "sshPrnamtType"),
                 "put_call": canonical["put_call"],
-                "investment_discretion": _descendant_text(
-                    node, "investmentDiscretion"
-                ),
+                "investment_discretion": _descendant_text(node, "investmentDiscretion"),
                 "other_manager": _descendant_text(node, "otherManager"),
                 "voting_sole": _to_number(_descendant_text(node, "Sole")),
                 "voting_shared": _to_number(_descendant_text(node, "Shared")),
@@ -360,11 +343,7 @@ def _information_table_candidates(index_payload: Mapping[str, Any]) -> list[str]
     items = index_payload.get("directory", {}).get("item", [])
     names = [str(item.get("name", "")) for item in items]
     xml_names = [name for name in names if name.lower().endswith(".xml")]
-    preferred = [
-        name
-        for name in xml_names
-        if "info" in name.lower() and "table" in name.lower()
-    ]
+    preferred = [name for name in xml_names if "info" in name.lower() and "table" in name.lower()]
     return preferred + [name for name in xml_names if name not in preferred]
 
 

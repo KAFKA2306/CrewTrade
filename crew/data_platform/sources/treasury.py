@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import base64
 import json
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 from xml.etree import ElementTree
 
 import pandas as pd
 
 from crew.data_platform.contracts import DatasetBatch
 from crew.data_platform.http import HttpClient
-
 
 _TENOR_FIELDS = {
     "BC_1MONTH": "1M",
@@ -64,12 +64,10 @@ class TreasuryYieldCurveSource:
         sorted_years = sorted(years)
 
         nominal_payloads = [
-            self.client.get(self.NOMINAL_URL_TEMPLATE.format(year=year))
-            for year in sorted_years
+            self.client.get(self.NOMINAL_URL_TEMPLATE.format(year=year)) for year in sorted_years
         ]
         real_payloads = [
-            self.client.get(self.REAL_URL_TEMPLATE.format(year=year))
-            for year in sorted_years
+            self.client.get(self.REAL_URL_TEMPLATE.format(year=year)) for year in sorted_years
         ]
         nominal = pd.DataFrame.from_records(
             row
@@ -115,22 +113,16 @@ class TreasuryYieldCurveSource:
                             "curve_type": "nominal",
                             "year": year,
                             "url": payload.url,
-                            "body_base64": base64.b64encode(payload.body).decode(
-                                "ascii"
-                            ),
+                            "body_base64": base64.b64encode(payload.body).decode("ascii"),
                         }
-                        for year, payload in zip(
-                            sorted_years, nominal_payloads, strict=True
-                        )
+                        for year, payload in zip(sorted_years, nominal_payloads, strict=True)
                     ],
                     *[
                         {
                             "curve_type": "real",
                             "year": year,
                             "url": payload.url,
-                            "body_base64": base64.b64encode(payload.body).decode(
-                                "ascii"
-                            ),
+                            "body_base64": base64.b64encode(payload.body).decode("ascii"),
                         }
                         for year, payload in zip(sorted_years, real_payloads, strict=True)
                     ],
@@ -148,9 +140,7 @@ class TreasuryYieldCurveSource:
         }
         return [
             DatasetBatch(
-                dataset=str(
-                    self.config.get("dataset", "treasury_par_yield_curve")
-                ),
+                dataset=str(self.config.get("dataset", "treasury_par_yield_curve")),
                 source=self.name,
                 frame=nominal,
                 primary_key=("observation_date", "tenor"),
@@ -161,11 +151,7 @@ class TreasuryYieldCurveSource:
                 metadata={**common_metadata, "curve_type": "par_yield"},
             ),
             DatasetBatch(
-                dataset=str(
-                    self.config.get(
-                        "real_dataset", "treasury_par_real_yield_curve"
-                    )
-                ),
+                dataset=str(self.config.get("real_dataset", "treasury_par_real_yield_curve")),
                 source=self.name,
                 frame=real,
                 primary_key=("observation_date", "tenor"),
@@ -215,10 +201,7 @@ def parse_treasury_yield_xml(
     for element in root.iter():
         if _local_name(element.tag) != "properties":
             continue
-        values = {
-            _local_name(child.tag): (child.text or "").strip()
-            for child in list(element)
-        }
+        values = {_local_name(child.tag): (child.text or "").strip() for child in list(element)}
         date_text = values.get("NEW_DATE") or values.get("Id")
         if not date_text:
             continue
@@ -273,15 +256,13 @@ def build_rates_macro(
         }
     )
 
-    nominal_10y = nominal[nominal["tenor"] == "10Y"][
-        ["observation_date", "value"]
-    ].rename(columns={"value": "nominal_10y"})
-    real_10y_values = real[real["tenor"] == "10Y"][
-        ["observation_date", "value"]
-    ].rename(columns={"value": "real_10y"})
-    breakeven = nominal_10y.merge(
-        real_10y_values, on="observation_date", how="inner"
+    nominal_10y = nominal[nominal["tenor"] == "10Y"][["observation_date", "value"]].rename(
+        columns={"value": "nominal_10y"}
     )
+    real_10y_values = real[real["tenor"] == "10Y"][["observation_date", "value"]].rename(
+        columns={"value": "real_10y"}
+    )
+    breakeven = nominal_10y.merge(real_10y_values, on="observation_date", how="inner")
     breakeven["value"] = breakeven["nominal_10y"] - breakeven["real_10y"]
     breakeven["series_id"] = "TREASURY_DERIVED_10Y_BREAKEVEN"
     breakeven["label"] = "us_10y_breakeven"
@@ -300,9 +281,7 @@ def build_rates_macro(
         "units",
         "title",
     ]
-    result = pd.concat(
-        [long_rows[columns], breakeven[columns]], ignore_index=True
-    )
+    result = pd.concat([long_rows[columns], breakeven[columns]], ignore_index=True)
     return result.sort_values(["observation_date", "label"]).reset_index(drop=True)
 
 

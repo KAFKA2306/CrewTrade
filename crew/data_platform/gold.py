@@ -4,7 +4,6 @@ from pathlib import Path
 
 import duckdb
 
-
 _LATEST_BY_SERIES = {"credit_oas", "rates_macro"}
 
 
@@ -14,9 +13,7 @@ def refresh_gold_views(catalog_path: Path) -> None:
     with duckdb.connect(str(catalog_path)) as connection:
         datasets = {
             row[0]
-            for row in connection.execute(
-                "SELECT DISTINCT dataset FROM dataset_files"
-            ).fetchall()
+            for row in connection.execute("SELECT DISTINCT dataset FROM dataset_files").fetchall()
         }
         for dataset in sorted(_LATEST_BY_SERIES.intersection(datasets)):
             connection.execute(
