@@ -173,9 +173,7 @@ def _compute_performance_metrics(
     portfolio_returns = frame.to_numpy() @ weight_vector
     annual_return = float(np.mean(portfolio_returns) * 252.0)
     annual_volatility = float(np.std(portfolio_returns, ddof=1) * np.sqrt(252.0))
-    sharpe = (
-        (annual_return - risk_free_rate) / annual_volatility if annual_volatility > 0 else 0.0
-    )
+    sharpe = (annual_return - risk_free_rate) / annual_volatility if annual_volatility > 0 else 0.0
     return {
         "annual_return": round(annual_return, 4),
         "annual_volatility": round(annual_volatility, 4),
