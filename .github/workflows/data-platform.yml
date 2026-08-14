@@ -168,6 +168,7 @@ jobs:
             echo "Published report and status are current."
           else
             git commit -m "Refresh canonical data report and status"
+            git stash push --include-untracked -m "ci-smoke-generated"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
