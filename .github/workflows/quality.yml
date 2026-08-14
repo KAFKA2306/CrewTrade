@@ -28,7 +28,7 @@ on:
       - ".github/workflows/quality.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   quality:
@@ -37,9 +37,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
 
       - name: Install uv and Python
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
@@ -47,22 +44,6 @@ jobs:
           version: "0.11.32"
           python-version: "3.11"
           enable-cache: true
-
-      - name: Normalize initial lockfile and safe Ruff fixes for this migration
-        if: github.event_name == 'pull_request' && github.head_ref == 'tooling/fast-quality-gates-34'
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-        run: |
-          uv lock
-          uv run --locked ruff check --fix crew/data_platform crew/yields web tests/data_platform || true
-          uv run --locked ruff format crew/data_platform crew/yields web tests/data_platform
-          if [ -n "$(git status --porcelain -- uv.lock crew/data_platform crew/yields web tests/data_platform)" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add uv.lock crew/data_platform crew/yields web tests/data_platform
-            git commit -m "tooling: apply safe Ruff fixes"
-            git push origin HEAD:${HEAD_REF}
-          fi
 
       - name: Run repository fast quality gates
         run: bash scripts/check.sh

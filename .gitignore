@@ -42,6 +42,3 @@ logs/
 # Data
 data/
 resources/data/
-
-# Submodules/External
-Kronos/*.png

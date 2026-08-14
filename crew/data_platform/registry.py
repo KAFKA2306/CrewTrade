@@ -4,11 +4,9 @@ import uuid
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
-import yaml
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, ValidationError
-
+from crew.data_platform.config_schema import load_validated_config
 from crew.data_platform.contracts import PersistedBatch, SourceAdapter
 from crew.data_platform.gold import refresh_gold_views
 from crew.data_platform.sources import (
@@ -20,28 +18,6 @@ from crew.data_platform.sources import (
 from crew.data_platform.storage import DataPlatformStorage
 
 
-class StorageConfig(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    root: str = Field(min_length=1)
-    canonical_timezone: str = Field(default="UTC", min_length=1)
-
-
-class SourceConfig(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    adapter: str | None = None
-    enabled: StrictBool = False
-
-
-class DataPlatformConfig(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    schema_version: Literal[1]
-    storage: StorageConfig
-    sources: dict[str, SourceConfig]
-
-
 _ADAPTERS = {
     "fred": FredSource,
     "treasury_yield_curve": TreasuryYieldCurveSource,
@@ -51,14 +27,7 @@ _ADAPTERS = {
 
 
 def load_config(path: Path) -> dict[str, Any]:
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if not isinstance(payload, dict):
-        raise ValueError(f"Data platform config must be a mapping: {path}")
-    try:
-        validated = DataPlatformConfig.model_validate(payload)
-    except ValidationError as error:
-        raise ValueError(f"Invalid data platform config: {path}") from error
-    return validated.model_dump(mode="python")
+    return load_validated_config(path)
 
 
 def build_adapters(
