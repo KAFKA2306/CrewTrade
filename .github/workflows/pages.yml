@@ -1,53 +1,64 @@
-name: Deploy to GitHub Pages
+name: Build, audit, and deploy GitHub Pages
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+    paths:
+      - "web/**"
+      - "output/use_cases/**"
+      - "config/use_case_data_status.yaml"
+      - "scripts/check_pages.sh"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+
       - name: Install uv and Python
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           python-version: "3.11"
           enable-cache: true
-      - name: Compile web code
-        run: uv run --no-project python -m compileall -q web
-      - name: Build static site
-        run: uv run --no-project --with markdown --with jinja2 python web/build_static.py
-      - name: Audit generated site
-        run: uv run --no-project python web/audit_static.py
+
+      - name: Build and audit canonical Pages output
+        run: bash scripts/check_pages.sh
+
       - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
           path: docs
 
   deploy:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'pull_request'
+    needs: build-and-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

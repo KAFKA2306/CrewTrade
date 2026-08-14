@@ -22,7 +22,6 @@ dependencies = [
     "seaborn",
     "yahooquery",
     "setuptools",
-    "flask",
     "markdown",
     "torch",
     "einops",

@@ -98,7 +98,3 @@ tasks:
   blocked:semiconductors:
     desc: Governed partial — public WSTS releases only
     cmd: echo "semiconductors is partially available; see data-status"
-
-  serve:
-    desc: Run the HTMX web dashboard
-    cmd: uv run python web/app.py
