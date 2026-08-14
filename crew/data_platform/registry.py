@@ -3,9 +3,10 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Literal, Mapping, Sequence
 
 import yaml
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, ValidationError
 
 from crew.data_platform.contracts import PersistedBatch, SourceAdapter
 from crew.data_platform.gold import refresh_gold_views
@@ -16,6 +17,28 @@ from crew.data_platform.sources import (
     TreasuryYieldCurveSource,
 )
 from crew.data_platform.storage import DataPlatformStorage
+
+
+class StorageConfig(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    root: str = Field(min_length=1)
+    canonical_timezone: str = Field(default="UTC", min_length=1)
+
+
+class SourceConfig(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    adapter: str | None = None
+    enabled: StrictBool = False
+
+
+class DataPlatformConfig(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    schema_version: Literal[1]
+    storage: StorageConfig
+    sources: dict[str, SourceConfig]
 
 
 _ADAPTERS = {
@@ -30,9 +53,11 @@ def load_config(path: Path) -> dict[str, Any]:
     payload = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError(f"Data platform config must be a mapping: {path}")
-    if payload.get("schema_version") != 1:
-        raise ValueError("Unsupported data platform schema_version")
-    return payload
+    try:
+        validated = DataPlatformConfig.model_validate(payload)
+    except ValidationError as error:
+        raise ValueError(f"Invalid data platform config: {path}") from error
+    return validated.model_dump(mode="python")
 
 
 def build_adapters(
@@ -49,9 +74,7 @@ def build_adapters(
         adapter_name = str(source_config.get("adapter", source_name))
         adapter_class = _ADAPTERS.get(adapter_name)
         if adapter_class is None:
-            raise ValueError(
-                f"Unknown adapter {adapter_name!r} for source {source_name!r}"
-            )
+            raise ValueError(f"Unknown adapter {adapter_name!r} for source {source_name!r}")
         adapters.append(adapter_class(source_config))
     if selected:
         built_names = {
