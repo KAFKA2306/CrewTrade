@@ -9,7 +9,7 @@ def test_canonical_flow_contract_exists() -> None:
         ROOT / "config" / "use_case_data_status.yaml",
         ROOT / "crew" / "data_platform",
         ROOT / "output" / "use_cases",
-        ROOT / "docs" / "canonical-flow.md",
+        ROOT / "resources" / "reference" / "canonical-flow.md",
     ]
     missing = [str(path.relative_to(ROOT)) for path in required if not path.exists()]
     assert not missing, f"canonical flow paths missing: {missing}"
