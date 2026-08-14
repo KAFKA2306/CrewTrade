@@ -36,9 +36,7 @@ class YieldSpreadDataPipeline(BaseDataPipeline):
         provenance = latest_vintage_series(self.config.rates_dataset)
         provenance = provenance[provenance["label"].isin(required_labels)].copy()
         if not rates.empty:
-            provenance = provenance[
-                provenance["observation_date"] >= rates.index.min()
-            ]
+            provenance = provenance[provenance["observation_date"] >= rates.index.min()]
 
         curve = treasury_curve(latest_only=False)
         self._save("rates", rates.reset_index())
@@ -46,9 +44,7 @@ class YieldSpreadDataPipeline(BaseDataPipeline):
         self._save("treasury_curve", curve)
         return {
             "rates": str(self.raw_data_dir / "rates.parquet"),
-            "rates_provenance": str(
-                self.raw_data_dir / "rates_provenance.parquet"
-            ),
+            "rates_provenance": str(self.raw_data_dir / "rates_provenance.parquet"),
             "treasury_curve": str(self.raw_data_dir / "treasury_curve.parquet"),
         }
 

@@ -39,9 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
     export_parser = subparsers.add_parser(
         "export-status", help="Write a sanitized status snapshot for GitHub Pages"
     )
-    export_parser.add_argument(
-        "--migration-config", type=Path, default=DEFAULT_MIGRATION_CONFIG
-    )
+    export_parser.add_argument("--migration-config", type=Path, default=DEFAULT_MIGRATION_CONFIG)
     export_parser.add_argument("--output", type=Path, default=DEFAULT_PUBLIC_STATUS)
 
     subparsers.add_parser("validate-config", help="Validate configuration only")
@@ -89,9 +87,7 @@ def main(argv: list[str] | None = None) -> int:
 
     catalog = root / "catalog.duckdb"
     if not catalog.exists():
-        raise FileNotFoundError(
-            f"Catalogue does not exist: {catalog}. Run `crew-data sync` first."
-        )
+        raise FileNotFoundError(f"Catalogue does not exist: {catalog}. Run `crew-data sync` first.")
 
     if args.command == "status":
         with duckdb.connect(str(catalog), read_only=True) as connection:

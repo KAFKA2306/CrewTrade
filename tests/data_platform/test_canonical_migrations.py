@@ -138,24 +138,25 @@ def test_latest_13f_gold_view(tmp_path: Path) -> None:
     storage.finish_run(run_id, status="success")
     refresh_gold_views(storage.catalog_path)
 
-    latest = sec_13f_holdings(
-        entity_names=["manager"], latest_only=True, root=root
-    )
+    latest = sec_13f_holdings(entity_names=["manager"], latest_only=True, root=root)
     assert list(latest["holding_id"]) == ["new"]
     assert latest.iloc[0]["reported_value"] == 200.0
 
 
 def test_credit_analyzer_uses_oas_levels() -> None:
     dates = pd.date_range("2026-01-01", periods=80, freq="D")
-    frame = pd.DataFrame(
-        {
-            "us_corporate_oas": range(80),
-            "us_bbb_oas": range(10, 90),
-            "us_high_yield_oas": range(20, 100),
-        },
-        index=dates,
-        dtype=float,
-    ) / 100
+    frame = (
+        pd.DataFrame(
+            {
+                "us_corporate_oas": range(80),
+                "us_bbb_oas": range(10, 90),
+                "us_high_yield_oas": range(20, 100),
+            },
+            index=dates,
+            dtype=float,
+        )
+        / 100
+    )
     analyzer = CreditSpreadAnalyzer(
         CreditSpreadConfig(name="credit", minimum_periods=20, rolling_window=30)
     )

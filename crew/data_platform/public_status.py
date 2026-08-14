@@ -33,16 +33,12 @@ def build_public_status(
     dataset_status, latest_run = _catalog_status(catalog_path)
 
     governed_contracts = dict(
-        platform_config.get("sources", {})
-        .get("governed_manual", {})
-        .get("datasets", {})
+        platform_config.get("sources", {}).get("governed_manual", {}).get("datasets", {})
     )
     use_case_rows: list[dict[str, Any]] = []
     active_missing = False
     invalid_state = False
-    for slug, definition_value in dict(
-        migration_config.get("use_cases", {})
-    ).items():
+    for slug, definition_value in dict(migration_config.get("use_cases", {})).items():
         definition = dict(definition_value or {})
         declared_state = str(definition.get("state", "unknown"))
         invalid_state |= declared_state not in _ALLOWED_CONTROLLED_STATES
@@ -54,8 +50,7 @@ def build_public_status(
         failed_datasets = [
             dataset
             for dataset in required_datasets
-            if dataset in dataset_status
-            and dataset_status[dataset]["quality_status"] != "ok"
+            if dataset in dataset_status and dataset_status[dataset]["quality_status"] != "ok"
         ]
         contract_rows = []
         for contract_name in required_contracts:
@@ -63,9 +58,7 @@ def build_public_status(
             contract_rows.append(
                 {
                     "name": contract_name,
-                    "automation_status": contract.get(
-                        "automation_status", "unregistered"
-                    ),
+                    "automation_status": contract.get("automation_status", "unregistered"),
                     "checked_on": contract.get("checked_on"),
                     "source_url": contract.get("source_url"),
                     "block_reason": contract.get("block_reason"),
@@ -74,9 +67,7 @@ def build_public_status(
 
         if declared_state == "canonical_active":
             runtime_state = (
-                "ok"
-                if not missing_datasets and not failed_datasets
-                else "awaiting_snapshot"
+                "ok" if not missing_datasets and not failed_datasets else "awaiting_snapshot"
             )
             active_missing |= bool(missing_datasets or failed_datasets)
         else:
@@ -106,15 +97,11 @@ def build_public_status(
         "overall_status": overall_status,
         "catalog_present": catalog_path.is_file(),
         "latest_run": latest_run,
-        "datasets": sorted(
-            dataset_status.values(), key=lambda row: row["dataset"]
-        ),
+        "datasets": sorted(dataset_status.values(), key=lambda row: row["dataset"]),
         "use_cases": use_case_rows,
         "summary": {
             "use_case_count": len(use_case_rows),
-            "canonical_ok": sum(
-                row["runtime_state"] == "ok" for row in use_case_rows
-            ),
+            "canonical_ok": sum(row["runtime_state"] == "ok" for row in use_case_rows),
             "controlled_blocks": sum(
                 row["runtime_state"]
                 in {
@@ -125,8 +112,7 @@ def build_public_status(
                 for row in use_case_rows
             ),
             "awaiting_snapshot": sum(
-                row["runtime_state"] == "awaiting_snapshot"
-                for row in use_case_rows
+                row["runtime_state"] == "awaiting_snapshot" for row in use_case_rows
             ),
         },
     }

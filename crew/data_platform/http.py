@@ -69,18 +69,14 @@ class HttpClient:
                 date_header = response.headers.get("Date")
                 if date_header:
                     try:
-                        retrieved_at = parsedate_to_datetime(date_header).astimezone(
-                            timezone.utc
-                        )
+                        retrieved_at = parsedate_to_datetime(date_header).astimezone(timezone.utc)
                     except (TypeError, ValueError, OverflowError):
                         pass
                 return HttpPayload(
                     body=response.content,
                     url=response.url,
                     status_code=response.status_code,
-                    content_type=response.headers.get(
-                        "Content-Type", "application/octet-stream"
-                    ),
+                    content_type=response.headers.get("Content-Type", "application/octet-stream"),
                     retrieved_at=retrieved_at,
                     headers=dict(response.headers),
                 )

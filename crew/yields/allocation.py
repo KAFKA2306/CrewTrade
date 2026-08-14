@@ -3,6 +3,8 @@ from typing import Dict, Iterable, Optional
 import numpy as np
 import pandas as pd
 from crew.yields.config import AllocationConfig, OptimizationConfig
+
+
 def compute_allocation(
     allocation_config: AllocationConfig,
     snapshot: pd.DataFrame,
@@ -37,31 +39,21 @@ def compute_allocation(
             ticker for ticker in normalized_weights if ticker in asset_prices.columns
         ]
         if len(available_tickers) > 0:
-            available_returns = (
-                asset_prices[list(available_tickers)].pct_change().dropna()
-            )
+            available_returns = asset_prices[list(available_tickers)].pct_change().dropna()
     opt_cfg = allocation_config.optimization
     if available_returns is not None and not available_returns.empty:
-        base_weights = _filter_and_normalize_weights(
-            normalized_weights, available_returns.columns
-        )
+        base_weights = _filter_and_normalize_weights(normalized_weights, available_returns.columns)
         if base_weights:
             base_metrics = _compute_performance_metrics(
                 available_returns, base_weights, opt_cfg.risk_free_rate
             )
             if base_metrics is not None:
                 payload["base_metrics"] = base_metrics
-    if (
-        opt_cfg.enabled
-        and available_returns is not None
-        and not available_returns.empty
-    ):
+    if opt_cfg.enabled and available_returns is not None and not available_returns.empty:
         optimized = _optimize_weights(available_returns, opt_cfg)
         if optimized is not None:
             payload["base_weights"] = normalized_weights
-            payload["weights"] = _merge_weights(
-                normalized_weights, optimized["weights"]
-            )
+            payload["weights"] = _merge_weights(normalized_weights, optimized["weights"])
             payload["method"] = "optimized"
             payload["sharpe"] = optimized["metrics"].get("sharpe")
             payload["metrics"] = optimized["metrics"]
@@ -70,23 +62,27 @@ def compute_allocation(
             if sensitivity:
                 payload["sensitivity"] = sensitivity
     return payload
+
+
 def _normalize_weights(weights: Dict[str, float]) -> Dict[str, float]:
     total = sum(weights.values())
     if total <= 0:
         return weights
     return {asset: round(weight / total, 4) for asset, weight in weights.items()}
+
+
 def _filter_and_normalize_weights(
     weights: Dict[str, float], columns: Iterable[str]
 ) -> Dict[str, float]:
     filtered = {
-        ticker: weight
-        for ticker, weight in weights.items()
-        if ticker in columns and weight > 0
+        ticker: weight for ticker, weight in weights.items() if ticker in columns and weight > 0
     }
     total = sum(filtered.values())
     if total <= 0:
         return {}
     return {ticker: round(weight / total, 4) for ticker, weight in filtered.items()}
+
+
 def _merge_weights(
     base_weights: Dict[str, float], optimized_weights: Dict[str, float]
 ) -> Dict[str, float]:
@@ -97,6 +93,8 @@ def _merge_weights(
     if total > 0:
         merged = {ticker: round(weight / total, 4) for ticker, weight in merged.items()}
     return merged
+
+
 def _optimize_weights(
     returns: pd.DataFrame,
     opt_cfg: OptimizationConfig,
@@ -104,9 +102,7 @@ def _optimize_weights(
     tickers = list(returns.columns)
     if len(tickers) == 0:
         return None
-    primary_result = _run_random_search(
-        returns, tickers, opt_cfg.sample_size, opt_cfg, seed=42
-    )
+    primary_result = _run_random_search(returns, tickers, opt_cfg.sample_size, opt_cfg, seed=42)
     if primary_result is None:
         return None
     metrics = _compute_performance_metrics(
@@ -146,6 +142,8 @@ def _optimize_weights(
         },
         "sensitivity": sensitivity_results,
     }
+
+
 def _run_random_search(
     returns: pd.DataFrame,
     tickers: list[str],
@@ -182,28 +180,24 @@ def _run_random_search(
             best_weights = weights
     if best_weights is None or best_sharpe == -np.inf:
         return None
-    weights_dict = {
-        ticker: float(weight) for ticker, weight in zip(tickers, best_weights)
-    }
+    weights_dict = {ticker: float(weight) for ticker, weight in zip(tickers, best_weights)}
     total = sum(weights_dict.values())
     if total <= 0:
         return None
-    weights_dict = {
-        ticker: round(weight / total, 4) for ticker, weight in weights_dict.items()
-    }
+    weights_dict = {ticker: round(weight / total, 4) for ticker, weight in weights_dict.items()}
     return {
         "weights": weights_dict,
         "sharpe": float(round(best_sharpe, 4)),
     }
+
+
 def _compute_performance_metrics(
     returns: pd.DataFrame,
     weights: Dict[str, float],
     risk_free_rate: float,
 ) -> Dict[str, float] | None:
     tickers = [
-        ticker
-        for ticker, weight in weights.items()
-        if weight > 0 and ticker in returns.columns
+        ticker for ticker, weight in weights.items() if weight > 0 and ticker in returns.columns
     ]
     if not tickers:
         return None
@@ -232,8 +226,6 @@ def _compute_performance_metrics(
         "total_return": round(total_return, 4),
         "annual_return": round(annual_return, 4),
         "annual_volatility": round(annual_volatility, 4),
-        "sharpe": round(sharpe, 4)
-        if sharpe is not None and np.isfinite(sharpe)
-        else None,
+        "sharpe": round(sharpe, 4) if sharpe is not None and np.isfinite(sharpe) else None,
         "max_drawdown": round(max_drawdown, 4),
     }

@@ -26,9 +26,7 @@ def build() -> None:
     status = json.loads(STATUS_SOURCE.read_text(encoding="utf-8"))
     _validate_status(status)
     env = create_environment()
-    generated_at = datetime.fromisoformat(status["generated_at"]).astimezone(
-        ZoneInfo("Asia/Tokyo")
-    )
+    generated_at = datetime.fromisoformat(status["generated_at"]).astimezone(ZoneInfo("Asia/Tokyo"))
     overall_ok = status["overall_status"] == "ok"
     html = env.get_template("data_status.html").render(
         status=status,
@@ -62,10 +60,7 @@ def _validate_status(status: dict[str, object]) -> None:
     slugs = [str(row.get("slug")) for row in use_cases if isinstance(row, dict)]
     if len(slugs) != len(set(slugs)):
         raise ValueError("Public status contains duplicate use-case slugs")
-    if any(
-        not isinstance(row, dict) or not row.get("runtime_state")
-        for row in use_cases
-    ):
+    if any(not isinstance(row, dict) or not row.get("runtime_state") for row in use_cases):
         raise ValueError("Every use case must expose a runtime state")
 
 

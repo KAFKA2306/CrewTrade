@@ -20,9 +20,7 @@ _RATE_LABELS = {
 
 
 class YieldSpreadReporter:
-    def __init__(
-        self, config: YieldSpreadConfig, processed_dir: Path, report_dir: Path
-    ) -> None:
+    def __init__(self, config: YieldSpreadConfig, processed_dir: Path, report_dir: Path) -> None:
         self.config = config
         self.processed_dir = processed_dir
         self.report_dir = report_dir
@@ -62,9 +60,7 @@ class YieldSpreadReporter:
             raise ValueError("Cannot publish a yield report without canonical snapshots")
 
         checked_on = datetime.now(ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d")
-        latest_date = pd.to_datetime(spread_snapshot["latest_date"]).max().strftime(
-            "%Y-%m-%d"
-        )
+        latest_date = pd.to_datetime(spread_snapshot["latest_date"]).max().strftime("%Y-%m-%d")
         freshness_gap = (pd.Timestamp(checked_on) - pd.Timestamp(latest_date)).days
         data_score = 5 if freshness_gap <= 3 else 4 if freshness_gap <= 7 else 2
         curve_complete = not curve_snapshot.empty and {
@@ -177,15 +173,9 @@ class YieldSpreadReporter:
         )
         urls = []
         if not provenance.empty and "_source_url" in provenance.columns:
-            urls.extend(
-                sorted(set(str(value) for value in provenance["_source_url"].dropna()))
-            )
+            urls.extend(sorted(set(str(value) for value in provenance["_source_url"].dropna())))
         if not curve_snapshot.empty and "_source_url" in curve_snapshot.columns:
-            urls.extend(
-                sorted(
-                    set(str(value) for value in curve_snapshot["_source_url"].dropna())
-                )
-            )
+            urls.extend(sorted(set(str(value) for value in curve_snapshot["_source_url"].dropna())))
         urls = sorted(set(urls)) or [
             "https://home.treasury.gov/resource-center/data-chart-center/interest-rates",
             "https://fred.stlouisfed.org/series/DGS10",
@@ -197,9 +187,7 @@ class YieldSpreadReporter:
         return "\n".join(lines)
 
 
-def _frame(
-    payload: Dict[str, object], key: str, *, required: bool = True
-) -> pd.DataFrame:
+def _frame(payload: Dict[str, object], key: str, *, required: bool = True) -> pd.DataFrame:
     value = payload.get(key)
     if isinstance(value, pd.DataFrame):
         return value

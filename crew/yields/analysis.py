@@ -21,9 +21,7 @@ class YieldSpreadAnalyzer:
 
     def evaluate(self, data_payload: Dict[str, object]) -> Dict[str, pd.DataFrame]:
         rates = self._load_frame(data_payload.get("rates"), "rates.parquet")
-        curve = self._load_frame(
-            data_payload.get("treasury_curve"), "treasury_curve.parquet"
-        )
+        curve = self._load_frame(data_payload.get("treasury_curve"), "treasury_curve.parquet")
         provenance = self._load_frame(
             data_payload.get("rates_provenance"),
             "rates_provenance.parquet",
@@ -54,9 +52,7 @@ class YieldSpreadAnalyzer:
             "provenance": provenance,
         }
 
-    def _load_frame(
-        self, value: object, filename: str, *, required: bool = True
-    ) -> pd.DataFrame:
+    def _load_frame(self, value: object, filename: str, *, required: bool = True) -> pd.DataFrame:
         if isinstance(value, pd.DataFrame):
             return value.copy()
         if isinstance(value, (str, Path)) and Path(value).is_file():
@@ -75,26 +71,24 @@ class YieldSpreadAnalyzer:
         store: Dict[str, pd.DataFrame] = {}
         for label, definition in self.config.curve_spreads.items():
             missing = sorted(
-                {definition.short_label, definition.long_label}.difference(
-                    rates.columns
-                )
+                {definition.short_label, definition.long_label}.difference(rates.columns)
             )
             if missing:
                 raise ValueError(f"Missing canonical rate series for {label}: {missing}")
-            aligned = rates[
-                [definition.short_label, definition.long_label]
-            ].dropna()
-            spread_pct = (
-                aligned[definition.long_label] - aligned[definition.short_label]
-            )
+            aligned = rates[[definition.short_label, definition.long_label]].dropna()
+            spread_pct = aligned[definition.long_label] - aligned[definition.short_label]
             rolling_mean = spread_pct.rolling(
                 self.config.rolling_window,
                 min_periods=self.config.minimum_periods,
             ).mean()
-            rolling_std = spread_pct.rolling(
-                self.config.rolling_window,
-                min_periods=self.config.minimum_periods,
-            ).std().replace(0, np.nan)
+            rolling_std = (
+                spread_pct.rolling(
+                    self.config.rolling_window,
+                    min_periods=self.config.minimum_periods,
+                )
+                .std()
+                .replace(0, np.nan)
+            )
             store[label] = pd.DataFrame(
                 {
                     "short_rate_pct": aligned[definition.short_label],
@@ -124,9 +118,7 @@ class YieldSpreadAnalyzer:
                         "spread_bp": float(row["spread_bp"]),
                         "change_20d_bp": float(row["change_20d_bp"]),
                         "z_score": float(row["z_score"]),
-                        "direction": "steepening"
-                        if row["change_20d_bp"] > 0
-                        else "flattening",
+                        "direction": "steepening" if row["change_20d_bp"] > 0 else "flattening",
                     }
                 )
         columns = [
@@ -137,9 +129,13 @@ class YieldSpreadAnalyzer:
             "z_score",
             "direction",
         ]
-        return pd.DataFrame.from_records(records, columns=columns).sort_values(
-            "date", ignore_index=True
-        ) if records else pd.DataFrame(columns=columns)
+        return (
+            pd.DataFrame.from_records(records, columns=columns).sort_values(
+                "date", ignore_index=True
+            )
+            if records
+            else pd.DataFrame(columns=columns)
+        )
 
     def _spread_snapshot(self, metrics: pd.DataFrame) -> pd.DataFrame:
         rows: List[dict[str, object]] = []
@@ -198,9 +194,7 @@ DATA_DIR = PROJECT_ROOT / "data" / "yields"
 def main() -> None:
     from crew.yields.reporting import YieldSpreadReporter
 
-    config = YieldSpreadConfig(
-        **yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8"))
-    )
+    config = YieldSpreadConfig(**yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8")))
     analyzer = YieldSpreadAnalyzer(config)
     analyzer.raw_data_dir = DATA_DIR
     results = analyzer.evaluate({})

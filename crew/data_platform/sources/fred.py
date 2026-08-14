@@ -29,13 +29,9 @@ class FredSource:
 
     def fetch(self) -> Sequence[DatasetBatch]:
         batches: list[DatasetBatch] = []
-        for dataset_name, dataset_config in dict(
-            self.config.get("datasets", {})
-        ).items():
+        for dataset_name, dataset_config in dict(self.config.get("datasets", {})).items():
             rows: list[dict[str, object]] = []
-            retrieval_mode = (
-                "api_vintage" if self.api_key else "public_csv_snapshot"
-            )
+            retrieval_mode = "api_vintage" if self.api_key else "public_csv_snapshot"
             raw_bundle: dict[str, object] = {
                 "dataset": dataset_name,
                 "retrieval_mode": retrieval_mode,
@@ -43,35 +39,27 @@ class FredSource:
             }
             series_map = {
                 str(label): str(series_id)
-                for label, series_id in dict(
-                    dataset_config.get("series", {})
-                ).items()
+                for label, series_id in dict(dataset_config.get("series", {})).items()
             }
-            observation_start = str(
-                dataset_config.get("observation_start", "1900-01-01")
-            )
+            observation_start = str(dataset_config.get("observation_start", "1900-01-01"))
             latest_url = ""
             latest_retrieved_at = None
 
             if self.api_key:
                 for label, series_id in series_map.items():
-                    series_rows, raw_record, source_url, retrieved_at = (
-                        self._fetch_api_series(
-                            label=label,
-                            series_id=series_id,
-                            observation_start=observation_start,
-                        )
+                    series_rows, raw_record, source_url, retrieved_at = self._fetch_api_series(
+                        label=label,
+                        series_id=series_id,
+                        observation_start=observation_start,
                     )
                     rows.extend(series_rows)
                     raw_bundle["series"][series_id] = raw_record
                     latest_url = source_url
                     latest_retrieved_at = retrieved_at
             else:
-                rows, raw_record, latest_url, latest_retrieved_at = (
-                    self._fetch_public_csv_dataset(
-                        series_map=series_map,
-                        observation_start=observation_start,
-                    )
+                rows, raw_record, latest_url, latest_retrieved_at = self._fetch_public_csv_dataset(
+                    series_map=series_map,
+                    observation_start=observation_start,
                 )
                 raw_bundle["batch"] = raw_record
 
@@ -87,11 +75,10 @@ class FredSource:
                         "realtime_start",
                         "realtime_end",
                     ),
-                    source_url=latest_url
-                    or f"{self.BASE_URL}/series/observations",
-                    raw_payload=json.dumps(
-                        raw_bundle, ensure_ascii=False, sort_keys=True
-                    ).encode("utf-8"),
+                    source_url=latest_url or f"{self.BASE_URL}/series/observations",
+                    raw_payload=json.dumps(raw_bundle, ensure_ascii=False, sort_keys=True).encode(
+                        "utf-8"
+                    ),
                     content_type="application/json",
                     retrieved_at=(
                         latest_retrieved_at
@@ -102,9 +89,7 @@ class FredSource:
                         "series_count": len(series_map),
                         "retrieval_mode": retrieval_mode,
                         "point_in_time_vintage": bool(self.api_key),
-                        "http_request_count": len(series_map) * 2
-                        if self.api_key
-                        else 1,
+                        "http_request_count": len(series_map) * 2 if self.api_key else 1,
                     },
                 )
             )
@@ -202,12 +187,8 @@ def parse_fred_series(
                 "label": label,
                 "observation_date": pd.to_datetime(observation["date"]).date(),
                 "value": float(value_text),
-                "realtime_start": pd.to_datetime(
-                    observation.get("realtime_start")
-                ).date(),
-                "realtime_end": pd.to_datetime(
-                    observation.get("realtime_end")
-                ).date(),
+                "realtime_start": pd.to_datetime(observation.get("realtime_start")).date(),
+                "realtime_end": pd.to_datetime(observation.get("realtime_end")).date(),
                 "frequency": series_meta.get("frequency"),
                 "units": series_meta.get("units"),
                 "seasonal_adjustment": series_meta.get("seasonal_adjustment"),
@@ -236,18 +217,14 @@ def parse_fred_public_csv_batch(
     rows: list[dict[str, object]] = []
     for label, series_id in series_map.items():
         series_frame = frame[[date_column, series_id]].copy()
-        series_frame[series_id] = pd.to_numeric(
-            series_frame[series_id], errors="coerce"
-        )
+        series_frame[series_id] = pd.to_numeric(series_frame[series_id], errors="coerce")
         series_frame = series_frame.dropna(subset=[date_column, series_id])
         for record in series_frame.to_dict(orient="records"):
             rows.append(
                 {
                     "series_id": series_id,
                     "label": label,
-                    "observation_date": pd.Timestamp(
-                        record[date_column]
-                    ).date(),
+                    "observation_date": pd.Timestamp(record[date_column]).date(),
                     "value": float(record[series_id]),
                     "realtime_start": snapshot_date,
                     "realtime_end": snapshot_date,
@@ -285,7 +262,5 @@ def _date_column(frame: pd.DataFrame) -> str:
         None,
     )
     if date_column is None:
-        raise ValueError(
-            f"Unexpected FRED CSV date columns: {list(frame.columns)}"
-        )
+        raise ValueError(f"Unexpected FRED CSV date columns: {list(frame.columns)}")
     return date_column

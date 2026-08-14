@@ -45,9 +45,7 @@ class LocalReferenceParser(HTMLParser):
 
 def resolve_local_reference(html_path: Path, reference: str) -> Path | None:
     parsed = urlsplit(reference)
-    if parsed.scheme or parsed.netloc or reference.startswith(
-        ("#", "mailto:", "tel:", "data:")
-    ):
+    if parsed.scheme or parsed.netloc or reference.startswith(("#", "mailto:", "tel:", "data:")):
         return None
     path_text = unquote(parsed.path)
     if not path_text:
@@ -74,17 +72,11 @@ def audit() -> None:
         DOCS_DIR / "assets" / "site.js",
         DOCS_DIR / "site-manifest.json",
     ]
-    missing = [
-        str(path.relative_to(PROJECT_ROOT))
-        for path in required
-        if not path.is_file()
-    ]
+    missing = [str(path.relative_to(PROJECT_ROOT)) for path in required if not path.is_file()]
     if missing:
         raise RuntimeError(f"Missing generated site files: {', '.join(missing)}")
 
-    manifest = json.loads(
-        (DOCS_DIR / "site-manifest.json").read_text(encoding="utf-8")
-    )
+    manifest = json.loads((DOCS_DIR / "site-manifest.json").read_text(encoding="utf-8"))
     if manifest.get("schema_version") != 2:
         raise RuntimeError("Unsupported or missing site manifest schema_version 2.")
     if not manifest.get("cases") or not manifest.get("total_reports"):
@@ -123,9 +115,7 @@ def audit() -> None:
     for case in manifest["cases"]:
         missing_fields = sorted(REQUIRED_CASE_FIELDS.difference(case))
         if missing_fields:
-            failures.append(
-                f"manifest: {case.get('slug', '<unknown>')} missing {missing_fields}"
-            )
+            failures.append(f"manifest: {case.get('slug', '<unknown>')} missing {missing_fields}")
 
         slug = case.get("slug")
         dates = case.get("dates", [])
@@ -164,17 +154,10 @@ def audit() -> None:
 
         latest_source_name = source_map.get(latest_date)
         if not latest_source_name:
-            failures.append(
-                f"manifest: missing source mapping for {slug}/{latest_date}"
-            )
+            failures.append(f"manifest: missing source mapping for {slug}/{latest_date}")
         else:
             latest_source = (
-                PROJECT_ROOT
-                / "output"
-                / "use_cases"
-                / str(slug)
-                / latest_date
-                / latest_source_name
+                PROJECT_ROOT / "output" / "use_cases" / str(slug) / latest_date / latest_source_name
             )
             if not latest_source.is_file():
                 failures.append(
@@ -203,13 +186,9 @@ def audit() -> None:
         if latest_report.is_file():
             latest_text = latest_report.read_text(encoding="utf-8")
             if expected_refresh_label not in latest_text:
-                failures.append(
-                    f"{slug}/{latest_date}.html: missing {expected_refresh_label!r}"
-                )
+                failures.append(f"{slug}/{latest_date}.html: missing {expected_refresh_label!r}")
             if 'id="report-content"' not in latest_text:
-                failures.append(
-                    f"{slug}/{latest_date}.html: missing report content target"
-                )
+                failures.append(f"{slug}/{latest_date}.html: missing report content target")
 
         for date in dates:
             manifest_report_count += 1
@@ -237,10 +216,7 @@ def audit() -> None:
 
     html_files = sorted(DOCS_DIR.rglob("*.html"))
     expected_html_count = (
-        manifest_report_count
-        + manifest_companion_count
-        + len(manifest["cases"])
-        + 1
+        manifest_report_count + manifest_companion_count + len(manifest["cases"]) + 1
     )
     if len(html_files) != expected_html_count:
         failures.append(
@@ -259,11 +235,7 @@ def audit() -> None:
             failures.append(f"{relative}: missing main landmark")
         if "{{" in text or "{%" in text:
             failures.append(f"{relative}: unresolved Jinja template marker")
-        if (
-            "#0d1117" in text
-            or "Select a use case" in text
-            or "View analysis reports" in text
-        ):
+        if "#0d1117" in text or "Select a use case" in text or "View analysis reports" in text:
             failures.append(f"{relative}: legacy dashboard content remains")
 
         parser = LocalReferenceParser()

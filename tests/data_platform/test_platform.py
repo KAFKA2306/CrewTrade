@@ -33,9 +33,7 @@ def test_quality_rejects_duplicate_primary_keys() -> None:
         raw_payload=b"fixture",
     )
     checks = validate_batch(batch)
-    assert any(
-        check.name == "primary_key_unique" and not check.passed for check in checks
-    )
+    assert any(check.name == "primary_key_unique" and not check.passed for check in checks)
     with pytest.raises(ValueError, match="primary_key_unique"):
         assert_quality(checks)
 
@@ -66,7 +64,9 @@ def test_storage_preserves_raw_lineage_and_creates_view(tmp_path: Path) -> None:
     assert Path(persisted.parquet_path).is_file()
     assert manifest.is_file()
     with duckdb.connect(str(storage.catalog_path), read_only=True) as connection:
-        assert connection.execute("SELECT count(*) FROM bronze_test_observations").fetchone()[0] == 2
+        assert (
+            connection.execute("SELECT count(*) FROM bronze_test_observations").fetchone()[0] == 2
+        )
         assert connection.execute("SELECT status FROM ingestion_runs").fetchone()[0] == "success"
 
 
@@ -170,9 +170,7 @@ def test_parse_sec_payloads() -> None:
             }
         }
     }
-    fact_rows = parse_sec_companyfacts(
-        entity_name="example", cik="0000000001", payload=facts
-    )
+    fact_rows = parse_sec_companyfacts(entity_name="example", cik="0000000001", payload=facts)
     assert len(fact_rows) == 1
     assert len(fact_rows[0]["fact_id"]) == 64
     json.dumps(fact_rows[0], default=str)
