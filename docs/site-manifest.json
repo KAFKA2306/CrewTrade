@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "source_revision": "b0e660b47e484398f9c531c7797e4e9a4e78d58b",
-  "site_latest_date": "20260812",
+  "source_revision": "7add5d1893ed4f2eb22a232d3d6443472c54c4bc",
+  "site_latest_date": "20260814",
   "purposes": [
     "運用評価",
     "資産配分",
@@ -314,6 +314,7 @@
     {
       "slug": "yield_spread",
       "dates": [
+        "20260814",
         "20260812",
         "20260811",
         "20260810",
@@ -328,6 +329,7 @@
         "20251029"
       ],
       "sources": {
+        "20260814": "report.md",
         "20260812": "report.md",
         "20260811": "report.md",
         "20260810": "report.md",
@@ -342,6 +344,7 @@
         "20251029": "yield_spread_report.md"
       },
       "companions": {
+        "20260814": [],
         "20260812": [],
         "20260811": [],
         "20260810": [],
@@ -372,11 +375,11 @@
       "accent": "mint"
     }
   ],
-  "total_reports": 44,
+  "total_reports": 45,
   "data_platform": {
     "path": "data-status/index.html",
     "overall_status": "ok",
-    "generated_at": "2026-08-12T09:09:25.599276+00:00",
+    "generated_at": "2026-08-14T03:42:46.835313+00:00",
     "summary": {
       "awaiting_snapshot": 0,
       "canonical_ok": 1,
