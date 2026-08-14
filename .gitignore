@@ -28,9 +28,6 @@ env/
 logs/
 *.log
 
-# Lock files
-uv.lock
-
 # !Generated files
 
 # Database
