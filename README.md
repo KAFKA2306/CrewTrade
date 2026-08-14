@@ -29,6 +29,33 @@ CrewTradeの目的は、全テーマに常に数字を表示することでは�
 
 Parquet、DuckDB、immutable raw、SHA-256、lineage、GitHub Actionsは差別化そのものではありません。これらは、表示された数字を元データまで逆引きし、取得時点・単位・定義・利用権・計算過程を再検証するための手段です。
 
+## 正準ユーザーフロー
+
+CrewTradeの公開導線は1本です。
+
+1. [データ基盤状態](https://kafka2306.github.io/CrewTrade/data-status/)で、今使えるテーマと停止理由を確認する
+2. [公開ダッシュボード](https://kafka2306.github.io/CrewTrade/)から検証目的に合う調査を選ぶ
+3. レポートで観測時点、単位、一次情報、独自導出値、注意事項を確認する
+4. 必要ならGitHub上のsource contract・lineage・analysis codeまで遡る
+
+10テーマの利用可否・停止状態のsource of truthは **`config/use_case_data_status.yaml` だけ**です。`web/generated/` とPagesはそこから導出される公開表現であり、独立した状態管理を持ちません。`config/data_platform.yaml` はデータ源・利用権・更新契約を管理しますが、use-case状態を二重管理しません。
+
+### 非目標
+
+- Flask等の動的serverを公開UIの別経路として維持しない
+- 同じPagesを複数workflowでbuild・commit・deployしない
+- blocked / partial状態をproxy値で見かけ上の完了へ変えない
+- 1つの実利用しかない新しい抽象化を増やさない
+- Pagesをlive market dashboardや投資助言画面へ変えない
+
+### Ratchet KPI
+
+主要フローのKPIは3つだけ追います。
+
+1. **公開フロー完了:** `pages.yml` のbuild/auditとdeployが成功すること
+2. **公開監査失敗:** `scripts/check_pages.sh` のaudit failureが0件であること
+3. **手動操作量:** 静的Pagesのbuild + auditを `bash scripts/check_pages.sh` の1コマンドで再現できること
+
 ## データ状態の読み方
 
 `config/use_case_data_status.yaml` が10テーマの正準状態です。現在の状態は次の4種類に限定されています。
@@ -99,14 +126,16 @@ GitHub Actionsのartifactは30日保持の検証スナップショットです�
 
 ## 自動運用
 
-`main`への基盤変更時、手動実行時、毎日05:17 JSTに次を実行します。
+`main`への基盤変更時、手動実行時、毎日05:17 JSTにデータ基盤workflowが次を実行します。
 
 1. 米国財務省の名目・実質カーブを取得
 2. raw・SHA-256・Parquet・DuckDBへ保存
 3. 共通品質検査を実行
 4. 金利・イールドスプレッドのレポートを生成
 5. 残る9テーマの停止・一部利用・非公開入力状態を更新
-6. GitHub Pagesを再生成・監査・公開
+6. reportとsanitized statusだけをmainへ反映する
+
+そのmain更新を受け、**`.github/workflows/pages.yml` だけ**が静的Pagesをbuild・audit・deployします。生成済み`docs`をbotが再commitして別のpublish runを起こす経路は持ちません。
 
 SEC取得は`sec_edgar` sourceを有効化し、連絡可能なUser-Agentと到達可能な外部runnerを設定した環境でのみ実行します。
 
@@ -143,13 +172,10 @@ task fetch:legendary_investors && task analyze:legendary_investors
 uv run crew-data query "select * from gold_treasury_curve_latest"
 ```
 
-静的サイトの生成と監査:
+静的サイトの生成と監査はCIと同じ1コマンドです。
 
 ```bash
-uv run python web/build_static.py
-uv run python web/audit_static.py
-uv run python web/build_data_status.py
-uv run python web/audit_data_status.py
+bash scripts/check_pages.sh
 ```
 
 ## 主要ディレクトリ
@@ -167,7 +193,7 @@ output/use_cases/                  公開レポートの正本
 web/                               GitHub Pages生成・監査
 web/generated/                     公開可能な基盤状態
 web/templates/data_status.html     データ状態ページ
-docs/                              生成済みPages
+docs/                              build時に生成するPages artifact
 tests/data_platform/               ネットワーク非依存の契約試験
 ```
 
@@ -202,4 +228,4 @@ Pages上のデータ基盤状態を`OK`とする条件は次です。
 - 過去の成績は将来の収益を保証しません
 - 本プロジェクトは投資助言、売買推奨、運用実績の保証ではありません
 
-**最終構造監査:** 2026-08-14
+**最終構造監査:** 2026-08-15

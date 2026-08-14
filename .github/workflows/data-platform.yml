@@ -16,6 +16,7 @@ on:
       - "docs/data-platform.md"
       - "pyproject.toml"
       - "Taskfile.yaml"
+      - "scripts/check_pages.sh"
       - ".github/workflows/data-platform.yml"
   push:
     branches: [main]
@@ -32,6 +33,7 @@ on:
       - "tests/data_platform/**"
       - "pyproject.toml"
       - "Taskfile.yaml"
+      - "scripts/check_pages.sh"
       - ".github/workflows/data-platform.yml"
   workflow_dispatch:
     inputs:
@@ -136,12 +138,8 @@ jobs:
           print("Canonical Pages status is OK")
           PY
 
-      - name: Build and audit published Pages
-        run: |
-          uv run python web/build_static.py
-          uv run python web/audit_static.py
-          uv run python web/build_data_status.py
-          uv run python web/audit_data_status.py
+      - name: Verify generated state through the canonical Pages flow
+        run: bash scripts/check_pages.sh
 
       - name: Show ingestion state
         run: uv run crew-data status
