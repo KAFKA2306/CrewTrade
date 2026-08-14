@@ -1,6 +1,8 @@
 from __future__ import annotations
+
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable
+
 import pandas as pd
 import yfinance as yf
 
@@ -14,7 +16,7 @@ class AllocationAssetClient:
 
     def get_prices(self, tickers: Iterable[str], period: str) -> pd.DataFrame:
         tickers = list(dict.fromkeys(tickers))
-        frames: Dict[str, pd.Series] = {}
+        frames: dict[str, pd.Series] = {}
         missing: list[str] = []
         for ticker in tickers:
             path = self._path(ticker)

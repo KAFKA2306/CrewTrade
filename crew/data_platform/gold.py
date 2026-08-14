@@ -4,7 +4,6 @@ from pathlib import Path
 
 import duckdb
 
-
 _LATEST_BY_SERIES = {"credit_oas", "rates_macro"}
 
 

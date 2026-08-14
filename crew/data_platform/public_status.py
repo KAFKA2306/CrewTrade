@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +10,6 @@ import duckdb
 import yaml
 
 from crew.data_platform.consumer import resolve_root
-
 
 _ALLOWED_CONTROLLED_STATES = {
     "canonical_active",
@@ -93,7 +92,7 @@ def build_public_status(
         overall_status = "degraded"
     return {
         "schema_version": 1,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "overall_status": overall_status,
         "catalog_present": catalog_path.is_file(),
         "latest_run": latest_run,

@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Mapping, Protocol, Sequence
+from datetime import UTC, datetime
+from typing import Any, Protocol
 
 import pandas as pd
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @dataclass(frozen=True)

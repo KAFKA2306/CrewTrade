@@ -6,9 +6,8 @@ import shutil
 from pathlib import Path
 
 import markdown
-from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
-
 from catalog import describe_case, format_report_date, purpose_rank
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "output" / "use_cases"

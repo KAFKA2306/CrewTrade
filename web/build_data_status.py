@@ -7,7 +7,6 @@ from zoneinfo import ZoneInfo
 
 from build_static import DOCS_DIR, create_environment
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 STATUS_SOURCE = PROJECT_ROOT / "web" / "generated" / "data-platform-status.json"
 STATUS_OUTPUT = DOCS_DIR / "data-status" / "index.html"

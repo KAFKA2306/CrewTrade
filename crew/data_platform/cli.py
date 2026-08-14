@@ -8,7 +8,6 @@ import duckdb
 from crew.data_platform.public_status import export_public_status
 from crew.data_platform.registry import load_config, sync
 
-
 DEFAULT_CONFIG = Path("config/data_platform.yaml")
 DEFAULT_MIGRATION_CONFIG = Path("config/use_case_data_status.yaml")
 DEFAULT_PUBLIC_STATUS = Path("web/generated/data-platform-status.json")

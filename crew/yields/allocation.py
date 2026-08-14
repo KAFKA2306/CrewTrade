@@ -1,7 +1,10 @@
 from __future__ import annotations
-from typing import Dict, Iterable, Optional
+
+from collections.abc import Iterable
+
 import numpy as np
 import pandas as pd
+
 from crew.yields.config import AllocationConfig, OptimizationConfig
 
 
@@ -9,7 +12,7 @@ def compute_allocation(
     allocation_config: AllocationConfig,
     snapshot: pd.DataFrame,
     asset_prices: pd.DataFrame | None = None,
-) -> Dict[str, object] | None:
+) -> dict[str, object] | None:
     if allocation_config is None or snapshot.empty:
         return None
     latest = snapshot.iloc[-1]
@@ -25,7 +28,7 @@ def compute_allocation(
         profile = allocation_config.neutral
         regime = profile.label
     normalized_weights = _normalize_weights(profile.weights)
-    payload: Dict[str, object] = {
+    payload: dict[str, object] = {
         "regime": regime,
         "z_score": z_score,
         "spread_bp": spread_bp,
@@ -64,7 +67,7 @@ def compute_allocation(
     return payload
 
 
-def _normalize_weights(weights: Dict[str, float]) -> Dict[str, float]:
+def _normalize_weights(weights: dict[str, float]) -> dict[str, float]:
     total = sum(weights.values())
     if total <= 0:
         return weights
@@ -72,8 +75,8 @@ def _normalize_weights(weights: Dict[str, float]) -> Dict[str, float]:
 
 
 def _filter_and_normalize_weights(
-    weights: Dict[str, float], columns: Iterable[str]
-) -> Dict[str, float]:
+    weights: dict[str, float], columns: Iterable[str]
+) -> dict[str, float]:
     filtered = {
         ticker: weight for ticker, weight in weights.items() if ticker in columns and weight > 0
     }
@@ -84,8 +87,8 @@ def _filter_and_normalize_weights(
 
 
 def _merge_weights(
-    base_weights: Dict[str, float], optimized_weights: Dict[str, float]
-) -> Dict[str, float]:
+    base_weights: dict[str, float], optimized_weights: dict[str, float]
+) -> dict[str, float]:
     merged = {}
     for ticker in base_weights.keys():
         merged[ticker] = round(optimized_weights.get(ticker, 0.0), 4)
@@ -98,7 +101,7 @@ def _merge_weights(
 def _optimize_weights(
     returns: pd.DataFrame,
     opt_cfg: OptimizationConfig,
-) -> Dict[str, object] | None:
+) -> dict[str, object] | None:
     tickers = list(returns.columns)
     if len(tickers) == 0:
         return None
@@ -150,7 +153,7 @@ def _run_random_search(
     sample_size: int,
     opt_cfg: OptimizationConfig,
     seed: int,
-) -> Dict[str, object] | None:
+) -> dict[str, object] | None:
     if sample_size <= 0:
         return None
     cov = returns.cov() * 252.0
@@ -159,7 +162,7 @@ def _run_random_search(
         return None
     rng = np.random.default_rng(seed)
     best_sharpe = -np.inf
-    best_weights: Optional[np.ndarray] = None
+    best_weights: np.ndarray | None = None
     cov_matrix = cov.to_numpy()
     mu_vector = mu.to_numpy()
     min_w = opt_cfg.min_weight
@@ -193,9 +196,9 @@ def _run_random_search(
 
 def _compute_performance_metrics(
     returns: pd.DataFrame,
-    weights: Dict[str, float],
+    weights: dict[str, float],
     risk_free_rate: float,
-) -> Dict[str, float] | None:
+) -> dict[str, float] | None:
     tickers = [
         ticker for ticker, weight in weights.items() if weight > 0 and ticker in returns.columns
     ]

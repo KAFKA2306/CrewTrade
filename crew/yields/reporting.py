@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
 from zoneinfo import ZoneInfo
 
 import pandas as pd
 
 from crew.yields.config import YieldSpreadConfig
-
 
 _RATE_LABELS = {
     "us_2y": "米国2年",
@@ -27,8 +25,8 @@ class YieldSpreadReporter:
         self.processed_dir.mkdir(parents=True, exist_ok=True)
         self.report_dir.mkdir(parents=True, exist_ok=True)
 
-    def persist(self, payload: Dict[str, object]) -> Dict[str, Path]:
-        stored: Dict[str, Path] = {}
+    def persist(self, payload: dict[str, object]) -> dict[str, Path]:
+        stored: dict[str, Path] = {}
         for key in (
             "rates",
             "treasury_curve",
@@ -50,7 +48,7 @@ class YieldSpreadReporter:
         stored["report"] = report_path
         return stored
 
-    def _build_report(self, payload: Dict[str, object]) -> str:
+    def _build_report(self, payload: dict[str, object]) -> str:
         spread_snapshot = _frame(payload, "spread_snapshot")
         macro_snapshot = _frame(payload, "macro_snapshot")
         curve_snapshot = _frame(payload, "curve_snapshot")
@@ -187,7 +185,7 @@ class YieldSpreadReporter:
         return "\n".join(lines)
 
 
-def _frame(payload: Dict[str, object], key: str, *, required: bool = True) -> pd.DataFrame:
+def _frame(payload: dict[str, object], key: str, *, required: bool = True) -> pd.DataFrame:
     value = payload.get(key)
     if isinstance(value, pd.DataFrame):
         return value

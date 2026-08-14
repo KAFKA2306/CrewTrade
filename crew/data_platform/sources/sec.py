@@ -4,7 +4,8 @@ import base64
 import hashlib
 import json
 import os
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 from xml.etree import ElementTree
 
 import pandas as pd

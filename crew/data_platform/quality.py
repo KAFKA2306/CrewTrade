@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import math
-from typing import Iterable
+from collections.abc import Iterable
 from urllib.parse import urlparse
 
 import numpy as np
-import pandas as pd
 
 from crew.data_platform.contracts import DatasetBatch, QualityCheck
 

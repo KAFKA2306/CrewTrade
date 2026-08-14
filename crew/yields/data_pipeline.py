@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict
 
 import pandas as pd
 
@@ -20,7 +19,7 @@ class YieldSpreadDataPipeline(BaseDataPipeline):
     def __init__(self, raw_data_dir: Path, config: YieldSpreadConfig) -> None:
         super().__init__(raw_data_dir, config)
 
-    def fetch_data_internal(self, targets: Dict[str, str], days: int) -> Dict[str, str]:
+    def fetch_data_internal(self, targets: dict[str, str], days: int) -> dict[str, str]:
         rates = pivot_latest_vintage(self.config.rates_dataset)
         rates = self._slice_period(rates, self.config.period)
         required_labels = {
