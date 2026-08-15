@@ -122,11 +122,16 @@ def add_rewrite_aliases(rewrites: dict[str, str], source: str, target: str) -> N
 
 
 def companion_output_names(report_dir: Path, selected_source: Path, date: str) -> list[str]:
-    return [
+    outputs = [
         f"{date}-{companion.stem}.html"
         for companion in sorted(report_dir.glob("*.md"))
         if companion != selected_source
     ]
+    outputs.extend(
+        f"assets/{date}/{asset.relative_to(report_dir).as_posix()}"
+        for asset in sorted(report_dir.rglob("*.html"))
+    )
+    return outputs
 
 
 def prepare_report_assets(

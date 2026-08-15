@@ -49,6 +49,12 @@ def build_parser() -> argparse.ArgumentParser:
     evidence_parser.add_argument("--report", type=Path, required=True)
     evidence_parser.add_argument("--migration-config", type=Path, default=DEFAULT_MIGRATION_CONFIG)
     evidence_parser.add_argument("--output", type=Path, required=True)
+    evidence_parser.add_argument(
+        "--summary-output",
+        type=Path,
+        default=None,
+        help="Optional human-readable HTML projection of the JSON evidence pack",
+    )
 
     subparsers.add_parser("validate-config", help="Validate configuration only")
     return parser
@@ -101,11 +107,14 @@ def main(argv: list[str] | None = None) -> int:
             platform_config_path=args.config,
             migration_config_path=args.migration_config,
             root=args.root,
+            summary_output_path=args.summary_output,
         )
         print(
             f"Report evidence: {payload['decision']} -> {args.output} "
             f"fingerprint={payload['evidence_fingerprint']}"
         )
+        if args.summary_output is not None:
+            print(f"Human-readable summary: {args.summary_output}")
         return 0 if payload["decision"] == "READY_FOR_REVIEW" else 2
 
     catalog = root / "catalog.duckdb"
