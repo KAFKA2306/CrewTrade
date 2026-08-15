@@ -1,3 +1,5 @@
+# ruff: noqa: I001
+
 from crew.data_platform.registry import load_config
 
 
