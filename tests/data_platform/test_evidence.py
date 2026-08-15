@@ -61,6 +61,7 @@ def test_ready_for_review_binds_report_and_required_lineage(tmp_path: Path) -> N
     assert len(payload["evidence_fingerprint"]) == 64
 
     output = tmp_path / "evidence.json"
+    summary = tmp_path / "evidence-summary.html"
     exported = export_report_evidence(
         output_path=output,
         use_case="yield_spread",
@@ -68,9 +69,19 @@ def test_ready_for_review_binds_report_and_required_lineage(tmp_path: Path) -> N
         platform_config_path=PLATFORM_CONFIG,
         migration_config_path=MIGRATION_CONFIG,
         root=root,
+        summary_output_path=summary,
     )
     assert output.is_file()
+    assert summary.is_file()
     assert exported["evidence_fingerprint"] == payload["evidence_fingerprint"]
+
+    rendered = summary.read_text(encoding="utf-8")
+    assert "READY_FOR_REVIEW" in rendered
+    assert payload["evidence_fingerprint"] in rendered
+    assert payload["report"]["sha256"] in rendered
+    for dataset in _REQUIRED:
+        assert dataset in rendered
+        assert f"https://example.com/{dataset}" in rendered
 
 
 def test_missing_snapshot_fails_closed(tmp_path: Path) -> None:
