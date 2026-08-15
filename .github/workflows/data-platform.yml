@@ -113,6 +113,9 @@ jobs:
       - name: Fetch nominal and real U.S. Treasury curves
         run: uv run crew-data sync --source treasury_yield_curve
 
+      - name: Fetch JPX ETF product master
+        run: uv run crew-data sync --source jpx_etf_master
+
       - name: Materialize governed source registry
         run: uv run crew-data sync --source governed_manual
 
@@ -161,6 +164,8 @@ jobs:
           assert status["summary"]["canonical_ok"] == 1, status["summary"]
           assert status["summary"]["controlled_blocks"] == 9, status["summary"]
           assert status["summary"]["awaiting_snapshot"] == 0, status["summary"]
+          datasets = {row["dataset"] for row in status["datasets"]}
+          assert "jpx_etf_master" in datasets, datasets
           print("Canonical Pages status is OK")
           PY
 
