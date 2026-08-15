@@ -24,6 +24,7 @@ def test_every_implemented_dataset_has_an_executable_contract() -> None:
         "treasury_par_real_yield_curve",
         "rates_macro",
         "governed_source_registry",
+        "jpx_etf_master",
         "sec_filings",
         "sec_company_facts",
         "sec_13f_holdings",
