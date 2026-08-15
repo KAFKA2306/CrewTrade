@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, ValidationError, model_validator
@@ -53,7 +53,7 @@ class DatasetContract(BaseModel):
     redistribution: str = Field(min_length=1)
 
     @model_validator(mode="after")
-    def validate_references(self) -> DatasetContract:
+    def validate_references(self) -> Self:
         missing_pk = sorted(set(self.primary_key).difference(self.fields))
         if missing_pk:
             raise ValueError(f"primary_key fields missing from contract fields: {missing_pk}")
