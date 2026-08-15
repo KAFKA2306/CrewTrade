@@ -5,6 +5,7 @@ import html
 import json
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import yaml
 
@@ -77,42 +78,49 @@ def render_report_evidence_html(payload: dict[str, Any]) -> str:
     def esc(value: Any) -> str:
         return html.escape("" if value is None else str(value), quote=True)
 
+    def source_reference(value: Any) -> str:
+        raw = "" if value is None else str(value)
+        escaped = esc(raw)
+        parsed = urlparse(raw)
+        if parsed.scheme in {"http", "https"} and parsed.netloc:
+            return f'<a href="{escaped}">{escaped}</a>'
+        return escaped or "—"
+
     rows = []
     for dataset in payload["datasets"]:
-        source_url = esc(dataset.get("source_url"))
-        source_link = f'<a href="{source_url}">{source_url}</a>' if source_url else "—"
         rows.append(
             "<tr>"
             f"<td>{esc(dataset.get('dataset'))}</td>"
             f"<td>{esc(dataset.get('quality_status'))}</td>"
-            f"<td>{source_link}</td>"
+            f"<td>{source_reference(dataset.get('source_url'))}</td>"
             f"<td><code>{esc(dataset.get('raw_sha256'))}</code></td>"
             f"<td>{esc(dataset.get('retrieved_at'))}</td>"
             "</tr>"
         )
 
-    missing = ", ".join(map(str, payload["missing_datasets"])) or "none"
-    failed = ", ".join(map(str, payload["failed_datasets"])) or "none"
+    missing = ", ".join(map(str, payload["missing_datasets"])) or "なし"
+    failed = ", ".join(map(str, payload["failed_datasets"])) or "なし"
     return "\n".join(
         [
             "<!doctype html>",
-            '<html lang="en">',
+            '<html lang="ja">',
             "<head>",
             '<meta charset="utf-8">',
             '<meta name="viewport" content="width=device-width,initial-scale=1">',
             f"<title>Evidence Pack — {esc(payload['use_case'])}</title>",
             "</head>",
             "<body>",
-            "<main>",
+            '<a class="skip-link" href="#main-content">本文へ移動</a>',
+            '<main id="main-content">',
             f"<h1>Evidence Pack — {esc(payload['use_case'])}</h1>",
-            f"<p><strong>Decision:</strong> {esc(payload['decision'])}</p>",
+            f"<p><strong>判定:</strong> {esc(payload['decision'])}</p>",
             f"<p>{esc(payload['scope'])}</p>",
-            "<h2>Report identity</h2>",
+            "<h2>レポート識別情報</h2>",
             f"<p><code>{esc(payload['report']['path'])}</code></p>",
             f"<p>SHA-256: <code>{esc(payload['report']['sha256'])}</code></p>",
             f"<p>Evidence fingerprint: <code>{esc(payload['evidence_fingerprint'])}</code></p>",
-            "<h2>Data lineage</h2>",
-            f"<p>Missing datasets: {esc(missing)}<br>Failed datasets: {esc(failed)}</p>",
+            "<h2>データ系譜</h2>",
+            f"<p>不足データセット: {esc(missing)}<br>失敗データセット: {esc(failed)}</p>",
             "<table>",
             "<thead><tr><th>Dataset</th><th>Quality</th><th>Source</th><th>Input SHA-256</th><th>Retrieved</th></tr></thead>",
             f"<tbody>{''.join(rows)}</tbody>",
