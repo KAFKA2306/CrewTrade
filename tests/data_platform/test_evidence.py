@@ -76,6 +76,9 @@ def test_ready_for_review_binds_report_and_required_lineage(tmp_path: Path) -> N
     assert exported["evidence_fingerprint"] == payload["evidence_fingerprint"]
 
     rendered = summary.read_text(encoding="utf-8")
+    assert '<html lang="ja">' in rendered
+    assert 'class="skip-link"' in rendered
+    assert 'id="main-content"' in rendered
     assert "READY_FOR_REVIEW" in rendered
     assert payload["evidence_fingerprint"] in rendered
     assert payload["report"]["sha256"] in rendered
