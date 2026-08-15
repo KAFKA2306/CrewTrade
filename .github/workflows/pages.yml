@@ -12,6 +12,11 @@ on:
       - "scripts/check_pages.sh"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact commit to build and deploy; defaults to the dispatch event SHA
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -27,6 +32,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_sha || github.sha }}
+
+      - name: Verify source identity
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.source_sha || github.sha }}
+        run: |
+          actual="$(git rev-parse HEAD)"
+          test -n "$EXPECTED_SOURCE_SHA"
+          test "$actual" = "$EXPECTED_SOURCE_SHA"
+          echo "Pages source identity verified: $actual"
 
       - name: Install uv and Python
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0

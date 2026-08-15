@@ -192,22 +192,26 @@ jobs:
           if git diff --cached --quiet; then
             echo "Published report and status are current."
             echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "published_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           else
             git commit -m "Refresh canonical data report and status"
             git stash push --include-untracked -m "ci-smoke-generated"
             git pull --rebase origin main
             git push origin HEAD:main
             echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "published_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Dispatch Pages after canonical data publish
         if: github.ref == 'refs/heads/main' && steps.publish.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.publish.outputs.published_sha }}
         run: |
+          test "${#SOURCE_SHA}" -eq 40
           curl --fail-with-body --request POST \
             --header "Authorization: Bearer ${GH_TOKEN}" \
             --header "Accept: application/vnd.github+json" \
             --header "X-GitHub-Api-Version: 2022-11-28" \
-            --data '{"ref":"main"}' \
+            --data "{\"ref\":\"main\",\"inputs\":{\"source_sha\":\"${SOURCE_SHA}\"}}" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/pages.yml/dispatches"
