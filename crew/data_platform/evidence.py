@@ -41,8 +41,7 @@ def _dataset_rights(platform: dict[str, Any], required: list[str]) -> list[dict[
                 "dataset": str(dataset),
                 "source": source_name,
                 "license_status": dataset_config.get("license_status"),
-                "rights_source_url": dataset_config.get("rights_source_url")
-                or dataset_config.get("source_url"),
+                "rights_source_url": dataset_config.get("rights_source_url"),
             }
 
     rows = []
@@ -52,7 +51,9 @@ def _dataset_rights(platform: dict[str, Any], required: list[str]) -> list[dict[
             {
                 **row,
                 "rights_evidence_status": (
-                    "declared" if row.get("license_status") and row.get("rights_source_url") else "not_declared"
+                    "declared"
+                    if row.get("license_status") and row.get("rights_source_url")
+                    else "not_declared"
                 ),
             }
         )
@@ -95,7 +96,9 @@ def build_report_evidence(
         decision = "READY_FOR_REVIEW"
 
     rights = _dataset_rights(platform, required)
-    missing_rights = [row["dataset"] for row in rights if row["rights_evidence_status"] != "declared"]
+    missing_rights = [
+        row["dataset"] for row in rights if row["rights_evidence_status"] != "declared"
+    ]
     if decision != "READY_FOR_REVIEW":
         distribution_decision = "NOT_EVALUATED"
     elif missing_rights:
