@@ -1,8 +1,5 @@
-from __future__ import annotations
-
-from pathlib import Path
-
 import pytest
+
 from crew.data_platform.registry import load_config
 
 
@@ -21,7 +18,7 @@ contracts:
 """
 
 
-def test_load_config_rejects_missing_storage(tmp_path: Path) -> None:
+def test_load_config_rejects_missing_storage(tmp_path) -> None:
     path = tmp_path / "config.yaml"
     path.write_text("schema_version: 2\nsources: {}\n" + _MINIMAL_CONTRACT, encoding="utf-8")
 
@@ -29,7 +26,7 @@ def test_load_config_rejects_missing_storage(tmp_path: Path) -> None:
         load_config(path)
 
 
-def test_load_config_rejects_non_boolean_enabled(tmp_path: Path) -> None:
+def test_load_config_rejects_non_boolean_enabled(tmp_path) -> None:
     path = tmp_path / "config.yaml"
     content = (
         "schema_version: 2\n"
@@ -42,7 +39,7 @@ def test_load_config_rejects_non_boolean_enabled(tmp_path: Path) -> None:
         load_config(path)
 
 
-def test_load_config_preserves_source_specific_fields(tmp_path: Path) -> None:
+def test_load_config_preserves_source_specific_fields(tmp_path) -> None:
     path = tmp_path / "config.yaml"
     content = (
         "schema_version: 2\n"
@@ -60,7 +57,7 @@ def test_load_config_preserves_source_specific_fields(tmp_path: Path) -> None:
     assert config["sources"]["treasury"]["dataset"] == "treasury_par_yield_curve"
 
 
-def test_load_config_rejects_contract_with_unknown_primary_key_field(tmp_path: Path) -> None:
+def test_load_config_rejects_contract_with_unknown_primary_key_field(tmp_path) -> None:
     path = tmp_path / "config.yaml"
     path.write_text(
         "schema_version: 2\n"
