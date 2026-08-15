@@ -31,10 +31,18 @@ def validate_batch(batch: DatasetBatch) -> list[QualityCheck]:
         null_key_rows = int(frame[list(batch.primary_key)].isna().any(axis=1).sum())
         duplicate_rows = int(frame.duplicated(list(batch.primary_key), keep=False).sum())
         checks.append(
-            QualityCheck("primary_key_not_null", null_key_rows == 0, f"null_key_rows={null_key_rows}")
+            QualityCheck(
+                "primary_key_not_null",
+                null_key_rows == 0,
+                f"null_key_rows={null_key_rows}",
+            )
         )
         checks.append(
-            QualityCheck("primary_key_unique", duplicate_rows == 0, f"duplicate_rows={duplicate_rows}")
+            QualityCheck(
+                "primary_key_unique",
+                duplicate_rows == 0,
+                f"duplicate_rows={duplicate_rows}",
+            )
         )
 
     parsed_url = urlparse(batch.source_url)
@@ -46,7 +54,11 @@ def validate_batch(batch: DatasetBatch) -> list[QualityCheck]:
         )
     )
     checks.append(
-        QualityCheck("raw_payload_present", bool(batch.raw_payload), f"bytes={len(batch.raw_payload)}")
+        QualityCheck(
+            "raw_payload_present",
+            bool(batch.raw_payload),
+            f"bytes={len(batch.raw_payload)}",
+        )
     )
 
     numeric_columns = frame.select_dtypes(include=[np.number]).columns
@@ -191,12 +203,24 @@ def _validate_contract(batch: DatasetBatch, contract: Mapping[str, object]) -> l
         field = str(freshness.get("field", ""))
         max_age_days = int(freshness.get("max_age_days", 0))
         if field not in frame.columns or frame.empty:
-            checks.append(QualityCheck("contract_freshness", False, f"field={field} unavailable"))
+            checks.append(
+                QualityCheck(
+                    "contract_freshness",
+                    False,
+                    f"field={field} unavailable",
+                )
+            )
         else:
             timestamps = pd.to_datetime(frame[field], errors="coerce")
             latest = timestamps.max()
             if pd.isna(latest):
-                checks.append(QualityCheck("contract_freshness", False, f"field={field} no dates"))
+                checks.append(
+                    QualityCheck(
+                        "contract_freshness",
+                        False,
+                        f"field={field} no dates",
+                    )
+                )
             else:
                 age_days = (batch.retrieved_at.date() - pd.Timestamp(latest).date()).days
                 checks.append(
@@ -227,7 +251,7 @@ def _series_matches_type(series: pd.Series, expected_type: str) -> bool:
         try:
             for value in series:
                 json.loads(str(value))
-        except (TypeError, ValueError, json.JSONDecodeError):
+        except (TypeError, ValueError):
             return False
         return True
     return False
