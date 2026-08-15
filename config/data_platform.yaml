@@ -142,6 +142,7 @@ sources:
 
 contracts:
   treasury_par_yield_curve:
+    contract_version: 1.0.0
     source: us_treasury
     primary_key: [observation_date, tenor]
     strict_columns: true
@@ -163,6 +164,7 @@ contracts:
       curve_type: {type: string, nullable: false, allowed: [daily_treasury_par_yield_curve]}
 
   treasury_par_real_yield_curve:
+    contract_version: 1.0.0
     source: us_treasury
     primary_key: [observation_date, tenor]
     strict_columns: true
@@ -181,6 +183,7 @@ contracts:
       curve_type: {type: string, nullable: false, allowed: [daily_treasury_par_real_yield_curve]}
 
   rates_macro:
+    contract_version: 1.0.0
     source: us_treasury
     primary_key: [series_id, observation_date, realtime_start, realtime_end]
     strict_columns: true
@@ -208,6 +211,7 @@ contracts:
       title: {type: string, nullable: false}
 
   governed_source_registry:
+    contract_version: 1.0.0
     source: governed_manual
     primary_key: [source_id]
     strict_columns: true
@@ -235,6 +239,7 @@ contracts:
       checked_on: {type: date, nullable: false}
 
   sec_filings:
+    contract_version: 1.0.0
     source: sec_edgar
     primary_key: [entity_cik, accession_number]
     strict_columns: true
@@ -257,6 +262,7 @@ contracts:
       is_inline_xbrl: {type: integer, nullable: true, minimum: 0, maximum: 1}
 
   sec_company_facts:
+    contract_version: 1.0.0
     source: sec_edgar
     primary_key: [fact_id]
     strict_columns: true
@@ -284,6 +290,7 @@ contracts:
       accession_number: {type: string, nullable: false, pattern: '^\d{10}-\d{2}-\d{6}$'}
 
   sec_13f_holdings:
+    contract_version: 1.0.0
     source: sec_edgar
     primary_key: [holding_id]
     strict_columns: true
