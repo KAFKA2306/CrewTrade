@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 from pathlib import Path
 from typing import Any
@@ -70,6 +71,60 @@ def build_report_evidence(
     return payload
 
 
+def render_report_evidence_html(payload: dict[str, Any]) -> str:
+    """Render the JSON evidence pack without creating a second source of truth."""
+
+    def esc(value: Any) -> str:
+        return html.escape("" if value is None else str(value), quote=True)
+
+    rows = []
+    for dataset in payload["datasets"]:
+        source_url = esc(dataset.get("source_url"))
+        source_link = f'<a href="{source_url}">{source_url}</a>' if source_url else "—"
+        rows.append(
+            "<tr>"
+            f"<td>{esc(dataset.get('dataset'))}</td>"
+            f"<td>{esc(dataset.get('quality_status'))}</td>"
+            f"<td>{source_link}</td>"
+            f"<td><code>{esc(dataset.get('raw_sha256'))}</code></td>"
+            f"<td>{esc(dataset.get('retrieved_at'))}</td>"
+            "</tr>"
+        )
+
+    missing = ", ".join(map(str, payload["missing_datasets"])) or "none"
+    failed = ", ".join(map(str, payload["failed_datasets"])) or "none"
+    return "\n".join(
+        [
+            "<!doctype html>",
+            '<html lang="en">',
+            "<head>",
+            '<meta charset="utf-8">',
+            '<meta name="viewport" content="width=device-width,initial-scale=1">',
+            f"<title>Evidence Pack — {esc(payload['use_case'])}</title>",
+            "</head>",
+            "<body>",
+            "<main>",
+            f"<h1>Evidence Pack — {esc(payload['use_case'])}</h1>",
+            f"<p><strong>Decision:</strong> {esc(payload['decision'])}</p>",
+            f"<p>{esc(payload['scope'])}</p>",
+            "<h2>Report identity</h2>",
+            f"<p><code>{esc(payload['report']['path'])}</code></p>",
+            f"<p>SHA-256: <code>{esc(payload['report']['sha256'])}</code></p>",
+            f"<p>Evidence fingerprint: <code>{esc(payload['evidence_fingerprint'])}</code></p>",
+            "<h2>Data lineage</h2>",
+            f"<p>Missing datasets: {esc(missing)}<br>Failed datasets: {esc(failed)}</p>",
+            "<table>",
+            "<thead><tr><th>Dataset</th><th>Quality</th><th>Source</th><th>Input SHA-256</th><th>Retrieved</th></tr></thead>",
+            f"<tbody>{''.join(rows)}</tbody>",
+            "</table>",
+            "</main>",
+            "</body>",
+            "</html>",
+            "",
+        ]
+    )
+
+
 def export_report_evidence(
     *,
     output_path: Path,
@@ -78,6 +133,7 @@ def export_report_evidence(
     platform_config_path: Path,
     migration_config_path: Path,
     root: Path | None = None,
+    summary_output_path: Path | None = None,
 ) -> dict[str, Any]:
     payload = build_report_evidence(
         use_case=use_case,
@@ -91,4 +147,7 @@ def export_report_evidence(
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    if summary_output_path is not None:
+        summary_output_path.parent.mkdir(parents=True, exist_ok=True)
+        summary_output_path.write_text(render_report_evidence_html(payload), encoding="utf-8")
     return payload
