@@ -34,9 +34,7 @@ def build_report_evidence(
     datasets = [dataset_by_name[name] for name in required if name in dataset_by_name]
 
     report_exists = report_path.is_file()
-    report_sha256 = (
-        hashlib.sha256(report_path.read_bytes()).hexdigest() if report_exists else None
-    )
+    report_sha256 = hashlib.sha256(report_path.read_bytes()).hexdigest() if report_exists else None
     if use_case_row["declared_state"] != "canonical_active":
         decision = "CONTROLLED_BLOCK"
     elif not report_exists:
