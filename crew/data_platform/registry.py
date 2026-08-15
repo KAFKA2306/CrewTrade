@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Mapping, Sequence
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -67,6 +68,7 @@ def sync(
     root = root_override or Path(config["storage"]["root"])
     storage = DataPlatformStorage(root)
     adapters = build_adapters(config, selected_sources)
+    contracts = dict(config.get("contracts", {}))
     requested = list(selected_sources or config.get("sources", {}).keys())
     run_id = _new_run_id()
     storage.start_run(run_id, requested)
@@ -74,7 +76,12 @@ def sync(
     try:
         for adapter in adapters:
             for batch in adapter.fetch():
-                persisted.append(storage.persist(run_id, batch))
+                contract = contracts.get(batch.dataset)
+                if contract is None:
+                    raise ValueError(
+                        f"Dataset {batch.dataset!r} from {batch.source!r} has no executable contract"
+                    )
+                persisted.append(storage.persist(run_id, replace(batch, contract=contract)))
         refresh_gold_views(storage.catalog_path)
         manifest_path = storage.write_manifest(run_id, persisted)
         storage.finish_run(run_id, status="success")
