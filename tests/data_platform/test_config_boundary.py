@@ -1,5 +1,3 @@
-import pytest
-
 from crew.data_platform.registry import load_config
 
 
@@ -18,12 +16,20 @@ contracts:
 """
 
 
+def _assert_invalid_config(path) -> None:
+    try:
+        load_config(path)
+    except ValueError as error:
+        assert "Invalid data platform config" in str(error)
+    else:
+        raise AssertionError("expected invalid data platform config")
+
+
 def test_load_config_rejects_missing_storage(tmp_path) -> None:
     path = tmp_path / "config.yaml"
     path.write_text("schema_version: 2\nsources: {}\n" + _MINIMAL_CONTRACT, encoding="utf-8")
 
-    with pytest.raises(ValueError, match="Invalid data platform config"):
-        load_config(path)
+    _assert_invalid_config(path)
 
 
 def test_load_config_rejects_non_boolean_enabled(tmp_path) -> None:
@@ -35,8 +41,7 @@ def test_load_config_rejects_non_boolean_enabled(tmp_path) -> None:
     ) + _MINIMAL_CONTRACT
     path.write_text(content, encoding="utf-8")
 
-    with pytest.raises(ValueError, match="Invalid data platform config"):
-        load_config(path)
+    _assert_invalid_config(path)
 
 
 def test_load_config_preserves_source_specific_fields(tmp_path) -> None:
@@ -76,5 +81,4 @@ def test_load_config_rejects_contract_with_unknown_primary_key_field(tmp_path) -
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="Invalid data platform config"):
-        load_config(path)
+    _assert_invalid_config(path)
