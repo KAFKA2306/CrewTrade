@@ -26,6 +26,16 @@ sources:
     rates_dataset: rates_macro
     years: [2024, 2025, 2026]
 
+  jpx_etf_master:
+    adapter: jpx_etf_master
+    enabled: true
+    user_agent: CrewTrade data-platform
+    min_interval_seconds: 0.5
+    timeout_seconds: 60
+    max_attempts: 3
+    url: https://www.jpx.co.jp/equities/products/etfs/issues/01.html
+    dataset: jpx_etf_master
+
   sec_edgar:
     adapter: sec
     enabled: false
@@ -87,14 +97,14 @@ sources:
       jpx_etf_master:
         use_cases: [index_etf_comparison, index_7_portfolio, securities_collateral_loan]
         owner: 株式会社日本取引所グループ
-        source_url: https://www.jpx.co.jp/equities/products/etfs/issues/index.html
-        access_mode: official_document
-        license_status: terms_review_required
-        refresh_policy: daily_metadata_monthly_full
-        required_fields: [ticker, isin, official_name, index_name, currency, hedge, fee, inception_date]
-        automation_status: blocked
-        block_reason: Product master and market data redistribution terms must be recorded before ingestion.
-        checked_on: "2026-08-04"
+        source_url: https://www.jpx.co.jp/equities/products/etfs/issues/01.html
+        access_mode: official_html
+        license_status: public_reference_metadata
+        refresh_policy: daily
+        required_fields: [as_of_date, ticker, index_name, official_name, manager, trust_fee_text]
+        automation_status: partial
+        block_reason: Product master ingestion is canonical and automated; price history, ISIN, currency and hedge metadata remain separate contracts, primarily #52.
+        checked_on: "2026-08-15"
       edinet_api_v2:
         use_cases: [index_etf_comparison, semiconductors, oracle]
         owner: 金融庁
@@ -237,6 +247,29 @@ contracts:
         allowed: [blocked, partial, ready_requires_adapter_and_secret, private_input_required]
       block_reason: {type: string, nullable: false}
       checked_on: {type: date, nullable: false}
+
+  jpx_etf_master:
+    contract_version: 1.0.0
+    source: jpx
+    primary_key: [as_of_date, ticker]
+    strict_columns: true
+    grain: one row per JPX-listed ETF code and retrieval date
+    revision_policy: each official-page snapshot is retained as a new ingestion run
+    redistribution: public JPX product metadata; market-price rights are a separate contract
+    required_metadata: [retrieval_mode, source_page, parsed_rows]
+    freshness:
+      field: as_of_date
+      max_age_days: 7
+    fields:
+      as_of_date: {type: date, nullable: false}
+      ticker: {type: string, nullable: false, pattern: '^[0-9]{3}[A-Z0-9]$'}
+      index_name: {type: string, nullable: true}
+      official_name: {type: string, nullable: false}
+      manager: {type: string, nullable: false}
+      manager_search_code: {type: string, nullable: true, pattern: '^[0-9A-Z]+$'}
+      trust_fee_text: {type: string, nullable: true}
+      long_term_flag: {type: boolean, nullable: false}
+      market_maker_status: {type: string, nullable: false, allowed: [none, circle, star]}
 
   sec_filings:
     contract_version: 1.0.0
