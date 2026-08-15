@@ -126,19 +126,23 @@ jobs:
           report="$(find output/use_cases/yield_spread -type f -name report.md | sort | tail -1)"
           test -n "$report"
           evidence="${report%/report.md}/evidence.json"
+          summary="${report%/report.md}/evidence-summary.html"
           uv run crew-data evidence-pack \
             --use-case yield_spread \
             --report "$report" \
-            --output "$evidence"
-          uv run python - "$evidence" <<'PY'
+            --output "$evidence" \
+            --summary-output "$summary"
+          uv run python - "$evidence" "$summary" <<'PY'
           import json
           import sys
           from pathlib import Path
 
           payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          rendered = Path(sys.argv[2]).read_text(encoding="utf-8")
           assert payload["decision"] == "READY_FOR_REVIEW", payload
           assert payload["report"]["sha256"], payload
           assert payload["evidence_fingerprint"], payload
+          assert payload["evidence_fingerprint"] in rendered
           print(f"Evidence pack READY_FOR_REVIEW: {payload['evidence_fingerprint']}")
           PY
 
