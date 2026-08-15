@@ -53,10 +53,10 @@ jobs:
         run: uv lock --check
 
       - name: Verify Ruff formatting
-        run: uv run --locked ruff format --check crew/data_platform crew/yields web tests/data_platform
+        run: uv run --locked ruff format --check --output-format github crew/data_platform crew/yields web tests/data_platform
 
       - name: Run Ruff lint
-        run: uv run --locked ruff check crew/data_platform crew/yields web tests/data_platform
+        run: uv run --locked ruff check --output-format github crew/data_platform crew/yields web tests/data_platform
 
       - name: Run Pyrefly
         run: uv run --locked pyrefly check
