@@ -53,6 +53,8 @@ class PersistedBatch:
     raw_path: str
     parquet_path: str
     raw_sha256: str
+    contract_version: str | None
+    contract_sha256: str | None
     checks: Sequence[QualityCheck]
 
 
