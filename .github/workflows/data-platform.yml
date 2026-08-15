@@ -121,6 +121,27 @@ jobs:
           uv run python -m crew.yields.data_pipeline
           uv run python -m crew.yields.analysis
 
+      - name: Bind active report to canonical lineage
+        run: |
+          report="$(find output/use_cases/yield_spread -type f -name report.md | sort | tail -1)"
+          test -n "$report"
+          evidence="${report%/report.md}/evidence.json"
+          uv run crew-data evidence-pack \
+            --use-case yield_spread \
+            --report "$report" \
+            --output "$evidence"
+          uv run python - "$evidence" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          assert payload["decision"] == "READY_FOR_REVIEW", payload
+          assert payload["report"]["sha256"], payload
+          assert payload["evidence_fingerprint"], payload
+          print(f"Evidence pack READY_FOR_REVIEW: {payload['evidence_fingerprint']}")
+          PY
+
       - name: Export sanitized Pages status
         run: uv run crew-data export-status
 
