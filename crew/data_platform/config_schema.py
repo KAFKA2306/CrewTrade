@@ -59,7 +59,9 @@ class DatasetContract(BaseModel):
         if missing_pk:
             raise ValueError(f"primary_key fields missing from contract fields: {missing_pk}")
         if self.freshness and self.freshness.field not in self.fields:
-            raise ValueError(f"freshness field missing from contract fields: {self.freshness.field}")
+            raise ValueError(
+                f"freshness field missing from contract fields: {self.freshness.field}"
+            )
         return self
 
 
