@@ -42,6 +42,7 @@ class FreshnessContract(BaseModel):
 class DatasetContract(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    contract_version: str = Field(pattern=r"^\d+\.\d+\.\d+$")
     source: str = Field(min_length=1)
     primary_key: list[str] = Field(min_length=1)
     strict_columns: StrictBool = True
