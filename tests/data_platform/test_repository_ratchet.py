@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from crew.data_platform.registry import load_config
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -13,6 +15,21 @@ def test_canonical_flow_contract_exists() -> None:
     ]
     missing = [str(path.relative_to(ROOT)) for path in required if not path.exists()]
     assert not missing, f"canonical flow paths missing: {missing}"
+
+
+def test_every_implemented_dataset_has_an_executable_contract() -> None:
+    config = load_config(ROOT / "config" / "data_platform.yaml")
+    expected = {
+        "treasury_par_yield_curve",
+        "treasury_par_real_yield_curve",
+        "rates_macro",
+        "governed_source_registry",
+        "sec_filings",
+        "sec_company_facts",
+        "sec_13f_holdings",
+    }
+
+    assert set(config["contracts"]) == expected
 
 
 def test_obsolete_research_paths_do_not_return() -> None:
