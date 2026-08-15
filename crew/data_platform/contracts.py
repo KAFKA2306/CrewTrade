@@ -35,6 +35,7 @@ class DatasetBatch:
     content_type: str = "application/octet-stream"
     retrieved_at: datetime = field(default_factory=utc_now)
     metadata: Mapping[str, Any] = field(default_factory=dict)
+    contract: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True)
