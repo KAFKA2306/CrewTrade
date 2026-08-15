@@ -13,6 +13,7 @@ from crew.data_platform.gold import refresh_gold_views
 from crew.data_platform.sources import (
     FredSource,
     GovernedManualSource,
+    JpxEtfMasterSource,
     SecSource,
     TreasuryYieldCurveSource,
 )
@@ -23,6 +24,7 @@ _ADAPTERS = {
     "treasury_yield_curve": TreasuryYieldCurveSource,
     "sec": SecSource,
     "governed_manual": GovernedManualSource,
+    "jpx_etf_master": JpxEtfMasterSource,
 }
 
 
