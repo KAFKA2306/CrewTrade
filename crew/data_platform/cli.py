@@ -5,6 +5,7 @@ from pathlib import Path
 
 import duckdb
 
+from crew.data_platform.evidence import export_report_evidence
 from crew.data_platform.public_status import export_public_status
 from crew.data_platform.registry import load_config, sync
 
@@ -40,6 +41,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     export_parser.add_argument("--migration-config", type=Path, default=DEFAULT_MIGRATION_CONFIG)
     export_parser.add_argument("--output", type=Path, default=DEFAULT_PUBLIC_STATUS)
+
+    evidence_parser = subparsers.add_parser(
+        "evidence-pack", help="Bind a report artifact to its declared canonical data lineage"
+    )
+    evidence_parser.add_argument("--use-case", required=True)
+    evidence_parser.add_argument("--report", type=Path, required=True)
+    evidence_parser.add_argument("--migration-config", type=Path, default=DEFAULT_MIGRATION_CONFIG)
+    evidence_parser.add_argument("--output", type=Path, required=True)
 
     subparsers.add_parser("validate-config", help="Validate configuration only")
     return parser
@@ -83,6 +92,21 @@ def main(argv: list[str] | None = None) -> int:
             f"{payload['summary']['controlled_blocks']} controlled)"
         )
         return 0
+
+    if args.command == "evidence-pack":
+        payload = export_report_evidence(
+            output_path=args.output,
+            use_case=args.use_case,
+            report_path=args.report,
+            platform_config_path=args.config,
+            migration_config_path=args.migration_config,
+            root=args.root,
+        )
+        print(
+            f"Report evidence: {payload['decision']} -> {args.output} "
+            f"fingerprint={payload['evidence_fingerprint']}"
+        )
+        return 0 if payload["decision"] == "READY_FOR_REVIEW" else 2
 
     catalog = root / "catalog.duckdb"
     if not catalog.exists():
