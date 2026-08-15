@@ -27,12 +27,13 @@ CrewTrade の正準ユーザーフローは次の1本とする。
 
 adapterが返すdatasetは、保存前に `config/data_platform.yaml` の同名contractを必須とする。contractがないdataset、またはcontractと一致しないdatasetはbronzeへ保存しない。
 
-現在の実装済みadapterが生成し得る7 datasetはすべてcontract対象とする。
+現在の実装済みadapterが生成し得る8 datasetはすべてcontract対象とする。
 
 - `treasury_par_yield_curve`
 - `treasury_par_real_yield_curve`
 - `rates_macro`
 - `governed_source_registry`
+- `jpx_etf_master`
 - `sec_filings`
 - `sec_company_facts`
 - `sec_13f_holdings`
