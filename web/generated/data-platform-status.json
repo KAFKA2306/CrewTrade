@@ -5,13 +5,25 @@
       "dataset": "governed_source_registry",
       "point_in_time_vintage": null,
       "quality_status": "ok",
-      "raw_sha256": "869da395ead1bac2473d684741dcf28844974115db4d1c449fc3c539f6f64070",
+      "raw_sha256": "b3a70462ec2edd2cc225a4c65e4a58e1eef0255dfc764fd82742746ceb235abb",
       "retrieval_mode": null,
-      "retrieved_at": "2026-08-15T10:09:06.978943+00:00",
+      "retrieved_at": "2026-08-15T10:16:59.632996+00:00",
       "row_count": 8,
-      "run_id": "20260815T100906Z-00fc4d04",
+      "run_id": "20260815T101659Z-b4934efd",
       "source": "governed_manual",
       "source_url": "https://github.com/KAFKA2306/CrewTrade/blob/main/config/data_platform.yaml"
+    },
+    {
+      "dataset": "jpx_etf_master",
+      "point_in_time_vintage": null,
+      "quality_status": "ok",
+      "raw_sha256": "61e1d4aec710a48154fe36413563adcde627784a7ba09b3a8327bb046f252a78",
+      "retrieval_mode": "official_html",
+      "retrieved_at": "2026-08-15T10:16:58+00:00",
+      "row_count": 408,
+      "run_id": "20260815T101658Z-6e640f98",
+      "source": "jpx",
+      "source_url": "https://www.jpx.co.jp/equities/products/etfs/issues/01.html"
     },
     {
       "dataset": "rates_macro",
@@ -19,9 +31,9 @@
       "quality_status": "ok",
       "raw_sha256": "39bd91d56c43593e872decf94324e6d1022a20c8d34458a48a8354d71dc3855c",
       "retrieval_mode": "official_year_xml_snapshots",
-      "retrieved_at": "2026-08-15T10:09:05+00:00",
+      "retrieved_at": "2026-08-15T10:16:54+00:00",
       "row_count": 3275,
-      "run_id": "20260815T100903Z-38bb4e3d",
+      "run_id": "20260815T101651Z-29dac062",
       "source": "us_treasury",
       "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026"
     },
@@ -31,9 +43,9 @@
       "quality_status": "ok",
       "raw_sha256": "39bd91d56c43593e872decf94324e6d1022a20c8d34458a48a8354d71dc3855c",
       "retrieval_mode": "official_year_xml_snapshots",
-      "retrieved_at": "2026-08-15T10:09:05+00:00",
+      "retrieved_at": "2026-08-15T10:16:54+00:00",
       "row_count": 3275,
-      "run_id": "20260815T100903Z-38bb4e3d",
+      "run_id": "20260815T101651Z-29dac062",
       "source": "us_treasury",
       "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2026"
     },
@@ -43,19 +55,19 @@
       "quality_status": "ok",
       "raw_sha256": "39bd91d56c43593e872decf94324e6d1022a20c8d34458a48a8354d71dc3855c",
       "retrieval_mode": "official_year_xml_snapshots",
-      "retrieved_at": "2026-08-15T10:09:05+00:00",
+      "retrieved_at": "2026-08-15T10:16:54+00:00",
       "row_count": 8889,
-      "run_id": "20260815T100903Z-38bb4e3d",
+      "run_id": "20260815T101651Z-29dac062",
       "source": "us_treasury",
       "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026"
     }
   ],
-  "generated_at": "2026-08-15T10:09:10.305441+00:00",
+  "generated_at": "2026-08-15T10:17:02.674142+00:00",
   "latest_run": {
-    "completed_at": "2026-08-15T10:09:07.123363+00:00",
+    "completed_at": "2026-08-15T10:16:59.814420+00:00",
     "error": null,
-    "run_id": "20260815T100906Z-00fc4d04",
-    "started_at": "2026-08-15T10:09:06.966482+00:00",
+    "run_id": "20260815T101659Z-b4934efd",
+    "started_at": "2026-08-15T10:16:59.616782+00:00",
     "status": "success"
   },
   "overall_status": "ok",
@@ -177,11 +189,11 @@
       "owner_source": "JPX / 各運用会社",
       "required_contracts": [
         {
-          "automation_status": "blocked",
-          "block_reason": "Product master and market data redistribution terms must be recorded before ingestion.",
-          "checked_on": "2026-08-04",
+          "automation_status": "partial",
+          "block_reason": "Product master ingestion is canonical and automated; price history, ISIN, currency and hedge metadata remain separate contracts, primarily",
+          "checked_on": "2026-08-15",
           "name": "jpx_etf_master",
-          "source_url": "https://www.jpx.co.jp/equities/products/etfs/issues/index.html"
+          "source_url": "https://www.jpx.co.jp/equities/products/etfs/issues/01.html"
         }
       ],
       "required_datasets": [],
@@ -198,11 +210,11 @@
       "owner_source": "JPX / EDINET",
       "required_contracts": [
         {
-          "automation_status": "blocked",
-          "block_reason": "Product master and market data redistribution terms must be recorded before ingestion.",
-          "checked_on": "2026-08-04",
+          "automation_status": "partial",
+          "block_reason": "Product master ingestion is canonical and automated; price history, ISIN, currency and hedge metadata remain separate contracts, primarily",
+          "checked_on": "2026-08-15",
           "name": "jpx_etf_master",
-          "source_url": "https://www.jpx.co.jp/equities/products/etfs/issues/index.html"
+          "source_url": "https://www.jpx.co.jp/equities/products/etfs/issues/01.html"
         },
         {
           "automation_status": "ready_requires_adapter_and_secret",
