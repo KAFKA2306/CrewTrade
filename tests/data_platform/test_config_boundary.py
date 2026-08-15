@@ -30,13 +30,12 @@ def test_load_config_rejects_missing_storage(tmp_path: Path) -> None:
 
 def test_load_config_rejects_non_boolean_enabled(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
-    path.write_text(
+    content = (
         "schema_version: 2\n"
         "storage:\n  root: data/platform\n"
         "sources:\n  treasury:\n    enabled: 'yes'\n"
-        + _MINIMAL_CONTRACT,
-        encoding="utf-8",
-    )
+    ) + _MINIMAL_CONTRACT
+    path.write_text(content, encoding="utf-8")
 
     with pytest.raises(ValueError, match="Invalid data platform config"):
         load_config(path)
@@ -44,7 +43,7 @@ def test_load_config_rejects_non_boolean_enabled(tmp_path: Path) -> None:
 
 def test_load_config_preserves_source_specific_fields(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
-    path.write_text(
+    content = (
         "schema_version: 2\n"
         "storage:\n  root: data/platform\n"
         "sources:\n"
@@ -52,9 +51,8 @@ def test_load_config_preserves_source_specific_fields(tmp_path: Path) -> None:
         "    adapter: treasury_yield_curve\n"
         "    enabled: true\n"
         "    dataset: treasury_par_yield_curve\n"
-        + _MINIMAL_CONTRACT,
-        encoding="utf-8",
-    )
+    ) + _MINIMAL_CONTRACT
+    path.write_text(content, encoding="utf-8")
 
     config = load_config(path)
 
