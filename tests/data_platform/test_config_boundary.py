@@ -8,6 +8,7 @@ from crew.data_platform.registry import load_config
 _MINIMAL_CONTRACT = """
 contracts:
   example:
+    contract_version: 1.0.0
     source: fixture
     primary_key: [id]
     strict_columns: true
@@ -68,6 +69,7 @@ def test_load_config_rejects_contract_with_unknown_primary_key_field(tmp_path: P
         "sources: {}\n"
         "contracts:\n"
         "  broken:\n"
+        "    contract_version: 1.0.0\n"
         "    source: fixture\n"
         "    primary_key: [missing]\n"
         "    grain: one row per id\n"
