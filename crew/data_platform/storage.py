@@ -76,6 +76,7 @@ class DataPlatformStorage:
         dataset = _safe_name(batch.dataset)
         source = _safe_name(batch.source)
         raw_sha256 = hashlib.sha256(batch.raw_payload).hexdigest()
+        contract_version, contract_sha256 = self._contract_identity(batch)
         raw_suffix = self._raw_suffix(batch.content_type)
         raw_path = (
             self.raw_dir
@@ -108,7 +109,12 @@ class DataPlatformStorage:
             ensure_ascii=False,
             sort_keys=True,
         )
-        metadata_json = json.dumps(dict(batch.metadata), ensure_ascii=False, sort_keys=True)
+        metadata = dict(batch.metadata)
+        if contract_version is not None:
+            metadata["_contract_version"] = contract_version
+        if contract_sha256 is not None:
+            metadata["_contract_sha256"] = contract_sha256
+        metadata_json = json.dumps(metadata, ensure_ascii=False, sort_keys=True)
         with self._connect() as connection:
             connection.execute(
                 """
@@ -139,6 +145,8 @@ class DataPlatformStorage:
             raw_path=str(raw_path),
             parquet_path=str(parquet_path),
             raw_sha256=raw_sha256,
+            contract_version=contract_version,
+            contract_sha256=contract_sha256,
             checks=checks,
         )
 
@@ -249,6 +257,19 @@ class DataPlatformStorage:
 
     def _connect(self) -> duckdb.DuckDBPyConnection:
         return duckdb.connect(str(self.catalog_path))
+
+    @staticmethod
+    def _contract_identity(batch: DatasetBatch) -> tuple[str | None, str | None]:
+        if batch.contract is None:
+            return None, None
+        canonical = json.dumps(
+            dict(batch.contract),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        version = str(batch.contract.get("contract_version", "")) or None
+        return version, hashlib.sha256(canonical).hexdigest()
 
     @staticmethod
     def _raw_suffix(content_type: str) -> str:
