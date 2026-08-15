@@ -38,6 +38,36 @@ def test_quality_rejects_duplicate_primary_keys() -> None:
         assert_quality(checks)
 
 
+def test_quality_rejects_contract_schema_drift() -> None:
+    batch = DatasetBatch(
+        dataset="example",
+        source="fixture",
+        frame=pd.DataFrame([{"id": "A", "value": 200.0, "surprise": "drift"}]),
+        primary_key=("id",),
+        source_url="https://example.com/data",
+        raw_payload=b"fixture",
+        metadata={"vintage": "2026-08-15"},
+        contract={
+            "source": "fixture",
+            "primary_key": ["id"],
+            "strict_columns": True,
+            "required_metadata": ["vintage"],
+            "fields": {
+                "id": {"type": "string", "nullable": False},
+                "value": {"type": "number", "nullable": False, "maximum": 100},
+            },
+        },
+    )
+
+    checks = validate_batch(batch)
+    assert any(
+        check.name == "contract_no_unexpected_columns" and not check.passed for check in checks
+    )
+    assert any(check.name == "contract_value_range" and not check.passed for check in checks)
+    with pytest.raises(ValueError, match="contract_no_unexpected_columns"):
+        assert_quality(checks)
+
+
 def test_storage_preserves_raw_lineage_and_creates_view(tmp_path: Path) -> None:
     storage = DataPlatformStorage(tmp_path / "platform")
     run_id = "20260804T000000Z-test"
