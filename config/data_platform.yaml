@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 storage:
   root: data/platform
   canonical_timezone: UTC
@@ -139,3 +139,177 @@ sources:
         automation_status: private_input_required
         block_reason: Contract and account state must remain outside the public repository.
         checked_on: "2026-08-04"
+
+contracts:
+  treasury_par_yield_curve:
+    source: us_treasury
+    primary_key: [observation_date, tenor]
+    strict_columns: true
+    grain: one row per observation date and nominal Treasury tenor
+    revision_policy: source revisions are preserved as new ingestion runs
+    redistribution: public official source with provenance
+    required_metadata: [years, retrieval_mode, point_in_time_vintage, http_request_count, source_urls, curve_type]
+    freshness:
+      field: observation_date
+      max_age_days: 10
+    fields:
+      observation_date: {type: date, nullable: false}
+      tenor:
+        type: string
+        nullable: false
+        allowed: [1M, 1.5M, 2M, 3M, 4M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, 30Y]
+      value: {type: number, nullable: false, minimum: -10, maximum: 30}
+      unit: {type: string, nullable: false, allowed: [percent]}
+      curve_type: {type: string, nullable: false, allowed: [daily_treasury_par_yield_curve]}
+
+  treasury_par_real_yield_curve:
+    source: us_treasury
+    primary_key: [observation_date, tenor]
+    strict_columns: true
+    grain: one row per observation date and real Treasury tenor
+    revision_policy: source revisions are preserved as new ingestion runs
+    redistribution: public official source with provenance
+    required_metadata: [years, retrieval_mode, point_in_time_vintage, http_request_count, source_urls, curve_type]
+    freshness:
+      field: observation_date
+      max_age_days: 10
+    fields:
+      observation_date: {type: date, nullable: false}
+      tenor: {type: string, nullable: false, allowed: [5Y, 7Y, 10Y, 20Y, 30Y]}
+      value: {type: number, nullable: false, minimum: -10, maximum: 30}
+      unit: {type: string, nullable: false, allowed: [percent]}
+      curve_type: {type: string, nullable: false, allowed: [daily_treasury_par_real_yield_curve]}
+
+  rates_macro:
+    source: us_treasury
+    primary_key: [series_id, observation_date, realtime_start, realtime_end]
+    strict_columns: true
+    grain: one row per canonical rates series, observation date, and retrieval vintage
+    revision_policy: derived breakeven is recomputed from same-date nominal and real observations
+    redistribution: public official inputs; derived series formula must remain explicit
+    required_metadata: [years, retrieval_mode, point_in_time_vintage, http_request_count, source_urls, derived_series, source_series]
+    freshness:
+      field: observation_date
+      max_age_days: 10
+    fields:
+      series_id:
+        type: string
+        nullable: false
+        allowed: [TREASURY_NOMINAL_2Y, TREASURY_NOMINAL_10Y, TREASURY_NOMINAL_30Y, TREASURY_REAL_10Y, TREASURY_DERIVED_10Y_BREAKEVEN]
+      label:
+        type: string
+        nullable: false
+        allowed: [us_2y, us_10y, us_30y, us_10y_real, us_10y_breakeven]
+      observation_date: {type: date, nullable: false}
+      value: {type: number, nullable: false, minimum: -20, maximum: 40}
+      realtime_start: {type: date, nullable: false}
+      realtime_end: {type: date, nullable: false}
+      units: {type: string, nullable: false, allowed: [Percent]}
+      title: {type: string, nullable: false}
+
+  governed_source_registry:
+    source: governed_manual
+    primary_key: [source_id]
+    strict_columns: true
+    grain: one row per governed external or private source contract
+    revision_policy: registry changes require a repository commit
+    redistribution: metadata only; source-specific rights are recorded per row
+    required_metadata: [registered_sources]
+    freshness:
+      field: checked_on
+      max_age_days: 30
+    fields:
+      source_id: {type: string, nullable: false}
+      use_cases: {type: json, nullable: false}
+      owner: {type: string, nullable: false}
+      source_url: {type: string, nullable: false, pattern: '^https://.+'}
+      access_mode: {type: string, nullable: false}
+      license_status: {type: string, nullable: false}
+      refresh_policy: {type: string, nullable: false}
+      required_fields: {type: json, nullable: false}
+      automation_status:
+        type: string
+        nullable: false
+        allowed: [blocked, partial, ready_requires_adapter_and_secret, private_input_required]
+      block_reason: {type: string, nullable: false}
+      checked_on: {type: date, nullable: false}
+
+  sec_filings:
+    source: sec_edgar
+    primary_key: [entity_cik, accession_number]
+    strict_columns: true
+    grain: one row per SEC entity and accession number
+    revision_policy: amended filings remain separate accession numbers
+    redistribution: SEC public filing metadata with declared fair-access identity
+    required_metadata: [entity_count]
+    fields:
+      entity_name: {type: string, nullable: false}
+      entity_cik: {type: string, nullable: false, pattern: '^\d{10}$'}
+      accession_number: {type: string, nullable: false, pattern: '^\d{10}-\d{2}-\d{6}$'}
+      filing_date: {type: date, nullable: false}
+      report_date: {type: date, nullable: true}
+      acceptance_datetime: {type: datetime, nullable: true}
+      form: {type: string, nullable: false}
+      primary_document: {type: string, nullable: false}
+      primary_doc_description: {type: string, nullable: true}
+      file_number: {type: string, nullable: true}
+      is_xbrl: {type: integer, nullable: true, minimum: 0, maximum: 1}
+      is_inline_xbrl: {type: integer, nullable: true, minimum: 0, maximum: 1}
+
+  sec_company_facts:
+    source: sec_edgar
+    primary_key: [fact_id]
+    strict_columns: true
+    grain: one row per canonical SEC company fact observation
+    revision_policy: each filed observation is retained and identified by fact_id
+    redistribution: SEC public XBRL facts with raw filing provenance
+    required_metadata: [entity_count]
+    fields:
+      fact_id: {type: string, nullable: false, pattern: '^[0-9a-f]{64}$'}
+      entity_name: {type: string, nullable: false}
+      entity_cik: {type: string, nullable: false, pattern: '^\d{10}$'}
+      taxonomy: {type: string, nullable: false}
+      concept: {type: string, nullable: false}
+      label: {type: string, nullable: true}
+      description: {type: string, nullable: true}
+      unit: {type: string, nullable: false}
+      value: {type: any, nullable: false}
+      start_date: {type: date, nullable: true}
+      end_date: {type: date, nullable: true}
+      filed_date: {type: date, nullable: false}
+      form: {type: string, nullable: false}
+      fiscal_year: {type: integer, nullable: true, minimum: 1900, maximum: 2200}
+      fiscal_period: {type: string, nullable: true}
+      frame: {type: string, nullable: true}
+      accession_number: {type: string, nullable: false, pattern: '^\d{10}-\d{2}-\d{6}$'}
+
+  sec_13f_holdings:
+    source: sec_edgar
+    primary_key: [holding_id]
+    strict_columns: true
+    grain: one row per 13F information-table holding position
+    revision_policy: amendments remain separate accession-number observations
+    redistribution: SEC public 13F information table with source-document provenance
+    required_metadata: [filing_count]
+    fields:
+      holding_id: {type: string, nullable: false, pattern: '^[0-9a-f]{64}$'}
+      entity_name: {type: string, nullable: false}
+      entity_cik: {type: string, nullable: false, pattern: '^\d{10}$'}
+      accession_number: {type: string, nullable: false, pattern: '^\d{10}-\d{2}-\d{6}$'}
+      report_date: {type: date, nullable: false}
+      filing_date: {type: date, nullable: false}
+      issuer: {type: string, nullable: false}
+      title_of_class: {type: string, nullable: true}
+      cusip: {type: string, nullable: false}
+      figi: {type: string, nullable: true}
+      reported_value: {type: number, nullable: false, minimum: 0}
+      reported_value_unit: {type: string, nullable: false, allowed: [SEC_13F_as_filed]}
+      shares_or_principal: {type: number, nullable: false, minimum: 0}
+      shares_or_principal_type: {type: string, nullable: true}
+      put_call: {type: string, nullable: true}
+      investment_discretion: {type: string, nullable: true}
+      other_manager: {type: string, nullable: true}
+      voting_sole: {type: number, nullable: true, minimum: 0}
+      voting_shared: {type: number, nullable: true, minimum: 0}
+      voting_none: {type: number, nullable: true, minimum: 0}
+      source_document_url: {type: string, nullable: false, pattern: '^https://.+'}
