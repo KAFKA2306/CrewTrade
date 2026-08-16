@@ -8,6 +8,10 @@ tasks:
       - task: analyze:all
       - task: data:export-status
 
+  check:
+    desc: Run the canonical local quality gate
+    cmd: ./scripts/check.sh
+
   data:validate:
     desc: Validate canonical data platform configuration
     cmd: uv run crew-data validate-config
@@ -21,10 +25,11 @@ tasks:
     cmd: uv run crew-data sync
 
   data:sync:public:
-    desc: Sync reachable Treasury data and governed source registry
+    desc: Sync credential-free Treasury, JPX ETF master, and governed registry
     cmd: >-
       uv run crew-data sync
       --source treasury_yield_curve
+      --source jpx_etf_master
       --source governed_manual
 
   data:sync:registry:
@@ -87,8 +92,8 @@ tasks:
     desc: Governed stop — official machine-readable NAV contract is missing
     cmd: echo "imura is intentionally stopped; see data-status"
   blocked:etf:
-    desc: Governed stop — JPX/EDINET product contract is missing
-    cmd: echo "ETF comparisons are intentionally stopped; see data-status"
+    desc: Governed partial — JPX ETF master is live; price and EDINET contracts remain missing
+    cmd: echo "ETF product metadata is live; comparison inputs remain intentionally stopped; see data-status"
   blocked:metals:
     desc: Governed stop — LBMA historical data license is missing
     cmd: echo "metals is intentionally stopped; see data-status"
