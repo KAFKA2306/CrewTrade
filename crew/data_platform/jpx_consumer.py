@@ -34,18 +34,26 @@ def jpx_etf_master(*, root: Path | None = None) -> pd.DataFrame:
     if frame.empty:
         raise CanonicalDataUnavailable("Canonical JPX ETF master is empty")
 
-    missing_columns = [column for column in _REQUIRED_COLUMNS if column not in frame.columns]
+    missing_columns = [
+        column for column in _REQUIRED_COLUMNS if column not in frame.columns
+    ]
     if missing_columns:
         raise CanonicalDataUnavailable(
             "Canonical JPX ETF master is missing required columns: "
             + ", ".join(missing_columns)
         )
     if frame[list(_REQUIRED_COLUMNS)].isna().any().any():
-        raise CanonicalDataUnavailable("Canonical JPX ETF master contains null product identity")
+        raise CanonicalDataUnavailable(
+            "Canonical JPX ETF master contains null product identity"
+        )
     if frame["ticker"].duplicated().any():
-        raise CanonicalDataUnavailable("Canonical JPX ETF master contains duplicate tickers")
+        raise CanonicalDataUnavailable(
+            "Canonical JPX ETF master contains duplicate tickers"
+        )
     if frame["as_of_date"].nunique(dropna=False) != 1:
-        raise CanonicalDataUnavailable("Canonical JPX ETF master must expose one latest as-of date")
+        raise CanonicalDataUnavailable(
+            "Canonical JPX ETF master must expose one latest as-of date"
+        )
 
     frame["as_of_date"] = pd.to_datetime(frame["as_of_date"])
     frame["_retrieved_at"] = pd.to_datetime(frame["_retrieved_at"])
