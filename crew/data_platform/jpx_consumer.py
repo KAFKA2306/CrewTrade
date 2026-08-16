@@ -34,11 +34,7 @@ def jpx_etf_master(*, root: Path | None = None) -> pd.DataFrame:
     if frame.empty:
         raise CanonicalDataUnavailable("Canonical JPX ETF master is empty")
 
-    missing_columns = [
-        column
-        for column in _REQUIRED_COLUMNS
-        if column not in frame.columns
-    ]
+    missing_columns = [column for column in _REQUIRED_COLUMNS if column not in frame.columns]
     if missing_columns:
         raise CanonicalDataUnavailable(
             "Canonical JPX ETF master is missing required columns: "
