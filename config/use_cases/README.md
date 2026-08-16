@@ -1,6 +1,6 @@
 # Use Case Configurations
 
-ユースケースごとのYAML設定ファイル。
+ユースケースごとのYAML設定ファイル。ファイル名は `<use_case_name>.yaml` の1つだけを正準とし、alias複製は作りません。
 
 ## 主要セクション
 - `period`: データ取得期間（例: `1y`, `max`）
