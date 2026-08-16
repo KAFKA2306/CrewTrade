@@ -1,97 +1,101 @@
 from __future__ import annotations
-from pathlib import Path
+
 from typing import Any, Dict, List, Tuple
+
 import pandas as pd
-from .ticker_utils import normalize_text
-from .toushin_kyokai import ToushinKyokaiDataClient
+
+from .ticker_utils import normalize_jpx_ticker, normalize_text
+
+_REQUIRED_MASTER_COLUMNS = {"ticker", "official_name", "index_name", "manager"}
+
+
 class IndexETFMappingClient:
-    def __init__(
-        self, raw_data_dir: Path, index_keywords: Dict[str, Dict[str, Any]]
-    ) -> None:
-        self.raw_data_dir = Path(raw_data_dir)
-        self.raw_data_dir.mkdir(parents=True, exist_ok=True)
-        self.cache_path = self.raw_data_dir / "etf_index_mapping.parquet"
+    """Map comparison labels to products using only official JPX master fields."""
+
+    def __init__(self, index_keywords: Dict[str, Dict[str, Any]]) -> None:
         self.index_keywords = index_keywords
-        self.toushin_client = ToushinKyokaiDataClient(raw_data_dir)
-    def get_mapping(self, force_refresh: bool = False) -> pd.DataFrame:
-        if not force_refresh and self.cache_path.exists():
-            return pd.read_parquet(self.cache_path)
-        etf_master = self.toushin_client.get_etf_master()
-        best_matches: Dict[str, Tuple[Tuple[int, int], str]] = {}
-        for index_name, index_config in self.index_keywords.items():
+
+    def get_mapping(self, etf_master: pd.DataFrame) -> pd.DataFrame:
+        missing = sorted(_REQUIRED_MASTER_COLUMNS - set(etf_master.columns))
+        if missing:
+            raise ValueError(f"JPX ETF master missing required columns: {', '.join(missing)}")
+
+        best_matches: Dict[str, Tuple[Tuple[int, int, int], str, str]] = {}
+        for comparison_name, index_config in self.index_keywords.items():
             keywords = index_config.get("keywords", [])
-            expected_categories = index_config.get("expected_categories", [])
             exclude_keywords = index_config.get("exclude_keywords", [])
-            matched_etfs = self._match_etfs(
-                etf_master, keywords, expected_categories, exclude_keywords
-            )
-            for ticker, score in matched_etfs.items():
-                current = best_matches.get(ticker)
-                candidate = (score, index_name)
+            matched_etfs = self._match_etfs(etf_master, keywords, exclude_keywords)
+            for official_ticker, score in matched_etfs.items():
+                market_ticker = normalize_jpx_ticker(official_ticker)
+                if not market_ticker:
+                    continue
+                current = best_matches.get(market_ticker)
+                candidate = (score, comparison_name, official_ticker)
                 if current is None or candidate > current:
-                    best_matches[ticker] = candidate
-        mapping_records = [
-            {"index_name": index, "ticker": ticker}
-            for ticker, (_, index) in best_matches.items()
+                    best_matches[market_ticker] = candidate
+
+        records = [
+            {
+                "index_name": comparison_name,
+                "ticker": market_ticker,
+                "official_ticker": official_ticker,
+            }
+            for market_ticker, (_, comparison_name, official_ticker) in best_matches.items()
         ]
-        mapping_df = pd.DataFrame(mapping_records)
-        mapping_df = mapping_df.drop_duplicates()
-        if not mapping_df.empty:
-            mapping_df = mapping_df.sort_values(["index_name", "ticker"]).reset_index(
-                drop=True
-            )
-        mapping_df.to_parquet(self.cache_path, index=False)
-        return mapping_df
+        mapping = pd.DataFrame(records, columns=["index_name", "ticker", "official_ticker"])
+        if not mapping.empty:
+            mapping = mapping.drop_duplicates().sort_values(
+                ["index_name", "ticker"]
+            ).reset_index(drop=True)
+        return mapping
+
     def _match_etfs(
         self,
         etf_master: pd.DataFrame,
         keywords: List[str],
-        expected_categories: List[str],
         exclude_keywords: List[str],
-    ) -> Dict[str, Tuple[int, int]]:
-        normalized_keywords: List[str] = []
-        for keyword in keywords:
-            token = normalize_text(keyword)
-            if token:
-                normalized_keywords.append(token)
-        normalized_excludes: List[str] = []
-        for keyword in exclude_keywords:
-            token = normalize_text(keyword)
-            if token:
-                normalized_excludes.append(token)
-        allowed_categories = {category for category in expected_categories if category}
-        matched: Dict[str, Tuple[int, int]] = {}
+    ) -> Dict[str, Tuple[int, int, int]]:
+        normalized_keywords = [
+            token for keyword in keywords if (token := normalize_text(keyword))
+        ]
+        normalized_excludes = [
+            token for keyword in exclude_keywords if (token := normalize_text(keyword))
+        ]
+        matched: Dict[str, Tuple[int, int, int]] = {}
+
         for _, row in etf_master.iterrows():
-            name = row.get("name", "")
-            category = row.get("category", "")
-            ticker = row.get("ticker")
-            normalized_name = normalize_text(name)
-            if not normalized_name or not ticker:
+            official_ticker = str(row.get("ticker", "")).strip().upper()
+            index_text = normalize_text(row.get("index_name", ""))
+            name_text = normalize_text(row.get("official_name", ""))
+            searchable = f"{index_text} {name_text}".strip()
+            if not official_ticker or not searchable:
                 continue
-            if allowed_categories and category not in allowed_categories:
+            if normalized_excludes and self._contains_any(searchable, normalized_excludes):
                 continue
-            if normalized_excludes and self._contains_any(
-                normalized_name, normalized_excludes
-            ):
+            score = self._match_score(index_text, name_text, normalized_keywords)
+            if score == (0, 0, 0):
                 continue
-            score = self._match_score(normalized_name, normalized_keywords)
-            if score == (0, 0):
-                continue
-            current = matched.get(ticker)
+            current = matched.get(official_ticker)
             if current is None or score > current:
-                matched[ticker] = score
+                matched[official_ticker] = score
         return matched
-    def _contains_any(self, normalized_name: str, keywords: List[str]) -> bool:
-        return any(keyword in normalized_name for keyword in keywords)
+
+    @staticmethod
+    def _contains_any(text: str, keywords: List[str]) -> bool:
+        return any(keyword in text for keyword in keywords)
+
+    @staticmethod
     def _match_score(
-        self, normalized_name: str, keywords: List[str]
-    ) -> Tuple[int, int]:
-        matched = [keyword for keyword in keywords if keyword in normalized_name]
-        if not matched:
-            return (0, 0)
-        length = sum(len(keyword.replace(" ", "")) for keyword in matched)
-        return (len(matched), length)
-    def get_etfs_for_index(self, index_name: str) -> List[str]:
-        mapping = self.get_mapping()
-        filtered = mapping[mapping["index_name"] == index_name]
-        return filtered["ticker"].tolist()
+        index_text: str, name_text: str, keywords: List[str]
+    ) -> Tuple[int, int, int]:
+        index_matches = [keyword for keyword in keywords if keyword in index_text]
+        name_matches = [keyword for keyword in keywords if keyword in name_text]
+        all_matches = set(index_matches + name_matches)
+        if not all_matches:
+            return (0, 0, 0)
+        matched_length = sum(len(keyword.replace(" ", "")) for keyword in all_matches)
+        return (len(index_matches), len(all_matches), matched_length)
+
+    def get_etfs_for_index(self, index_name: str, etf_master: pd.DataFrame) -> List[str]:
+        mapping = self.get_mapping(etf_master)
+        return mapping[mapping["index_name"] == index_name]["ticker"].tolist()
