@@ -7,6 +7,10 @@ import pandas as pd
 from crew.data_platform.consumer import CanonicalDataUnavailable, query_frame
 
 _REQUIRED_COLUMNS = ("ticker", "official_name", "index_name", "manager")
+_EMPTY_MESSAGE = "Canonical JPX ETF master is empty"
+_NULL_IDENTITY_MESSAGE = "Canonical JPX ETF master contains null product identity"
+_DUPLICATE_TICKER_MESSAGE = "Canonical JPX ETF master contains duplicate tickers"
+_MULTIPLE_DATES_MESSAGE = "Canonical JPX ETF master must expose one latest as-of date"
 
 
 def jpx_etf_master(*, root: Path | None = None) -> pd.DataFrame:
@@ -32,7 +36,7 @@ def jpx_etf_master(*, root: Path | None = None) -> pd.DataFrame:
         root=root,
     )
     if frame.empty:
-        raise CanonicalDataUnavailable("Canonical JPX ETF master is empty")
+        raise CanonicalDataUnavailable(_EMPTY_MESSAGE)
 
     missing_columns = sorted(set(_REQUIRED_COLUMNS) - set(frame.columns))
     if missing_columns:
@@ -41,17 +45,11 @@ def jpx_etf_master(*, root: Path | None = None) -> pd.DataFrame:
             f"Canonical JPX ETF master is missing required columns: {missing_text}"
         )
     if frame[list(_REQUIRED_COLUMNS)].isna().any().any():
-        raise CanonicalDataUnavailable(
-            "Canonical JPX ETF master contains null product identity"
-        )
+        raise CanonicalDataUnavailable(_NULL_IDENTITY_MESSAGE)
     if frame["ticker"].duplicated().any():
-        raise CanonicalDataUnavailable(
-            "Canonical JPX ETF master contains duplicate tickers"
-        )
+        raise CanonicalDataUnavailable(_DUPLICATE_TICKER_MESSAGE)
     if frame["as_of_date"].nunique(dropna=False) != 1:
-        raise CanonicalDataUnavailable(
-            "Canonical JPX ETF master must expose one latest as-of date"
-        )
+        raise CanonicalDataUnavailable(_MULTIPLE_DATES_MESSAGE)
 
     frame["as_of_date"] = pd.to_datetime(frame["as_of_date"])
     frame["_retrieved_at"] = pd.to_datetime(frame["_retrieved_at"])
