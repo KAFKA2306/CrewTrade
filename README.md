@@ -1,5 +1,9 @@
 # CrewTrade
 
+[![Build, audit, and deploy GitHub Pages](https://github.com/KAFKA2306/CrewTrade/actions/workflows/pages.yml/badge.svg)](https://github.com/KAFKA2306/CrewTrade/actions/workflows/pages.yml)
+[![Fast quality gates](https://github.com/KAFKA2306/CrewTrade/actions/workflows/quality.yml/badge.svg)](https://github.com/KAFKA2306/CrewTrade/actions/workflows/quality.yml)
+[![Validate canonical data platform](https://github.com/KAFKA2306/CrewTrade/actions/workflows/data-platform.yml/badge.svg)](https://github.com/KAFKA2306/CrewTrade/actions/workflows/data-platform.yml)
+
 **金融データは、集めるほど比較しやすくなるとは限らない。**
 
 同じ「数字」でも、取得できた時点、定義、単位、利用権、再配布可否が違えば、そのまま横に並べると誤ります。たとえば公式APIへ到達できない値を古い固定値で埋める、利用許諾を確認できない系列を公開する、異なる定義のスプレッドを同じ指標として扱う――CrewTradeでは、そうした不足を推測で埋めず理由付きで停止します。
