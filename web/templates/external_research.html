@@ -3,16 +3,24 @@
     <div>
       <p class="eyebrow">Cross-repository research</p>
       <h2 id="related-research-title">他リポジトリの金融研究成果</h2>
-      <p>CrewTradeへ成果物を複製せず、各リポジトリを正本のまま横断できる入口です。公開ページがあるものは閲覧面へ、データ中心のものは正本リポジトリへ直接つなぎます。</p>
+      <p>CrewTradeへ成果物を複製せず、各リポジトリを正本のまま横断できる入口です。公開ページがあるものは閲覧面へ、データ・コード中心のものは正本リポジトリへ直接つなぎます。</p>
     </div>
   </div>
 
+  <p class="eyebrow">Public and maintained research</p>
   <div class="case-grid">
     <article class="case-card" data-accent="rose">
       <div class="card-meta"><span>投資研究</span><span class="status-pill">仮説・OOS・判断</span></div>
       <h3><a href="https://kafka2306.github.io/investor2/">investor2</a></h3>
       <p class="card-question"><span>主な成果</span>反証条件、point-in-time入力、時系列OOS、再現可能な証拠、Decision Snapshotを一つの研究サイクルとして管理。</p>
       <div class="card-footer"><a href="https://kafka2306.github.io/investor2/">公開ダッシュボード</a><a href="https://github.com/KAFKA2306/investor2">GitHub</a></div>
+    </article>
+
+    <article class="case-card" data-accent="lavender">
+      <div class="card-meta"><span>統合投資研究</span><span class="status-pill">企業・市場・証拠</span></div>
+      <h3><a href="https://kafka2306.github.io/investor/">investor</a></h3>
+      <p class="card-question"><span>主な成果</span>企業開示、企業知識・財務DB、金利・為替、投資仮説、バックテスト、公開画面を、事実・派生値・予測・実運用証拠を分離して扱う。</p>
+      <div class="card-footer"><a href="https://kafka2306.github.io/investor/">公開サイト</a><a href="https://github.com/KAFKA2306/investor">GitHub</a></div>
     </article>
 
     <article class="case-card" data-accent="blue">
@@ -63,7 +71,45 @@
       <p class="card-question"><span>主な成果</span>ARKK・ARKQ・ARKW・ARKG・ARKF・ARKXの公式holdingsをappend-only snapshotとして保存し、変更・fund間overlapを再生成。</p>
       <div class="card-footer"><a href="https://github.com/KAFKA2306/etf">Repository</a></div>
     </article>
+
+    <article class="case-card" data-accent="apricot">
+      <div class="card-meta"><span>リスク分析</span><span class="status-pill">Kelly・volatility</span></div>
+      <h3><a href="https://kafka2306.github.io/auto-invest/">auto-invest</a></h3>
+      <p class="card-question"><span>主な成果</span>市場価格履歴からvolatility、downside deviation、Sortino ratio、maximum drawdown、Expected Shortfall等を計算し、Kelly基準とvolatility targetの参考値を可視化。</p>
+      <div class="card-footer"><a href="https://kafka2306.github.io/auto-invest/">公開サイト</a><a href="https://github.com/KAFKA2306/auto-invest">GitHub</a></div>
+    </article>
+
+    <article class="case-card" data-accent="rose">
+      <div class="card-meta"><span>オプション</span><span class="status-pill">covered call研究</span></div>
+      <h3><a href="https://kafka2306.github.io/NVII/">NVII</a></h3>
+      <p class="card-question"><span>主な成果</span>NVIIを題材に、Black–Scholes、Greeks、レバレッジETF動態、取引コスト、VaR・Expected Shortfall、stress scenarioを扱う計算研究。</p>
+      <div class="card-footer"><a href="https://kafka2306.github.io/NVII/">公開ページ</a><a href="https://github.com/KAFKA2306/NVII">GitHub</a></div>
+    </article>
   </div>
 
-  <div class="notice"><strong>境界:</strong> この一覧は索引です。数値・データ・分析結果の正本は各リポジトリに残し、CrewTrade側ではコピーや再解釈を行いません。</div>
+  <p class="eyebrow">Prototype and archived research</p>
+  <div class="case-grid">
+    <article class="case-card" data-accent="mint">
+      <div class="card-meta"><span>投資テーマ</span><span class="status-pill">prototype</span></div>
+      <h3><a href="https://github.com/KAFKA2306/finAnalist">finAnalist</a></h3>
+      <p class="card-question"><span>主な成果</span>明示した市場symbolについてニュース、企業情報、財務指標、raw closeの記述統計を取得し、出典付きMarkdownレポートとCSVを生成するprototype。</p>
+      <div class="card-footer"><a href="https://github.com/KAFKA2306/finAnalist">Repository</a></div>
+    </article>
+
+    <article class="case-card" data-accent="blue">
+      <div class="card-meta"><span>転換社債・ETF</span><span class="status-pill">prototype</span></div>
+      <h3><a href="https://github.com/KAFKA2306/BMAX">BMAX</a></h3>
+      <p class="card-question"><span>主な成果</span>ビットコイン関連企業の株式・転換社債・ETFを題材に、債券フロア、転換オプション、相関scenario、VaR・Expected Shortfallを計算する研究prototype。</p>
+      <div class="card-footer"><a href="https://github.com/KAFKA2306/BMAX">Repository</a></div>
+    </article>
+
+    <article class="case-card" data-accent="lavender">
+      <div class="card-meta"><span>企業・Bitcoin</span><span class="status-pill">過去snapshot</span></div>
+      <h3><a href="https://github.com/KAFKA2306/mstr">mstr</a></h3>
+      <p class="card-question"><span>主な成果</span>MSTR株価、Bitcoin価格・保有量、財務データを結合した2020〜2024年中心の探索的研究。現在値やpoint-in-time整合を保証しない過去snapshotとして保持。</p>
+      <div class="card-footer"><a href="https://github.com/KAFKA2306/mstr">Repository</a></div>
+    </article>
+  </div>
+
+  <div class="notice"><strong>境界:</strong> この一覧は索引です。数値・データ・分析結果の正本は各リポジトリに残し、CrewTrade側ではコピーや再解釈を行いません。prototypeや過去snapshotは、現行の検証済み分析と同じ状態として扱いません。</div>
 </section>
