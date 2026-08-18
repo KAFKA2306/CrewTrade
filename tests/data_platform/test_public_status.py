@@ -6,6 +6,7 @@ import pandas as pd
 
 from crew.data_platform.contracts import DatasetBatch
 from crew.data_platform.public_status import build_public_status, export_public_status
+from crew.data_platform.registry import load_config
 from crew.data_platform.storage import DataPlatformStorage
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -26,6 +27,31 @@ def test_status_is_degraded_before_first_snapshot(tmp_path: Path) -> None:
         "controlled_blocks": 9,
         "awaiting_snapshot": 1,
     }
+
+
+def test_credit_status_preserves_ice_bofa_rights_boundary(tmp_path: Path) -> None:
+    config = load_config(PLATFORM_CONFIG)
+    registry = config["sources"]["governed_manual"]["datasets"]
+    ice = registry["ice_bofa_oas"]
+    assert ice["license_status"] == "internal_use_only_no_public_redistribution"
+    assert ice["automation_status"] == "blocked"
+    assert "BAMLC0A0CM" in ice["source_url"]
+    assert "prior approval" in ice["block_reason"]
+
+    status = build_public_status(
+        platform_config_path=PLATFORM_CONFIG,
+        migration_config_path=MIGRATION_CONFIG,
+        root=tmp_path / "missing",
+    )
+    rows_by_slug = {item["slug"]: item for item in status["use_cases"]}
+    row = rows_by_slug["credit"]
+    assert row["runtime_state"] == "governed_blocked"
+    assert row["owner_source"] == "ICE Data Indices / FRED"
+    note = row["note"]
+    assert note is not None
+    for boundary in ("internal use", "public Pages", "customer delivery", "prior written approval"):
+        assert boundary in note
+    assert "private canonical storage" in note
 
 
 def test_precious_metals_status_records_current_iba_licensing(tmp_path: Path) -> None:
