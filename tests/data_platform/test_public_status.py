@@ -28,6 +28,27 @@ def test_status_is_degraded_before_first_snapshot(tmp_path: Path) -> None:
     }
 
 
+def test_precious_metals_status_records_current_iba_licensing(tmp_path: Path) -> None:
+    status = build_public_status(
+        platform_config_path=PLATFORM_CONFIG,
+        migration_config_path=MIGRATION_CONFIG,
+        root=tmp_path / "missing",
+    )
+    rows_by_slug = {item["slug"]: item for item in status["use_cases"]}
+    row = rows_by_slug["precious_metals_spread"]
+
+    assert row["runtime_state"] == "governed_blocked"
+    assert row["owner_source"] == "LBMA / ICE Benchmark Administration (IBA)"
+    note = row["note"]
+    assert note is not None
+    for benchmark in ("Gold", "Silver", "Platinum", "Palladium"):
+        assert benchmark in note
+    for use in ("internal analysis", "public Pages", "customer delivery"):
+        assert use in note
+    assert "2026-07-01" in note
+    assert "IBA licence" in note
+
+
 def test_status_is_ok_when_all_canonical_datasets_exist(tmp_path: Path) -> None:
     root = tmp_path / "platform"
     storage = DataPlatformStorage(root)
