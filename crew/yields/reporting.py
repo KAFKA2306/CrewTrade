@@ -145,8 +145,17 @@ class YieldSpreadReporter:
                     f"| {pd.Timestamp(row['date']).date()} | {row['spread']} | {row['direction']} | {float(row['spread_bp']):+.1f}bp | {float(row['change_20d_bp']):+.1f}bp | {float(row['z_score']):+.2f} |"
                 )
 
+        curve_maturity_count = int(curve_snapshot["tenor"].nunique()) if not curve_snapshot.empty else 0
         lines.extend(
             [
+                "",
+                "## 評価",
+                "",
+                "| 確認項目 | 結果 |",
+                "| --- | --- |",
+                f"| 最新比較可能日 | {latest_date} |",
+                f"| パー・イールド・カーブ年限数 | {curve_maturity_count} |",
+                f"| 比較スプレッド数 | {len(spread_snapshot)} |",
                 "",
                 "## 限界と反証条件",
                 "",
