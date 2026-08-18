@@ -15,6 +15,12 @@ _RATE_LABELS = {
     "us_10y_real": "米国10年実質金利",
     "us_10y_breakeven": "米国10年期待インフレ",
 }
+_TREASURY_MATURITY_ORDER = {
+    tenor: rank
+    for rank, tenor in enumerate(
+        ("1M", "1.5M", "2M", "3M", "4M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "20Y", "30Y")
+    )
+}
 
 
 class YieldSpreadReporter:
@@ -59,14 +65,6 @@ class YieldSpreadReporter:
 
         checked_on = datetime.now(ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d")
         latest_date = pd.to_datetime(spread_snapshot["latest_date"]).max().strftime("%Y-%m-%d")
-        freshness_gap = (pd.Timestamp(checked_on) - pd.Timestamp(latest_date)).days
-        data_score = 5 if freshness_gap <= 3 else 4 if freshness_gap <= 7 else 2
-        curve_complete = not curve_snapshot.empty and {
-            "2Y",
-            "10Y",
-            "30Y",
-        }.issubset(set(curve_snapshot["tenor"].astype(str)))
-        total_score = data_score + 5 + (5 if curve_complete else 3) + 4 + 3
 
         lines = [
             "# 金利・イールドスプレッド定量監査",
@@ -116,7 +114,10 @@ class YieldSpreadReporter:
                     "| --- | ---: |",
                 ]
             )
-            for _, row in curve_snapshot.iterrows():
+            ordered_curve = curve_snapshot.assign(
+                _maturity_rank=curve_snapshot["tenor"].map(_treasury_maturity_rank)
+            ).sort_values(["_maturity_rank", "tenor"])
+            for _, row in ordered_curve.iterrows():
                 lines.append(f"| {row['tenor']} | {float(row['value']):.2f}% |")
 
         lines.extend(
@@ -144,19 +145,19 @@ class YieldSpreadReporter:
                     f"| {pd.Timestamp(row['date']).date()} | {row['spread']} | {row['direction']} | {float(row['spread_bp']):+.1f}bp | {float(row['change_20d_bp']):+.1f}bp | {float(row['z_score']):+.2f} |"
                 )
 
+        curve_maturity_count = (
+            int(curve_snapshot["tenor"].nunique()) if not curve_snapshot.empty else 0
+        )
         lines.extend(
             [
                 "",
                 "## 評価",
                 "",
-                "| 評価軸 | 点数 | 根拠 |",
-                "| --- | ---: | --- |",
-                f"| データ鮮度 | {data_score}/5 | 最新比較日から確認日まで{freshness_gap}日 |",
-                "| 定義の妥当性 | 5/5 | 国債カーブ、実質金利、期待インフレを分離 |",
-                f"| カーブ完全性 | {5 if curve_complete else 3}/5 | 2年・10年・30年の同日値を確認 |",
-                "| ビンテージ管理 | 4/5 | 観測日、FRED realtime期間、取得時刻を保持 |",
-                "| 配分接続 | 3/5 | 状態判定は可能、固定配分への自動接続は停止 |",
-                f"| **合計** | **{total_score}/25** | **正準金利経路へ移行済み** |",
+                "| 確認項目 | 結果 |",
+                "| --- | --- |",
+                f"| 最新比較可能日 | {latest_date} |",
+                f"| パー・イールド・カーブ年限数 | {curve_maturity_count} |",
+                f"| 比較スプレッド数 | {len(spread_snapshot)} |",
                 "",
                 "## 限界と反証条件",
                 "",
@@ -192,6 +193,10 @@ def _frame(payload: dict[str, object], key: str, *, required: bool = True) -> pd
     if required:
         raise TypeError(f"Expected DataFrame payload: {key}")
     return pd.DataFrame()
+
+
+def _treasury_maturity_rank(value: object) -> int:
+    return _TREASURY_MATURITY_ORDER.get(str(value), len(_TREASURY_MATURITY_ORDER))
 
 
 def _format_bp(value: object) -> str:
