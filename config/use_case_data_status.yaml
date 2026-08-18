@@ -10,7 +10,7 @@ use_cases:
     state: governed_blocked
     required_contracts: [ice_bofa_oas]
     owner_source: ICE Data Indices / FRED
-    note: ETF代理系列は廃止済み。ICE BofA OASは公開再配布権を確認できるまで数値更新を停止。
+    note: FRED経由のICE BofA Top Level Dataはinternal useのみ。public Pagesとcustomer deliveryはICE Dataのprior written approvalがない限り不可。CrewTradeには書面承認記録がなく、公開・第三者納品は停止し、private canonical storageが実装されるまでinternal ingestionも有効化しない。
   yield_spread:
     title: 金利・イールドスプレッド
     state: canonical_active
