@@ -41,5 +41,8 @@ def test_report_orders_treasury_maturities_and_has_no_custom_score(tmp_path) -> 
 
     positions = [report.index(f"| {tenor} |") for tenor in ("1M", "1.5M", "2Y", "10Y", "30Y")]
     assert positions == sorted(positions)
-    assert "## 評価" not in report
+    assert "## 評価" in report
+    assert "| パー・イールド・カーブ年限数 | 5 |" in report
+    assert "| 比較スプレッド数 | 1 |" in report
     assert "/25" not in report
+    assert "評価軸" not in report
