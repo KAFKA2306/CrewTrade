@@ -35,7 +35,9 @@ def test_precious_metals_status_records_current_iba_licensing(tmp_path: Path) ->
         root=tmp_path / "missing",
     )
     row = next(
-        item for item in status["use_cases"] if item["slug"] == "precious_metals_spread"
+        item
+        for item in status["use_cases"]
+        if item["slug"] == "precious_metals_spread"
     )
 
     assert row["runtime_state"] == "governed_blocked"
