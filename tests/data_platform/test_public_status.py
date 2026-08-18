@@ -34,11 +34,8 @@ def test_precious_metals_status_records_current_iba_licensing(tmp_path: Path) ->
         migration_config_path=MIGRATION_CONFIG,
         root=tmp_path / "missing",
     )
-    row = next(
-        item
-        for item in status["use_cases"]
-        if item["slug"] == "precious_metals_spread"
-    )
+    rows_by_slug = {item["slug"]: item for item in status["use_cases"]}
+    row = rows_by_slug["precious_metals_spread"]
 
     assert row["runtime_state"] == "governed_blocked"
     assert row["owner_source"] == "LBMA / ICE Benchmark Administration (IBA)"
