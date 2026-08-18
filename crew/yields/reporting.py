@@ -145,7 +145,9 @@ class YieldSpreadReporter:
                     f"| {pd.Timestamp(row['date']).date()} | {row['spread']} | {row['direction']} | {float(row['spread_bp']):+.1f}bp | {float(row['change_20d_bp']):+.1f}bp | {float(row['z_score']):+.2f} |"
                 )
 
-        curve_maturity_count = int(curve_snapshot["tenor"].nunique()) if not curve_snapshot.empty else 0
+        curve_maturity_count = (
+            int(curve_snapshot["tenor"].nunique()) if not curve_snapshot.empty else 0
+        )
         lines.extend(
             [
                 "",
