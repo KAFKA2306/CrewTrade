@@ -6,9 +6,9 @@
       "quality_status": "ok",
       "raw_sha256": "aa6fb6fa3d288dbee3a34e393c21134274cdbe44fce3b2d0be1afa430f454021",
       "retrieval_mode": "official_year_xml_snapshots",
-      "retrieved_at": "2026-08-17T21:00:20+00:00",
+      "retrieved_at": "2026-08-18T01:20:07+00:00",
       "row_count": 3280,
-      "run_id": "20260817T210017Z-c990d7b5",
+      "run_id": "20260818T012005Z-9d767532",
       "source": "us_treasury",
       "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026"
     },
@@ -18,9 +18,9 @@
       "quality_status": "ok",
       "raw_sha256": "aa6fb6fa3d288dbee3a34e393c21134274cdbe44fce3b2d0be1afa430f454021",
       "retrieval_mode": "official_year_xml_snapshots",
-      "retrieved_at": "2026-08-17T21:00:20+00:00",
+      "retrieved_at": "2026-08-18T01:20:07+00:00",
       "row_count": 8903,
-      "run_id": "20260817T210017Z-c990d7b5",
+      "run_id": "20260818T012005Z-9d767532",
       "source": "us_treasury",
       "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026"
     },
@@ -30,9 +30,9 @@
       "quality_status": "ok",
       "raw_sha256": "aa6fb6fa3d288dbee3a34e393c21134274cdbe44fce3b2d0be1afa430f454021",
       "retrieval_mode": "official_year_xml_snapshots",
-      "retrieved_at": "2026-08-17T21:00:20+00:00",
+      "retrieved_at": "2026-08-18T01:20:07+00:00",
       "row_count": 3280,
-      "run_id": "20260817T210017Z-c990d7b5",
+      "run_id": "20260818T012005Z-9d767532",
       "source": "us_treasury",
       "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2026"
     }
@@ -40,14 +40,14 @@
   "decision": "READY_FOR_REVIEW",
   "declared_state": "canonical_active",
   "distribution_decision": "RIGHTS_UNVERIFIED",
-  "evidence_fingerprint": "f114e807f8d35cfc13199c3cfd9adae692da6fdc209e6f1ad8269511978e1360",
+  "evidence_fingerprint": "00cf09d590b3eea234b6c2fa2243b46adb800e07ae39fa0c32e7187a4ff88d57",
   "external_distribution_authorized": false,
   "failed_datasets": [],
   "missing_datasets": [],
   "report": {
     "exists": true,
     "path": "output/use_cases/yield_spread/20260818/report.md",
-    "sha256": "7ba880d602809533fca28b11bad5c629e948d97206165ee1d8f75292d82f287e"
+    "sha256": "2514953ae71c1332327157f0199153b15698393e76ccb02211807570c37201fe"
   },
   "required_datasets": [
     "rates_macro",
