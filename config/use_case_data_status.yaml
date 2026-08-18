@@ -51,8 +51,8 @@ use_cases:
     title: 貴金属スプレッド
     state: governed_blocked
     required_contracts: [lbma_benchmarks]
-    owner_source: LBMA
-    note: 履歴保存・再配布ライセンスが整うまで日次シグナル停止。
+    owner_source: LBMA / ICE Benchmark Administration (IBA)
+    note: Gold・Silver・Platinum・Palladiumの4 benchmarkは2026-07-01以降すべてIBAが管理。real-timeまたはhistorical benchmark dataの取得・利用・再配布にはIBA licenceが必要なため、CrewTradeに利用許諾記録がない間はinternal analysis・public Pages・customer deliveryのいずれにもbenchmark値を取得・配布しない。LBMAの遅延表示をhistorical datasetの再配布許諾とは扱わない。
   securities_collateral_loan:
     title: 証券担保ローン
     state: private_input_required
