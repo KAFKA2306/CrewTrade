@@ -1,0 +1,92 @@
+{
+  "datasets": [
+    {
+      "dataset": "rates_macro",
+      "point_in_time_vintage": false,
+      "quality_status": "ok",
+      "raw_sha256": "ed4d8a85687a5fec6dea1d0aa9ec2020a139ecadbc915e3687467017d3943b8e",
+      "retrieval_mode": "official_year_xml_snapshots",
+      "retrieved_at": "2026-09-07T22:53:10+00:00",
+      "row_count": 3350,
+      "run_id": "20260907T225307Z-d592dce7",
+      "source": "us_treasury",
+      "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026"
+    },
+    {
+      "dataset": "treasury_par_yield_curve",
+      "point_in_time_vintage": false,
+      "quality_status": "ok",
+      "raw_sha256": "ed4d8a85687a5fec6dea1d0aa9ec2020a139ecadbc915e3687467017d3943b8e",
+      "retrieval_mode": "official_year_xml_snapshots",
+      "retrieved_at": "2026-09-07T22:53:10+00:00",
+      "row_count": 9099,
+      "run_id": "20260907T225307Z-d592dce7",
+      "source": "us_treasury",
+      "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026"
+    },
+    {
+      "dataset": "treasury_par_real_yield_curve",
+      "point_in_time_vintage": false,
+      "quality_status": "ok",
+      "raw_sha256": "ed4d8a85687a5fec6dea1d0aa9ec2020a139ecadbc915e3687467017d3943b8e",
+      "retrieval_mode": "official_year_xml_snapshots",
+      "retrieved_at": "2026-09-07T22:53:10+00:00",
+      "row_count": 3350,
+      "run_id": "20260907T225307Z-d592dce7",
+      "source": "us_treasury",
+      "source_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2026"
+    }
+  ],
+  "decision": "READY_FOR_REVIEW",
+  "declared_state": "canonical_active",
+  "distribution_decision": "RIGHTS_UNVERIFIED",
+  "evidence_fingerprint": "d723dbeb260457120f05d25ec72b89d38dba911ed592d1b7e3e65433268d187c",
+  "external_distribution_authorized": false,
+  "failed_datasets": [],
+  "missing_datasets": [],
+  "report": {
+    "exists": true,
+    "path": "output/use_cases/yield_spread/20260908/report.md",
+    "sha256": "3b7472de94dd846b7cb4a97f914af73d7bcc7115b90953618e9701a1acb06303"
+  },
+  "required_datasets": [
+    "rates_macro",
+    "treasury_par_yield_curve",
+    "treasury_par_real_yield_curve"
+  ],
+  "rights": {
+    "datasets": [
+      {
+        "dataset": "rates_macro",
+        "license_status": null,
+        "rights_evidence_status": "not_declared",
+        "rights_source_url": null,
+        "source": "treasury_yield_curve"
+      },
+      {
+        "dataset": "treasury_par_yield_curve",
+        "license_status": null,
+        "rights_evidence_status": "not_declared",
+        "rights_source_url": null,
+        "source": "treasury_yield_curve"
+      },
+      {
+        "dataset": "treasury_par_real_yield_curve",
+        "license_status": null,
+        "rights_evidence_status": "not_declared",
+        "rights_source_url": null,
+        "source": "treasury_yield_curve"
+      }
+    ],
+    "missing_declarations": [
+      "rates_macro",
+      "treasury_par_yield_curve",
+      "treasury_par_real_yield_curve"
+    ],
+    "scope": "Rights evidence is read only from explicit repository configuration. The pack never infers redistribution permission from an official publisher, a reachable URL, or a successful data fetch. RIGHTS_REVIEW_REQUIRED still requires an explicit human publication decision."
+  },
+  "runtime_state": "ok",
+  "schema_version": 2,
+  "scope": "READY_FOR_REVIEW proves that the report artifact is identified and all declared canonical datasets have current passing lineage records. It does not prove that the report's financial conclusions are correct or authorize publication.",
+  "use_case": "yield_spread"
+}
